@@ -3,3 +3,9 @@
 
 # Ada Library Information
 *.ali
+/obj
+
+/disks
+/logs
+/tapes
+

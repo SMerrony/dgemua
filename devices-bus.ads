@@ -1,0 +1,62 @@
+-- MIT License
+
+-- Copyright (c) 2021 Stephen Merrony
+
+-- Permission is hereby granted, free of charge, to any person obtaining a copy
+-- of this software and associated documentation files (the "Software"), to deal
+-- in the Software without restriction, including without limitation the rights
+-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-- copies of the Software, and to permit persons to whom the Software is
+-- furnished to do so, subject to the following conditions:
+
+-- The above copyright notice and this permission notice shall be included in all
+-- copies or substantial portions of the Software.
+
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+-- SOFTWARE.
+
+with Ada.Containers; use Ada.Containers;
+with Ada.Containers.Vectors;
+
+with DG_Types;   use DG_Types;
+
+package Devices.Bus is
+
+    type IRQ_Prio_Arr is array(0..15) of Boolean;
+
+    package Dev_Prio_Vec is new Ada.Containers.Vectors 
+        (Index_Type   => Natural, Element_Type => Dev_Num_T);
+    use Dev_Prio_Vec;
+
+    type Dev_Prio_Arr is array(0 .. 15) of Vector;
+    type Int_Dev_Arr  is array(Dev_Num_T'Range) of Boolean;
+
+    type Bus_T is record
+       Devices  : Devices_Arr_T;
+       IRQ_Mask : Word_T;
+       IRQ      : Boolean;
+       IRQs_By_Priority : IRQ_Prio_Arr;
+       Devs_By_Priority : Dev_Prio_Arr;
+       Interrupting_Dev : Int_Dev_Arr;
+    end record;
+
+    protected Actions is
+        procedure Init;
+        procedure Attach (Dev : in Dev_Num_T);
+        procedure Set_Reset_Proc (Dev : in Dev_Num_T; Reset_Proc : in Reset_Proc_T);
+        procedure Set_Data_Out_Proc (Dev : in Dev_Num_T; Data_Out_Proc : in Data_Out_Proc_T);
+        procedure Set_Data_In_Func (Dev : in Dev_Num_T; Data_In_Func : in Data_In_Func_T);
+        function  Is_Dev_Masked (Dev : in Dev_Num_T) return Boolean;
+        procedure Send_Interrupt (Dev : in Dev_Num_T);
+        procedure Clear_Interrupt (Dev : in Dev_Num_T); 
+        procedure Set_Busy (Dev : in Dev_Num_T; Busy_State : in Boolean);
+        procedure Set_Done (Dev : in Dev_Num_T; Done_State : in Boolean);
+    private
+        Bus : Bus_T;
+    end Actions;
+end Devices.Bus;
