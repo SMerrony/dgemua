@@ -58,12 +58,25 @@ package CPU is
       SCP_IO            : Boolean; -- True if console I/O is directed to the SCP
    end record;
 
+   -- Data sent to the Status_Monitor
+   type CPU_Monitor_Rec is record
+      PC                       : Phys_Addr_T; -- 32-bit PC
+      AC                       : Acc_T;       -- 4 x 32-bit Accumulators
+      Carry, ATU, ION          : Boolean;     -- flag bits
+      Instruction_Count        : Unsigned_64;
+   end record;
+
    protected Actions is
       procedure Init;
       procedure Reset;
-      procedure Set_OVR (New_OVR : Boolean);
+      procedure Set_OVR (New_OVR : in Boolean);
+      function  Get_Status return CPU_Monitor_Rec;
    private
       CPU : CPU_T;
    end Actions;
+
+   task Status_Sender is
+        entry Start;
+   end Status_Sender;
 
 end CPU;

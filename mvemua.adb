@@ -31,6 +31,7 @@ with Devices;
 with Devices.Bus;
 with Devices.Console;
 with Memory;
+with Status_Monitor;
 
 
 procedure MVEmuA is
@@ -42,6 +43,7 @@ procedure MVEmuA is
     
 
    Console_Port : constant GNAT.Sockets.Port_Type := 10_000;
+   Monitor_Port : constant GNAT.Sockets.Port_Type := 10_001;
 
    Receiver   : GNAT.Sockets.Socket_Type;
    Connection : GNAT.Sockets.Socket_Type;
@@ -75,7 +77,7 @@ begin
 		--   One HDD
 		--   A generous(!) 16MB (8MW) RAM
 		--   NO IACs, LPT or ISC
-
+      Status_Monitor.Monitor.Start (Monitor_Port);
       Memory.RAM.Init (Debug_Logging);
       Devices.Bus.Actions.Init;
       Devices.Bus.Actions.Attach (Devices.BMC);
@@ -94,6 +96,8 @@ begin
       -- say hello...
       Devices.Console.TTOut.Put_Char (ASCII.FF);
       Devices.Console.TTOut.Put_String (" *** Welcome to the MV/Emulator - Type HE for help ***" & ASCII.LF);
+
+
 
       begin
          loop

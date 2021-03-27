@@ -20,27 +20,20 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Interfaces; use Interfaces;
+with GNAT.Sockets;
 
-package DG_Types is
+with CPU;
 
-    type Byte_T   is new Unsigned_8;
-    type Word_T   is new Unsigned_16;
-    type Dword_T  is new Unsigned_32;
-    type Qword_T  is new Unsigned_64;
+package Status_Monitor is
 
-    type Phys_Addr_T is new Unsigned_32;
+    task Monitor is
+        entry Start (Port : in GNAT.Sockets.Port_Type);
+        entry CPU_Update (Stats : in CPU.CPU_Monitor_Rec);
+        entry Stop;
+    end Monitor;
 
-    Dasher_NL          : constant Character := Character'Val(8#12#);
-    Dasher_Erase_EOL   : constant Character := Character'Val(8#13#);
-    Dasher_Erase_Page  : constant Character := Character'Val(8#14#);
-    Dasher_Write_Window_Addr : constant Character := Character'Val(8#20#); -- followed by col, row
-    Dasher_Underline   : constant Character := Character'Val(8#24#);
-    Dasher_Normal      : constant Character := Character'Val(8#25#);
-    Dasher_Cursor_Left : constant Character := Character'Val(8#31#);
-    Dasher_Dim_On      : constant Character := Character'Val(8#34#);
-    Dasher_Dim_Off     : constant Character := Character'Val(8#35#);
-    Dasher_Delete      : constant Character := Character'Val(8#177#);
+    CPU_Row_1 : constant Integer := 3;
+    CPU_Row_2 : constant Integer := 5;
 
 
-end DG_Types;
+end Status_Monitor;

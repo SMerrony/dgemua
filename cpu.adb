@@ -24,6 +24,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with CPU.Decoder;
 with Memory;
+with Status_Monitor;
 
 package body CPU is
 
@@ -33,7 +34,7 @@ package body CPU is
       begin
          Reset;
          Decoder.Generate_All_Possible_Opcodes;
-         -- TODO Start stats sender
+         Status_Sender.Start;
       end Init;
 
       procedure Reset  is
@@ -53,7 +54,7 @@ package body CPU is
          Put_Line ("INFO: CPU reset");
       end Reset;
 
-      procedure Set_OVR (New_OVR : Boolean) is
+      procedure Set_OVR (New_OVR : in Boolean) is
       begin
         if New_OVR then
             Memory.Set_W_Bit(CPU.PSR, 1);
@@ -62,6 +63,37 @@ package body CPU is
         end if;
       end Set_OVR;
 
+      function Get_Status return CPU_Monitor_Rec is
+         Stats : CPU_Monitor_Rec;
+      begin
+         Stats.PC := CPU.PC;
+         Stats.AC := CPU.AC;
+         Stats.Carry := CPU.Carry;
+         Stats.ATU   := CPU.ATU;
+         Stats.ION   := CPU.ION;
+         Stats.Instruction_Count := CPU.Instruction_Count;
+         return Stats;
+      end Get_Status;
+
    end Actions;
+
+   task body Status_Sender is 
+      Stats : CPU_Monitor_Rec;
+   begin
+      accept Start do
+         Put_line ("INFO: CPU Status Sender started");
+      end Start;
+      loop
+         Stats := Actions.Get_Status;
+         select 
+            Status_Monitor.Monitor.CPU_Update (Stats);
+            Put_Line ("INFO: CPU Status sender sent update");
+         else
+            delay 5.0;
+            Put_Line ("INFO: CPU Status sender waiting 5s");
+         end select;
+         delay 0.333;
+      end loop;
+   end Status_Sender;
 
 end CPU;
