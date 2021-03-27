@@ -70,6 +70,7 @@ package CPU is
       procedure Init;
       procedure Reset;
       procedure Set_OVR (New_OVR : in Boolean);
+      procedure Set_SCP_IO (SCP_IO : in Boolean);
       function  Get_Status return CPU_Monitor_Rec;
    private
       CPU : CPU_T;

@@ -51,7 +51,7 @@ package Debug_Logs is
     type Log_Arr_T is array (Logs'Range, 1..Num_Lines) of Unbounded_String;
     type Log_Ptr_T is array (Logs'Range) of Integer;
 
-    protected type Loggers is
+    protected Loggers is
         procedure Debug_Logs_Dump (Directory : Unbounded_String);
         procedure Debug_Print (Log : Logs; Msg : Unbounded_String);
     private

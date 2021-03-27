@@ -63,6 +63,11 @@ package body CPU is
         end if;
       end Set_OVR;
 
+      procedure Set_SCP_IO (SCP_IO : in Boolean) is
+      begin
+         CPU.SCP_IO := SCP_IO;
+      end Set_SCP_IO;
+
       function Get_Status return CPU_Monitor_Rec is
          Stats : CPU_Monitor_Rec;
       begin

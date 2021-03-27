@@ -1,6 +1,8 @@
 # Object file
 *.o
 
+mvemua
+
 # Ada Library Information
 *.ali
 /obj
