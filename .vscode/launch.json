@@ -6,12 +6,12 @@
     "configurations": [
         {
             "name": "(gdb) Launch",
+            "type": "cppdbg",
             "request": "launch",
-            "program": "./mvemua",
+            "program": "${workspaceFolder}/mvemua",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            // "valuesFormatting": "parseText",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -22,6 +22,6 @@
                     "ignoreFailures": true
                 }
             ]
-        }
+        },
     ]
 }

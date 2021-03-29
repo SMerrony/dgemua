@@ -49,11 +49,12 @@ package Debug_Logs is
         Sc_Log    => To_Unbounded_String ("syscall_debug.log"));
 
     type Log_Arr_T is array (Logs'Range, 1..Num_Lines) of Unbounded_String;
-    type Log_Ptr_T is array (Logs'Range) of Integer;
+    type Log_Ptr_T is array (Logs'Range) of Positive;
 
     protected Loggers is
-        procedure Debug_Logs_Dump (Directory : Unbounded_String);
-        procedure Debug_Print (Log : Logs; Msg : Unbounded_String);
+        procedure Init;
+        procedure Debug_Logs_Dump (Directory : in String);
+        procedure Debug_Print (Log : in Logs; Msg : in String);
     private
         Log_Array : Log_Arr_T;
         First_Line, Last_Line : Log_Ptr_T;

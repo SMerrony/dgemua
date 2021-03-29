@@ -23,22 +23,32 @@
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
+with DG_Types;   use DG_Types;
+
 package body Debug_Logs is
 
     protected body Loggers is
 
-    procedure Debug_Logs_Dump (Directory : Unbounded_String) is
+    procedure Init is
+    begin
+        for L in Logs'Range loop
+            First_Line(L) := 1;
+            Last_Line(L) := 1;
+        end loop;
+    end Init;
+
+    procedure Debug_Logs_Dump (Directory : in String) is
         Write_Path : Unbounded_String;
         Write_File : File_Type;
-        This_Line  : Integer;
+        This_Line  : Positive;
     begin
         for L in Logs'Range loop
            if First_Line(L) /= Last_Line(L) then -- ignore unused or empty logs
               Write_Path := Directory & "/" & Log_Filenames(L);
               Create (Write_File, Out_File, To_String (Write_Path));
               This_Line := First_Line(L);
-              while This_Line /= Last_Line(L) loop
-                 Unbounded_String'Write (Stream(Write_File), Log_Array(L, This_Line));
+              while This_Line /= Last_Line(L) + 1 loop
+                 String'Write (Stream(Write_File), To_String(Log_Array(L, This_Line) & Dasher_NL));
                  This_Line := This_Line + 1;
                  if This_Line = Num_Lines then
                     This_Line := 1;
@@ -52,12 +62,12 @@ package body Debug_Logs is
     -- Debug_Print doesn't print anything!  It stores the log message
     -- in array-backed circular arrays written out when debugLogsDump() is invoked.
     -- This proc can be called very often, KISS...
-    procedure Debug_Print (Log : Logs; Msg : Unbounded_String) is
+    procedure Debug_Print (Log : in Logs; Msg : in String) is
     begin
         Last_Line(Log) := Last_Line(Log) + 1;
 
         if Last_Line(Log) = Num_Lines then
-            Last_Line(Log) := 0;    -- wrap-around
+            Last_Line(Log) := 1;    -- wrap-around
         end if;
 
         -- has the tail hit the head of the circular buffer?
@@ -68,7 +78,7 @@ package body Debug_Logs is
             end if;
         end if;
 
-        Log_Array(Log, Last_Line(Log)) := Msg;
+        Log_Array(Log, Last_Line(Log)) := To_Unbounded_String(Msg);
     end Debug_Print;
 
     end Loggers;
