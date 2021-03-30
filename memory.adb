@@ -108,32 +108,41 @@ package body Memory is
       end if;
    end Boolean_To_YN;
 
-   -- Convert an (unsigned) Double-Word to a String 
-   function Dword_To_String (DW : in Dword_T; Base : Integer; Width: Integer) return String is
-      Res : String(1..Width);
-      Tmp_DW : Dword_T := DW;
-      Bas_DW : Dword_T := Dword_T(Base);
+   -- Convert an (unsigned) Double-Word to a String
+   function Dword_To_String
+     (DW       : in Dword_T; Base : in Integer; Width : in Integer;
+      Zero_Pad : in Boolean := False) return String
+   is
+      Res       : String (1 .. Width);
+      Tmp_DW    : Dword_T          := DW;
+      Bas_DW    : Dword_T          := Dword_T (Base);
       Remainder : Integer;
-      Octals   : String(1..8) := "01234567";
-      Decimals : String(1..10) := "0123456789";
-      Hexes    : String(1..16) := "0123456789ABCDEF";
-      Col      : Integer := Width;
+      Octals    : String (1 .. 8)  := "01234567";
+      Decimals  : String (1 .. 10) := "0123456789";
+      Hexes     : String (1 .. 16) := "0123456789ABCDEF";
+      Col       : Integer          := Width;
    begin
-      for C in Res'Range loop
-         Res(C) := ' ';
-      end loop;
+      if Zero_Pad then
+         for C in Res'Range loop
+            Res (C) := '0';
+         end loop;
+      else
+         for C in Res'Range loop
+            Res (C) := ' ';
+         end loop;
+      end if;
       loop
-         Remainder := Integer(Tmp_DW mod Bas_DW);
-         Tmp_DW := Tmp_DW / Bas_DW;
+         Remainder := Integer (Tmp_DW mod Bas_DW);
+         Tmp_DW    := Tmp_DW / Bas_DW;
          case Base is
             when 8 =>
-               Res(Col) := Octals(Remainder+1);
+               Res (Col) := Octals (Remainder + 1);
             when 10 =>
-               Res(Col) := Decimals(Remainder+1);
+               Res (Col) := Decimals (Remainder + 1);
             when 16 =>
-               Res(Col) := Hexes(Remainder+1);  
+               Res (Col) := Hexes (Remainder + 1);
             when others =>
-               null;             
+               null;
          end case;
          Col := Col - 1;
          exit when Tmp_DW = 0 or Col = 0;

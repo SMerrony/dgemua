@@ -39,31 +39,31 @@ package Memory is
     IO_Chan_Mask_Reg    : constant Integer := 8#7701#; -- 4033.
     CPU_Dedication_Ctrl : constant Integer := 8#7702#; -- 4034.
 
-    IOC_CDR_ICE  : constant Word_T := 2#1000_0000_0000_0000#;
-    IOC_CDR_BVE  : constant Word_T := 2#0001_0000_0000_0000#;
-    IOC_CDR_DVE  : constant Word_T := 2#0000_1000_0000_0000#;
-    IOC_CDR_DCH  : constant Word_T := 2#0000_0100_0000_0000#;
-    IOC_CDR_BMC  : constant Word_T := 2#0000_0010_0000_0000#;
-    IOC_CDR_BAP  : constant Word_T := 2#0000_0001_0000_0000#;
-    IOC_CDR_BDP  : constant Word_T := 2#0000_0000_1000_0000#;
-    IOC_CDR_DME  : constant Word_T := 2#0000_0000_0000_0010#;
-    IOC_CDR_1    : constant Word_T := 2#0000_0000_0000_0001#;
+    IOC_CDR_ICE : constant Word_T := 2#1000_0000_0000_0000#;
+    IOC_CDR_BVE : constant Word_T := 2#0001_0000_0000_0000#;
+    IOC_CDR_DVE : constant Word_T := 2#0000_1000_0000_0000#;
+    IOC_CDR_DCH : constant Word_T := 2#0000_0100_0000_0000#;
+    IOC_CDR_BMC : constant Word_T := 2#0000_0010_0000_0000#;
+    IOC_CDR_BAP : constant Word_T := 2#0000_0001_0000_0000#;
+    IOC_CDR_BDP : constant Word_T := 2#0000_0000_1000_0000#;
+    IOC_CDR_DME : constant Word_T := 2#0000_0000_0000_0010#;
+    IOC_CDR_1   : constant Word_T := 2#0000_0000_0000_0001#;
 
     IOC_SR_ERR : constant Word_T := 2#1000_0000_0000_0000#;
-	IOC_SR_DTO : constant Word_T := 2#0000_0000_0010_0000#;
-	IOC_SR_MPE : constant Word_T := 2#0000_0000_0001_0000#;
-	IOC_SR_1A  : constant Word_T := 2#0000_0000_0000_1000#;
-	IOC_SR_1B  : constant Word_T := 2#0000_0000_0000_0100#;
-	IOC_SR_CMB : constant Word_T := 2#0000_0000_0000_0010#;
-	IOC_SR_INT : constant Word_T := 2#0000_0000_0000_0001#;
+    IOC_SR_DTO : constant Word_T := 2#0000_0000_0010_0000#;
+    IOC_SR_MPE : constant Word_T := 2#0000_0000_0001_0000#;
+    IOC_SR_1A  : constant Word_T := 2#0000_0000_0000_1000#;
+    IOC_SR_1B  : constant Word_T := 2#0000_0000_0000_0100#;
+    IOC_SR_CMB : constant Word_T := 2#0000_0000_0000_0010#;
+    IOC_SR_INT : constant Word_T := 2#0000_0000_0000_0001#;
 
-	IOC_MR_MK0 : constant Word_T := 2#0000_0000_1000_0000#;
-	IOC_MR_MK1 : constant Word_T := 2#0000_0000_0100_0000#;
-	IOC_MR_MK2 : constant Word_T := 2#0000_0000_0010_0000#;
-	IOC_MR_MK3 : constant Word_T := 2#0000_0000_0001_0000#;
-	IOC_MR_MK4 : constant Word_T := 2#0000_0000_0000_1000#;
-	IOC_MR_MK5 : constant Word_T := 2#0000_0000_0000_0100#;
-	IOC_MR_MK6 : constant Word_T := 2#0000_0000_0000_0010#;
+    IOC_MR_MK0 : constant Word_T := 2#0000_0000_1000_0000#;
+    IOC_MR_MK1 : constant Word_T := 2#0000_0000_0100_0000#;
+    IOC_MR_MK2 : constant Word_T := 2#0000_0000_0010_0000#;
+    IOC_MR_MK3 : constant Word_T := 2#0000_0000_0001_0000#;
+    IOC_MR_MK4 : constant Word_T := 2#0000_0000_0000_1000#;
+    IOC_MR_MK5 : constant Word_T := 2#0000_0000_0000_0100#;
+    IOC_MR_MK6 : constant Word_T := 2#0000_0000_0000_0010#;
 
     type BMC_DCH_Regs_Array is array (0 .. Last_Reg) of Word_T;
 
@@ -88,11 +88,13 @@ package Memory is
     end BMC_DCH;
 
     procedure Clear_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
-    procedure Set_W_Bit (Word : in out Word_T; Bit_Num : in Integer);  
-    function Test_W_Bit (Word : in Word_T; Bit_Num : in Integer) return Boolean;
+    procedure Set_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
+    function Test_W_Bit
+       (Word : in Word_T; Bit_Num : in Integer) return Boolean;
     function Get_Lower_Byte (Word : in Word_T) return Byte_T;
     function Boolean_To_YN (B : Boolean) return Character;
-    function Dword_To_String (DW : in Dword_T; Base : Integer; Width: Integer) return String;
-    
+    function Dword_To_String
+       (DW       : in Dword_T; Base : in Integer; Width : in Integer;
+        Zero_Pad : in Boolean := false) return String;
 
 end Memory;

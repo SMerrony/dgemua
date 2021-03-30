@@ -84,7 +84,7 @@ package body Status_Monitor is
                   Character'Val (CPU_Row_1) & Dasher_Erase_EOL);
                -- "PC:  %011o   Interrupts: %s    ATU: %s     IPS: %.fk/sec"
                Put (To => PC_Str, Item => Integer (Stats.PC), Base => 8);
-               String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(Stats.PC), 8, 12) & "   Interrupts: ");
+               String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(Stats.PC), 8, 12, true) & "   Interrupts: ");
                -- String'Write (Channel, "PC:  " & "FRED" & "   Interrupts: ");
                String'Write
                  (Channel,
