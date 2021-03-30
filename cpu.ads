@@ -69,6 +69,7 @@ package CPU is
    protected Actions is
       procedure Init;
       procedure Reset;
+      function  Disassemble_Range( Low_Addr, High_Addr : Phys_Addr_T) return String;
       procedure Set_OVR (New_OVR : in Boolean);
       procedure Set_SCP_IO (SCP_IO : in Boolean);
       function  Get_Status return CPU_Monitor_Rec;

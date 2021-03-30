@@ -91,10 +91,18 @@ package Memory is
     procedure Set_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
     function Test_W_Bit
        (Word : in Word_T; Bit_Num : in Integer) return Boolean;
+    function Get_W_Bits (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T;
     function Get_Lower_Byte (Word : in Word_T) return Byte_T;
+    function Get_Upper_Byte (Word : in Word_T) return Byte_T;
+    procedure Get_Bytes_From_Word (Word : in Word_T; Low_Byte, High_Byte : out Byte_T);
     function Boolean_To_YN (B : Boolean) return Character;
     function Dword_To_String
        (DW       : in Dword_T; Base : in Integer; Width : in Integer;
-        Zero_Pad : in Boolean := false) return String;
+        Zero_Pad : in Boolean := False) return String;
+    function String_To_Dword
+       (Str : in String; Base : in Integer) return Dword_T;
+    function Byte_To_String
+       (Byt      : in Byte_T; Base : in Integer; Width : in Integer;
+        Zero_Pad : in Boolean := False) return String;   
 
 end Memory;

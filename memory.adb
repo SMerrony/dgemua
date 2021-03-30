@@ -21,6 +21,7 @@
 -- SOFTWARE.
 
 with Ada.Text_IO;           use Ada.Text_IO;
+with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 package body Memory is
@@ -93,11 +94,32 @@ package body Memory is
       return (Word and Shift_Left (1, 15 - Bit_Num)) /= 0;
    end Test_W_Bit;
 
+   -- Get_W_Bits - in the DG world, the first (leftmost) bit is numbered zero...
+   -- extract nbits from value starting at leftBit
+   function Get_W_Bits (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T is
+      Mask : Word_T := Shift_Left (1, Num_Bits) - 1;
+   begin
+      if First_Bit >= 16 then return 0; end if;
+      return Shift_Right( Word, 16 - (First_Bit + Num_Bits)) and Mask;
+   end Get_W_Bits;
+
    -- return DG lower (RH) byte of a Word
    function Get_Lower_Byte (Word : in Word_T) return Byte_T is
    begin
       return Byte_T (Word and 16#00ff#);
    end Get_Lower_Byte;
+
+   -- return DG Upper (LH) byte of a Word
+   function Get_Upper_Byte (Word : in Word_T) return Byte_T is
+   begin
+      return Byte_T (Shift_Right(Word and 16#ff00#, 8));
+   end Get_Upper_Byte;
+
+   procedure Get_Bytes_From_Word (Word : in Word_T; Low_Byte, High_Byte : out Byte_T) is
+   begin
+      Low_Byte := Byte_T (Word and 16#00ff#);
+      High_Byte := Byte_T (Shift_Right(Word and 16#ff00#, 8));
+   end Get_Bytes_From_Word;
 
    function Boolean_To_YN (B : Boolean) return Character is
    begin
@@ -107,6 +129,29 @@ package body Memory is
          return 'N';
       end if;
    end Boolean_To_YN;
+
+   -- String_To_Dword tries to convert an unsigned string in the given base
+   function String_To_Dword (Str : in String; Base : in Integer) return Dword_T
+   is
+      Res : Dword_T := 0;
+      Hex : Integer;
+   begin
+      for C of Str loop
+         case Base is
+            when 8 =>
+               Res := (Res * 8) + Dword_T'Value((1 => C));
+            when 10 =>
+               Res := (Res * 10) + Dword_T'Value((1 => C));
+            when 16 =>
+               Hex := Ada.Strings.Fixed.Index ( "0123456789ABCDEF", C'Image ) - 1 ;
+               Res := (Res * 16) + Dword_T (Hex);
+            when others =>
+               null;
+         end case;  
+      end loop;
+      return Res;
+   end String_To_Dword;
+
 
    -- Convert an (unsigned) Double-Word to a String
    function Dword_To_String
@@ -149,5 +194,47 @@ package body Memory is
       end loop;
       return Res;
    end Dword_To_String;
+
+   -- Convert an (unsigned) Byte to a String
+   function Byte_To_String
+     (Byt       : in Byte_T; Base : in Integer; Width : in Integer;
+      Zero_Pad : in Boolean := False) return String
+   is
+      Res       : String (1 .. Width);
+      Tmp_Byt    : Byte_T          := Byt;
+      Bas_Byt    : Byte_T          := Byte_T (Base);
+      Remainder : Integer;
+      Octals    : String (1 .. 8)  := "01234567";
+      Decimals  : String (1 .. 10) := "0123456789";
+      Hexes     : String (1 .. 16) := "0123456789ABCDEF";
+      Col       : Integer          := Width;
+   begin
+      if Zero_Pad then
+         for C in Res'Range loop
+            Res (C) := '0';
+         end loop;
+      else
+         for C in Res'Range loop
+            Res (C) := ' ';
+         end loop;
+      end if;
+      loop
+         Remainder := Integer (Tmp_Byt mod Bas_Byt);
+         Tmp_Byt    := Tmp_Byt / Bas_Byt;
+         case Base is
+            when 8 =>
+               Res (Col) := Octals (Remainder + 1);
+            when 10 =>
+               Res (Col) := Decimals (Remainder + 1);
+            when 16 =>
+               Res (Col) := Hexes (Remainder + 1);
+            when others =>
+               null;
+         end case;
+         Col := Col - 1;
+         exit when Tmp_Byt = 0 or Col = 0;
+      end loop;
+      return Res;
+   end Byte_To_String;
 
 end Memory;

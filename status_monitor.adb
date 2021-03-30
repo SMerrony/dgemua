@@ -84,12 +84,18 @@ package body Status_Monitor is
                   Character'Val (CPU_Row_1) & Dasher_Erase_EOL);
                -- "PC:  %011o   Interrupts: %s    ATU: %s     IPS: %.fk/sec"
                Put (To => PC_Str, Item => Integer (Stats.PC), Base => 8);
-               String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(Stats.PC), 8, 12, true) & "   Interrupts: ");
-               -- String'Write (Channel, "PC:  " & "FRED" & "   Interrupts: ");
+               String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(Stats.PC), 8, 12, true) & 
+                                      "  Interrupts: " & Memory.Boolean_To_YN (Stats.ION) &
+                                      "      ATU: " & Memory.Boolean_To_YN (Stats.ATU) &
+                                      "             MIPS: "  );
                String'Write
                  (Channel,
                   Dasher_Write_Window_Addr & Character'Val (0) &
                   Character'Val (CPU_Row_2) & Dasher_Erase_EOL);
+               String'Write (Channel, "AC0: " &  Memory.Dword_To_String (Stats.AC(0), 8, 12, true) &
+                                      "  AC1: " &  Memory.Dword_To_String (Stats.AC(1), 8, 12, true) &
+                                      "  AC2: " &  Memory.Dword_To_String (Stats.AC(2), 8, 12, true) &
+                                      "  AC3: " &  Memory.Dword_To_String (Stats.AC(3), 8, 12, true));
             end CPU_Update;
          or
             accept MTB_Update (Stats : in Devices.Magtape6026.Status_Rec) do
@@ -99,8 +105,8 @@ package body Status_Monitor is
                   Character'Val (MTB_Row_1) & Dasher_Erase_EOL);
                String'Write
                  (Channel,
-                  "MTA   (MTC0) - Attached: " & Memory.Boolean_To_YN (Stats.Image_Attached(0)) &
-                  "  Mem Addr: " & Phys_Addr_T'Image(Stats.Mem_Addr_Reg) & 
+                  "MTA:  (MTC0) - Attached: " & Memory.Boolean_To_YN (Stats.Image_Attached(0)) &
+                  "  Mem Addr: " & Memory.Dword_To_String (Dword_T(Stats.Mem_Addr_Reg), 8, 12, true) & 
                   "  Curr Cmd: " & Integer'Image(Stats.Current_Cmd));
                String'Write
                  (Channel,

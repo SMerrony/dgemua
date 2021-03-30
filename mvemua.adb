@@ -62,6 +62,8 @@ procedure MVEmuA is
    Command      : Unbounded_String;
    One_Char     : Character;
 
+   Input_Radix  : Integer := 8;
+
    procedure Show_Help is
    begin
       Devices.Console.TTOut.Put_String (Dasher_Erase_Page & "                          " &
@@ -133,6 +135,18 @@ procedure MVEmuA is
       GNAT.OS_Lib.OS_Exit (0);
    end Clean_Exit;
 
+   procedure Disassemble (Command : in Slice_Set) is
+      Low_Addr, High_Addr : Phys_Addr_T;
+   begin
+      if Slice_Count (Command) < 3 then
+         TTOut.Put_String (Dasher_NL & " *** DIS command requires two address arguments ***");
+         return;
+      end if;
+      Low_Addr  := Phys_Addr_T(Memory.String_To_Dword (Slice (Command, 2), Input_Radix));
+      High_Addr := Phys_Addr_T(Memory.String_To_Dword (Slice (Command, 3), Input_Radix));
+      TTOut.Put_String (CPU.Actions.Disassemble_Range(Low_Addr, High_Addr));
+   end Disassemble;
+
    procedure Show (Command : in Slice_Set) is
    begin
       if Slice_Count (Command) < 2 then
@@ -164,6 +178,8 @@ procedure MVEmuA is
          Attach (Words);
       elsif Command = "CHECK" then
          Check (Words);
+      elsif Command = "DIS" then
+         Disassemble (Words);
       elsif Command = "exit" or Command = "EXIT" or command = "quit" or command = "QUIT" then
          Clean_Exit;
       elsif Command = "SHOW" then
@@ -225,6 +241,12 @@ begin
       Devices.Console.TTOut.Put_String (" *** Welcome to the MV/Emulator - Type HE for help ***" & ASCII.LF);
 
       -- TODO - handle DO scripts
+
+      -- JUST TESTING...
+      Memory.RAM.Write_Word( 1, 1);
+      Memory.RAM.Write_Word( 2, 2#0000_0100_0000_0010#);
+      Memory.RAM.Write_Word( 3, 2#0000_0111_0000_0011#);
+      Memory.RAM.Write_Word( 4, 16#1234#);
 
       -- the main SCP/console interaction loop
       CPU.Actions.Set_SCP_IO (true);

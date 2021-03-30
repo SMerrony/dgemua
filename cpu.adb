@@ -20,10 +20,11 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Text_IO;           use Ada.Text_IO;
 
-with CPU.Decoder;
-with Memory;
+with CPU.Decoder;           use CPU.Decoder;
+with Memory;                use Memory;
 with Status_Monitor;
 
 package body CPU is
@@ -54,12 +55,54 @@ package body CPU is
          Put_Line ("INFO: CPU reset");
       end Reset;
 
+      function Disassemble_Range( Low_Addr, High_Addr : Phys_Addr_T) return String is
+         Skip_Decode : Integer := 0;
+         Tmp_Dis : Unbounded_String;
+         Word    : Word_T;
+         Byte_1, Byte_2 : Byte_T;
+         Instr   : Decoded_Instr_T;
+      begin
+         if Low_Addr > High_Addr then
+            return " *** Invalid address range for disassembly ***";
+         end if;
+         for Addr in Low_Addr .. High_Addr loop
+            Word := RAM.Read_Word (Addr);
+            Get_Bytes_From_Word (Word, Byte_1, Byte_2);
+            Tmp_Dis := Tmp_Dis & Dasher_NL & Dword_To_String (Dword_T(Addr), 8, 12, true) & ": " &
+                       Byte_To_String (Byte_2, 16, 2, true) & " " & Byte_To_String (Byte_1, 16, 2, true) & " " &
+                       Dword_To_String(Dword_T(Word), 8, 6, true) & " '";
+            if Byte_1 >= 32 and Byte_1 <= 126 then
+               Tmp_Dis := Tmp_Dis & Byte_1'Image;
+            else
+               Tmp_Dis := Tmp_Dis & " ";
+            end if;
+            if Byte_2 >= 32 and Byte_2 <= 126 then
+               Tmp_Dis := Tmp_Dis & Byte_2'Image;
+            else
+               Tmp_Dis := Tmp_Dis & " ";
+            end if;
+            Tmp_Dis := Tmp_Dis & "' ";
+            if Skip_Decode = 0 then
+               null;
+               -- FIXME decode and disassemble
+               Instr := Instruction_Decode (Word, Addr, true, false, false, true);
+               Tmp_Dis := Tmp_Dis & Instr.Disassembly;
+               if Instr.Instr_Len > 1 then
+                  Skip_Decode := Instr.Instr_Len - 1;
+               end if;
+            else
+               Skip_Decode := Skip_Decode - 1;
+            end if;
+         end loop;
+         return To_String (Tmp_Dis);
+      end Disassemble_Range;
+
       procedure Set_OVR (New_OVR : in Boolean) is
       begin
         if New_OVR then
-            Memory.Set_W_Bit(CPU.PSR, 1);
+            Set_W_Bit(CPU.PSR, 1);
         else
-            Memory.Clear_W_Bit(CPU.PSR, 1);
+            Clear_W_Bit(CPU.PSR, 1);
         end if;
       end Set_OVR;
 

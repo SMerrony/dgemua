@@ -29,37 +29,45 @@ with DG_Types;         use DG_Types;
 
 package CPU.Decoder is
 
-    type Ac_ID is new Integer range 0 .. 3;
+   type Ac_ID is new Integer range 0 .. 3;
 
-    type Decoded_Instr_T is record
-       Instruction   : Instr_Mnemonic_T;
-       Mnemonic      : Unbounded_String;
-       Format        : Instr_Format_T;
-       Instr_Type    : Instr_Class_T;
-       Instr_Len     : Positive;
-       Disp_Offset   : Natural;
-       Disassembly   : Unbounded_String;
-       -- Instruction Parameters
-       Mode          : Integer;
-       Ind           : Boolean;
-       Disp_15       : Word_T;          -- signed 15-bit displacement
-       Disp_31       : Dword_T;         -- signed 31-bit displacement
-       Arg_Count     : Integer;
-       Ac, Acs, Acd  : Ac_ID;           -- single, src, dest ACs  
-       Word_2        : Word_T;          -- 2nd word of instruction
-       ABC           : Character;       -- A/B/C I/O 
-       IO_Flag       : Character;
-    end record;
+   type Mode_Num_T is new Word_T range 0 .. 3;
+   type Mode_T is (Absolute, PC, AC2, AC3);
 
-    type Opcode_Rec is record
-       Exists : Boolean;
-       Mnem   : Instr_Mnemonic_T;
-    end record;
-    type Opcode_Lookup_T is array (0 .. 65535) of Opcode_Rec;
+   type Decoded_Instr_T is record
+      Instruction : Instr_Mnemonic_T;
+      Mnemonic    : Unbounded_String;
+      Format      : Instr_Format_T;
+      Instr_Type  : Instr_Class_T;
+      Instr_Len   : Positive;
+      Disp_Offset : Natural;
+      Disassembly : Unbounded_String;
+      -- Instruction Parameters
+      Mode         : Mode_T;
+      Ind          : Boolean;
+      Disp_15      : Word_T;          -- signed 15-bit displacement
+      Disp_31      : Dword_T;         -- signed 31-bit displacement
+      Arg_Count    : Integer;
+      Ac, Acs, Acd : Ac_ID;           -- single, src, dest ACs
+      Word_2       : Word_T;          -- 2nd word of instruction
+      ABC          : Character;       -- A/B/C I/O
+      IO_Flag      : Character;
+   end record;
 
-    Opcode_Lookup_Arr : Opcode_Lookup_T;
+   type Opcode_Rec is record
+      Exists : Boolean;
+      Mnem   : Instr_Mnemonic_T;
+   end record;
+   type Opcode_Lookup_T is array (0 .. 65_535) of Opcode_Rec;
 
-    procedure Match_Instruction (Opcode : in Word_T; Mnem : out Instr_Mnemonic_T; Found : out Boolean);
-    procedure Generate_All_Possible_Opcodes;
+   Opcode_Lookup_Arr : Opcode_Lookup_T;
+
+   procedure Match_Instruction
+     (Opcode : in Word_T; Mnem : out Instr_Mnemonic_T; Found : out Boolean);
+   procedure Generate_All_Possible_Opcodes;
+   function Instruction_Decode
+     (Opcode : in Word_T; PC : Phys_Addr_T; LEF_Mode : Boolean;
+      IO_On  :    Boolean; ATU_On : Boolean; Disassemble : Boolean)
+      return Decoded_Instr_T;
 
 end CPU.Decoder;
