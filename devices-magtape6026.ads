@@ -23,7 +23,7 @@
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with DG_Types; use DG_Types;
+with DG_Types;   use DG_Types;
 with Simh_Tapes; use Simh_Tapes;
 
 package Devices.Magtape6026 is
@@ -79,27 +79,42 @@ package Devices.Magtape6026 is
     SR_2_Error   : constant Word_T := Shift_Left (1, 15);
     SR_2_PE_Mode : constant Word_T := 1;
 
-	Max_Tapes : constant Integer := 7;
+    Max_Tapes : constant Integer := 7;
 
-	type Att_Arr is array(0..Max_Tapes) of Boolean;
-	type FN_Arr  is array(0..Max_Tapes) of Unbounded_String;
-	type File_Arr is array(0..Max_Tapes) of File_Type;
-	type MT6026_Rec is record
-       -- DG device state
-       Mem_Addr_Reg   : Phys_Addr_T;
-       Current_Cmd    : Integer;
-       Status_Reg_1,
-       Status_Reg_2   : Word_T;
-	   Image_Attached : Att_Arr;
-	   Image_Filename : FN_Arr;
-	   SIMH_File      : File_Arr;
-	end record;
+    type Att_Arr is array (0 .. Max_Tapes) of Boolean;
+    type FN_Arr is array (0 .. Max_Tapes) of Unbounded_String;
+    type File_Arr is array (0 .. Max_Tapes) of File_Type;
+    type MT6026_Rec is record
+        -- DG device state
+        Mem_Addr_Reg               : Phys_Addr_T;
+        Current_Cmd                : Integer;
+        Status_Reg_1, Status_Reg_2 : Word_T;
+        Image_Attached             : Att_Arr;
+        Image_Filename             : FN_Arr;
+        SIMH_File                  : File_Arr;
+    end record;
+
+    type Status_Rec is record
+        Image_Attached             : Att_Arr;
+        Image_Filename             : FN_Arr;
+        Mem_Addr_Reg               : Phys_Addr_T;
+        Current_Cmd                : Integer;
+        Status_Reg_1, Status_Reg_2 : Word_T;
+    end record;
 
     protected Drives is
-       procedure Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean);
-       function Get_Image_Name (Unit : in Natural) return String;
+        procedure Init;
+        procedure Attach
+           (Unit : in Natural; Image_Name : in String; OK : out Boolean);
+        procedure Detach (Unit : in Natural);
+        function  Get_Image_Name (Unit : in Natural) return String;
+        function  Get_Status return Status_Rec;
     private
         State : MT6026_Rec;
     end Drives;
+
+    task Status_Sender is
+        entry Start;
+    end Status_Sender;
 
 end Devices.Magtape6026;

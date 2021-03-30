@@ -23,17 +23,21 @@
 with GNAT.Sockets;
 
 with CPU;
+with Devices.Magtape6026;
 
 package Status_Monitor is
 
     task Monitor is
         entry Start (Port : in GNAT.Sockets.Port_Type);
         entry CPU_Update (Stats : in CPU.CPU_Monitor_Rec);
+        entry MTB_Update (Stats : in Devices.Magtape6026.Status_Rec);
         entry Stop;
     end Monitor;
 
     CPU_Row_1 : constant Integer := 3;
     CPU_Row_2 : constant Integer := 5;
+    MTB_Row_1 : constant Integer := 11;
+    MTB_Row_2 : constant Integer := 12;
 
 
 end Status_Monitor;

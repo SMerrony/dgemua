@@ -47,7 +47,7 @@ package Devices.Bus is
 
     protected Actions is
         procedure Init;
-        procedure Attach (Dev : in Dev_Num_T);
+        procedure Connect (Dev : in Dev_Num_T);
         procedure Set_Reset_Proc (Dev : in Dev_Num_T; Reset_Proc : in Reset_Proc_T);
         procedure Set_Data_Out_Proc (Dev : in Dev_Num_T; Data_Out_Proc : in Data_Out_Proc_T);
         procedure Set_Data_In_Func (Dev : in Dev_Num_T; Data_In_Func : in Data_In_Func_T);
@@ -56,6 +56,9 @@ package Devices.Bus is
         procedure Clear_Interrupt (Dev : in Dev_Num_T); 
         procedure Set_Busy (Dev : in Dev_Num_T; Busy_State : in Boolean);
         procedure Set_Done (Dev : in Dev_Num_T; Done_State : in Boolean);
+        procedure Set_Image_Attached (Dev : in Dev_Num_T; Image_Name : String);
+        procedure Set_Image_Detached (Dev : in Dev_Num_T);
+        function  Get_Printable_Device_List return String;
     private
         Bus : Bus_T;
     end Actions;

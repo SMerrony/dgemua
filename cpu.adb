@@ -90,13 +90,14 @@ package body CPU is
       end Start;
       loop
          Stats := Actions.Get_Status;
-         select 
-            Status_Monitor.Monitor.CPU_Update (Stats);
-            Put_Line ("INFO: CPU Status sender sent update");
-         else
-            delay 5.0;
-            Put_Line ("INFO: CPU Status sender waiting 5s");
-         end select;
+         -- select 
+         --    Status_Monitor.Monitor.CPU_Update (Stats);
+         --    -- Put_Line ("INFO: CPU Status sender sent update");
+         -- else
+         --    delay 5.0;
+         --    Put_Line ("INFO: CPU Status sender waiting 5s");
+         -- end select;
+         Status_Monitor.Monitor.CPU_Update (Stats);
          delay 0.333;
       end loop;
    end Status_Sender;

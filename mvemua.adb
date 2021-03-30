@@ -133,6 +133,23 @@ procedure MVEmuA is
       GNAT.OS_Lib.OS_Exit (0);
    end Clean_Exit;
 
+   procedure Show (Command : in Slice_Set) is
+   begin
+      if Slice_Count (Command) < 2 then
+         TTOut.Put_String (Dasher_NL & " *** SHOW command requires argument: BREAK|DEV|LOGGING ***");
+         return;
+      end if;
+      declare
+         What : String := Slice (Command, 2);
+      begin
+         if What = "DEV" then
+            TTOut.Put_String (Dasher_NL & Devices.Bus.Actions.Get_Printable_Device_List);
+         else
+            TTOut.Put_String (Dasher_NL & " *** Unknown or Unimplemented SHOW command");
+         end if;
+      end;
+   end Show;
+
    procedure Do_Command (Cmd : in Unbounded_String) is
       Words : Slice_Set;
    begin
@@ -149,6 +166,8 @@ procedure MVEmuA is
          Check (Words);
       elsif Command = "exit" or Command = "EXIT" or command = "quit" or command = "QUIT" then
          Clean_Exit;
+      elsif Command = "SHOW" then
+         Show (Words);
       else
          Devices.Console.TTOut.Put_String (Dasher_NL & " *** Unknown SCP-CLI Command ***");
       end if;
@@ -185,16 +204,19 @@ begin
       Status_Monitor.Monitor.Start (Monitor_Port);
       Memory.RAM.Init (Debug_Logging);
       Devices.Bus.Actions.Init;
-      Devices.Bus.Actions.Attach (Devices.BMC);
+      Devices.Bus.Actions.Connect (Devices.BMC);
       Devices.Bus.Actions.Set_Reset_Proc (Devices.BMC, Memory.BMC_DCH.Reset'Access);
-      Devices.Bus.Actions.Attach (Devices.SCP);
-      Devices.Bus.Actions.Attach (Devices.CPU);
+      Devices.Bus.Actions.Connect (Devices.SCP);
+      Devices.Bus.Actions.Connect (Devices.CPU);
       CPU.Actions.Init;
 
-      Devices.Bus.Actions.Attach (Devices.TTO);
+      Devices.Bus.Actions.Connect (Devices.TTO);
       Devices.Console.TTOut.Init (Channel);
-      Devices.Bus.Actions.Attach (Devices.TTI);
+      Devices.Bus.Actions.Connect (Devices.TTI);
       Devices.Console.TTIn.Init;
+
+      Devices.Bus.Actions.Connect (Devices.MTB);
+      Devices.Magtape6026.Drives.Init;
 
       -- TODO - More devices...
 

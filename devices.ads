@@ -57,28 +57,25 @@ package Devices is
     FPU   : constant Dev_Num_T := 8#76#;
     CPU   : constant Dev_Num_T := 8#77#;
 
-    
-
     type Reset_Proc_T is access protected procedure;
     type Data_Out_Proc_T is access protected procedure
-       (Datum : in Word_T;
-        ABC   : in Character;
-        Flag  : in Character);
+       (Datum : in Word_T; ABC : in Character; Flag : in Character);
     type Data_In_Func_T is access protected function
        (ABC : Character; Flag : Character) return Word_T;
 
     type Device_Rec is record
-        Mnemonic       : Unbounded_String;
-        PMB            : Integer;
-        IO_Device      : Boolean;
-        Bootable       : Boolean;
-        Reset_Proc     : Reset_Proc_T;
-        Data_Out_Proc  : Data_Out_Proc_T;
-        Data_In_Func   : Data_In_Func_T;
-        Sim_Attached   : Boolean;
-        Sim_Image_Name : Unbounded_String;
-        Busy           : Boolean;
-        Done           : Boolean;
+        Mnemonic           : Unbounded_String;
+        PMB                : Integer;
+        IO_Device          : Boolean;
+        Bootable           : Boolean;
+        Connected          : Boolean;
+        Reset_Proc         : Reset_Proc_T;
+        Data_Out_Proc      : Data_Out_Proc_T;
+        Data_In_Func       : Data_In_Func_T;
+        Sim_Image_Attached : Boolean;
+        Sim_Image_Name     : Unbounded_String;
+        Busy               : Boolean;
+        Done               : Boolean;
     end record;
 
     type Devices_Arr_T is array (Dev_Num_T'Range) of Device_Rec;
