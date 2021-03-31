@@ -20,6 +20,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Unchecked_Conversion;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;           use Ada.Text_IO;
 
@@ -96,6 +97,9 @@ package body CPU.Decoder is
       return Opcode_Lookup_Arr (Integer (Opcode)).Mnem;
    end Instruction_Lookup;
 
+   function Byte_To_Integer_8 is new Ada.Unchecked_Conversion(Byte_T, Integer_8);
+   function Word_To_Integer_16 is new Ada.Unchecked_Conversion(Word_T, Integer_16);
+
    function Char_Carry (Cr : Carry_T) return Character is
    begin
       case Cr is
@@ -147,9 +151,21 @@ package body CPU.Decoder is
       if Mode = Absolute then
          return Integer_16(D8);
       else
-         return Integer_16(Integer_8(D8));
+         return Integer_16(Byte_To_Integer_8(D8));
       end if;
    end Decode_8bit_Disp;
+
+   function Decode_15bit_Disp (D15 : Word_T; Mode : Mode_T) return Integer_16 is
+   begin
+      if Mode = Absolute then
+         return Integer_16 (D15 and 2#0111_1111_1111_1111#); -- zero extend
+      end if;
+      if Test_W_Bit (D15, 1) then
+         return Word_To_Integer_16 (D15 or 2#1100_0000_0000_0000#);
+      else
+         return Integer_16 (D15 and 2#0011_1111_1111_1111#);
+      end if;
+   end Decode_15bit_Disp; -- TODO Test/verify this
 
    function Decode_Carry (Cr : Word_T) return Carry_T is
    begin
@@ -262,10 +278,21 @@ package body CPU.Decoder is
          when NOVA_NOACC_EFF_ADDR_FMT => -- eg. DSZ, ISZ, JMP, JSR
             Decoded.Ind     := Test_W_Bit(Opcode, 5);
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 6, 2)));
-            Decoded.Disp_15 := Word_T(Decode_8bit_Disp(Get_Lower_Byte(Opcode), Decoded.Mode));
+            Decoded.Disp_15 := Decode_8bit_Disp(Get_Lower_Byte(Opcode), Decoded.Mode);
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Char_Indirect(Decoded.Ind) &
+                 Decoded.Disp_15'Image & "." & String_Mode(Decoded.Mode);
+            end if;
+
+         when NOVA_ONEACC_EFF_ADDR_FMT => -- eg. LDA, STA
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Ind     := Test_W_Bit(Opcode, 5);
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 6, 2)));
+            Decoded.Disp_15 := Decode_8bit_Disp(Get_Lower_Byte(Opcode), Decoded.Mode);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Ac'Image & "," & Char_Indirect(Decoded.Ind) &
                  Decoded.Disp_15'Image & "." & String_Mode(Decoded.Mode);
             end if;
 
@@ -283,6 +310,18 @@ package body CPU.Decoder is
                  Decoded.Acs'Image & "," & Decoded.Acd'Image & " " & String_Skip (Decoded.Skip);
             end if;
 
+         when ONEACC_MODE_IND_2_WORD_X_FMT => -- eg. XNLDA, XWMUL & many others
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 1, 2)));
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
+                 Char_Indirect(Decoded.Ind) & Decoded.Disp_15'Image & String_Mode(Decoded.Mode) &
+                 " [2-Word Instruction]";
+            end if;
 
          when others =>
             Loggers.Debug_Print

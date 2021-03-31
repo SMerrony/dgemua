@@ -48,8 +48,8 @@ package CPU.Decoder is
       -- Instruction Parameters
       Mode         : Mode_T;
       Ind          : Boolean;
-      Disp_15      : Word_T;          -- signed 15-bit displacement
-      Disp_31      : Dword_T;         -- signed 31-bit displacement
+      Disp_15      : Integer_16;         -- signed 15-bit displacement
+      Disp_31      : Integer_32;         -- signed 31-bit displacement
       Arg_Count    : Integer;
       Ac, Acs, Acd : AC_ID;           -- single, src, dest ACs
       Word_2       : Word_T;          -- 2nd word of instruction

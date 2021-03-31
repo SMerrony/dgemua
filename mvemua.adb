@@ -243,11 +243,15 @@ begin
       -- TODO - handle DO scripts
 
       -- JUST TESTING...
-      Memory.RAM.Write_Word( 1, 1);
-      Memory.RAM.Write_Word( 2, 2#0000_0100_0000_0010#);
-      Memory.RAM.Write_Word( 3, 2#0000_0111_0000_0011#);
-      Memory.RAM.Write_Word( 4, 2#0110_1001_0100_1000#); 
-      Memory.RAM.Write_Word( 8, 16#1234#);
+      Memory.RAM.Write_Word( 1, 1);                       -- JMP 1
+      Memory.RAM.Write_Word( 2, 2#0000_0100_0000_0010#);  -- JMP @2
+      Memory.RAM.Write_Word( 3, 2#0000_0111_0000_0011#);  -- JMP @3,AC3
+      Memory.RAM.Write_Word( 4, 2#0110_1001_0100_1000#);  -- DIAS 1,TTI
+      Memory.RAM.Write_Word( 5, 2#1011_0011_0010_1001#);  -- XNLDA 2,@8
+      Memory.RAM.Write_Word( 6, 2#1000_0000_0000_1000#);
+      Memory.RAM.Write_Word( 7, 2#1011_0011_0010_1001#);  -- XNLDA 2,@-1
+      Memory.RAM.Write_Word( 8, 2#1111_1111_1111_1111#);
+      Memory.RAM.Write_Word( 9, 16#1234#);
 
       -- the main SCP/console interaction loop
       CPU.Actions.Set_SCP_IO (true);
