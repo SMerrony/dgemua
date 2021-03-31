@@ -29,10 +29,13 @@ with DG_Types;         use DG_Types;
 
 package CPU.Decoder is
 
-   type Ac_ID is new Integer range 0 .. 3;
-
+   type AC_ID is new Integer range 0 .. 3;
+   type Carry_T is (None, Z, O, C);
+   type IO_Flag_T is (None, S, C, P);
    type Mode_Num_T is new Word_T range 0 .. 3;
    type Mode_T is (Absolute, PC, AC2, AC3);
+   type Shift_T is (None, L, R, S);
+   type Skip_T is (None, SKP, SZC, SNC, SZR, SNR, SEZ, SBN);
 
    type Decoded_Instr_T is record
       Instruction : Instr_Mnemonic_T;
@@ -48,10 +51,15 @@ package CPU.Decoder is
       Disp_15      : Word_T;          -- signed 15-bit displacement
       Disp_31      : Dword_T;         -- signed 31-bit displacement
       Arg_Count    : Integer;
-      Ac, Acs, Acd : Ac_ID;           -- single, src, dest ACs
+      Ac, Acs, Acd : AC_ID;           -- single, src, dest ACs
       Word_2       : Word_T;          -- 2nd word of instruction
       ABC          : Character;       -- A/B/C I/O
-      IO_Flag      : Character;
+      IO_Flag      : IO_Flag_T;
+      IO_Dev       : Integer;
+      Sh           : Shift_T;
+      Carry        : Carry_T;
+      No_Load      : Boolean;
+      Skip         : Skip_T;
    end record;
 
    type Opcode_Rec is record

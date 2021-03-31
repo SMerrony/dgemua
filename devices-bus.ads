@@ -59,6 +59,7 @@ package Devices.Bus is
         procedure Set_Image_Attached (Dev : in Dev_Num_T; Image_Name : String);
         procedure Set_Image_Detached (Dev : in Dev_Num_T);
         function  Get_Printable_Device_List return String;
+        function  Get_Device_Name_Or_Number (Dev : in Dev_Num_T) return String;
     private
         Bus : Bus_T;
     end Actions;

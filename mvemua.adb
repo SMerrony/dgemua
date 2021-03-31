@@ -246,7 +246,8 @@ begin
       Memory.RAM.Write_Word( 1, 1);
       Memory.RAM.Write_Word( 2, 2#0000_0100_0000_0010#);
       Memory.RAM.Write_Word( 3, 2#0000_0111_0000_0011#);
-      Memory.RAM.Write_Word( 4, 16#1234#);
+      Memory.RAM.Write_Word( 4, 2#0110_1001_0100_1000#); 
+      Memory.RAM.Write_Word( 8, 16#1234#);
 
       -- the main SCP/console interaction loop
       CPU.Actions.Set_SCP_IO (true);

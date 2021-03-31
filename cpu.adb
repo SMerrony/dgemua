@@ -67,17 +67,17 @@ package body CPU is
          end if;
          for Addr in Low_Addr .. High_Addr loop
             Word := RAM.Read_Word (Addr);
-            Get_Bytes_From_Word (Word, Byte_1, Byte_2);
+            Get_Bytes_From_Word (Word, Byte_2, Byte_1);
             Tmp_Dis := Tmp_Dis & Dasher_NL & Dword_To_String (Dword_T(Addr), 8, 12, true) & ": " &
-                       Byte_To_String (Byte_2, 16, 2, true) & " " & Byte_To_String (Byte_1, 16, 2, true) & " " &
+                       Byte_To_String (Byte_1, 16, 2, true) & " " & Byte_To_String (Byte_2, 16, 2, true) & " " &
                        Dword_To_String(Dword_T(Word), 8, 6, true) & " '";
             if Byte_1 >= 32 and Byte_1 <= 126 then
-               Tmp_Dis := Tmp_Dis & Byte_1'Image;
+               Tmp_Dis := Tmp_Dis & Character'Val (Byte_1);
             else
                Tmp_Dis := Tmp_Dis & " ";
             end if;
             if Byte_2 >= 32 and Byte_2 <= 126 then
-               Tmp_Dis := Tmp_Dis & Byte_2'Image;
+               Tmp_Dis := Tmp_Dis & Character'Val (Byte_2);
             else
                Tmp_Dis := Tmp_Dis & " ";
             end if;
@@ -85,7 +85,7 @@ package body CPU is
             if Skip_Decode = 0 then
                null;
                -- FIXME decode and disassemble
-               Instr := Instruction_Decode (Word, Addr, true, false, false, true);
+               Instr := Instruction_Decode (Word, Addr, false, false, false, true);
                Tmp_Dis := Tmp_Dis & Instr.Disassembly;
                if Instr.Instr_Len > 1 then
                   Skip_Decode := Instr.Instr_Len - 1;

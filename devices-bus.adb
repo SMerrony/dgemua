@@ -168,6 +168,14 @@ package body Devices.Bus is
          return To_String (Lst);
        end Get_Printable_Device_List;
 
+       function  Get_Device_Name_Or_Number (Dev : in Dev_Num_T) return String is
+       begin
+          if Bus.Devices(Dev).Mnemonic /= "" then 
+            return To_String(Bus.Devices(Dev).Mnemonic);
+          end if;
+          return Dev'Image;
+       end Get_Device_Name_Or_Number;
+
     end Actions;
 
 end Devices.Bus;

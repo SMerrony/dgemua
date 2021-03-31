@@ -25,6 +25,7 @@ with Ada.Text_IO;           use Ada.Text_IO;
 
 with CPU.Instructions; use CPU.Instructions;
 with Debug_Logs;       use Debug_Logs;
+with Devices.Bus;      
 with Memory;           use Memory;
 
 package body CPU.Decoder is
@@ -95,6 +96,16 @@ package body CPU.Decoder is
       return Opcode_Lookup_Arr (Integer (Opcode)).Mnem;
    end Instruction_Lookup;
 
+   function Char_Carry (Cr : Carry_T) return Character is
+   begin
+      case Cr is
+         when None => return ' ';
+         when Z    => return 'Z';
+         when O    => return 'O';
+         when C    => return 'C';
+      end case;
+   end Char_Carry;
+
    function Char_Indirect (I : Boolean) return Character is
    begin
       if I then
@@ -102,6 +113,34 @@ package body CPU.Decoder is
       end if;
       return ' ';
    end Char_Indirect;
+
+   function Char_IO_Flag (IO : IO_Flag_T) return Character is
+   begin
+      case IO is
+         when None => return ' ';
+         when S    => return 'S';
+         when C    => return 'C';
+         when P    => return 'P';
+      end case;
+   end Char_IO_Flag;
+
+   function Char_No_Load (N : Boolean) return Character is
+   begin
+      if N then
+         return '#';
+      end if;
+      return ' ';
+   end Char_No_Load;
+
+   function Char_Shift (Sh : Shift_T) return Character is
+   begin
+      case Sh is
+         when None => return ' ';
+         when L    => return 'L';
+         when R    => return 'R';
+         when S    => return 'S';
+      end case;
+   end Char_Shift;
 
    function Decode_8bit_Disp (D8 : Byte_T; Mode : Mode_T) return Integer_16 is
    begin
@@ -112,7 +151,29 @@ package body CPU.Decoder is
       end if;
    end Decode_8bit_Disp;
 
-   function To_Mode (W : Mode_Num_T) return Mode_T is
+   function Decode_Carry (Cr : Word_T) return Carry_T is
+   begin
+      case Cr is
+         when 0 => return None;
+         when 1 => return Z;
+         when 2 => return O;
+         when 3 => return C;
+         when others => return None; -- TODO error handling
+      end case;
+   end Decode_Carry;
+
+   function Decode_IO_Flag (W : Word_T) return IO_Flag_T is
+   begin
+      case W is
+         when 0 => return None;
+         when 1 => return S; -- Set
+         when 2 => return C; -- Clear
+         when 3 => return P; -- Pulse
+         when others => return None; -- TODO error handling
+      end case;
+   end Decode_IO_Flag;
+
+   function Decode_Mode (W : Mode_Num_T) return Mode_T is
    begin
       case W is
          when 0 => return Absolute;
@@ -120,7 +181,33 @@ package body CPU.Decoder is
          when 2 => return AC2;
          when 3 => return AC3;
       end case;
-   end To_Mode;
+   end Decode_Mode;
+
+   function Decode_Shift (Sh : Word_T) return Shift_T is
+   begin
+      case Sh is
+         when 0 => return None;
+         when 1 => return L;
+         when 2 => return R;
+         when 3 => return S;
+         when others => return None; -- TODO error handling
+      end case;
+   end Decode_Shift;
+
+   function Decode_Skip (Sk : Word_T) return Skip_T is
+   begin
+      case Sk is
+         when 0 => return None;
+         when 1 => return SKP;
+         when 2 => return SZC;
+         when 3 => return SNC;
+         when 4 => return SZR;
+         when 5 => return SNR;
+         when 6 => return SEZ;
+         when 7 => return SBN;
+         when others => return None; -- TODO error handling
+      end case;
+   end Decode_Skip;
 
    function String_Mode (W : Mode_T) return String is
    begin
@@ -131,6 +218,14 @@ package body CPU.Decoder is
          when AC3 => return ",AC3";
       end case;
    end String_Mode;
+
+   function String_Skip (Sk : Skip_T) return String is
+   begin
+      if Sk = None then
+         return "";
+      end if;
+      return Sk'Image;
+   end String_Skip;
 
    function Instruction_Decode
      (Opcode : in Word_T; PC : Phys_Addr_T; LEF_Mode : Boolean;
@@ -151,17 +246,43 @@ package body CPU.Decoder is
       Decoded.Instr_Len   := Instruction_Set (Instr).Instr_Len;
       Decoded.Disp_Offset := Instruction_Set (Instr).Disp_Offset;
 
-      case Decoded.Format is  -- eg. DSZ, ISZ, JMP, JSR
-         when NOVA_NOACC_EFF_ADDR_FMT =>
-            -- Decoded.Acd := Ac_ID(Get_W_Bits (Opcode, 3, 2));
-            Decoded.Ind := Test_W_Bit(Opcode, 5);
-            Decoded.Mode := To_Mode(Mode_Num_T(Get_W_Bits(Opcode, 6, 2)));
+      case Decoded.Format is  
+
+         when NOVA_DATA_IO_FMT => -- eg. DOA/B/C, DIA/B/C
+            Decoded.Ac := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.IO_Flag := Decode_IO_Flag (Get_W_Bits (Opcode, 8, 2));
+            Decoded.IO_Dev  := Integer(Integer_16(Get_W_Bits (Opcode, 10, 6)));
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & Char_IO_Flag (Decoded.IO_Flag) & " " &
+                 Decoded.Ac'Image & "," & 
+                 Devices.Bus.Actions.Get_Device_Name_Or_Number (Devices.Dev_Num_T(Decoded.IO_Dev));
+            end if;
+
+         when NOVA_NOACC_EFF_ADDR_FMT => -- eg. DSZ, ISZ, JMP, JSR
+            Decoded.Ind     := Test_W_Bit(Opcode, 5);
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 6, 2)));
             Decoded.Disp_15 := Word_T(Decode_8bit_Disp(Get_Lower_Byte(Opcode), Decoded.Mode));
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Char_Indirect(Decoded.Ind) &
                  Decoded.Disp_15'Image & "." & String_Mode(Decoded.Mode);
             end if;
+
+         when NOVA_TWOACC_MULT_OP_FMT => -- eg. ADC, ADD, AND, COM
+            Decoded.Acs     := AC_ID(Get_W_Bits (Opcode, 1, 2));
+            Decoded.Acd     := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Sh      := Decode_Shift (Get_W_Bits (Opcode, 8, 2));
+            Decoded.Carry   := Decode_Carry (Get_W_Bits (Opcode, 10, 2));
+            Decoded.No_Load := Test_W_Bit (Opcode, 12);
+            Decoded.Skip    := Decode_Skip(Get_W_Bits(Opcode, 13, 3));
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & Char_Carry(Decoded.Carry) & Char_Shift (Decoded.Sh) &
+                 Char_No_Load (Decoded.No_Load) & " " &
+                 Decoded.Acs'Image & "," & Decoded.Acd'Image & " " & String_Skip (Decoded.Skip);
+            end if;
+
 
          when others =>
             Loggers.Debug_Print
