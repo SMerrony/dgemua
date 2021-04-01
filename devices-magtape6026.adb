@@ -25,6 +25,8 @@ with Ada.Text_IO;
 with Debug_Logs;             use Debug_Logs;
 with Devices;
 with Devices.Bus;
+with Memory;
+with Simh_Tapes;             use Simh_Tapes;
 with Status_Monitor;
 
 package body Devices.Magtape6026 is
@@ -83,6 +85,52 @@ package body Devices.Magtape6026 is
             Status.Status_Reg_2   := State.Status_Reg_2;
             return Status;
         end Get_Status;
+
+        -- Load_TBOOT - This proc fakes the ROM/SCP boot-from-tape routine.
+        -- Rather than copying a ROM (how?) and executing that, we simply mimic its basic actions...
+        --  * Load file 0 from tape (1 x 2k block)
+        --  * Put the loaded code at physical location 0
+        procedure Load_TBOOT is
+            Unit : constant Integer := 0;
+            Img_Stream : Stream_Access;
+            Hdr, Trailer : Dword_T;
+            TBOOT_Rec : Mt_Rec(0..2047); -- TBOOT Block is always 2KB
+            TBOOT_Size_W : Integer;
+            Byte_0, Byte_1 : Byte_T;
+            B_Wd : Word_T;
+            Mem_Ix : Integer := 0;
+        begin
+            Loggers.Debug_Print (Mt_Log, "Load_TBOOT called" );
+            Rewind (State.SIMH_File(Unit));
+            Loggers.Debug_Print (Mt_Log, "... Tape rewound" );
+            Img_Stream := stream(State.SIMH_File(Unit));
+
+        Read_Loop:
+            loop
+               Read_Meta_Data (Img_Stream, Hdr);
+               case Hdr is
+                  when Mtr_Tmk =>
+                      exit Read_Loop;
+                  when others =>
+                     TBOOT_Size_W := Integer(Hdr) / 2;
+                     Read_Record_Data (Img_Stream, Natural(Hdr), TBOOT_Rec);
+                     for Wd_Ix in 0 .. TBOOT_Size_W - 1 loop
+                        Byte_1 := TBOOT_Rec(Wd_Ix * 2);
+                        Byte_0 := TBOOT_Rec((Wd_Ix * 2) + 1);
+                        B_Wd  := Shift_Left(Word_T(Byte_1), 8) or Word_T(Byte_0);
+                        Memory.RAM.Write_Word(Phys_Addr_T(Mem_Ix + Wd_Ix), B_Wd);
+                     end loop;
+                     Mem_Ix := Mem_Ix + TBOOT_Size_W;
+                     Read_Meta_Data (Img_Stream , Trailer);
+                     if Hdr /= Trailer then
+                        Loggers.Debug_Print (Mt_Log, "ERROR: Load_TBOOT - Mismatched trailer record");
+                     end if;
+                end case;
+            end loop Read_Loop;
+            Rewind (State.SIMH_File(Unit));
+            Loggers.Debug_Print (Mt_Log, "Load_TBOOT completed" );
+        end Load_TBOOT;   
+
     end Drives;
 
     task body Status_Sender is

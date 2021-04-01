@@ -106,6 +106,16 @@ package body Devices.Bus is
           Bus.Devices(Dev).Data_In_Func := Data_In_Func;
        end Set_Data_In_Func;
 
+       function Is_Attached (Dev : in Dev_Num_T) return Boolean is
+       begin
+          return Bus.Devices(Dev).Sim_Image_Attached;
+       end Is_Attached;
+
+       function Is_Bootable (Dev : in Dev_Num_T) return Boolean is
+       begin
+          return Bus.Devices(Dev).Bootable;
+       end Is_Bootable;
+
        function Is_Dev_Masked (Dev : in Dev_Num_T) return Boolean is
        begin
           return Memory.Test_W_Bit (Bus.IRQ_Mask, Bus.Devices(Dev).PMB);

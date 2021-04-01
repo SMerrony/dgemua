@@ -39,7 +39,6 @@ package body Status_Monitor is
       Connection            : GNAT.Sockets.Socket_Type;
       Client                : GNAT.Sockets.Sock_Addr_Type;
       Channel               : GNAT.Sockets.Stream_Access;
-      CPU_Stats             : CPU.CPU_Monitor_Rec;
       Last_CPU_Time         : Ada.Calendar.Time;
       I_Count, Last_I_Count : Unsigned_64 := 0;
       MIPS                  : Float;

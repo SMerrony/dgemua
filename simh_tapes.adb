@@ -59,10 +59,12 @@ package body Simh_Tapes is
    -- N.B. does not read the header and trailer
    procedure Read_Record_Data  (Img_Stream : in out Stream_Access; Num_Bytes : in Natural; Rec : out Mt_Rec) is
       Tmp_Rec : Mt_Rec (1..Num_Bytes);
+      Out_Rec_Ix : Integer := Rec'First;
    begin
       for C in 1 .. Num_Bytes loop
          Byte_T'Read (Img_Stream, Tmp_Rec(C));
-         Rec(C) := Tmp_Rec(C);
+         Rec(Out_Rec_Ix) := Tmp_Rec(C);
+         Out_Rec_Ix := Out_Rec_Ix + 1;
       end loop;
    end Read_Record_Data;
 

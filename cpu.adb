@@ -55,6 +55,14 @@ package body CPU is
          Put_Line ("INFO: CPU reset");
       end Reset;
 
+      -- Boot sets up the CPU for booting, it is NOT started
+      procedure Boot (Dev : Devices.Dev_Num_T; PC : Phys_Addr_T) is
+      begin
+         CPU.SR := 16#8000# or Word_T(Dev);
+         CPU.AC(0) := Dword_T(Dev);
+         CPU.PC := PC;
+      end Boot;
+
       function Disassemble_Range( Low_Addr, High_Addr : Phys_Addr_T) return String is
          Skip_Decode : Integer := 0;
          Tmp_Dis : Unbounded_String;

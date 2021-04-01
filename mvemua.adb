@@ -21,6 +21,7 @@
 -- SOFTWARE.
 
 with Ada.Text_IO;
+with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
@@ -119,6 +120,31 @@ procedure MVEmuA is
 
    end Attach;
 
+   procedure Boot (Command : in Slice_Set) is
+      Dev : Devices.Dev_Num_T;
+   begin
+     if Slice_Count (Command) < 2 then
+         TTOut.Put_String (Dasher_NL & " *** B command requires argument: <devicenumber> ***");
+         return;
+      end if;
+      Dev := Devices.Dev_Num_T(Integer'Value(Slice (Command, 2))); -- FIXME Decimal only
+      if not Devices.Bus.Actions.Is_Attached(Dev) then
+         TTOut.Put_String (Dasher_NL & " *** Devices is not ATTached ***");
+         return;
+      end if;
+      if not Devices.Bus.Actions.Is_Bootable(Dev) then
+         TTOut.Put_String (Dasher_NL & " *** Devices is not Bootable ***");
+         return;
+      end if; 
+      Memory.RAM.Init (Debug_Logging);  
+      case Dev is
+         when Devices.MTB =>
+            Devices.Magtape6026.Drives.Load_TBOOT;
+         when others =>
+            TTOut.Put_String (Dasher_NL & " *** Booting from that device is not yet implemented ***");
+      end case;   
+   end Boot;
+
    procedure Check (Command : in Slice_Set) is
    begin
       if Slice_Count (Command) < 2 then
@@ -170,7 +196,9 @@ procedure MVEmuA is
       Create (Words, To_String(Cmd), " ", Multiple);
       Command := To_Unbounded_String(Slice (Words, 1));
       -- SCP-like commands...
-      if Command = "HE" then
+      if Command = "B" then
+         Boot (Words);
+      elsif Command = "HE" then
          Show_Help;
       
       -- enulator commands
@@ -275,5 +303,13 @@ begin
       end loop;
 
    end loop;
+
+   exception
+      when Error: others =>
+         TTOut.Put_String (Dasher_NL & " *** MV/Emulator stopping due to unhandled error ***" );
+         TTOut.Put_String (Dasher_NL & Ada.Exceptions.Exception_Information(Error));
+         Ada.Text_IO.Put_Line("ERROR: " & Ada.Exceptions.Exception_Information(Error));
+         Debug_Logs.Loggers.Debug_Logs_Dump (Log_Dir);
+         GNAT.OS_Lib.OS_Exit (0);
 
 end MVEmuA;

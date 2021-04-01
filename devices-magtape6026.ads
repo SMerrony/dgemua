@@ -109,6 +109,7 @@ package Devices.Magtape6026 is
         procedure Detach (Unit : in Natural);
         function  Get_Image_Name (Unit : in Natural) return String;
         function  Get_Status return Status_Rec;
+        procedure Load_TBOOT;
     private
         State : MT6026_Rec;
     end Drives;
