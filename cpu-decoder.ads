@@ -48,18 +48,23 @@ package CPU.Decoder is
       -- Instruction Parameters
       Mode         : Mode_T;
       Ind          : Boolean;
+      Disp_8       : Integer_8;       -- signed 8-bit displacement
       Disp_15      : Integer_16;      -- signed 15-bit displacement
       Disp_31      : Integer_32;      -- signed 31-bit displacement
+      Imm_S16      : Integer_16;      -- signed 16-bit immediate
+      Imm_U16      : Unsigned_16;
+      Imm_U32      : Unsigned_32;
       Arg_Count    : Integer;
       Ac, Acs, Acd : AC_ID;           -- single, src, dest ACs
       Word_2       : Word_T;          -- 2nd word of instruction
       ABC          : Character;       -- A/B/C I/O
       IO_Flag      : IO_Flag_T;
-      IO_Dev       : Integer;
+      IO_Dev       : Natural;
       Sh           : Shift_T;
       Carry        : Carry_T;
       No_Load      : Boolean;
       Skip         : Skip_T;
+      Bit_Number   : Natural;
    end record;
 
    type Opcode_Rec is record

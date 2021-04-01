@@ -42,7 +42,6 @@ package body Status_Monitor is
       Last_CPU_Time         : Ada.Calendar.Time;
       I_Count, Last_I_Count : Unsigned_64 := 0;
       MIPS                  : Float;
-      PC_Str                : String (1 .. 12);
    begin
       loop
          select
@@ -82,7 +81,6 @@ package body Status_Monitor is
                   Dasher_Write_Window_Addr & Character'Val (0) &
                   Character'Val (CPU_Row_1) & Dasher_Erase_EOL);
                -- "PC:  %011o   Interrupts: %s    ATU: %s     IPS: %.fk/sec"
-               Put (To => PC_Str, Item => Integer (Stats.PC), Base => 8);
                String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(Stats.PC), 8, 12, true) & 
                                       "  Interrupts: " & Memory.Boolean_To_YN (Stats.ION) &
                                       "      ATU: " & Memory.Boolean_To_YN (Stats.ATU) &

@@ -99,6 +99,7 @@ package body CPU.Decoder is
 
    function Byte_To_Integer_8 is new Ada.Unchecked_Conversion(Byte_T, Integer_8);
    function Word_To_Integer_16 is new Ada.Unchecked_Conversion(Word_T, Integer_16);
+   function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
 
    function Char_Carry (Cr : Carry_T) return Character is
    begin
@@ -145,6 +146,12 @@ package body CPU.Decoder is
          when S    => return 'S';
       end case;
    end Char_Shift;
+
+   function Decode_2bit_Imm (I2 : Word_T) return Unsigned_16 is
+   begin
+      -- to expand range (by 1!) 1 is subtracted from operand by the Assembler...
+      return Word_To_Unsigned_16(I2)+ 1;
+   end Decode_2bit_Imm;
 
    function Decode_8bit_Disp (D8 : Byte_T; Mode : Mode_T) return Integer_16 is
    begin
@@ -250,6 +257,7 @@ package body CPU.Decoder is
    is
       Decoded : Decoded_Instr_T;
       Instr   : Instr_Mnemonic_T;
+      Tmp_8bit : Byte_T;
    begin
       Decoded.Disassembly := To_Unbounded_String ("; Unknown instruction");
       Instr               := Instruction_Lookup (Opcode, LEF_Mode);
@@ -263,6 +271,28 @@ package body CPU.Decoder is
       Decoded.Disp_Offset := Instruction_Set (Instr).Disp_Offset;
 
       case Decoded.Format is  
+
+         when IMM_ONEACC_FMT => -- eg. ADI, HXL, NADI, SBI, WADI, WLSI, WSBI
+         	-- N.B. Immediate value is encoded by assembler to be one less than required
+		      --      This is handled by decode2bitImm
+            Decoded.Imm_U16 := Decode_2bit_Imm (Get_W_Bits (Opcode, 1, 2));
+            Decoded.Ac := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Imm_U16'Image & Decoded.Ac'Image;
+            end if;
+
+         when NOACC_MODE_IND_2_WORD_X_FMT => -- eg. XJSR
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " &
+                 Char_Indirect(Decoded.Ind) & Decoded.Disp_15'Image & String_Mode(Decoded.Mode) &
+                 " [2-Word Instruction]";
+            end if;
 
          when NOVA_DATA_IO_FMT => -- eg. DOA/B/C, DIA/B/C
             Decoded.Ac := AC_ID(Get_W_Bits (Opcode, 3, 2));
@@ -310,6 +340,34 @@ package body CPU.Decoder is
                  Decoded.Acs'Image & "," & Decoded.Acd'Image & " " & String_Skip (Decoded.Skip);
             end if;
 
+         when ONEACC_IMM_2_WORD_FMT => -- eg. ANDI, IORI
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Word_2'Image & "," &
+                 Decoded.Ac'Image & " [2-Word Instruction]";
+            end if;
+
+         when ONEACC_IMMDWD_3_WORD_FMT => -- eg. WANDI, WIORI, WLDAI
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Imm_U32 := Unsigned_32(Memory.RAM.Read_Dword (PC + 1));
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Imm_U32'Image & "," & 
+                 Decoded.Ac'Image & " [3-Word Instruction]";
+            end if;
+
+         when ONEACC_IMMWD_2_WORD_FMT => -- eg. ADDI, NADDI, NLDAI, WASHI, WSEQI, WLSHI, WNADI
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Imm_S16 := Word_To_Integer_16(Decoded.Word_2);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Imm_S16'Image & "," & 
+                 Decoded.Ac'Image & " [2-Word Instruction]";
+            end if;
+
          when ONEACC_MODE_IND_2_WORD_X_FMT => -- eg. XNLDA, XWMUL & many others
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 1, 2)));
             Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
@@ -321,6 +379,37 @@ package body CPU.Decoder is
                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
                  Char_Indirect(Decoded.Ind) & Decoded.Disp_15'Image & String_Mode(Decoded.Mode) &
                  " [2-Word Instruction]";
+            end if;
+
+         when SPLIT_8BIT_DISP_FMT => -- eg. WBR, always a signed displacement
+            Tmp_8bit := Byte_T(Memory.Get_W_Bits(Opcode, 1, 4));
+            Tmp_8bit := Shift_Left (Tmp_8bit, 4);
+            Tmp_8bit := Tmp_8bit or Byte_T(Memory.Get_W_Bits(Opcode, 6, 4));
+            Decoded.Disp_8 := Integer_8(Decode_8bit_Disp(Tmp_8bit, CPU.Decoder.PC));
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Disp_8'Image;
+            end if;
+
+         when TWOACC_1_WORD_FMT => -- eg. ANC, BTO, WSUB and MANY others
+            Decoded.Acs     := AC_ID(Get_W_Bits (Opcode, 1, 2));
+            Decoded.Acd     := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Acs'Image & "," & Decoded.Acd'Image;
+            end if;
+
+         when UNIQUE_1_WORD_FMT => -- nothing to do 
+            null;
+
+         when WSKB_FMT => -- eg. WSKBO/Z
+            Tmp_8bit := Byte_T(Memory.Get_W_Bits(Opcode, 1, 3));
+            Tmp_8bit := Shift_Left (Tmp_8bit, 2);
+            Tmp_8bit := Tmp_8bit or Byte_T(Memory.Get_W_Bits(Opcode, 10, 2));
+            Decoded.Bit_Number := Natural(Unsigned_8(Tmp_8bit));
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Bit_Number'Image;
             end if;
 
          when others =>

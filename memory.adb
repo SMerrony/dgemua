@@ -41,6 +41,10 @@ package body Memory is
            ("INFO: Initialised " & Integer'Image (RAM'Length) &
             " words of main memory");
       end Init;
+      function  Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T is
+      begin
+         return Dword_From_Two_Words (RAM(Integer(Word_Addr)), RAM(Integer(Word_Addr) + 1));
+      end Read_Dword;
 
       function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
       begin
@@ -120,6 +124,11 @@ package body Memory is
       Low_Byte := Byte_T (Word and 16#00ff#);
       High_Byte := Byte_T (Shift_Right(Word and 16#ff00#, 8));
    end Get_Bytes_From_Word;
+
+   function Dword_From_Two_Words (Word_1, Word_2 : in Word_T) return Dword_T is
+   begin
+      return Shift_Left (Dword_T(Word_1), 16) or Dword_T(Word_2);
+   end;
 
    function Boolean_To_YN (B : Boolean) return Character is
    begin
