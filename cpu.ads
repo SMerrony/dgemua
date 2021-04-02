@@ -22,6 +22,8 @@
 
 with Interfaces; use Interfaces;
 
+with CPU_Instructions; use CPU_Instructions;
+with Decoder;          use Decoder;
 with Devices;
 with DG_Types; use DG_Types;
 with Memory;   use Memory;
@@ -68,14 +70,21 @@ package CPU is
       Instruction_Count        : Unsigned_64;
    end record;
 
+   type Instr_Count_T is array (Instr_Mnemonic_T range Instr_Mnemonic_T'Range) of Unsigned_64;
+
    protected Actions is
       procedure Init;
       procedure Reset;
       procedure Boot (Dev : Devices.Dev_Num_T; PC : Phys_Addr_T);
+      procedure Prepare_For_Running;
+      function  Run (Disassemble : in Boolean; Radix : in Number_Base_T) return Instr_Count_T;
+      function  Single_Step (Radix : in Number_Base_T) return String;
+      function  Execute (Instr : Decoded_Instr_T) return Boolean;
       function  Disassemble_Range( Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) 
          return String;
       procedure Set_OVR (New_OVR : in Boolean);
       procedure Set_SCP_IO (SCP_IO : in Boolean);
+      function  Get_Compact_Status (Radix : Number_Base_T) return string;
       function  Get_Status return CPU_Monitor_Rec;
    private
       CPU : CPU_T;
@@ -84,5 +93,7 @@ package CPU is
    task Status_Sender is
         entry Start;
    end Status_Sender;
+
+   Execution_Failure : exception;
 
 end CPU;

@@ -30,7 +30,7 @@ with GNAT.Sockets;
 with GNAT.String_Split;     use GNAT.String_Split;
 
 with CPU;
-with CPU.Decoder;
+with Decoder;
 with Debug_Logs;             use Debug_Logs;
 with Devices;
 with Devices.Bus;
@@ -189,6 +189,16 @@ procedure MVEmuA is
       end;
    end Show;
 
+   procedure Single_Step is
+   begin
+      TTOut.Put_String (Dasher_NL & CPU.Actions.Get_Compact_Status(Console_Radix));
+      TTOut.Put_String (Dasher_NL & CPU.Actions.Single_Step(Console_Radix));
+      TTOut.Put_String (Dasher_NL & CPU.Actions.Get_Compact_Status(Console_Radix));
+   exception   
+      when Error: others =>
+         TTOut.Put_String (Dasher_NL & Ada.Exceptions.Exception_Message(Error));
+   end Single_Step;
+
    procedure Do_Command (Cmd : in Unbounded_String) is
       Words : Slice_Set;
    begin
@@ -199,6 +209,8 @@ procedure MVEmuA is
          Boot (Words);
       elsif Command = "HE" then
          Show_Help;
+      elsif Command = "SS" then
+         Single_Step;
       
       -- enulator commands
       elsif Command = "ATT" then

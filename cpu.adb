@@ -23,7 +23,8 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;           use Ada.Text_IO;
 
-with CPU.Decoder;           use CPU.Decoder;
+with Decoder;               use Decoder;
+with Debug_Logs;            use Debug_Logs;
 with Memory;                use Memory;
 with Status_Monitor;
 
@@ -62,6 +63,92 @@ package body CPU is
          CPU.AC(0) := Dword_T(Dev);
          CPU.PC := PC;
       end Boot;
+
+      -- Prepare_For_Running should be called prior to a normal run
+      procedure Prepare_For_Running is
+      begin
+         CPU.Instruction_Count := 0;
+         CPU.SCP_IO := false;
+      end Prepare_For_Running;
+
+      function  Execute (Instr : Decoded_Instr_T) return Boolean is
+         OK : Boolean;
+      begin
+         case Instr.Instr_Type is
+
+            when others =>
+               Put_Line ("ERROR: Unimplemented instruction type in Execute function " & 
+                         Instr.Instr_Type'Image);
+               OK := false;
+         end case;
+         -- CPU.Instruction_Count := CPU.Instruction_Count + 1;
+         return OK;
+      end Execute;
+
+      function  Single_Step (Radix : in Number_Base_T) return String is
+         This_Op : Word_T;
+         Instr   : Decoded_Instr_T;
+         Segment : Integer;
+      begin
+         This_Op := Memory.RAM.Read_Word(CPU.PC);
+         Segment := Integer(Shift_Right(CPU.PC, 29));
+         Instr := Instruction_Decode (Opcode => This_Op, 
+                           PC => CPU.PC, 
+                           LEF_Mode => CPU.SBR(Segment).LEF, 
+                           IO_On => CPU.SBR(Segment).IO, 
+                           ATU_On => CPU.ATU, 
+                           Disassemble => true, 
+                           Radix => Radix);
+         if not Execute (Instr) then
+            raise Execution_Failure with " *** ERROR: Could not execute instruction ***";
+         end if;         
+         return To_String(Instr.Disassembly);
+      end Single_Step;
+
+      function  Run (Disassemble : in Boolean; Radix : in Number_Base_T) return Instr_Count_T is
+         I_Counts : Instr_Count_T := (others => 0);
+         This_Op : Word_T;
+         Instr   : Decoded_Instr_T;
+         Segment : Integer;
+
+         begin
+         Run_Loop:
+            loop
+               -- FETCH
+               This_Op := Memory.RAM.Read_Word(CPU.PC);
+
+               -- DECODE
+               Segment := Integer(Shift_Right(CPU.PC, 29));
+               Instr := Instruction_Decode (Opcode => This_Op, 
+                                          PC => CPU.PC, 
+                                          LEF_Mode => CPU.SBR(Segment).LEF, 
+                                          IO_On => CPU.SBR(Segment).IO, 
+                                          ATU_On => CPU.ATU, 
+                                          Disassemble => Disassemble, 
+                                          Radix => Radix);
+
+               -- Instruction Counting
+               I_Counts(Instr.Instruction) := I_Counts(Instr.Instruction) + 1;
+
+               if CPU.Debug_Logging then
+                  Loggers.Debug_Print (Debug_Log, Get_Compact_Status(Radix) & "  " & To_String(Instr.Disassembly));
+               end if;
+
+               -- EXECUTE
+               if not Execute (Instr) then
+                  exit Run_Loop;
+               end if;
+
+               -- INTERRUPT?
+
+               -- BREAKPOINT?
+
+               -- Console Interrupt?
+   
+            end loop Run_Loop;
+
+         return I_Counts;
+      end Run;
 
       function Disassemble_Range (Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) return String is
          Skip_Decode : Integer := 0;
@@ -116,6 +203,17 @@ package body CPU is
       begin
          CPU.SCP_IO := SCP_IO;
       end Set_SCP_IO;
+
+      function Get_Compact_Status (Radix : Number_Base_T) return String is
+      begin
+         return "AC0=" & Dword_To_String (CPU.AC(0), Radix, 12, true) &
+                " AC1=" & Dword_To_String (CPU.AC(1), Radix, 12, true) &
+                " AC2=" & Dword_To_String (CPU.AC(2), Radix, 12, true) &
+                " AC3=" & Dword_To_String (CPU.AC(3), Radix, 12, true) &
+                " C:" & Boolean_To_YN (CPU.Carry) &
+                " I:" & Boolean_To_YN (CPU.ION) &
+                " PC=" & Dword_To_String (Dword_T(CPU.PC), Radix, 12, true);
+      end Get_Compact_Status;
 
       function Get_Status return CPU_Monitor_Rec is
          Stats : CPU_Monitor_Rec;

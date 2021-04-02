@@ -24,12 +24,12 @@ with Ada.Unchecked_Conversion;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;           use Ada.Text_IO;
 
-with CPU.Instructions; use CPU.Instructions;
+with CPU_Instructions; use CPU_Instructions;
 with Debug_Logs;       use Debug_Logs;
 with Devices.Bus;      
 with Memory;           use Memory;
 
-package body CPU.Decoder is
+package body Decoder is
 
    -- Match_Instruction looks for a match for the opcode in the instruction set and returns
    -- the corresponding mnemonic.  It is used only by the decoderGenAllPossOpcodes() below when
@@ -389,7 +389,7 @@ package body CPU.Decoder is
             Tmp_8bit := Byte_T(Memory.Get_W_Bits(Opcode, 1, 4));
             Tmp_8bit := Shift_Left (Tmp_8bit, 4);
             Tmp_8bit := Tmp_8bit or Byte_T(Memory.Get_W_Bits(Opcode, 6, 4));
-            Decoded.Disp_8 := Integer_8(Decode_8bit_Disp(Tmp_8bit, CPU.Decoder.PC));
+            Decoded.Disp_8 := Integer_8(Decode_8bit_Disp(Tmp_8bit, Decoder.PC));
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Disp_8'Image;
@@ -421,9 +421,10 @@ package body CPU.Decoder is
               (Debug_Log,
                "ERROR: Unhandled instruction format: " & Decoded.Format'Image &
                " for instruction: " & To_String (Decoded.Mnemonic));
+            raise Decode_Failed with "Unhandled instruction format";
       end case;
 
       return Decoded;
    end Instruction_Decode;
 
-end CPU.Decoder;
+end Decoder;

@@ -24,10 +24,13 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with CPU.Instructions; use CPU.Instructions;
-with DG_Types;         use DG_Types;
+with Interfaces; use Interfaces;
 
-package CPU.Decoder is
+with CPU_Instructions; use CPU_Instructions;
+with DG_Types;         use DG_Types;
+with Memory;           use Memory;
+
+package Decoder is
 
    type AC_ID is new Integer range 0 .. 3;
    type Carry_T is (None, Z, O, C);
@@ -84,4 +87,6 @@ package CPU.Decoder is
       Radix  : Number_Base_T)
       return Decoded_Instr_T;
 
-end CPU.Decoder;
+   Decode_Failed : exception;
+
+end Decoder;

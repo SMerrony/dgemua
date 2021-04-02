@@ -19,7 +19,9 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-package CPU.Instructions is
+with DG_Types; use DG_Types;
+
+package CPU_Instructions is
 
 -- Instruction Classes
 type Instr_Class_T is (
@@ -787,4 +789,4 @@ I_XWSUB => (To_Unbounded_String("XWSUB"), 16#8158#, 16#87ff#, 2, ONEACC_MODE_IND
 I_ZEX => (To_Unbounded_String("ZEX"), 16#8359#, 16#87ff#, 1, TWOACC_1_WORD_FMT, EAGLE_OP, 0)
 );
 
-end CPU.Instructions;
+end CPU_Instructions;
