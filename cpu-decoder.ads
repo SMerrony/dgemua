@@ -80,7 +80,8 @@ package CPU.Decoder is
    procedure Generate_All_Possible_Opcodes;
    function Instruction_Decode
      (Opcode : in Word_T; PC : Phys_Addr_T; LEF_Mode : Boolean;
-      IO_On  :    Boolean; ATU_On : Boolean; Disassemble : Boolean)
+      IO_On  :    Boolean; ATU_On : Boolean; Disassemble : Boolean;
+      Radix  : Number_Base_T)
       return Decoded_Instr_T;
 
 end CPU.Decoder;

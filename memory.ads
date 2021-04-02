@@ -100,14 +100,14 @@ package Memory is
        (Word : in Word_T; Bit_Num : in Integer) return Boolean;
     function Get_W_Bits (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T;
 
-    -- byte routings
+    -- byte routines
     function Get_Lower_Byte (Word : in Word_T) return Byte_T;
     function Get_Upper_Byte (Word : in Word_T) return Byte_T;
     procedure Get_Bytes_From_Word (Word : in Word_T; Low_Byte, High_Byte : out Byte_T);
     function Byte_To_String
        (Byt      : in Byte_T; 
-        Base : in Number_Base_T; 
-        Width : in Integer;
+        Base     : in Number_Base_T; 
+        Width    : in Integer;
         Zero_Pad : in Boolean := False) 
         return String;  
 
@@ -115,13 +115,19 @@ package Memory is
     function Dword_From_Two_Words (Word_1, Word_2 : in Word_T) return Dword_T;
     function Dword_To_String
        (DW       : in Dword_T; 
-        Base : in Number_Base_T; 
-        Width : in Integer;
+        Base     : in Number_Base_T; 
+        Width    : in Integer;
         Zero_Pad : in Boolean := False) 
         return String;
     function String_To_Dword (Str : in String; Base : in Number_Base_T) return Dword_T;
 
-    -- string routines
+    -- string/integer routines
+    function Int_To_String
+       (Int      : in Integer; 
+        Base     : in Number_Base_T; 
+        Width    : in Integer;
+        Zero_Pad : in Boolean := False) 
+        return String;
     function String_To_Integer(Str : in String; Base : in Number_Base_T) return Integer;
  
 

@@ -252,7 +252,8 @@ package body CPU.Decoder is
 
    function Instruction_Decode
      (Opcode : in Word_T; PC : Phys_Addr_T; LEF_Mode : Boolean;
-      IO_On  :    Boolean; ATU_On : Boolean; Disassemble : Boolean)
+      IO_On  :    Boolean; ATU_On : Boolean; Disassemble : Boolean; 
+      Radix  : Number_Base_T)
       return Decoded_Instr_T
    is
       Decoded : Decoded_Instr_T;
@@ -290,7 +291,8 @@ package body CPU.Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " &
-                 Char_Indirect(Decoded.Ind) & Decoded.Disp_15'Image & String_Mode(Decoded.Mode) &
+                 Char_Indirect(Decoded.Ind) &
+                  Int_To_String (Integer(Decoded.Disp_15), Radix, 8) & String_Mode(Decoded.Mode) &
                  " [2-Word Instruction]";
             end if;
 
@@ -312,7 +314,7 @@ package body CPU.Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Char_Indirect(Decoded.Ind) &
-                 Decoded.Disp_15'Image & "." & String_Mode(Decoded.Mode);
+                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8) & String_Mode(Decoded.Mode);
             end if;
 
          when NOVA_ONEACC_EFF_ADDR_FMT => -- eg. LDA, STA
@@ -323,7 +325,7 @@ package body CPU.Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," & Char_Indirect(Decoded.Ind) &
-                 Decoded.Disp_15'Image & "." & String_Mode(Decoded.Mode);
+                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8) & String_Mode(Decoded.Mode);
             end if;
 
          when NOVA_TWOACC_MULT_OP_FMT => -- eg. ADC, ADD, AND, COM
@@ -340,12 +342,13 @@ package body CPU.Decoder is
                  Decoded.Acs'Image & "," & Decoded.Acd'Image & " " & String_Skip (Decoded.Skip);
             end if;
 
-         when ONEACC_IMM_2_WORD_FMT => -- eg. ANDI, IORI
+         when ONEACC_IMM_2_WORD_FMT => -- eg. IORI
             Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             if Disassemble then
                Decoded.Disassembly :=
-                 Decoded.Disassembly & " " & Decoded.Word_2'Image & "," &
+                 Decoded.Disassembly & " " & 
+                 Int_To_String (Integer(Decoded.Word_2), Radix, 8) & "," &
                  Decoded.Ac'Image & " [2-Word Instruction]";
             end if;
 
@@ -364,7 +367,7 @@ package body CPU.Decoder is
             Decoded.Imm_S16 := Word_To_Integer_16(Decoded.Word_2);
             if Disassemble then
                Decoded.Disassembly :=
-                 Decoded.Disassembly & " " & Decoded.Imm_S16'Image & "," & 
+                 Decoded.Disassembly & " " & Int_To_String (Integer(Decoded.Imm_S16), Radix, 8) & "," & 
                  Decoded.Ac'Image & " [2-Word Instruction]";
             end if;
 
@@ -377,7 +380,8 @@ package body CPU.Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
-                 Char_Indirect(Decoded.Ind) & Decoded.Disp_15'Image & String_Mode(Decoded.Mode) &
+                 Char_Indirect(Decoded.Ind) & 
+                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8) & String_Mode(Decoded.Mode) &
                  " [2-Word Instruction]";
             end if;
 

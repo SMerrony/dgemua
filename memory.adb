@@ -242,6 +242,59 @@ package body Memory is
       return Res;
    end Dword_To_String;
 
+   function Int_To_String
+       (Int       : in Integer; 
+        Base : in Number_Base_T; 
+        Width : in Integer;
+        Zero_Pad : in Boolean := False) 
+        return String is
+      Res       : String (1 .. Width);
+      Tmp_Int   : Integer := Int;
+      Bas_Int   : Integer;
+      Remainder : Integer;
+      Octals    : String (1 .. 8)  := "01234567";
+      Decimals  : String (1 .. 10) := "0123456789";
+      Hexes     : String (1 .. 16) := "0123456789ABCDEF";
+      Col       : Integer          := Width;
+      Negative  : Boolean := Int < 0;
+   begin
+      if Zero_Pad then
+         for C in Res'Range loop
+            Res (C) := '0';
+         end loop;
+      else
+         for C in Res'Range loop
+            Res (C) := ' ';
+         end loop;
+      end if;
+      case Base is
+         when Binary => Bas_Int := 2;
+         when Octal  => Bas_Int := 8;
+         when Decimal  => Bas_Int := 10;
+         when Hex  => Bas_Int := 16;
+      end case;
+      loop
+         Remainder := Integer (Tmp_Int mod Bas_Int);
+         Tmp_Int    := Tmp_Int / Bas_Int;
+         case Base is
+            when Octal =>
+               Res (Col) := Octals (Remainder + 1);
+            when Decimal =>
+               Res (Col) := Decimals (Remainder + 1);
+            when Hex =>
+               Res (Col) := Hexes (Remainder + 1);
+            when others =>
+               null;
+         end case;
+         Col := Col - 1;
+         exit when Tmp_Int = 0 or Col = 0;
+      end loop;
+      if Negative then
+         Res (Col) := '-';
+      end if;
+      return Res;
+   end Int_To_String;
+
    -- Convert an (unsigned) Byte to a String
    function Byte_To_String
      (Byt       : in Byte_T; Base : in Number_Base_T; Width : in Integer;

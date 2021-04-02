@@ -91,9 +91,7 @@ package body CPU is
             end if;
             Tmp_Dis := Tmp_Dis & "' ";
             if Skip_Decode = 0 then
-               null;
-               -- FIXME decode and disassemble
-               Instr := Instruction_Decode (Word, Addr, false, false, false, true);
+               Instr := Instruction_Decode (Word, Addr, false, false, false, true, Radix);
                Tmp_Dis := Tmp_Dis & Instr.Disassembly;
                if Instr.Instr_Len > 1 then
                   Skip_Decode := Instr.Instr_Len - 1;
