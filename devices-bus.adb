@@ -158,17 +158,18 @@ package body Devices.Bus is
        end Set_Image_Detached;
 
        function  Get_Printable_Device_List return String is
-         Lst : Unbounded_String := To_Unbounded_String (" #     Mnem    PMB    I/O     Busy    Done     Status") & Dasher_NL;
+         use Memory;
+         Lst : Unbounded_String := To_Unbounded_String (" #     Mnem     PMB   I/O     Busy    Done     Status") & Dasher_NL;
        begin
          for D in Dev_Num_T'Range loop
             if Bus.Devices(D).Connected then
                Lst := Lst &
-                      Dev_Num_T'Image(D) & ASCII.HT &
+                      Byte_To_String(Byte_T(D), Octal, 3, true) & ASCII.HT &
                       Bus.Devices(D).Mnemonic & ASCII.HT &
-                      Integer'Image(Bus.Devices(D).PMB) & ASCII.HT &
-                      Memory.Boolean_To_YN (Bus.Devices(D).IO_Device) & ASCII.HT &
-                      Memory.Boolean_To_YN (Bus.Devices(D).Busy) & ASCII.HT &
-                      Memory.Boolean_To_YN (Bus.Devices(D).Done);
+                      Byte_To_String(Byte_T(Bus.Devices(D).PMB), Decimal, 3) & "." & ASCII.HT &
+                      Boolean_To_YN (Bus.Devices(D).IO_Device) & ASCII.HT &
+                      Boolean_To_YN (Bus.Devices(D).Busy) & ASCII.HT &
+                      Boolean_To_YN (Bus.Devices(D).Done);
                if Bus.Devices(D).Sim_Image_Attached then
                   Lst := Lst & " Attached to image: " & Bus.Devices(D).Sim_Image_Name;
                end if;

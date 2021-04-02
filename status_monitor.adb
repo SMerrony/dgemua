@@ -30,7 +30,7 @@ with Interfaces; use Interfaces;
 
 with CPU;
 with DG_Types; use DG_Types;
-with Memory;
+with Memory;   use Memory;
 
 package body Status_Monitor is
 
@@ -39,6 +39,7 @@ package body Status_Monitor is
       Connection            : GNAT.Sockets.Socket_Type;
       Client                : GNAT.Sockets.Sock_Addr_Type;
       Channel               : GNAT.Sockets.Stream_Access;
+      Radix                 : Number_Base_T := Octal;
       Last_CPU_Time         : Ada.Calendar.Time;
       I_Count, Last_I_Count : Unsigned_64 := 0;
       MIPS                  : Float;
@@ -81,7 +82,7 @@ package body Status_Monitor is
                   Dasher_Write_Window_Addr & Character'Val (0) &
                   Character'Val (CPU_Row_1) & Dasher_Erase_EOL);
                -- "PC:  %011o   Interrupts: %s    ATU: %s     IPS: %.fk/sec"
-               String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(Stats.PC), 8, 12, true) & 
+               String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(Stats.PC), Radix, 12, true) & 
                                       "  Interrupts: " & Memory.Boolean_To_YN (Stats.ION) &
                                       "      ATU: " & Memory.Boolean_To_YN (Stats.ATU) &
                                       "             MIPS: "  );
@@ -89,10 +90,10 @@ package body Status_Monitor is
                  (Channel,
                   Dasher_Write_Window_Addr & Character'Val (0) &
                   Character'Val (CPU_Row_2) & Dasher_Erase_EOL);
-               String'Write (Channel, "AC0: " &  Memory.Dword_To_String (Stats.AC(0), 8, 12, true) &
-                                      "  AC1: " &  Memory.Dword_To_String (Stats.AC(1), 8, 12, true) &
-                                      "  AC2: " &  Memory.Dword_To_String (Stats.AC(2), 8, 12, true) &
-                                      "  AC3: " &  Memory.Dword_To_String (Stats.AC(3), 8, 12, true));
+               String'Write (Channel, "AC0: " &  Memory.Dword_To_String (Stats.AC(0), Radix, 12, true) &
+                                      "  AC1: " &  Memory.Dword_To_String (Stats.AC(1), Radix, 12, true) &
+                                      "  AC2: " &  Memory.Dword_To_String (Stats.AC(2), Radix, 12, true) &
+                                      "  AC3: " &  Memory.Dword_To_String (Stats.AC(3), Radix, 12, true));
             end CPU_Update;
          or
             accept MTB_Update (Stats : in Devices.Magtape6026.Status_Rec) do
@@ -103,7 +104,7 @@ package body Status_Monitor is
                String'Write
                  (Channel,
                   "MTA:  (MTC0) - Attached: " & Memory.Boolean_To_YN (Stats.Image_Attached(0)) &
-                  "  Mem Addr: " & Memory.Dword_To_String (Dword_T(Stats.Mem_Addr_Reg), 8, 12, true) & 
+                  "  Mem Addr: " & Memory.Dword_To_String (Dword_T(Stats.Mem_Addr_Reg), Radix, 12, true) & 
                   "  Curr Cmd: " & Integer'Image(Stats.Current_Cmd));
                String'Write
                  (Channel,

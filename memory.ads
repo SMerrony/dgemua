@@ -27,6 +27,8 @@ package Memory is
 
     Mem_Size_Words : constant Integer := 8_388_608;
 
+    type Number_Base_T is (Binary, Octal, Decimal, Hex);
+
     -- BMC/DCH Stuff...
     Num_BMC_Regs        : constant Integer := 2_048;
     First_DCH_Slot_Reg  : constant Integer := Num_BMC_Regs;
@@ -88,23 +90,39 @@ package Memory is
         Is_Logging : Boolean;
     end BMC_DCH;
 
+    -- boolean routines
+    function Boolean_To_YN (B : in Boolean) return Character;
+
+    -- bit routines
     procedure Clear_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
     procedure Set_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
     function Test_W_Bit
        (Word : in Word_T; Bit_Num : in Integer) return Boolean;
     function Get_W_Bits (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T;
+
+    -- byte routings
     function Get_Lower_Byte (Word : in Word_T) return Byte_T;
     function Get_Upper_Byte (Word : in Word_T) return Byte_T;
     procedure Get_Bytes_From_Word (Word : in Word_T; Low_Byte, High_Byte : out Byte_T);
-    function Boolean_To_YN (B : Boolean) return Character;
+    function Byte_To_String
+       (Byt      : in Byte_T; 
+        Base : in Number_Base_T; 
+        Width : in Integer;
+        Zero_Pad : in Boolean := False) 
+        return String;  
+
+    -- word routines
     function Dword_From_Two_Words (Word_1, Word_2 : in Word_T) return Dword_T;
     function Dword_To_String
-       (DW       : in Dword_T; Base : in Integer; Width : in Integer;
-        Zero_Pad : in Boolean := False) return String;
-    function String_To_Dword
-       (Str : in String; Base : in Integer) return Dword_T;
-    function Byte_To_String
-       (Byt      : in Byte_T; Base : in Integer; Width : in Integer;
-        Zero_Pad : in Boolean := False) return String;   
+       (DW       : in Dword_T; 
+        Base : in Number_Base_T; 
+        Width : in Integer;
+        Zero_Pad : in Boolean := False) 
+        return String;
+    function String_To_Dword (Str : in String; Base : in Number_Base_T) return Dword_T;
+
+    -- string routines
+    function String_To_Integer(Str : in String; Base : in Number_Base_T) return Integer;
+ 
 
 end Memory;

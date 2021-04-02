@@ -36,12 +36,10 @@ with Devices;
 with Devices.Bus;
 with Devices.Console;        use Devices.Console;
 with Devices.Magtape6026;
-with DG_Types; use DG_Types;
-with Memory;
+with DG_Types;               use DG_Types;
+with Memory;                 use Memory;
 with Simh_Tapes;
 with Status_Monitor;
-
-
 
 procedure MVEmuA is
 
@@ -63,7 +61,7 @@ procedure MVEmuA is
    Command      : Unbounded_String;
    One_Char     : Character;
 
-   Input_Radix  : Integer := 8;
+   Console_Radix  : Number_Base_T := Octal; -- default console I/O number base
 
    procedure Show_Help is
    begin
@@ -127,7 +125,7 @@ procedure MVEmuA is
          TTOut.Put_String (Dasher_NL & " *** B command requires argument: <devicenumber> ***");
          return;
       end if;
-      Dev := Devices.Dev_Num_T(Integer'Value(Slice (Command, 2))); -- FIXME Decimal only
+      Dev := Devices.Dev_Num_T(String_To_Integer(Slice (Command, 2), Console_Radix));
       if not Devices.Bus.Actions.Is_Attached(Dev) then
          TTOut.Put_String (Dasher_NL & " *** Devices is not ATTached ***");
          return;
@@ -136,7 +134,7 @@ procedure MVEmuA is
          TTOut.Put_String (Dasher_NL & " *** Devices is not Bootable ***");
          return;
       end if; 
-      Memory.RAM.Init (Debug_Logging);  
+      RAM.Init (Debug_Logging);  
       case Dev is
          when Devices.MTB =>
             Devices.Magtape6026.Drives.Load_TBOOT;
@@ -169,9 +167,9 @@ procedure MVEmuA is
          TTOut.Put_String (Dasher_NL & " *** DIS command requires two address arguments ***");
          return;
       end if;
-      Low_Addr  := Phys_Addr_T(Memory.String_To_Dword (Slice (Command, 2), Input_Radix));
-      High_Addr := Phys_Addr_T(Memory.String_To_Dword (Slice (Command, 3), Input_Radix));
-      TTOut.Put_String (CPU.Actions.Disassemble_Range(Low_Addr, High_Addr));
+      Low_Addr  := Phys_Addr_T(String_To_Dword (Slice (Command, 2), Console_Radix));
+      High_Addr := Phys_Addr_T(String_To_Dword (Slice (Command, 3), Console_Radix));
+      TTOut.Put_String (CPU.Actions.Disassemble_Range(Low_Addr, High_Addr, Console_Radix));
    end Disassemble;
 
    procedure Show (Command : in Slice_Set) is
@@ -247,10 +245,10 @@ begin
 		--   A generous(!) 16MB (8MW) RAM
 		--   NO IACs, LPT or ISC
       Status_Monitor.Monitor.Start (Monitor_Port);
-      Memory.RAM.Init (Debug_Logging);
+      RAM.Init (Debug_Logging);
       Devices.Bus.Actions.Init;
       Devices.Bus.Actions.Connect (Devices.BMC);
-      Devices.Bus.Actions.Set_Reset_Proc (Devices.BMC, Memory.BMC_DCH.Reset'Access);
+      Devices.Bus.Actions.Set_Reset_Proc (Devices.BMC, BMC_DCH.Reset'Access);
       Devices.Bus.Actions.Connect (Devices.SCP);
       Devices.Bus.Actions.Connect (Devices.CPU);
       CPU.Actions.Init;
@@ -272,15 +270,15 @@ begin
       -- TODO - handle DO scripts
 
       -- JUST TESTING...
-      Memory.RAM.Write_Word( 1, 1);                       -- JMP 1
-      Memory.RAM.Write_Word( 2, 2#0000_0100_0000_0010#);  -- JMP @2
-      Memory.RAM.Write_Word( 3, 2#0000_0111_0000_0011#);  -- JMP @3,AC3
-      Memory.RAM.Write_Word( 4, 2#0110_1001_0100_1000#);  -- DIAS 1,TTI
-      Memory.RAM.Write_Word( 5, 2#1011_0011_0010_1001#);  -- XNLDA 2,@8
-      Memory.RAM.Write_Word( 6, 2#1000_0000_0000_1000#);
-      Memory.RAM.Write_Word( 7, 2#1011_0011_0010_1001#);  -- XNLDA 2,@-1
-      Memory.RAM.Write_Word( 8, 2#1111_1111_1111_1111#);
-      Memory.RAM.Write_Word( 9, 16#1234#);
+      RAM.Write_Word( 1, 1);                       -- JMP 1
+      RAM.Write_Word( 2, 2#0000_0100_0000_0010#);  -- JMP @2
+      RAM.Write_Word( 3, 2#0000_0111_0000_0011#);  -- JMP @3,AC3
+      RAM.Write_Word( 4, 2#0110_1001_0100_1000#);  -- DIAS 1,TTI
+      RAM.Write_Word( 5, 2#1011_0011_0010_1001#);  -- XNLDA 2,@8
+      RAM.Write_Word( 6, 2#1000_0000_0000_1000#);
+      RAM.Write_Word( 7, 2#1011_0011_0010_1001#);  -- XNLDA 2,@-1
+      RAM.Write_Word( 8, 2#1111_1111_1111_1111#);
+      RAM.Write_Word( 9, 16#1234#);
 
       -- the main SCP/console interaction loop
       CPU.Actions.Set_SCP_IO (true);

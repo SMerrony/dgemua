@@ -139,21 +139,53 @@ package body Memory is
       end if;
    end Boolean_To_YN;
 
+   function String_To_Integer(Str : in String; Base : in Number_Base_T) return Integer is
+      Neg : Boolean := false;
+      Res : Integer := 0;
+      Num_Start : Integer := Str'First;
+      Hex_I : Integer;
+      Hexes : String := "0123456789ABCDEF";
+      Val : Integer;
+   begin
+      if Str(Str'First) = '-' then
+         Neg := true;
+         Num_Start := Num_Start + 1;
+      elsif Str(Str'First) = '+' then
+         Num_Start := Num_Start + 1;
+      end if;
+      for C in Num_Start .. Str'Last loop
+         Val := Character'Pos(Str(C)) - 48;
+         case Base is
+            when Octal =>
+               Res := (Res * 8) + Val;
+            when Decimal =>
+               Res := (Res * 10) + Val;
+            when Hex =>
+               --Hex_I := Ada.Strings.Fixed.Index ( "0123456789ABCDEF", String(Str(C)) ) - 1 ;
+               Hex_I := Ada.Strings.Fixed.Index ( "0123456789ABCDEF", Str(C)'Image ) - 1 ;
+               Res := (Res * 16) + Integer (Hex_I);
+            when others =>
+               null;
+         end case; 
+      end loop;
+      return Res;
+   end String_To_Integer;
+
    -- String_To_Dword tries to convert an unsigned string in the given base
-   function String_To_Dword (Str : in String; Base : in Integer) return Dword_T
+   function String_To_Dword (Str : in String; Base : in Number_Base_T) return Dword_T
    is
       Res : Dword_T := 0;
-      Hex : Integer;
+      Hex_I : Integer;
    begin
       for C of Str loop
          case Base is
-            when 8 =>
+            when Octal =>
                Res := (Res * 8) + Dword_T'Value((1 => C));
-            when 10 =>
+            when Decimal =>
                Res := (Res * 10) + Dword_T'Value((1 => C));
-            when 16 =>
-               Hex := Ada.Strings.Fixed.Index ( "0123456789ABCDEF", C'Image ) - 1 ;
-               Res := (Res * 16) + Dword_T (Hex);
+            when Hex =>
+               Hex_I := Ada.Strings.Fixed.Index ( "0123456789ABCDEF", C'Image ) - 1 ;
+               Res := (Res * 16) + Dword_T (Hex_I);
             when others =>
                null;
          end case;  
@@ -164,12 +196,12 @@ package body Memory is
 
    -- Convert an (unsigned) Double-Word to a String
    function Dword_To_String
-     (DW       : in Dword_T; Base : in Integer; Width : in Integer;
+     (DW       : in Dword_T; Base : in Number_Base_T; Width : in Integer;
       Zero_Pad : in Boolean := False) return String
    is
       Res       : String (1 .. Width);
       Tmp_DW    : Dword_T          := DW;
-      Bas_DW    : Dword_T          := Dword_T (Base);
+      Bas_DW    : Dword_T;
       Remainder : Integer;
       Octals    : String (1 .. 8)  := "01234567";
       Decimals  : String (1 .. 10) := "0123456789";
@@ -185,15 +217,21 @@ package body Memory is
             Res (C) := ' ';
          end loop;
       end if;
+      case Base is
+         when Binary => Bas_DW := 2;
+         when Octal  => Bas_DW := 8;
+         when Decimal  => Bas_DW := 10;
+         when Hex  => Bas_DW := 16;
+      end case;
       loop
          Remainder := Integer (Tmp_DW mod Bas_DW);
          Tmp_DW    := Tmp_DW / Bas_DW;
          case Base is
-            when 8 =>
+            when Octal =>
                Res (Col) := Octals (Remainder + 1);
-            when 10 =>
+            when Decimal =>
                Res (Col) := Decimals (Remainder + 1);
-            when 16 =>
+            when Hex =>
                Res (Col) := Hexes (Remainder + 1);
             when others =>
                null;
@@ -206,12 +244,12 @@ package body Memory is
 
    -- Convert an (unsigned) Byte to a String
    function Byte_To_String
-     (Byt       : in Byte_T; Base : in Integer; Width : in Integer;
+     (Byt       : in Byte_T; Base : in Number_Base_T; Width : in Integer;
       Zero_Pad : in Boolean := False) return String
    is
       Res       : String (1 .. Width);
       Tmp_Byt    : Byte_T          := Byt;
-      Bas_Byt    : Byte_T          := Byte_T (Base);
+      Bas_Byt    : Byte_T;
       Remainder : Integer;
       Octals    : String (1 .. 8)  := "01234567";
       Decimals  : String (1 .. 10) := "0123456789";
@@ -227,15 +265,21 @@ package body Memory is
             Res (C) := ' ';
          end loop;
       end if;
+      case Base is
+         when Binary => Bas_Byt := 2;
+         when Octal  => Bas_Byt := 8;
+         when Decimal  => Bas_Byt := 10;
+         when Hex  => Bas_Byt := 16;
+      end case;
       loop
          Remainder := Integer (Tmp_Byt mod Bas_Byt);
          Tmp_Byt    := Tmp_Byt / Bas_Byt;
          case Base is
-            when 8 =>
+            when Octal =>
                Res (Col) := Octals (Remainder + 1);
-            when 10 =>
+            when Decimal =>
                Res (Col) := Decimals (Remainder + 1);
-            when 16 =>
+            when Hex =>
                Res (Col) := Hexes (Remainder + 1);
             when others =>
                null;

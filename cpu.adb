@@ -63,7 +63,7 @@ package body CPU is
          CPU.PC := PC;
       end Boot;
 
-      function Disassemble_Range( Low_Addr, High_Addr : Phys_Addr_T) return String is
+      function Disassemble_Range (Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) return String is
          Skip_Decode : Integer := 0;
          Tmp_Dis : Unbounded_String;
          Word    : Word_T;
@@ -76,9 +76,9 @@ package body CPU is
          for Addr in Low_Addr .. High_Addr loop
             Word := RAM.Read_Word (Addr);
             Get_Bytes_From_Word (Word, Byte_2, Byte_1);
-            Tmp_Dis := Tmp_Dis & Dasher_NL & Dword_To_String (Dword_T(Addr), 8, 12, true) & ": " &
-                       Byte_To_String (Byte_1, 16, 2, true) & " " & Byte_To_String (Byte_2, 16, 2, true) & " " &
-                       Dword_To_String(Dword_T(Word), 8, 6, true) & " '";
+            Tmp_Dis := Tmp_Dis & Dasher_NL & Dword_To_String (Dword_T(Addr), Octal, 12, true) & ": " &
+                       Byte_To_String (Byte_1, Hex, 2, true) & " " & Byte_To_String (Byte_2, Hex, 2, true) & " " &
+                       Dword_To_String(Dword_T(Word), Octal, 6, true) & " '";
             if Byte_1 >= 32 and Byte_1 <= 126 then
                Tmp_Dis := Tmp_Dis & Character'Val (Byte_1);
             else
