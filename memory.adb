@@ -126,6 +126,11 @@ package body Memory is
       return Byte_T (Shift_Right(Word and 16#ff00#, 8));
    end Get_Upper_Byte;
    
+   function Swap_Bytes (Word : In Word_T) return Word_T is
+   begin
+      return Shift_Right(Word and 16#ff00#, 8) or Shift_Left(Word and 16#00ff#, 8);
+   end Swap_Bytes;
+
    function Lower_Word( DW : in Dword_T) return Word_T is
    begin
       return Word_T(DW and 16#0000_ffff#);

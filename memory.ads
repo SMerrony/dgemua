@@ -107,6 +107,7 @@ package Memory is
     -- byte routines
     function Get_Lower_Byte (Word : in Word_T) return Byte_T;
     function Get_Upper_Byte (Word : in Word_T) return Byte_T;
+    function Swap_Bytes (Word : In Word_T) return Word_T;
     procedure Get_Bytes_From_Word (Word : in Word_T; Low_Byte, High_Byte : out Byte_T);
     function Byte_To_String
        (Byt      : in Byte_T; 
