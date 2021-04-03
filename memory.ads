@@ -20,8 +20,11 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with DG_Types;   use DG_Types;
+with Ada.Unchecked_Conversion;
+
 with Interfaces; use Interfaces;
+
+with DG_Types;   use DG_Types;
 
 package Memory is
 
@@ -99,6 +102,7 @@ package Memory is
     function Test_W_Bit
        (Word : in Word_T; Bit_Num : in Integer) return Boolean;
     function Get_W_Bits (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T;
+    function Test_DW_Bit (DW: in Dword_T; Bit_Num : in Integer) return Boolean;
 
     -- byte routines
     function Get_Lower_Byte (Word : in Word_T) return Byte_T;
@@ -111,7 +115,8 @@ package Memory is
         Zero_Pad : in Boolean := False) 
         return String;  
 
-    -- word routines
+    -- Dword routines
+    function Lower_Word( DW : in Dword_T) return Word_T;
     function Dword_From_Two_Words (Word_1, Word_2 : in Word_T) return Dword_T;
     function Dword_To_String
        (DW       : in Dword_T; 
@@ -130,5 +135,9 @@ package Memory is
         return String;
     function String_To_Integer(Str : in String; Base : in Number_Base_T) return Integer;
  
+    -- unchecked conversions
+    function Byte_To_Integer_8 is new Ada.Unchecked_Conversion(Byte_T, Integer_8);
+    function Word_To_Integer_16 is new Ada.Unchecked_Conversion(Word_T, Integer_16);
+    function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
 
 end Memory;

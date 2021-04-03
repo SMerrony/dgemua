@@ -32,7 +32,6 @@ with Memory;           use Memory;
 
 package Decoder is
 
-   type AC_ID is new Integer range 0 .. 3;
    type Carry_T is (None, Z, O, C);
    type IO_Flag_T is (None, S, C, P);
    type Mode_Num_T is new Word_T range 0 .. 3;

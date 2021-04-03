@@ -190,9 +190,11 @@ procedure MVEmuA is
    end Show;
 
    procedure Single_Step is
+      Disass : Unbounded_String;
    begin
       TTOut.Put_String (Dasher_NL & CPU.Actions.Get_Compact_Status(Console_Radix));
-      TTOut.Put_String (Dasher_NL & CPU.Actions.Single_Step(Console_Radix));
+      CPU.Actions.Single_Step(Console_Radix, Disass);
+      TTOut.Put_String (Dasher_NL & To_String(Disass));
       TTOut.Put_String (Dasher_NL & CPU.Actions.Get_Compact_Status(Console_Radix));
    exception   
       when Error: others =>

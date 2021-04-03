@@ -31,6 +31,8 @@ package DG_Types is
 
     type Phys_Addr_T is new Unsigned_32;
 
+    type AC_ID is new Integer range 0 .. 3;
+
     Dasher_NL          : constant Character := Character'Val(8#12#);
     Dasher_Erase_EOL   : constant Character := Character'Val(8#13#);
     Dasher_Erase_Page  : constant Character := Character'Val(8#14#);

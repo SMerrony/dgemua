@@ -20,6 +20,8 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
 with Interfaces; use Interfaces;
 
 with CPU_Instructions; use CPU_Instructions;
@@ -34,8 +36,9 @@ package CPU is
      16#224C#; -- => MV/10000 according to p.2-19 of AOS/VS Internals
    Microcode_Rev : constant Byte_T := 16#04#;
 
-   type Acc_T is array (0 .. 3) of Dword_T;
-   type FPacc_T is array (0 .. 3) of Float;
+
+   type Acc_T is array (AC_ID) of Dword_T;
+   type FPacc_T is array (AC_ID) of Float;
    -- TODO SBR_T is currently an abstraction of the Segment Base Registers - may need to represent physically
    -- via a 32-bit DWord in the future
    type SBR_Phys_Addr is mod 2**19;
@@ -77,9 +80,9 @@ package CPU is
       procedure Reset;
       procedure Boot (Dev : Devices.Dev_Num_T; PC : Phys_Addr_T);
       procedure Prepare_For_Running;
-      function  Run (Disassemble : in Boolean; Radix : in Number_Base_T) return Instr_Count_T;
-      function  Single_Step (Radix : in Number_Base_T) return String;
-      function  Execute (Instr : Decoded_Instr_T) return Boolean;
+      procedure Run (Disassemble : in Boolean; Radix : in Number_Base_T; I_Counts : out Instr_Count_T);
+      procedure Single_Step (Radix : in Number_Base_T; Disass : out Unbounded_String);
+      procedure Execute (Instr : in Decoded_Instr_T; OK : out Boolean);
       function  Disassemble_Range( Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) 
          return String;
       procedure Set_OVR (New_OVR : in Boolean);
@@ -95,5 +98,6 @@ package CPU is
    end Status_Sender;
 
    Execution_Failure : exception;
+   Indirection_Failure : exception;
 
 end CPU;

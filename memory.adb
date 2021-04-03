@@ -98,6 +98,13 @@ package body Memory is
       return (Word and Shift_Left (1, 15 - Bit_Num)) /= 0;
    end Test_W_Bit;
 
+ -- Does Dword have bit <n> set?
+   function Test_DW_Bit (DW : in Dword_T; Bit_Num : in Integer) return Boolean
+   is
+   begin
+      return (DW and Shift_Left (1, 31 - Bit_Num)) /= 0;
+   end Test_DW_Bit;
+
    -- Get_W_Bits - in the DG world, the first (leftmost) bit is numbered zero...
    -- extract nbits from value starting at leftBit
    function Get_W_Bits (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T is
@@ -118,6 +125,11 @@ package body Memory is
    begin
       return Byte_T (Shift_Right(Word and 16#ff00#, 8));
    end Get_Upper_Byte;
+   
+   function Lower_Word( DW : in Dword_T) return Word_T is
+   begin
+      return Word_T(DW and 16#0000_ffff#);
+   end Lower_Word;
 
    procedure Get_Bytes_From_Word (Word : in Word_T; Low_Byte, High_Byte : out Byte_T) is
    begin

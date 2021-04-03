@@ -20,7 +20,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Ada.Unchecked_Conversion;
+
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;           use Ada.Text_IO;
 
@@ -97,9 +97,7 @@ package body Decoder is
       return Opcode_Lookup_Arr (Integer (Opcode)).Mnem;
    end Instruction_Lookup;
 
-   function Byte_To_Integer_8 is new Ada.Unchecked_Conversion(Byte_T, Integer_8);
-   function Word_To_Integer_16 is new Ada.Unchecked_Conversion(Word_T, Integer_16);
-   function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
+
 
    function Char_Carry (Cr : Carry_T) return Character is
    begin
