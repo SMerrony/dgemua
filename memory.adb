@@ -41,10 +41,17 @@ package body Memory is
            ("INFO: Initialised " & Integer'Image (RAM'Length) &
             " words of main memory");
       end Init;
+
       function  Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T is
       begin
          return Dword_From_Two_Words (RAM(Integer(Word_Addr)), RAM(Integer(Word_Addr) + 1));
       end Read_Dword;
+
+      procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T) is
+      begin
+         Write_Word ( Word_Addr, Upper_Word(Datum));
+         Write_Word ( Word_Addr + 1, Lower_Word(Datum));
+      end Write_Dword;
 
       function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
       begin
@@ -135,6 +142,11 @@ package body Memory is
    begin
       return Word_T(DW and 16#0000_ffff#);
    end Lower_Word;
+
+   function Upper_Word( DW : in Dword_T) return Word_T is
+   begin
+      return Word_T(Shift_Right(DW and 16#ffff_0000#, 16));
+   end Upper_Word;
 
    procedure Get_Bytes_From_Word (Word : in Word_T; Low_Byte, High_Byte : out Byte_T) is
    begin

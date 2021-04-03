@@ -76,7 +76,6 @@ package CPU is
    type Instr_Count_T is array (Instr_Mnemonic_T range Instr_Mnemonic_T'Range) of Unsigned_64;
 
    protected Actions is
-      procedure Init;
       procedure Reset;
       procedure Boot (Dev : Devices.Dev_Num_T; PC : Phys_Addr_T);
       procedure Prepare_For_Running;
@@ -92,6 +91,8 @@ package CPU is
    private
       CPU : CPU_T;
    end Actions;
+
+   procedure Init;
 
    task Status_Sender is
         entry Start;

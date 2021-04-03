@@ -31,14 +31,14 @@ with Status_Monitor;
 
 package body CPU is
 
-   protected body Actions is
+   procedure Init  is
+   begin
+      Actions.Reset;
+      Decoder.Generate_All_Possible_Opcodes;
+      Status_Sender.Start;
+   end Init;
 
-      procedure Init  is
-      begin
-         Reset;
-         Decoder.Generate_All_Possible_Opcodes;
-         Status_Sender.Start;
-      end Init;
+   protected body Actions is
 
       procedure Reset  is
       begin
@@ -71,6 +71,51 @@ package body CPU is
          CPU.Instruction_Count := 0;
          CPU.SCP_IO := false;
       end Prepare_For_Running;
+
+      function Resolve_8bit_Disp (Indirect    : in Boolean; 
+                                  Mode        : in Mode_T;
+                                  Disp15      : in Integer_16) return Phys_Addr_T is
+         Eff    : Phys_Addr_T;
+         Ring   : Phys_Addr_T := CPU.PC and 16#0700_0000#;
+         Disp32 : Integer_32;
+         Ind_Addr : Word_T;
+         Indirection_Level : Integer := 0;
+      begin
+         if Mode /= Absolute then
+            -- relative mode, sign-extend to 32-bits
+            Disp32 := Integer_32(Disp15); -- Disp15 is already sexted by decoder
+         end if;
+         case Mode is
+            when Absolute =>
+               Eff := Phys_Addr_T(Disp15) or Ring;
+            when PC =>
+               Eff := Eff + CPU.PC;
+            when AC2 =>
+               Eff := Phys_Addr_T(Integer_32(CPU.AC(2)) + Disp32) or Ring;
+            when AC3 =>
+               Eff := Phys_Addr_T(Integer_32(CPU.AC(3)) + Disp32) or Ring;   
+         end case;
+
+         if Indirect then
+            Eff := Eff or Ring;
+            Ind_Addr := Memory.RAM.Read_Word (Eff);
+            while (Ind_Addr and 16#8000#) /= 0 loop
+               Indirection_Level := Indirection_Level + 1;
+               if Indirection_Level > 15 then
+                  raise Indirection_Failure with "Too many levels of indirection";
+               end if;
+               Ind_Addr := Memory.RAM.Read_Word (Phys_Addr_T(Ind_Addr) or Ring);
+            end loop;
+            Eff := Phys_Addr_T(Ind_Addr) or Ring;
+         end if;
+
+         if not CPU.ATU then
+            -- constrain to 1st 32MB
+            Eff := Eff and 16#01ff_ffff#;
+         end if;
+
+         return Eff;
+      end Resolve_8bit_Disp;
 
       function Resolve_15bit_Disp (Indirect    : in Boolean; 
                                    Mode        : in Mode_T;
@@ -121,11 +166,24 @@ package body CPU is
 
       procedure Eagle_Mem_Ref (I : in Decoded_Instr_T) is
          Addr : Phys_Addr_T;
+         Word : Word_T;
       begin
          case I.Instruction is
+            when I_XNLDA =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               Word := Memory.RAM.Read_Word (Addr);
+               CPU.AC(I.Ac) := Dword_T(Word);
+               if Test_W_Bit (Word, 0) then
+                  CPU.AC(I.Ac) := CPU.AC(I.Ac) or 16#ffff_0000#;
+               end if;
+
             when I_XNSTA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                Memory.RAM.Write_Word (Addr, Memory.Lower_Word(CPU.AC(I.Ac)));
+
+            when I_XWSTA =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               Memory.RAM.Write_Dword (Addr, CPU.AC(I.Ac));
 
             when others =>
                Put_Line ("ERROR: EAGLE_MEMREF instruction " & To_String(I.Mnemonic) & 
@@ -135,6 +193,42 @@ package body CPU is
          end case;
          CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
       end Eagle_Mem_Ref;
+
+      procedure Eagle_PC (I : in Decoded_Instr_T) is
+      begin
+         case I.Instruction is
+            when I_XJMP =>
+               CPU.PC := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) or (CPU.PC and 16#7000_0000#);
+
+            when I_XJSR =>
+               CPU.AC(3) := Dword_T(CPU.PC + 2);
+               CPU.PC := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) or (CPU.PC and 16#7000_0000#);
+
+            when others =>
+               Put_Line ("ERROR: EAGLE_PC instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: EAGLE_PC instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+      end Eagle_PC;
+
+      procedure Eclipse_Mem_Ref (I : in Decoded_Instr_T) is
+         Addr : Phys_Addr_T;
+         Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+      begin
+         case I.Instruction is
+            when I_LEF =>
+               Addr := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15);
+               Addr := (Addr and 16#0000_7fff#) or Ring;
+
+            when others =>
+               Put_Line ("ERROR: ECLIPSE_MEMREF instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: ECLIPSE_MEMREF instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+         CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+      end Eclipse_Mem_Ref;
 
       procedure Nova_Op (I : in Decoded_Instr_T) is
          Wide_Shifter           : Dword_T;
@@ -242,8 +336,10 @@ package body CPU is
          OK := true;
          case Instr.Instr_Type is
 
-            when EAGLE_MEMREF => Eagle_Mem_Ref(Instr);
-            when NOVA_OP => Nova_Op(Instr);
+            when EAGLE_MEMREF   => Eagle_Mem_Ref(Instr);
+            when EAGLE_PC       => Eagle_PC(Instr);
+            when ECLIPSE_MEMREF => Eclipse_Mem_Ref(Instr);
+            when NOVA_OP        => Nova_Op(Instr);
 
             when others =>
                Put_Line ("ERROR: Unimplemented instruction type in Execute function " & 
