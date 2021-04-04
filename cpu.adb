@@ -200,16 +200,60 @@ package body CPU is
          CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
       end Eagle_Mem_Ref;
 
+      procedure Eagle_IO (I : in Decoded_Instr_T) is
+         -- Addr : Phys_Addr_T;
+         -- Word : Word_T;
+      begin
+         case I.Instruction is
+            when I_PRTSEL =>
+               -- only handle the query mode, setting is a no-op on this 'single-channel' machine
+               if Lower_Word (CPU.AC(0)) = 16#ffff# then
+                  -- return default I/O channel if -1 passed in
+                  CPU.AC(0) := 0;
+               end if;
+
+            when others =>
+               Put_Line ("ERROR: EAGLE_IO instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: EAGLE_IO instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+         CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+      end Eagle_IO;
+
       procedure Eagle_Op (I : in Decoded_Instr_T) is
          Acd_S32, Acs_S32 : Integer_32;
          S64 : Integer_64;
       begin
          case I.Instruction is
 
+            when I_CRYTC =>
+               CPU.Carry := not CPU.Carry;
+
+            when I_CRYTO =>
+               CPU.Carry := true;
+
+            when I_CRYTZ =>
+               CPU.Carry := false;
+
+            when I_NLDAI =>
+               CPU.AC(I.Acd) := Dword_T(Integer_32(Word_To_Integer_16(I.Word_2)));
+
             when I_WADD =>
                Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
                Acs_S32 := Dword_To_Integer_32(CPU.AC(I.Acs));
                S64 := Integer_64(Acd_S32) + Integer_64(Acs_S32);
+               CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
+               Set_OVR (CPU.Carry);
+               CPU.AC(I.Acd) := Dword_T(S64);
+
+            when I_WAND =>
+               CPU.AC(I.Acd) := CPU.AC(I.Acd) and CPU.AC(I.Acs);
+
+            when I_WSUB =>
+               Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
+               Acs_S32 := Dword_To_Integer_32(CPU.AC(I.Acs));
+               S64 := Integer_64(Acd_S32) - Integer_64(Acs_S32);
                CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
                Set_OVR (CPU.Carry);
                CPU.AC(I.Acd) := Dword_T(S64);
@@ -224,8 +268,28 @@ package body CPU is
       end Eagle_Op;
 
       procedure Eagle_PC (I : in Decoded_Instr_T) is
+         DW : Dword_T;
+         Skip: Boolean;
       begin
          case I.Instruction is
+
+            when I_WBR =>
+               CPU.PC := Phys_Addr_T(Integer_32(CPU.PC) + Integer_32(I.Disp_8));
+
+            when I_WSEQ | I_WSNE =>
+               if I.Acs = I.Acd then
+                  DW := 0;
+               else
+                  DW := CPU.AC(I.Acd);
+               end if;
+               if I.Instruction = I_WSEQ then
+                  Skip := CPU.Ac(I.Acs) = DW;
+               else
+                  Skip := CPU.Ac(I.Acs) /= DW;
+               end if;
+               if Skip then CPU.PC := CPU.PC + 2; else CPU.PC := CPU.PC + 1; end if;
+
+
             when I_XJMP =>
                CPU.PC := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) or (CPU.PC and 16#7000_0000#);
 
@@ -258,6 +322,25 @@ package body CPU is
          end case;
          CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
       end Eclipse_Mem_Ref;
+
+      procedure Eclipse_Op (I : in Decoded_Instr_T) is
+         Word : Word_T;
+      begin
+         case I.Instruction is
+
+            when I_ANDI =>
+               Word := Lower_Word (CPU.AC(I.Ac));
+               CPU.AC(I.Ac) := Dword_T(Word and Word_T(I.Imm_S16)) and 16#0000_ffff#;
+
+            when others =>
+               Put_Line ("ERROR: ECLIPSE_OP instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: ECLIPSE_OP instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+         CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+      end Eclipse_Op;
+
 
       procedure Nova_IO (I : in Decoded_Instr_T) is
          Seg_Num : Integer := Integer(Shift_Right(CPU.PC, 28) and 16#07#);
@@ -400,16 +483,34 @@ package body CPU is
          CPU.PC := CPU.PC + PC_Inc;
       end Nova_Op;
 
+      procedure Nova_PC (I : in Decoded_Instr_T) is
+         Ring_Mask : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+      begin
+         case I.Instruction is
+            when I_JMP =>
+               CPU.PC := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) or Ring_Mask;
+
+            when others =>
+               Put_Line ("ERROR: Nova_PC instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: Nova_PC instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+      end Nova_PC;
+      
       procedure Execute (Instr : in Decoded_Instr_T) is
       begin
          case Instr.Instr_Type is
 
             when EAGLE_MEMREF   => Eagle_Mem_Ref(Instr);
+            when EAGLE_IO       => Eagle_IO(Instr);
             when EAGLE_OP       => Eagle_Op(Instr);
             when EAGLE_PC       => Eagle_PC(Instr);
             when ECLIPSE_MEMREF => Eclipse_Mem_Ref(Instr);
+            when ECLIPSE_OP     => Eclipse_Op(Instr);
             when NOVA_IO        => Nova_IO(Instr);          
             when NOVA_OP        => Nova_Op(Instr);
+            when NOVA_PC        => Nova_PC(Instr);
 
             when others =>
                Put_Line ("ERROR: Unimplemented instruction type in Execute function " & 

@@ -45,6 +45,8 @@ package body Decoder is
          Instr_Char := Instruction_Set (I);
          if (Opcode and Instr_Char.Mask) = Instr_Char.Bits then
             case I is
+               when I_LEF =>
+                  null;
                when I_ADC | I_ADD | I_AND | I_COM | I_INC | I_MOV | I_NEG |
                  I_SUB =>
             -- these instructions are not allowed to end in 1000(2) or 1001(2)
@@ -352,11 +354,11 @@ package body Decoder is
             end if;
 
          when ONEACC_IMMDWD_3_WORD_FMT => -- eg. WANDI, WIORI, WLDAI
-            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
-            Decoded.Imm_U32 := Unsigned_32(Memory.RAM.Read_Dword (PC + 1));
+            Decoded.Ac     := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Imm_DW := Memory.RAM.Read_Dword (PC + 1);
             if Disassemble then
                Decoded.Disassembly :=
-                 Decoded.Disassembly & " " & Decoded.Imm_U32'Image & "," & 
+                 Decoded.Disassembly & " " & Decoded.Imm_DW'Image & "," & 
                  Decoded.Ac'Image & " [3-Word Instruction]";
             end if;
 
