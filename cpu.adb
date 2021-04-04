@@ -343,10 +343,14 @@ package body CPU is
 
             when others =>
                Put_Line ("ERROR: Unimplemented instruction type in Execute function " & 
-                         Instr.Instr_Type'Image);
+                         Instr.Instr_Type'Image & " for instuction " &
+                         To_String(Instr.Mnemonic));
+               raise Execution_Failure with "ERROR: Unimplemented instruction type in Execute function " & 
+                         Instr.Instr_Type'Image & " for instuction " &
+                         To_String(Instr.Mnemonic);      
                OK := false;
          end case;
-         -- CPU.Instruction_Count := CPU.Instruction_Count + 1;
+         CPU.Instruction_Count := CPU.Instruction_Count + 1;
 
       end Execute;
 
@@ -396,7 +400,7 @@ package body CPU is
                -- Instruction Counting
                I_Counts(Instr.Instruction) := I_Counts(Instr.Instruction) + 1;
 
-               if CPU.Debug_Logging then
+               if Disassemble then
                   Loggers.Debug_Print (Debug_Log, Get_Compact_Status(Radix) & "  " & To_String(Instr.Disassembly));
                end if;
 
@@ -480,6 +484,11 @@ package body CPU is
                 " I:" & Boolean_To_YN (CPU.ION) &
                 " PC=" & Dword_To_String (Dword_T(CPU.PC), Radix, 12, true);
       end Get_Compact_Status;
+
+      function  Get_Instruction_Count return Unsigned_64 is
+      begin
+         return CPU.Instruction_Count;
+      end Get_Instruction_Count;
 
       function Get_Status return CPU_Monitor_Rec is
          Stats : CPU_Monitor_Rec;

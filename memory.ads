@@ -134,7 +134,8 @@ package Memory is
        (Int      : in Integer; 
         Base     : in Number_Base_T; 
         Width    : in Integer;
-        Zero_Pad : in Boolean := False) 
+        Zero_Pad : in Boolean := false;
+        Truncate : in Boolean := false) 
         return String;
     function String_To_Integer(Str : in String; Base : in Number_Base_T) return Integer;
  

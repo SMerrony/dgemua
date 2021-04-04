@@ -21,7 +21,8 @@
 -- SOFTWARE.
 
 with Ada.Text_IO;           use Ada.Text_IO;
-with Ada.Strings.Fixed;
+with Ada.Strings;           use Ada.Strings;
+with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 package body Memory is
@@ -275,7 +276,8 @@ package body Memory is
        (Int       : in Integer; 
         Base : in Number_Base_T; 
         Width : in Integer;
-        Zero_Pad : in Boolean := False) 
+        Zero_Pad : in Boolean := False;
+        Truncate : in Boolean := False) 
         return String is
       Res       : String (1 .. Width);
       Tmp_Int   : Integer := Int;
@@ -320,6 +322,9 @@ package body Memory is
       end loop;
       if Negative then
          Res (Col) := '-';
+      end if;
+      if Truncate then
+         return Trim(Res, Both);
       end if;
       return Res;
    end Int_To_String;

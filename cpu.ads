@@ -87,6 +87,7 @@ package CPU is
       procedure Set_OVR (New_OVR : in Boolean);
       procedure Set_SCP_IO (SCP_IO : in Boolean);
       function  Get_Compact_Status (Radix : Number_Base_T) return string;
+      function  Get_Instruction_Count return Unsigned_64;
       function  Get_Status return CPU_Monitor_Rec;
    private
       CPU : CPU_T;

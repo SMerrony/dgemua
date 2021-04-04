@@ -290,7 +290,7 @@ package body Decoder is
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " &
                  Char_Indirect(Decoded.Ind) &
-                  Int_To_String (Integer(Decoded.Disp_15), Radix, 8) & String_Mode(Decoded.Mode) &
+                  Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & String_Mode(Decoded.Mode) &
                  " [2-Word Instruction]";
             end if;
 
@@ -312,7 +312,7 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Char_Indirect(Decoded.Ind) &
-                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8) & String_Mode(Decoded.Mode);
+                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & String_Mode(Decoded.Mode);
             end if;
 
          when NOVA_ONEACC_EFF_ADDR_FMT => -- eg. LDA, STA
@@ -323,7 +323,7 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," & Char_Indirect(Decoded.Ind) &
-                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8) & String_Mode(Decoded.Mode);
+                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & String_Mode(Decoded.Mode);
             end if;
 
          when NOVA_TWOACC_MULT_OP_FMT => -- eg. ADC, ADD, AND, COM
@@ -346,7 +346,7 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & 
-                 Int_To_String (Integer(Decoded.Word_2), Radix, 8) & "," &
+                 Int_To_String (Integer(Decoded.Word_2), Radix, 8, false, true) & "," &
                  Decoded.Ac'Image & " [2-Word Instruction]";
             end if;
 
@@ -365,7 +365,7 @@ package body Decoder is
             Decoded.Imm_S16 := Word_To_Integer_16(Decoded.Word_2);
             if Disassemble then
                Decoded.Disassembly :=
-                 Decoded.Disassembly & " " & Int_To_String (Integer(Decoded.Imm_S16), Radix, 8) & "," & 
+                 Decoded.Disassembly & " " & Int_To_String (Integer(Decoded.Imm_S16), Radix, 8, false, true) & "," & 
                  Decoded.Ac'Image & " [2-Word Instruction]";
             end if;
 
@@ -379,7 +379,7 @@ package body Decoder is
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
                  Char_Indirect(Decoded.Ind) & 
-                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8) & String_Mode(Decoded.Mode) &
+                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & String_Mode(Decoded.Mode) &
                  " [2-Word Instruction]";
             end if;
 

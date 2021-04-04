@@ -23,11 +23,14 @@
 with Ada.Text_IO;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
+with Ada.Real_Time;         use Ada.Real_Time;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with GNAT.OS_Lib;
 with GNAT.Sockets;
 with GNAT.String_Split;     use GNAT.String_Split;
+
+with Interfaces; use Interfaces;
 
 with CPU;
 with Decoder;
@@ -172,6 +175,34 @@ procedure MVEmuA is
       TTOut.Put_String (CPU.Actions.Disassemble_Range(Low_Addr, High_Addr, Console_Radix));
    end Disassemble;
 
+   procedure Run is
+      I_Counts : CPU.Instr_Count_T;
+      I_Count  : Unsigned_64;
+      Start_Time : Time;
+      Elapsed : Time_Span;
+   begin
+      CPU.Actions.Prepare_For_Running;
+
+      Start_Time := Clock;
+
+      CPU.Actions.Run (Debug_Logging, Console_Radix, I_Counts);
+
+      Elapsed := Clock - Start_Time;
+      I_Count := CPU.Actions.Get_Instruction_Count;
+      CPU.Actions.Set_SCP_IO(true);   
+      TTOut.Put_String (Dasher_NL & " *** MV/Emua executed " & Unsigned_64'Image(I_Count) & 
+                        " instructions in" & Duration'Image(To_Duration(Elapsed)) & " seconds ***");
+   
+   exception
+      when others =>
+         Elapsed := Clock - Start_Time;
+         I_Count := CPU.Actions.Get_Instruction_Count;
+         CPU.Actions.Set_SCP_IO(true);   
+         TTOut.Put_String (Dasher_NL & " *** MV/Emua executed " & Unsigned_64'Image(I_Count) & 
+                           " instructions in" & Duration'Image(To_Duration(Elapsed)) & " seconds ***");
+         raise;
+   end run;
+
    procedure Show (Command : in Slice_Set) is
    begin
       if Slice_Count (Command) < 2 then
@@ -207,8 +238,12 @@ procedure MVEmuA is
       Create (Words, To_String(Cmd), " ", Multiple);
       Command := To_Unbounded_String(Slice (Words, 1));
       -- SCP-like commands...
-      if Command = "B" then
+      if Command = "." then
+         TTOut.Put_String (Dasher_NL & CPU.Actions.Get_Compact_Status(Console_Radix));
+      elsif Command = "B" then
          Boot (Words);
+      elsif Command = "CO" then
+         Run;
       elsif Command = "HE" then
          Show_Help;
       elsif Command = "SS" then
@@ -320,9 +355,10 @@ begin
    exception
       when Error: others =>
          TTOut.Put_String (Dasher_NL & " *** MV/Emulator stopping due to unhandled error ***" );
-         TTOut.Put_String (Dasher_NL & Ada.Exceptions.Exception_Information(Error));
+         -- TTOut.Put_String (Dasher_NL & Ada.Exceptions.Exception_Information(Error));
          Ada.Text_IO.Put_Line("ERROR: " & Ada.Exceptions.Exception_Information(Error));
-         Debug_Logs.Loggers.Debug_Logs_Dump (Log_Dir);
+         Loggers.Debug_Print (Debug_Log, "ERROR: " & Ada.Exceptions.Exception_Information(Error));
+         Loggers.Debug_Logs_Dump (Log_Dir);
          GNAT.OS_Lib.OS_Exit (0);
 
 end MVEmuA;
