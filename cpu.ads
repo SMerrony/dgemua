@@ -77,11 +77,11 @@ package CPU is
 
    protected Actions is
       procedure Reset;
-      procedure Boot (Dev : Devices.Dev_Num_T; PC : Phys_Addr_T);
+      procedure Boot (Dev : Dev_Num_T; PC : Phys_Addr_T);
       procedure Prepare_For_Running;
       procedure Run (Disassemble : in Boolean; Radix : in Number_Base_T; I_Counts : out Instr_Count_T);
       procedure Single_Step (Radix : in Number_Base_T; Disass : out Unbounded_String);
-      procedure Execute (Instr : in Decoded_Instr_T; OK : out Boolean);
+      procedure Execute (Instr : in Decoded_Instr_T);
       function  Disassemble_Range( Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) 
          return String;
       procedure Set_OVR (New_OVR : in Boolean);

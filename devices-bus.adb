@@ -35,7 +35,7 @@ package body Devices.Bus is
                Bus.Devices(D).PMB      := 0;
                Bus.Devices(D).Reset_Proc := null;
                Bus.Devices(D).Data_Out_Proc := null;
-               Bus.Devices(D).Data_In_Func := null;
+               Bus.Devices(D).Data_In_Proc := null;
                Bus.Devices(D).Sim_Image_Attached := false;
                Bus.Devices(D).Sim_Image_Name := To_Unbounded_String("");
                Bus.Devices(D).IO_Device      := false;
@@ -101,10 +101,20 @@ package body Devices.Bus is
           Bus.Devices(Dev).Data_Out_Proc := Data_Out_Proc;
        end Set_Data_Out_Proc;
 
-       procedure Set_Data_In_Func (Dev : in Dev_Num_T; Data_In_Func : in Data_In_Func_T) is
+       procedure Data_Out (Dev : in Dev_Num_T; Datum : in Word_T; ABC : in Character; Flag : in IO_Flag_T) is
        begin
-          Bus.Devices(Dev).Data_In_Func := Data_In_Func;
-       end Set_Data_In_Func;
+          Bus.Devices(Dev).Data_Out_Proc (Datum, ABC, Flag);
+       end Data_Out;
+
+       procedure Data_In  (Dev : in Dev_Num_T; ABC : in Character; Flag : in IO_Flag_T; Datum : out Word_T) is
+       begin
+          Bus.Devices(Dev).Data_In_Proc(ABC, Flag, Datum);
+       end Data_In;
+
+       procedure Set_Data_In_Proc (Dev : in Dev_Num_T; Data_In_Proc : in Data_In_Proc_T) is
+       begin
+          Bus.Devices(Dev).Data_In_Proc := Data_In_Proc;
+       end Set_Data_In_Proc;
 
        function Is_Attached (Dev : in Dev_Num_T) return Boolean is
        begin
@@ -120,6 +130,11 @@ package body Devices.Bus is
        begin
           return Memory.Test_W_Bit (Bus.IRQ_Mask, Bus.Devices(Dev).PMB);
        end Is_Dev_Masked;
+
+       function Is_IO_Dev (Dev : in Dev_Num_T) return Boolean is
+       begin
+          return Bus.Devices(Dev).IO_Device;
+       end Is_IO_Dev;
 
        procedure Send_Interrupt (Dev : in Dev_Num_T) is
        begin

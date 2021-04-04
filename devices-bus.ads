@@ -50,10 +50,13 @@ package Devices.Bus is
         procedure Connect (Dev : in Dev_Num_T);
         procedure Set_Reset_Proc (Dev : in Dev_Num_T; Reset_Proc : in Reset_Proc_T);
         procedure Set_Data_Out_Proc (Dev : in Dev_Num_T; Data_Out_Proc : in Data_Out_Proc_T);
-        procedure Set_Data_In_Func (Dev : in Dev_Num_T; Data_In_Func : in Data_In_Func_T);
+        procedure Data_Out (Dev : in Dev_Num_T; Datum : in Word_T; ABC : in Character; Flag : in IO_Flag_T); 
+        procedure Set_Data_In_Proc (Dev : in Dev_Num_T; Data_In_Proc : in Data_In_Proc_T);
+        procedure Data_In  (Dev : in Dev_Num_T; ABC : in Character; Flag : in IO_Flag_T; Datum : out Word_T);
         function  Is_Attached (Dev : in Dev_Num_T) return Boolean;
         function  Is_Bootable (Dev : in Dev_Num_T) return Boolean;
         function  Is_Dev_Masked (Dev : in Dev_Num_T) return Boolean;
+        function  Is_IO_Dev (Dev : in Dev_Num_T) return Boolean;
         procedure Send_Interrupt (Dev : in Dev_Num_T);
         procedure Clear_Interrupt (Dev : in Dev_Num_T); 
         procedure Set_Busy (Dev : in Dev_Num_T; Busy_State : in Boolean);

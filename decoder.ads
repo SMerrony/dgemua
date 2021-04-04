@@ -27,13 +27,14 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Interfaces; use Interfaces;
 
 with CPU_Instructions; use CPU_Instructions;
+with Devices;
 with DG_Types;         use DG_Types;
 with Memory;           use Memory;
 
 package Decoder is
 
    type Carry_T is (None, Z, O, C);
-   type IO_Flag_T is (None, S, C, P);
+
    type Mode_Num_T is new Word_T range 0 .. 3;
    type Mode_T is (Absolute, PC, AC2, AC3);
    type Shift_T is (None, L, R, S);
@@ -61,7 +62,7 @@ package Decoder is
       Word_2       : Word_T;          -- 2nd word of instruction
       ABC          : Character;       -- A/B/C I/O
       IO_Flag      : IO_Flag_T;
-      IO_Dev       : Natural;
+      IO_Dev       : Dev_Num_T;
       Sh           : Shift_T;
       Carry        : Carry_T;
       No_Load      : Boolean;

@@ -107,6 +107,7 @@ package Devices.Magtape6026 is
         procedure Attach
            (Unit : in Natural; Image_Name : in String; OK : out Boolean);
         procedure Detach (Unit : in Natural);
+        procedure Data_In (ABC : in Character; IO_Flag : in IO_Flag_T; Datum : out Word_T);
         function  Get_Image_Name (Unit : in Natural) return String;
         function  Get_Status return Status_Rec;
         procedure Load_TBOOT;

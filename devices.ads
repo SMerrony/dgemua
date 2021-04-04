@@ -26,9 +26,6 @@ with DG_Types; use DG_Types;
 
 package Devices is
 
-    Devices_Max : constant Integer := 63;
-    type Dev_Num_T is new Integer range 0 .. Devices_Max;
-
     -- Device IDs and PMBs
     -- Standard device codes in octal, Priority Mask Bits in decimal
     -- as per DG docs!
@@ -59,9 +56,9 @@ package Devices is
 
     type Reset_Proc_T is access protected procedure;
     type Data_Out_Proc_T is access protected procedure
-       (Datum : in Word_T; ABC : in Character; Flag : in Character);
-    type Data_In_Func_T is access protected function
-       (ABC : Character; Flag : Character) return Word_T;
+       (Datum : in Word_T; ABC : in Character; Flag : in IO_Flag_T);
+    type Data_In_Proc_T is access protected procedure
+       (ABC : in Character; Flag : in IO_Flag_T; Datum : out Word_T);
 
     type Device_Rec is record
         Mnemonic           : Unbounded_String;
@@ -71,7 +68,7 @@ package Devices is
         Connected          : Boolean;
         Reset_Proc         : Reset_Proc_T;
         Data_Out_Proc      : Data_Out_Proc_T;
-        Data_In_Func       : Data_In_Func_T;
+        Data_In_Proc       : Data_In_Proc_T;
         Sim_Image_Attached : Boolean;
         Sim_Image_Name     : Unbounded_String;
         Busy               : Boolean;

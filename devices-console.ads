@@ -40,8 +40,8 @@ package Devices.Console is
         procedure Init;
         procedure Reset;
         procedure Insert_Byte (B : in Byte_T);
-        function  Data_In (ABC : Character; IO_Flag : Character) return Word_T;
-        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in Character);
+        procedure Data_In (ABC : in Character; IO_Flag : in IO_Flag_T; Datum : out Word_T);
+        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in IO_Flag_T);
     private
         TTI_Dev : TTI_T;
     end TTIn;
@@ -52,7 +52,7 @@ package Devices.Console is
         procedure Put_Char (C : in Character);
         procedure Put_String (S : in String);
         procedure Reset;
-        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in Character);
+        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in IO_Flag_T);
     private
         TTO_Dev : TTO_T;
     end TTOut;

@@ -25,6 +25,8 @@ with Ada.Text_IO;           use Ada.Text_IO;
 
 with CPU_Instructions;      use CPU_Instructions;
 with Decoder;               use Decoder;
+with Devices;               use Devices;
+with Devices.Bus;           use Devices.Bus;
 with Debug_Logs;            use Debug_Logs;
 with Memory;                use Memory;
 with Status_Monitor;
@@ -57,8 +59,8 @@ package body CPU is
          Put_Line ("INFO: CPU reset");
       end Reset;
 
-      -- Boot sets up the CPU for booting, it is NOT started
-      procedure Boot (Dev : Devices.Dev_Num_T; PC : Phys_Addr_T) is
+      -- Boot sets up the CPU to boot, it is NOT started
+      procedure Boot (Dev : Dev_Num_T; PC : Phys_Addr_T) is
       begin
          CPU.SR := 16#8000# or Word_T(Dev);
          CPU.AC(0) := Dword_T(Dev); 
@@ -181,6 +183,10 @@ package body CPU is
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                Memory.RAM.Write_Word (Addr, Memory.Lower_Word(CPU.AC(I.Ac)));
 
+            when I_XWLDA =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               CPU.AC(I.Ac) := Memory.RAM.Read_Dword (Addr);
+
             when I_XWSTA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                Memory.RAM.Write_Dword (Addr, CPU.AC(I.Ac));
@@ -193,6 +199,29 @@ package body CPU is
          end case;
          CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
       end Eagle_Mem_Ref;
+
+      procedure Eagle_Op (I : in Decoded_Instr_T) is
+         Acd_S32, Acs_S32 : Integer_32;
+         S64 : Integer_64;
+      begin
+         case I.Instruction is
+
+            when I_WADD =>
+               Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
+               Acs_S32 := Dword_To_Integer_32(CPU.AC(I.Acs));
+               S64 := Integer_64(Acd_S32) + Integer_64(Acs_S32);
+               CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
+               Set_OVR (CPU.Carry);
+               CPU.AC(I.Acd) := Dword_T(S64);
+
+            when others =>
+               Put_Line ("ERROR: EAGLE_Op instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: EAGLE_Op instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+         CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+      end Eagle_Op;
 
       procedure Eagle_PC (I : in Decoded_Instr_T) is
       begin
@@ -229,6 +258,46 @@ package body CPU is
          end case;
          CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
       end Eclipse_Mem_Ref;
+
+      procedure Nova_IO (I : in Decoded_Instr_T) is
+         Seg_Num : Integer := Integer(Shift_Right(CPU.PC, 28) and 16#07#);
+         ABC : Character;
+         Datum : Word_T;
+      begin
+         if CPU.ATU and CPU.SBR(Seg_Num).Lef then
+               raise Execution_Failure with "LEF not yet implemented";
+         end if;
+         case I.Instruction is
+            when I_DIA | I_DIB | I_DIC | I_DOA | I_DOB | I_DOC =>
+
+               -- catch CPU I/O instructions
+               if I.IO_Dev = Devices.CPU then
+                  raise Execution_Failure with "CPU I/O not yet implemented";
+               end if;
+
+               if Bus.Actions.Is_Attached(I.IO_Dev) and Bus.Actions.Is_IO_Dev(I.IO_Dev) then
+                  ABC := Element(I.Mnemonic, 3);
+                  if Element(I.Mnemonic, 2) = 'I' then
+                        Devices.Bus.Actions.Data_In(I.IO_Dev, ABC, I.IO_Flag, Datum);
+                        CPU.AC(I.Ac) := Dword_T(Datum);
+                     else
+                        Datum := Lower_Word (CPU.AC(I.Ac));
+                        Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, ABC, I.IO_Flag);
+                  end if;
+               else
+                  Loggers.Debug_Print(Debug_Log, "WARNING: I/O Attempted to unattached or non-I/O capable device ");
+                  return;
+               end if;
+
+                          
+            when others =>
+               Put_Line ("ERROR: Nova_IO instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: Nova_IO instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+         CPU.PC := CPU.PC + 1;
+      end Nova_IO;
 
       procedure Nova_Op (I : in Decoded_Instr_T) is
          Wide_Shifter           : Dword_T;
@@ -331,14 +400,15 @@ package body CPU is
          CPU.PC := CPU.PC + PC_Inc;
       end Nova_Op;
 
-      procedure Execute (Instr : in Decoded_Instr_T; OK : out Boolean) is
+      procedure Execute (Instr : in Decoded_Instr_T) is
       begin
-         OK := true;
          case Instr.Instr_Type is
 
             when EAGLE_MEMREF   => Eagle_Mem_Ref(Instr);
+            when EAGLE_OP       => Eagle_Op(Instr);
             when EAGLE_PC       => Eagle_PC(Instr);
             when ECLIPSE_MEMREF => Eclipse_Mem_Ref(Instr);
+            when NOVA_IO        => Nova_IO(Instr);          
             when NOVA_OP        => Nova_Op(Instr);
 
             when others =>
@@ -348,7 +418,6 @@ package body CPU is
                raise Execution_Failure with "ERROR: Unimplemented instruction type in Execute function " & 
                          Instr.Instr_Type'Image & " for instuction " &
                          To_String(Instr.Mnemonic);      
-               OK := false;
          end case;
          CPU.Instruction_Count := CPU.Instruction_Count + 1;
 
@@ -358,7 +427,7 @@ package body CPU is
          This_Op : Word_T;
          Instr   : Decoded_Instr_T;
          Segment : Integer;
-         OK      : Boolean;
+
       begin
          This_Op := Memory.RAM.Read_Word(CPU.PC);
          Segment := Integer(Shift_Right(CPU.PC, 29));
@@ -369,18 +438,14 @@ package body CPU is
                            ATU_On => CPU.ATU, 
                            Disassemble => true, 
                            Radix => Radix);
-         Execute (Instr, OK);
-         if not OK then
-            raise Execution_Failure with " *** ERROR: Could not execute instruction ***";
-         end if;         
+         Execute (Instr);      
          Disass := Instr.Disassembly;
       end Single_Step;
 
       procedure Run (Disassemble : in Boolean; Radix : in Number_Base_T; I_Counts : out Instr_Count_T) is
-         This_Op : Word_T;
-         Instr   : Decoded_Instr_T;
-         Segment : Integer;
-         OK      : Boolean;
+            This_Op : Word_T;
+            Instr   : Decoded_Instr_T;
+            Segment : Integer;
          begin
          Run_Loop:
             loop
@@ -405,10 +470,7 @@ package body CPU is
                end if;
 
                -- EXECUTE
-               Execute (Instr, OK);
-               if not OK then
-                  exit Run_Loop;
-               end if;
+               Execute (Instr);
 
                -- INTERRUPT?
 

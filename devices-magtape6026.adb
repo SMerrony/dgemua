@@ -36,7 +36,9 @@ package body Devices.Magtape6026 is
         procedure Init is
         begin
 
-
+            --Devices.Bus.Actions.Set_Reset_Proc (Devices.TTI, Reset'Access);
+            Devices.Bus.Actions.Set_Data_In_Proc (Devices.MTB, Data_In'Access);
+            --Devices.Bus.Actions.Set_Data_Out_Proc (Devices.TTI, Data_Out'Access);
             State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady;
             State.Status_Reg_2 := SR_2_PE_Mode;
             Status_Sender.Start;
@@ -68,6 +70,47 @@ package body Devices.Magtape6026 is
             State.Status_Reg_2 := SR_2_PE_Mode;
             Devices.Bus.Actions.Set_Image_Detached (Devices.MTB);
         end Detach;
+
+        procedure Handle_Flag ( IO_Flag : IO_Flag_T) is 
+        begin
+            case IO_Flag is
+                when S =>
+                    Loggers.Debug_Print (Mt_Log, "... S flag set");
+                    if State.Current_Cmd /= Cmd_Rewind then
+                        Devices.Bus.Actions.Set_Busy (Devices.MTB, true);
+                    end if;
+                    Devices.Bus.Actions.Set_Done (Devices.MTB, false);
+                    -- FIXME: Do_Command;
+                    Devices.Bus.Actions.Set_Busy (Devices.MTB, false);
+                    Devices.Bus.Actions.Set_Done (Devices.MTB, true);
+                when C =>
+                    Loggers.Debug_Print (Mt_Log, "... C flag set");
+                    Devices.Bus.Actions.Set_Busy (Devices.MTB, false);
+                    Devices.Bus.Actions.Set_Done (Devices.MTB, false);
+                when P => -- 'Reserved...'
+                    Loggers.Debug_Print (Mt_Log, "WARNING: P flag set - 'Reserved' command");
+                when None =>
+                    null;
+            end case;
+        end Handle_Flag;
+
+        -- Data_In is called from Bus to implement DIx from the mt device
+        procedure  Data_In (ABC : in Character; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
+        begin
+            case ABC is
+                when 'A' => -- Read status register 1 - see p.IV-18 of Peripherals guide
+                    Datum := State.Status_Reg_1;
+                    Loggers.Debug_Print (Mt_Log, "DIA - Read SR1 - returning: " & Datum'Image);
+                 when 'B' => --Read memory addr register 1 - see p.IV-19 of Peripherals guide
+                    Datum := Word_T(State.Mem_Addr_Reg);
+                    Loggers.Debug_Print (Mt_Log, "DIB - Read MA - returning: " & Datum'Image);  
+                when 'C' => -- Read status register 2 - see p.IV-18 of Peripherals guide
+                    Datum := State.Status_Reg_2;
+                    Loggers.Debug_Print (Mt_Log, "DIC - Read SR2 - returning: " & Datum'Image); 
+                when others => null;    
+            end case;
+            Handle_Flag (IO_Flag);
+        end Data_In;
 
         function Get_Image_Name (Unit : in Natural) return String is
         begin

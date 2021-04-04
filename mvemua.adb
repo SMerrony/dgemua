@@ -122,13 +122,13 @@ procedure MVEmuA is
    end Attach;
 
    procedure Boot (Command : in Slice_Set) is
-      Dev : Devices.Dev_Num_T;
+      Dev : Dev_Num_T;
    begin
      if Slice_Count (Command) < 2 then
          TTOut.Put_String (Dasher_NL & " *** B command requires argument: <devicenumber> ***");
          return;
       end if;
-      Dev := Devices.Dev_Num_T(String_To_Integer(Slice (Command, 2), Console_Radix));
+      Dev := Dev_Num_T(String_To_Integer(Slice (Command, 2), Console_Radix));
       if not Devices.Bus.Actions.Is_Attached(Dev) then
          TTOut.Put_String (Dasher_NL & " *** Devices is not ATTached ***");
          return;

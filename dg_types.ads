@@ -32,6 +32,9 @@ package DG_Types is
     type Phys_Addr_T is new Unsigned_32;
 
     type AC_ID is new Integer range 0 .. 3;
+    type IO_Flag_T is (None, S, C, P);
+    Devices_Max : constant Integer := 63;
+    type Dev_Num_T is new Integer range 0 .. Devices_Max;
 
     Dasher_NL          : constant Character := Character'Val(8#12#);
     Dasher_Erase_EOL   : constant Character := Character'Val(8#13#);
@@ -43,6 +46,9 @@ package DG_Types is
     Dasher_Dim_On      : constant Character := Character'Val(8#34#);
     Dasher_Dim_Off     : constant Character := Character'Val(8#35#);
     Dasher_Delete      : constant Character := Character'Val(8#177#);
+
+    Max_Pos_S32 : constant Integer_64 :=  (2 ** 31) - 1;
+    Min_Neg_S32 : constant Integer_64 := -(Max_Pos_S32 + 1);
 
 
 end DG_Types;

@@ -141,6 +141,7 @@ package Memory is
  
     -- unchecked conversions
     function Byte_To_Integer_8 is new Ada.Unchecked_Conversion(Byte_T, Integer_8);
+    function Dword_To_Integer_32 is new Ada.Unchecked_Conversion(Dword_T, Integer_32);
     function Word_To_Integer_16 is new Ada.Unchecked_Conversion(Word_T, Integer_16);
     function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
 

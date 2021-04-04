@@ -33,7 +33,7 @@ package body Devices.Console is
         procedure Init is
         begin
             Devices.Bus.Actions.Set_Reset_Proc (Devices.TTI, Reset'Access);
-            Devices.Bus.Actions.Set_Data_In_Func (Devices.TTI, Data_In'Access);
+            Devices.Bus.Actions.Set_Data_In_Proc (Devices.TTI, Data_In'Access);
             Devices.Bus.Actions.Set_Data_Out_Proc (Devices.TTI, Data_Out'Access);
         end Init;
 
@@ -54,16 +54,15 @@ package body Devices.Console is
             end if;
         end Insert_Byte;
 
-        function  Data_In (ABC : Character; IO_Flag : Character) return Word_T is
-        Datum : Word_T;
+        procedure  Data_In (ABC : in Character; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
         begin
             Datum := Word_T(TTI_Dev.One_Char_Buff);
             if ABC = 'A' then
                 case IO_Flag is
-                    when 'S' =>
+                    when S =>
                         Devices.Bus.Actions.Set_Busy( Devices.TTI, true);
                         Devices.Bus.Actions.Set_Done( Devices.TTI, false);
-                    when 'C' =>
+                    when  C =>
                         Devices.Bus.Actions.Set_Busy( Devices.TTI, false);
                         Devices.Bus.Actions.Set_Done( Devices.TTI, false);
                     when others =>
@@ -74,19 +73,18 @@ package body Devices.Console is
                 Ada.Text_IO.Put_Line("ERROR: Unknown Data I/O Buffer for DIx ac,TTI instruction");
                 GNAT.OS_Lib.OS_Exit (1);
             end if;
-            return Datum;
         end Data_In;
 
         -- Data_Out is only here to support NIO commands to TTI
-        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in Character) is
+        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in IO_Flag_T) is
         begin
             case ABC is
                 when 'N' =>
                     case IO_Flag is
-                        when 'S' =>
+                        when S =>
                             Devices.Bus.Actions.Set_Busy( Devices.TTI, true);
                             Devices.Bus.Actions.Set_Done( Devices.TTI, false);
-                        when 'C' =>
+                        when C =>
                             Devices.Bus.Actions.Set_Busy( Devices.TTI, false);
                             Devices.Bus.Actions.Set_Done( Devices.TTI, false);
                         when others =>
@@ -134,13 +132,13 @@ package body Devices.Console is
             Ada.Text_IO.Put_Line ("INFO: TTO Reset");
         end Reset;
 
-        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in Character) is
+        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in IO_Flag_T) is
             ASCII_Byte : Byte_T;
         begin
             case ABC is
                 when 'A' =>
                     ASCII_Byte := Memory.Get_Lower_Byte(Datum);
-                    if IO_Flag = 'S' then
+                    if IO_Flag = S then
                         Devices.Bus.Actions.Set_Busy( Devices.TTO, true);
                         Devices.Bus.Actions.Set_Done( Devices.TTO, false);
                     end if;
@@ -153,10 +151,10 @@ package body Devices.Console is
                     end if;
                 when 'N' =>
                     case IO_Flag is
-                        when 'S' =>
+                        when S =>
                             Devices.Bus.Actions.Set_Busy( Devices.TTO, true);
                             Devices.Bus.Actions.Set_Done( Devices.TTO, false);
-                        when 'C' =>
+                        when C =>
                             Devices.Bus.Actions.Set_Busy( Devices.TTO, false);
                             Devices.Bus.Actions.Set_Done( Devices.TTO, false);
                         when others =>

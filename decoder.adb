@@ -26,6 +26,7 @@ with Ada.Text_IO;           use Ada.Text_IO;
 
 with CPU_Instructions; use CPU_Instructions;
 with Debug_Logs;       use Debug_Logs;
+with Devices;
 with Devices.Bus;      
 with Memory;           use Memory;
 
@@ -297,12 +298,12 @@ package body Decoder is
          when NOVA_DATA_IO_FMT => -- eg. DOA/B/C, DIA/B/C
             Decoded.Ac := AC_ID(Get_W_Bits (Opcode, 3, 2));
             Decoded.IO_Flag := Decode_IO_Flag (Get_W_Bits (Opcode, 8, 2));
-            Decoded.IO_Dev  := Integer(Integer_16(Get_W_Bits (Opcode, 10, 6)));
+            Decoded.IO_Dev  := Dev_Num_T(Integer_16(Get_W_Bits (Opcode, 10, 6)));
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & Char_IO_Flag (Decoded.IO_Flag) & " " &
                  Decoded.Ac'Image & "," & 
-                 Devices.Bus.Actions.Get_Device_Name_Or_Number (Devices.Dev_Num_T(Decoded.IO_Dev));
+                 Devices.Bus.Actions.Get_Device_Name_Or_Number (Dev_Num_T(Decoded.IO_Dev));
             end if;
 
          when NOVA_NOACC_EFF_ADDR_FMT => -- eg. DSZ, ISZ, JMP, JSR
