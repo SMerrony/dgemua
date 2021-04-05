@@ -38,11 +38,19 @@ package Devices.Bus is
 
     type Bus_T is record
        Devices  : Devices_Arr_T;
-       IRQ_Mask : Word_T;
-       IRQ      : Boolean;
-       IRQs_By_Priority : IRQ_Prio_Arr;
+    --    IRQ_Mask : Word_T;
+    --    IRQ      : Boolean;
+    --    IRQs_By_Priority : IRQ_Prio_Arr;
        Devs_By_Priority : Dev_Prio_Arr;
-       Interrupting_Dev : Int_Dev_Arr;
+    --    Interrupting_Dev : Int_Dev_Arr;
+    end record;
+
+    type State_T is record
+        Statuses : State_Arr_T;
+        IRQ_Mask : Word_T;
+        IRQ      : Boolean;
+        IRQs_By_Priority : IRQ_Prio_Arr;
+        Interrupting_Dev : Int_Dev_Arr; 
     end record;
 
     protected Actions is
@@ -55,12 +63,8 @@ package Devices.Bus is
         procedure Data_In  (Dev : in Dev_Num_T; ABC : in Character; Flag : in IO_Flag_T; Datum : out Word_T);
         function  Is_Attached (Dev : in Dev_Num_T) return Boolean;
         function  Is_Bootable (Dev : in Dev_Num_T) return Boolean;
-        function  Is_Dev_Masked (Dev : in Dev_Num_T) return Boolean;
+        function  Is_Connected (Dev : in Dev_Num_T) return Boolean;
         function  Is_IO_Dev (Dev : in Dev_Num_T) return Boolean;
-        procedure Send_Interrupt (Dev : in Dev_Num_T);
-        procedure Clear_Interrupt (Dev : in Dev_Num_T); 
-        procedure Set_Busy (Dev : in Dev_Num_T; Busy_State : in Boolean);
-        procedure Set_Done (Dev : in Dev_Num_T; Done_State : in Boolean);
         procedure Set_Image_Attached (Dev : in Dev_Num_T; Image_Name : String);
         procedure Set_Image_Detached (Dev : in Dev_Num_T);
         function  Get_Printable_Device_List return String;
@@ -68,4 +72,18 @@ package Devices.Bus is
     private
         Bus : Bus_T;
     end Actions;
+
+    protected States is
+        procedure Init;
+        function  Get_Busy (Dev : in Dev_Num_T) return Boolean;
+        function  Get_Done (Dev : in Dev_Num_T) return Boolean;
+        procedure Set_Busy (Dev : in Dev_Num_T; Busy_State : in Boolean);
+        procedure Set_Done (Dev : in Dev_Num_T; Done_State : in Boolean);
+        
+        function  Is_Dev_Masked (PMB : in Integer) return Boolean;
+        procedure Send_Interrupt (Dev : in Dev_Num_T; PMB : in Integer);
+        procedure Clear_Interrupt (Dev : in Dev_Num_T; PMB : in Integer); 
+    private 
+        State : State_T;
+    end States;
 end Devices.Bus;

@@ -43,6 +43,16 @@ package body Memory is
             " words of main memory");
       end Init;
 
+      function  Read_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T is
+         W : Word_T;
+      begin
+         W := RAM (Integer (Word_Addr));
+         if not Low_Byte then
+            W := Shift_Right (W, 8);
+         end if;
+         return Byte_T(W  and 16#00ff#);
+      end Read_Byte;
+
       function  Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T is
       begin
          return Dword_From_Two_Words (RAM(Integer(Word_Addr)), RAM(Integer(Word_Addr) + 1));
@@ -168,6 +178,11 @@ package body Memory is
          return 'N';
       end if;
    end Boolean_To_YN;
+
+   function Low_Byte_To_Char (LB : in Boolean) return Character is
+   begin
+      if LB then return 'L'; else return 'H'; end if;
+   end Low_Byte_To_Char;
 
    function String_To_Integer(Str : in String; Base : in Number_Base_T) return Integer is
       Neg : Boolean := false;

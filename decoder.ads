@@ -63,11 +63,13 @@ package Decoder is
       ABC          : Character;       -- A/B/C I/O
       IO_Flag      : IO_Flag_T;
       IO_Dev       : Dev_Num_T;
+      IO_Test      : IO_Test_T;
       Sh           : Shift_T;
       Carry        : Carry_T;
       No_Load      : Boolean;
       Skip         : Skip_T;
       Bit_Number   : Natural;
+      Low_Byte     : Boolean;
    end record;
 
    type Opcode_Rec is record

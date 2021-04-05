@@ -43,14 +43,14 @@ package body Devices.Console is
             Ada.Text_IO.Put_Line ("INFO: TTI Reset");
         end Reset;
 
-        -- Insert_Byte places one byte in the TTI buffer for handling by the CPU
+        -- Insert_Byte places one byte in the TTI buffer fr handling by the CPU
         procedure Insert_Byte (B : in Byte_T) is
         begin
             TTI_Dev.One_Char_Buff := B;
-            Devices.Bus.Actions.Set_Done( Devices.TTI, true);
+            Devices.Bus.States.Set_Done( Devices.TTI, true);
             -- send IRQ if not masked out
-            if Devices.Bus.Actions.Is_Dev_Masked (Devices.TTI) = false then
-               Devices.Bus.Actions.Send_Interrupt(Devices.TTI);
+            if Devices.Bus.States.Is_Dev_Masked (14) = false then
+               Devices.Bus.States.Send_Interrupt(Devices.TTI, 14);
             end if;
         end Insert_Byte;
 
@@ -60,11 +60,11 @@ package body Devices.Console is
             if ABC = 'A' then
                 case IO_Flag is
                     when S =>
-                        Devices.Bus.Actions.Set_Busy( Devices.TTI, true);
-                        Devices.Bus.Actions.Set_Done( Devices.TTI, false);
+                        Devices.Bus.States.Set_Busy( Devices.TTI, true);
+                        Devices.Bus.States.Set_Done( Devices.TTI, false);
                     when  C =>
-                        Devices.Bus.Actions.Set_Busy( Devices.TTI, false);
-                        Devices.Bus.Actions.Set_Done( Devices.TTI, false);
+                        Devices.Bus.States.Set_Busy( Devices.TTI, false);
+                        Devices.Bus.States.Set_Done( Devices.TTI, false);
                     when others =>
                         Ada.Text_IO.Put_Line("ERROR: Unknown I/O flag");
                         GNAT.OS_Lib.OS_Exit (1);
@@ -82,11 +82,11 @@ package body Devices.Console is
                 when 'N' =>
                     case IO_Flag is
                         when S =>
-                            Devices.Bus.Actions.Set_Busy( Devices.TTI, true);
-                            Devices.Bus.Actions.Set_Done( Devices.TTI, false);
+                            Devices.Bus.States.Set_Busy( Devices.TTI, true);
+                            Devices.Bus.States.Set_Done( Devices.TTI, false);
                         when C =>
-                            Devices.Bus.Actions.Set_Busy( Devices.TTI, false);
-                            Devices.Bus.Actions.Set_Done( Devices.TTI, false);
+                            Devices.Bus.States.Set_Busy( Devices.TTI, false);
+                            Devices.Bus.States.Set_Done( Devices.TTI, false);
                         when others =>
                             Ada.Text_IO.Put_Line("ERROR: Unknown I/O flag");
                             GNAT.OS_Lib.OS_Exit (1);
@@ -139,24 +139,24 @@ package body Devices.Console is
                 when 'A' =>
                     ASCII_Byte := Memory.Get_Lower_Byte(Datum);
                     if IO_Flag = S then
-                        Devices.Bus.Actions.Set_Busy( Devices.TTO, true);
-                        Devices.Bus.Actions.Set_Done( Devices.TTO, false);
+                        Devices.Bus.States.Set_Busy( Devices.TTO, true);
+                        Devices.Bus.States.Set_Done( Devices.TTO, false);
                     end if;
                     Put_Byte (ASCII_Byte);
-                    Devices.Bus.Actions.Set_Busy( Devices.TTO, false);
-                    Devices.Bus.Actions.Set_Done( Devices.TTO, true);
+                    Devices.Bus.States.Set_Busy( Devices.TTO, false);
+                    Devices.Bus.States.Set_Done( Devices.TTO, true);
                     -- send IRQ if not masked out
-                    if Devices.Bus.Actions.Is_Dev_Masked (Devices.TTO) = false then
-                        Devices.Bus.Actions.Send_Interrupt(Devices.TTO);
+                    if Devices.Bus.States.Is_Dev_Masked (15) = false then
+                        Devices.Bus.States.Send_Interrupt(Devices.TTO, 15);
                     end if;
                 when 'N' =>
                     case IO_Flag is
                         when S =>
-                            Devices.Bus.Actions.Set_Busy( Devices.TTO, true);
-                            Devices.Bus.Actions.Set_Done( Devices.TTO, false);
+                            Devices.Bus.States.Set_Busy( Devices.TTO, true);
+                            Devices.Bus.States.Set_Done( Devices.TTO, false);
                         when C =>
-                            Devices.Bus.Actions.Set_Busy( Devices.TTO, false);
-                            Devices.Bus.Actions.Set_Done( Devices.TTO, false);
+                            Devices.Bus.States.Set_Busy( Devices.TTO, false);
+                            Devices.Bus.States.Set_Done( Devices.TTO, false);
                         when others =>
                             Ada.Text_IO.Put_Line("ERROR: Unknown I/O flag");
                             GNAT.OS_Lib.OS_Exit (1);

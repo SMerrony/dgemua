@@ -77,16 +77,16 @@ package body Devices.Magtape6026 is
                 when S =>
                     Loggers.Debug_Print (Mt_Log, "... S flag set");
                     if State.Current_Cmd /= Cmd_Rewind then
-                        Devices.Bus.Actions.Set_Busy (Devices.MTB, true);
+                        Devices.Bus.States.Set_Busy (Devices.MTB, true);
                     end if;
-                    Devices.Bus.Actions.Set_Done (Devices.MTB, false);
+                    Devices.Bus.States.Set_Done (Devices.MTB, false);
                     -- FIXME: Do_Command;
-                    Devices.Bus.Actions.Set_Busy (Devices.MTB, false);
-                    Devices.Bus.Actions.Set_Done (Devices.MTB, true);
+                    Devices.Bus.States.Set_Busy (Devices.MTB, false);
+                    Devices.Bus.States.Set_Done (Devices.MTB, true);
                 when C =>
                     Loggers.Debug_Print (Mt_Log, "... C flag set");
-                    Devices.Bus.Actions.Set_Busy (Devices.MTB, false);
-                    Devices.Bus.Actions.Set_Done (Devices.MTB, false);
+                    Devices.Bus.States.Set_Busy (Devices.MTB, false);
+                    Devices.Bus.States.Set_Done (Devices.MTB, false);
                 when P => -- 'Reserved...'
                     Loggers.Debug_Print (Mt_Log, "WARNING: P flag set - 'Reserved' command");
                 when None =>

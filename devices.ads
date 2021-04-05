@@ -71,11 +71,18 @@ package Devices is
         Data_In_Proc       : Data_In_Proc_T;
         Sim_Image_Attached : Boolean;
         Sim_Image_Name     : Unbounded_String;
-        Busy               : Boolean;
-        Done               : Boolean;
+        -- Busy               : Boolean;
+        -- Done               : Boolean;
     end record;
 
     type Devices_Arr_T is array (Dev_Num_T'Range) of Device_Rec;
+
+    type State_Rec is record
+        Busy               : Boolean;
+        Done               : Boolean;
+    end record;   
+
+    type State_Arr_T is array (Dev_Num_T'Range) of State_Rec;
 
     function Mnemonic_Or_Octal (Dev_Num : Dev_Num_T) return Unbounded_String;
 

@@ -171,6 +171,10 @@ package body CPU is
          Word : Word_T;
       begin
          case I.Instruction is
+            when I_XLDB =>
+               Addr := Resolve_15bit_Disp (false, I.Mode, I.Disp_15, I.Disp_Offset); -- TODO 'Long' resolve???
+               CPU.AC(I.Ac) := Dword_T(Memory.RAM.Read_Byte(Addr, I.Low_Byte));
+
             when I_XNLDA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                Word := Memory.RAM.Read_Word (Addr);
@@ -346,6 +350,7 @@ package body CPU is
          Seg_Num : Integer := Integer(Shift_Right(CPU.PC, 28) and 16#07#);
          ABC : Character;
          Datum : Word_T;
+         Busy, Done : Boolean;
       begin
          if CPU.ATU and CPU.SBR(Seg_Num).Lef then
                raise Execution_Failure with "LEF not yet implemented";
@@ -358,7 +363,7 @@ package body CPU is
                   raise Execution_Failure with "CPU I/O not yet implemented";
                end if;
 
-               if Bus.Actions.Is_Attached(I.IO_Dev) and Bus.Actions.Is_IO_Dev(I.IO_Dev) then
+               if Bus.Actions.Is_Connected(I.IO_Dev) and Bus.Actions.Is_IO_Dev(I.IO_Dev) then
                   ABC := Element(I.Mnemonic, 3);
                   if Element(I.Mnemonic, 2) = 'I' then
                         Devices.Bus.Actions.Data_In(I.IO_Dev, ABC, I.IO_Flag, Datum);
@@ -372,6 +377,24 @@ package body CPU is
                   return;
                end if;
 
+            when I_SKP =>
+               case I.IO_Dev is
+                  when Devices.CPU =>
+                     Busy := CPU.ION;
+                     Done := CPU.PF_Flag;
+                  when Dev_Num_T(8#12#) | Dev_Num_T(8#13#) => -- TODO ignore for now
+                     CPU.PC := CPU.PC + 2;
+                     return;
+                  when others =>
+                     Busy := Devices.Bus.States.Get_Busy(I.IO_Dev);
+                     Done := Devices.Bus.States.Get_Done(I.IO_Dev);
+               end case;
+               case I.IO_Test is
+                  when BN => if Busy then CPU.PC := CPU.PC + 1; end if;
+                  when BZ => if not Busy then CPU.PC := CPU.PC + 1; end if;
+                  when DN => if Done then CPU.PC := CPU.PC + 1; end if;
+                  when DZ => if not Done then CPU.PC := CPU.PC + 1; end if;
+               end case;
                           
             when others =>
                Put_Line ("ERROR: Nova_IO instruction " & To_String(I.Mnemonic) & 

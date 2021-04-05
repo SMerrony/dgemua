@@ -33,6 +33,7 @@ package DG_Types is
 
     type AC_ID is new Integer range 0 .. 3;
     type IO_Flag_T is (None, S, C, P);
+    type IO_Test_T is (BN, BZ, DN, DZ);
     Devices_Max : constant Integer := 63;
     type Dev_Num_T is new Integer range 0 .. Devices_Max;
 

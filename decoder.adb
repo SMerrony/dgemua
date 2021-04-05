@@ -175,6 +175,12 @@ package body Decoder is
       end if;
    end Decode_15bit_Disp; -- TODO Test/verify this
 
+   procedure Decode_16bit_Byte_Disp (D16 : in Word_T; Disp_16 : out Integer_16; Lo_Byte : out Boolean) is
+   begin
+      Lo_Byte := Test_W_Bit (D16, 15);
+      Disp_16 := Integer_16(D16) / 2;
+   end Decode_16bit_Byte_Disp;
+
    function Decode_Carry (Cr : Word_T) return Carry_T is
    begin
       case Cr is
@@ -196,6 +202,17 @@ package body Decoder is
          when others => return None; -- TODO error handling
       end case;
    end Decode_IO_Flag;
+
+   function Decode_IO_Test (W : Word_T) return IO_Test_T is
+   begin
+      case W is
+         when 0 => return BN;
+         when 1 => return BZ; 
+         when 2 => return DN; 
+         when 3 => return DZ; 
+         when others => raise Decode_Failed with "Unknown I/O Test";
+      end case;
+   end Decode_IO_Test;
 
    function Decode_Mode (W : Mode_Num_T) return Mode_T is
    begin
@@ -273,6 +290,15 @@ package body Decoder is
       Decoded.Disp_Offset := Instruction_Set (Instr).Disp_Offset;
 
       case Decoded.Format is  
+
+         when IO_TEST_DEV_FMT => -- eg. SKPn
+            Decoded.IO_Test := Decode_IO_Test (Get_W_Bits (Opcode, 8, 2));
+            Decoded.IO_Dev  := Dev_Num_T(Get_W_Bits (Opcode, 10, 6));
+            if Disassemble then
+               Decoded.Disassembly :=
+                  Decoded.Disassembly & Decoded.IO_Test'Image & " " &
+                  To_String(Devices.Mnemonic_Or_Octal(Decoded.IO_Dev));
+            end if;
 
          when IMM_ONEACC_FMT => -- eg. ADI, HXL, NADI, SBI, WADI, WLSI, WSBI
          	-- N.B. Immediate value is encoded by assembler to be one less than required
@@ -370,6 +396,20 @@ package body Decoder is
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Int_To_String (Integer(Decoded.Imm_S16), Radix, 8, false, true) & "," & 
                  Decoded.Ac'Image & " [2-Word Instruction]";
+            end if;
+
+         when ONEACC_MODE_2_WORD_X_B_FMT => -- eg. XLDB, XLEFB, XSTB
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 1, 2)));
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decode_16bit_Byte_Disp (D16 => Decoded.Word_2, Disp_16 => Decoded.Disp_15, Lo_Byte => Decoded.Low_Byte);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
+                 Char_Indirect(Decoded.Ind) & 
+                 Int_To_String (Integer(Decoded.Disp_15 * 2), Radix, 8, false, true) & "+" &
+                 Low_Byte_To_Char (Decoded.Low_Byte) &
+                 String_Mode(Decoded.Mode) & " [2-Word Instruction]";
             end if;
 
          when ONEACC_MODE_IND_2_WORD_X_FMT => -- eg. XNLDA, XWMUL & many others

@@ -33,50 +33,44 @@ package body Devices.Bus is
             for D in Bus.Devices'Range loop
                Bus.Devices(D).Mnemonic := To_Unbounded_String("");
                Bus.Devices(D).PMB      := 0;
+               Bus.Devices(D).IO_Device      := false;
+               Bus.Devices(D).Bootable       := false;
+               Bus.Devices(D).Connected      := false;
                Bus.Devices(D).Reset_Proc := null;
                Bus.Devices(D).Data_Out_Proc := null;
                Bus.Devices(D).Data_In_Proc := null;
                Bus.Devices(D).Sim_Image_Attached := false;
                Bus.Devices(D).Sim_Image_Name := To_Unbounded_String("");
-               Bus.Devices(D).IO_Device      := false;
-               Bus.Devices(D).Bootable       := false;
-               Bus.Devices(D).Connected      := false;
-               Bus.Devices(D).Busy           := false;
-               Bus.Devices(D).Done           := false;
             end loop;
             
-            Bus.Devices(PWRFL) := (To_Unbounded_String("PWRFL"), 0, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(WCS)   := (To_Unbounded_String("WCS"), 99, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(MAP)   := (To_Unbounded_String("MAP"), 99, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(PSC)   := (To_Unbounded_String("PSC"), 13, false, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(BMC)   := (To_Unbounded_String("BMC"), 99, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(TTI)   := (To_Unbounded_String("TTI"), 14, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(TTO)   := (To_Unbounded_String("TTO"), 15, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(RTC)   := (To_Unbounded_String("RTC"), 13, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(LPT)   := (To_Unbounded_String("LPT"), 12, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(MTB)   := (To_Unbounded_String("MTB"), 10, true, true, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(MTJ)   := (To_Unbounded_String("MTJ"), 10, true, true, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(DSKP)  := (To_Unbounded_String("DSKP"), 7, true, true, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(DPF)   := (To_Unbounded_String("DPF"), 7, true, true, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(ISC)   := (To_Unbounded_String("ISC"), 4, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(PIT)   := (To_Unbounded_String("PIT"), 11, false, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(SCP)   := (To_Unbounded_String("SCP"), 15, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(IAC1)  := (To_Unbounded_String("IAC1"), 11, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(MTB1)  := (To_Unbounded_String("MTB1"), 10, true, true, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(MTJ1)  := (To_Unbounded_String("MTJ1"), 10, true, true, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(DSKP1) := (To_Unbounded_String("DSKP1"), 7, true, true, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(IAC)   := (To_Unbounded_String("IAC"), 11, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(DPF1)  := (To_Unbounded_String("DPF1"), 7, true, true, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(FPU)   := (To_Unbounded_String("FPU"), 99, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
-            Bus.Devices(CPU)   := (To_Unbounded_String("CPU"), 0, true, false, false, null, null, null, false, To_Unbounded_String(""), false, false);
+            Bus.Devices(PWRFL) := (To_Unbounded_String("PWRFL"), 0, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(WCS)   := (To_Unbounded_String("WCS"), 99, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(MAP)   := (To_Unbounded_String("MAP"), 99, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(PSC)   := (To_Unbounded_String("PSC"), 13, false, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(BMC)   := (To_Unbounded_String("BMC"), 99, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(TTI)   := (To_Unbounded_String("TTI"), 14, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(TTO)   := (To_Unbounded_String("TTO"), 15, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(RTC)   := (To_Unbounded_String("RTC"), 13, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(LPT)   := (To_Unbounded_String("LPT"), 12, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(MTB)   := (To_Unbounded_String("MTB"), 10, true, true, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(MTJ)   := (To_Unbounded_String("MTJ"), 10, true, true, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(DSKP)  := (To_Unbounded_String("DSKP"), 7, true, true, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(DPF)   := (To_Unbounded_String("DPF"), 7, true, true, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(ISC)   := (To_Unbounded_String("ISC"), 4, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(PIT)   := (To_Unbounded_String("PIT"), 11, false, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(SCP)   := (To_Unbounded_String("SCP"), 15, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(IAC1)  := (To_Unbounded_String("IAC1"), 11, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(MTB1)  := (To_Unbounded_String("MTB1"), 10, true, true, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(MTJ1)  := (To_Unbounded_String("MTJ1"), 10, true, true, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(DSKP1) := (To_Unbounded_String("DSKP1"), 7, true, true, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(IAC)   := (To_Unbounded_String("IAC"), 11, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(DPF1)  := (To_Unbounded_String("DPF1"), 7, true, true, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(FPU)   := (To_Unbounded_String("FPU"), 99, true, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(CPU)   := (To_Unbounded_String("CPU"), 0, true, false, false, null, null, null, false, To_Unbounded_String(""));
         
-            Bus.IRQ_Mask := 0;
-            Bus.IRQ      := false;
+            States.Init;
             for D in Dev_Prio_Arr'Range loop
                Bus.Devs_By_Priority(D).Clear;
-            end loop;
-            for D in Int_Dev_Arr'Range loop
-               Bus.Interrupting_Dev(D) := false;
             end loop;
 
             Put_Line ("INFO: Bus initialised");
@@ -126,39 +120,17 @@ package body Devices.Bus is
           return Bus.Devices(Dev).Bootable;
        end Is_Bootable;
 
-       function Is_Dev_Masked (Dev : in Dev_Num_T) return Boolean is
+       function Is_Connected (Dev : in Dev_Num_T) return Boolean is
        begin
-          return Memory.Test_W_Bit (Bus.IRQ_Mask, Bus.Devices(Dev).PMB);
-       end Is_Dev_Masked;
+          return Bus.Devices(Dev).Connected;
+       end Is_Connected;
+
+
 
        function Is_IO_Dev (Dev : in Dev_Num_T) return Boolean is
        begin
           return Bus.Devices(Dev).IO_Device;
        end Is_IO_Dev;
-
-       procedure Send_Interrupt (Dev : in Dev_Num_T) is
-       begin
-         Bus.Interrupting_Dev(Dev) := true;
-         Bus.IRQs_By_Priority(Bus.Devices(Dev).PMB) := true;
-         Bus.IRQ := true;
-       end Send_Interrupt;
-
-       procedure Clear_Interrupt (Dev : in Dev_Num_T) is
-       begin
-         Bus.Interrupting_Dev(Dev) := false;
-         Bus.IRQs_By_Priority(Bus.Devices(Dev).PMB) := false;
-         --Bus.IRQ := false;
-       end Clear_Interrupt;
-
-       procedure Set_Busy (Dev : in Dev_Num_T; Busy_State : in Boolean) is
-       begin
-          Bus.Devices(Dev).Busy := Busy_State;
-       end Set_Busy;
-
-       procedure Set_Done (Dev : in Dev_Num_T; Done_State : in Boolean) is
-       begin
-          Bus.Devices(Dev).Done := Done_State;
-       end Set_Done;
 
        procedure Set_Image_Attached (Dev : in Dev_Num_T; Image_Name : String) is
        begin
@@ -183,8 +155,8 @@ package body Devices.Bus is
                       Bus.Devices(D).Mnemonic & ASCII.HT &
                       Byte_To_String(Byte_T(Bus.Devices(D).PMB), Decimal, 3) & "." & ASCII.HT &
                       Boolean_To_YN (Bus.Devices(D).IO_Device) & ASCII.HT &
-                      Boolean_To_YN (Bus.Devices(D).Busy) & ASCII.HT &
-                      Boolean_To_YN (Bus.Devices(D).Done);
+                      Boolean_To_YN (States.Get_Busy(D)) & ASCII.HT &
+                      Boolean_To_YN (States.Get_Done(D));
                if Bus.Devices(D).Sim_Image_Attached then
                   Lst := Lst & " Attached to image: " & Bus.Devices(D).Sim_Image_Name;
                end if;
@@ -203,5 +175,59 @@ package body Devices.Bus is
        end Get_Device_Name_Or_Number;
 
     end Actions;
+
+    protected body States is
+
+       procedure Init is
+       begin
+         State.IRQ := false;
+         State.IRQ_Mask := 0;
+         for D in Int_Dev_Arr'Range loop
+               State.Interrupting_Dev(D) := false;
+         end loop;
+       end Init;
+
+       function Get_Busy (Dev : in Dev_Num_T) return Boolean is
+       begin
+         return State.Statuses(Dev).Busy;
+       end Get_Busy;
+
+       procedure Set_Busy (Dev : in Dev_Num_T; Busy_State : in Boolean) is
+       begin
+          State.Statuses(Dev).Busy := Busy_State;
+       end Set_Busy;
+
+       function Get_Done (Dev : in Dev_Num_T) return Boolean is
+       begin
+         return State.Statuses(Dev).Done;
+       end Get_Done;
+
+       procedure Set_Done (Dev : in Dev_Num_T; Done_State : in Boolean) is
+       begin
+          State.Statuses(Dev).Done := Done_State;
+       end Set_Done;
+
+
+
+       function Is_Dev_Masked (PMB : in Integer) return Boolean is
+       begin
+          return Memory.Test_W_Bit (State.IRQ_Mask, PMB);
+       end Is_Dev_Masked;
+
+       procedure Send_Interrupt (Dev : in Dev_Num_T; PMB : in Integer) is
+       begin
+          State.Interrupting_Dev(Dev) := true;
+          State.IRQs_By_Priority(PMB) := true;
+          State.IRQ := true;
+       end Send_Interrupt;
+
+       procedure Clear_Interrupt (Dev : in Dev_Num_T; PMB : in Integer) is
+       begin
+          State.Interrupting_Dev(Dev) := false;
+          State.IRQs_By_Priority(PMB) := false;
+          --Bus.IRQ := false;
+       end Clear_Interrupt;
+
+    end States;
 
 end Devices.Bus;

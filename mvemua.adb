@@ -26,6 +26,7 @@ with Ada.IO_Exceptions;
 with Ada.Real_Time;         use Ada.Real_Time;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
+with GNAT.Ctrl_C;
 with GNAT.OS_Lib;
 with GNAT.Sockets;
 with GNAT.String_Split;     use GNAT.String_Split;
@@ -328,6 +329,8 @@ begin
       RAM.Write_Word( 7, 2#1011_0011_0010_1001#);  -- XNLDA 2,@-1
       RAM.Write_Word( 8, 2#1111_1111_1111_1111#);
       RAM.Write_Word( 9, 16#1234#);
+
+      GNAT.Ctrl_C.Install_Handler(Clean_Exit'Unrestricted_Access);
 
       -- the main SCP/console interaction loop
       CPU.Actions.Set_SCP_IO (true);

@@ -76,6 +76,7 @@ package Memory is
 
     protected RAM is
         procedure Init (Debug_Logging : in Boolean);
+        function  Read_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T;
         function  Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T;
         procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T);
         function  Read_Word (Word_Addr : in Phys_Addr_T) return Word_T;
@@ -116,6 +117,7 @@ package Memory is
         Width    : in Integer;
         Zero_Pad : in Boolean := False) 
         return String;  
+    function Low_Byte_To_Char (LB : in Boolean) return Character;
 
     -- Dword routines
     function Lower_Word( DW : in Dword_T) return Word_T;
