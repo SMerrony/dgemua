@@ -1,7 +1,7 @@
 # dgemua Status
 
-* Last status update: 3rd April 2021
-* Last significant progress: First opcode excuted! - 3rd April 2021
+* Last status update: 5th April 2021
+* Last significant progress: TBOOT "Tape file number?" prompt displayed! - 5th April 2021
 
 ## What Works?
 Nothing yet - rewrite just begun.

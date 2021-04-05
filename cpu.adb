@@ -254,6 +254,10 @@ package body CPU is
             when I_WAND =>
                CPU.AC(I.Acd) := CPU.AC(I.Acd) and CPU.AC(I.Acs);
 
+            when I_WINC =>
+               CPU.Carry := CPU.AC(I.Acs) = 16#ffff_ffff#; -- TODO handle overflow flag
+               CPU.AC(I.Acd) := CPU.AC(I.Acs) + 1;
+
             when I_WSUB =>
                Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
                Acs_S32 := Dword_To_Integer_32(CPU.AC(I.Acs));
