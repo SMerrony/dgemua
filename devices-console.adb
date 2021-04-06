@@ -20,8 +20,11 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Streams;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
+
+use type Ada.Streams.Stream_Element_Count;
 
 with Devices.Bus;
 with Memory;
@@ -101,36 +104,36 @@ package body Devices.Console is
 
     protected body TTOut is
 
-        procedure Init (Conn : GNAT.Sockets.Stream_Access) is
+        procedure Init (Sock : in GNAT.Sockets.Socket_Type) is
         begin
-            TTO_Dev.Conn_Stream := Conn;
             Devices.Bus.Actions.Set_Reset_Proc (Devices.TTO, Reset'Access);
             Devices.Bus.Actions.Set_Data_Out_Proc (Devices.TTO, Data_Out'Access);
+            SCP_Chan := GNAT.Sockets.Stream (Sock);
         end;
-
-        procedure Put_Byte (B : in Byte_T) is
-        begin
-            Byte_T'Output ( TTO_Dev.Conn_Stream, B);
-        end Put_Byte;
-
-        procedure Put_Char (C : in Character) is
-        begin
-            Character'Output ( TTO_Dev.Conn_Stream, C);
-        end Put_Char;
-
-        procedure Put_String (S : in String) is
-        begin
-            for Ix in S'Range loop
-               Put_Char ( S(Ix) );
-            end loop;
-        end Put_String;
 
         -- Reset simply clears the screen or throws a page
         procedure Reset is
         begin
-            Put_Char (ASCII.FF);
+            TTOut.Put_Char (ASCII.FF);
             Ada.Text_IO.Put_Line ("INFO: TTO Reset");
         end Reset;
+        
+        procedure Put_Byte (B : in Byte_T) is
+        begin
+               Byte_T'Output (SCP_Chan, B);
+        end Put_Byte;
+ 
+        procedure Put_Char (C : in Character) is
+        begin
+            Character'Output (SCP_Chan, C);
+        end Put_Char;
+
+        procedure Put_String (S : in String) is
+        begin
+            for C of S loop
+                Character'Output (SCP_Chan, C);
+            end loop;
+        end Put_String;
 
         procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in IO_Flag_T) is
             ASCII_Byte : Byte_T;
@@ -142,7 +145,7 @@ package body Devices.Console is
                         Devices.Bus.States.Set_Busy( Devices.TTO, true);
                         Devices.Bus.States.Set_Done( Devices.TTO, false);
                     end if;
-                    Put_Byte (ASCII_Byte);
+                    TTOut.Put_Byte (ASCII_Byte);
                     Devices.Bus.States.Set_Busy( Devices.TTO, false);
                     Devices.Bus.States.Set_Done( Devices.TTO, true);
                     -- send IRQ if not masked out
@@ -169,5 +172,72 @@ package body Devices.Console is
 
     end TTOut;
 
+    task body SCP_Handler is
+      SCP_IO  : Boolean; -- True if console I/O is directed to the SCP
+      SCP_Buffer : Unbounded_String;
+      SCP_Line_Ready : Boolean := false;
+    begin
+      loop
+         select
+            accept Set_SCP_Line_Ready (Buffer : in Unbounded_String) do  
+                SCP_Buffer := Buffer;  
+                SCP_Line_Ready := true;
+            end Set_SCP_Line_Ready;
+         or
+            when SCP_Line_Ready =>
+               accept SCP_Get_Line (Line : out Unbounded_String) do
+                  Line := SCP_Buffer;
+               end SCP_Get_Line;
+               SCP_Buffer := Null_Unbounded_String;
+               SCP_Line_Ready := false;
+         or
+            accept Set_SCP_IO (SCP : in Boolean) do
+               SCP_IO := SCP;
+            end Set_SCP_IO;   
+         or
+            accept Get_SCP_IO (SCP : out Boolean) do
+               SCP := SCP_IO;
+            end Get_SCP_IO;   
+         end select;
+      end loop;
+   end SCP_Handler;
+
+   task body Console_Handler is
+      SCP_Buffer : Unbounded_String;
+      SCP_Line_Ready : Boolean := false;
+      SCP_Chan    : GNAT.Sockets.Stream_Access;
+      One_Char : Character;
+      SCP_IO : Boolean;
+   begin
+      accept Start (Sock : in GNAT.Sockets.Socket_Type) do
+         SCP_Chan := GNAT.Sockets.Stream (Sock);
+         SCP_Handler.Set_SCP_IO (true);
+      end Start;
+
+      loop   
+        One_Char := Memory.Byte_To_Char(Byte_T'Input (SCP_Chan));
+        SCP_Handler.Get_SCP_IO (SCP_IO);
+        if One_Char = ASCII.ESC then
+            SCP_Handler.Set_SCP_IO (true);
+        elsif SCP_IO then
+            case One_Char is
+                when ASCII.CR =>
+                    SCP_Handler.Set_SCP_Line_Ready (SCP_Buffer);
+                    SCP_Buffer := Null_Unbounded_String;
+                when Dasher_Delete =>
+                    if length (SCP_Buffer) > 0 then
+                    Character'Output (SCP_Chan, Dasher_Cursor_Left);
+                    SCP_Buffer := Head(SCP_Buffer, length (SCP_Buffer) - 1);
+                    end if;
+                when others =>
+                    Character'Output (SCP_Chan, One_Char);
+                    SCP_Buffer := SCP_Buffer & One_Char;
+            end case;
+        else
+            TTIn.Insert_Byte (Memory.Char_To_Byte(One_Char));
+        end if;
+            
+      end loop;
+   end Console_Handler;
 
 end Devices.Console;

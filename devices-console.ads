@@ -32,10 +32,6 @@ package Devices.Console is
        One_Char_Buff : Byte_T;
     end record;
 
-    type TTO_T is record
-       Conn_Stream     : GNAT.Sockets.Stream_Access;
-    end record;
-
     protected TTIn is
         procedure Init;
         procedure Reset;
@@ -47,14 +43,26 @@ package Devices.Console is
     end TTIn;
 
     protected TTOut is
-        procedure Init (Conn : GNAT.Sockets.Stream_Access);
+        procedure Init (Sock : in GNAT.Sockets.Socket_Type);
+        procedure Reset;
         procedure Put_Byte (B : in Byte_T);
         procedure Put_Char (C : in Character);
         procedure Put_String (S : in String);
-        procedure Reset;
         procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in IO_Flag_T);
-    private
-        TTO_Dev : TTO_T;
+    private 
+        SCP_Chan : GNAT.Sockets.Stream_Access;
     end TTOut;
+
+    task SCP_Handler is
+      entry Set_SCP_IO (SCP : in Boolean);
+      entry Get_SCP_IO (SCP : out Boolean);
+      entry Set_SCP_Line_Ready (Buffer : in Unbounded_String);
+      entry SCP_Get_Line (Line : out Unbounded_String);
+    end SCP_Handler;
+
+    task Console_Handler is   
+      entry Start (Sock : in GNAT.Sockets.Socket_Type);
+   end Console_Handler;
+   
 
 end Devices.Console;

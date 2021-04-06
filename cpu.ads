@@ -62,7 +62,7 @@ package CPU is
       -- emulator internals
       Debug_Logging     : Boolean;
       Instruction_Count : Unsigned_64;
-      SCP_IO            : Boolean; -- True if console I/O is directed to the SCP
+
    end record;
 
    -- Data sent to the Status_Monitor
@@ -85,7 +85,6 @@ package CPU is
       function  Disassemble_Range( Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) 
          return String;
       procedure Set_OVR (New_OVR : in Boolean);
-      procedure Set_SCP_IO (SCP_IO : in Boolean);
       function  Get_Compact_Status (Radix : Number_Base_T) return string;
       function  Get_Instruction_Count return Unsigned_64;
       function  Get_Status return CPU_Monitor_Rec;

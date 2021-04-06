@@ -297,7 +297,7 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                   Decoded.Disassembly & Decoded.IO_Test'Image & " " &
-                  To_String(Devices.Mnemonic_Or_Octal(Decoded.IO_Dev));
+                  Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
             end if;
 
          when IMM_ONEACC_FMT => -- eg. ADI, HXL, NADI, SBI, WADI, WLSI, WSBI

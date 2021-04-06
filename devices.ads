@@ -84,6 +84,6 @@ package Devices is
 
     type State_Arr_T is array (Dev_Num_T'Range) of State_Rec;
 
-    function Mnemonic_Or_Octal (Dev_Num : Dev_Num_T) return Unbounded_String;
+    -- function Mnemonic_Or_Octal (Dev_Num : Dev_Num_T) return Unbounded_String;
 
 end Devices;

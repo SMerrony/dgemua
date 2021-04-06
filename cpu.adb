@@ -71,7 +71,6 @@ package body CPU is
       procedure Prepare_For_Running is
       begin
          CPU.Instruction_Count := 0;
-         CPU.SCP_IO := false;
       end Prepare_For_Running;
 
       function Resolve_8bit_Disp (Indirect    : in Boolean; 
@@ -452,7 +451,8 @@ package body CPU is
             when I_MOV =>
                Narrow_Shifter := Tmp_Acs;
             when I_NEG =>
-               Narrow_Shifter := Word_T(-Integer_16(Tmp_Acs)); -- TODO Check this
+               Narrow_Shifter := Integer_16_To_Word(- Word_To_Integer_16(Tmp_Acs));
+               -- Narrow_Shifter := Word_T(-Integer_16(Tmp_Acs)); -- TODO Check this
                if Tmp_Acs = 0 then
                   CPU.Carry := not CPU.Carry;
                end if;
@@ -510,6 +510,26 @@ package body CPU is
          CPU.PC := CPU.PC + PC_Inc;
       end Nova_Op;
 
+      procedure Nova_Mem_Ref (I : in Decoded_Instr_T) is
+         Ring_Mask : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+         Addr : Phys_Addr_T;
+         Word : Word_T;
+      begin
+         case I.Instruction is
+            when I_LDA =>
+               Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
+               Word := Memory.RAM.Read_Word (Addr);
+               CPU.AC(I.Ac) := Dword_T(Word);
+
+            when others =>
+               Put_Line ("ERROR: Nova_Mem_Ref instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: Nova_Mem_Ref instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+         CPU.PC := CPU.PC + 1;
+      end Nova_Mem_Ref;
+
       procedure Nova_PC (I : in Decoded_Instr_T) is
          Ring_Mask : Phys_Addr_T := CPU.PC and 16#7000_0000#;
       begin
@@ -535,7 +555,8 @@ package body CPU is
             when EAGLE_PC       => Eagle_PC(Instr);
             when ECLIPSE_MEMREF => Eclipse_Mem_Ref(Instr);
             when ECLIPSE_OP     => Eclipse_Op(Instr);
-            when NOVA_IO        => Nova_IO(Instr);          
+            when NOVA_IO        => Nova_IO(Instr);  
+            when NOVA_MEMREF    => Nova_Mem_Ref(Instr);
             when NOVA_OP        => Nova_Op(Instr);
             when NOVA_PC        => Nova_PC(Instr);
 
@@ -658,11 +679,6 @@ package body CPU is
             Clear_W_Bit(CPU.PSR, 1);
         end if;
       end Set_OVR;
-
-      procedure Set_SCP_IO (SCP_IO : in Boolean) is
-      begin
-         CPU.SCP_IO := SCP_IO;
-      end Set_SCP_IO;
 
       function Get_Compact_Status (Radix : Number_Base_T) return String is
       begin

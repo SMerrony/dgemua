@@ -59,11 +59,9 @@ procedure MVEmuA is
    Receiver   : GNAT.Sockets.Socket_Type;
    Connection : GNAT.Sockets.Socket_Type;
    Client     : GNAT.Sockets.Sock_Addr_Type;
-   Channel    : GNAT.Sockets.Stream_Access;
 
    Command_Line : Unbounded_String;
    Command      : Unbounded_String;
-   One_Char     : Character;
 
    Console_Radix  : Number_Base_T := Octal; -- default console I/O number base
 
@@ -183,6 +181,7 @@ procedure MVEmuA is
       Elapsed : Time_Span;
    begin
       CPU.Actions.Prepare_For_Running;
+      SCP_Handler.Set_SCP_IO(false);  
 
       Start_Time := Clock;
 
@@ -190,7 +189,7 @@ procedure MVEmuA is
 
       Elapsed := Clock - Start_Time;
       I_Count := CPU.Actions.Get_Instruction_Count;
-      CPU.Actions.Set_SCP_IO(true);   
+      SCP_Handler.Set_SCP_IO(true);   
       TTOut.Put_String (Dasher_NL & " *** MV/Emua executed " & Unsigned_64'Image(I_Count) & 
                         " instructions in" & Duration'Image(To_Duration(Elapsed)) & " seconds ***");
    
@@ -198,7 +197,7 @@ procedure MVEmuA is
       when others =>
          Elapsed := Clock - Start_Time;
          I_Count := CPU.Actions.Get_Instruction_Count;
-         CPU.Actions.Set_SCP_IO(true);   
+         SCP_Handler.Set_SCP_IO(true);   
          TTOut.Put_String (Dasher_NL & " *** MV/Emua executed " & Unsigned_64'Image(I_Count) & 
                            " instructions in" & Duration'Image(To_Duration(Elapsed)) & " seconds ***");
          raise;
@@ -267,6 +266,7 @@ procedure MVEmuA is
    end Do_Command;
 
 begin
+   Ada.Text_IO.Put_Line ("INFO: Will not start until console connects...");
    GNAT.Sockets.Create_Socket (Socket => Receiver);
    GNAT.Sockets.Set_Socket_Option
      (Socket => Receiver, Level => GNAT.Sockets.Socket_Level,
@@ -283,7 +283,6 @@ begin
         (Server => Receiver, Socket => Connection, Address => Client);
       Ada.Text_IO.Put_Line
         ("INFO: Console connected from " & GNAT.Sockets.Image (Client));
-      Channel := GNAT.Sockets.Stream (Connection);
 
 		-- The console is connected, now we can set up our emulated machine
 		-- Here we are defining the hardware in our virtual machine
@@ -304,9 +303,10 @@ begin
       CPU.Init;
 
       Devices.Bus.Actions.Connect (Devices.TTO);
-      Devices.Console.TTOut.Init (Channel);
+      Devices.Console.TTOut.Init (Connection);
       Devices.Bus.Actions.Connect (Devices.TTI);
       Devices.Console.TTIn.Init;
+      Console_Handler.Start (Connection);
 
       Devices.Bus.Actions.Connect (Devices.MTB);
       Devices.Magtape6026.Drives.Init;
@@ -319,36 +319,14 @@ begin
 
       -- TODO - handle DO scripts
 
-      -- JUST TESTING...
-      RAM.Write_Word( 1, 1);                       -- JMP 1
-      RAM.Write_Word( 2, 2#0000_0100_0000_0010#);  -- JMP @2
-      RAM.Write_Word( 3, 2#0000_0111_0000_0011#);  -- JMP @3,AC3
-      RAM.Write_Word( 4, 2#0110_1001_0100_1000#);  -- DIAS 1,TTI
-      RAM.Write_Word( 5, 2#1011_0011_0010_1001#);  -- XNLDA 2,@8
-      RAM.Write_Word( 6, 2#1000_0000_0000_1000#);
-      RAM.Write_Word( 7, 2#1011_0011_0010_1001#);  -- XNLDA 2,@-1
-      RAM.Write_Word( 8, 2#1111_1111_1111_1111#);
-      RAM.Write_Word( 9, 16#1234#);
 
       GNAT.Ctrl_C.Install_Handler(Clean_Exit'Unrestricted_Access);
 
       -- the main SCP/console interaction loop
-      CPU.Actions.Set_SCP_IO (true);
+      SCP_Handler.Set_SCP_IO (true);
       loop
          Devices.Console.TTOut.Put_String (Dasher_NL & "SCP-CLI> ");
-         -- get one line of input from the console - handle DASHER DELete key as corrector
-         Command_Line := Null_Unbounded_String;
-         loop
-            One_Char := Character'Input (Channel);
-            exit when One_Char = ASCII.CR;
-            if One_Char = Dasher_Delete and length (Command_Line) > 0 then
-               Devices.Console.TTOut.Put_Char (Dasher_Cursor_Left);
-               Command_Line := Head(Command_Line, length (Command_Line) - 1);
-            else
-               Devices.Console.TTOut.Put_Char (One_Char);
-               Command_Line := Command_Line & One_Char;
-            end if;
-         end loop;
+         SCP_Handler.SCP_Get_Line (Command_Line);
          Ada.Text_IO.Put_Line ("DEBUG: Got SCP command: " & To_String(Command_Line));
          Do_Command (Command_Line);
       end loop;
