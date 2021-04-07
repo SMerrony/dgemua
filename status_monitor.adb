@@ -40,6 +40,8 @@ package body Status_Monitor is
       Client                : GNAT.Sockets.Sock_Addr_Type;
       Channel               : GNAT.Sockets.Stream_Access;
       Radix                 : Number_Base_T := Octal;
+      CPU_Stats             : CPU.CPU_Monitor_Rec;
+      MTB_Stats             : Devices.Magtape6026.Status_Rec;
       Last_CPU_Time         : Ada.Calendar.Time;
       I_Count, Last_I_Count : Unsigned_64 := 0;
       MIPS                  : Float;
@@ -72,48 +74,52 @@ package body Status_Monitor is
                Dasher_NL);
          or
             accept CPU_Update (Stats : in CPU.CPU_Monitor_Rec) do
-               I_Count      := Stats.Instruction_Count - Last_I_Count;
-               Last_I_Count := Stats.Instruction_Count;
-      -- // ips = float64(iCount) / (time.Since(lastCPUtime).Seconds() * 1000)
-               MIPS := Float (I_Count);
-               -- // lastCPUtime = time.Now()
-               String'Write
-                 (Channel,
-                  Dasher_Write_Window_Addr & Character'Val (0) &
-                  Character'Val (CPU_Row_1) & Dasher_Erase_EOL);
-               -- "PC:  %011o   Interrupts: %s    ATU: %s     IPS: %.fk/sec"
-               String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(Stats.PC), Radix, 12, true) & 
-                                      "  Interrupts: " & Memory.Boolean_To_YN (Stats.ION) &
-                                      "      ATU: " & Memory.Boolean_To_YN (Stats.ATU) &
-                                      "             MIPS: "  );
-               String'Write
-                 (Channel,
-                  Dasher_Write_Window_Addr & Character'Val (0) &
-                  Character'Val (CPU_Row_2) & Dasher_Erase_EOL);
-               String'Write (Channel, "AC0: " &  Memory.Dword_To_String (Stats.AC(0), Radix, 12, true) &
-                                      "  AC1: " &  Memory.Dword_To_String (Stats.AC(1), Radix, 12, true) &
-                                      "  AC2: " &  Memory.Dword_To_String (Stats.AC(2), Radix, 12, true) &
-                                      "  AC3: " &  Memory.Dword_To_String (Stats.AC(3), Radix, 12, true));
+               CPU_Stats := Stats;
             end CPU_Update;
+            I_Count      := CPU_Stats.Instruction_Count - Last_I_Count;
+            Last_I_Count := CPU_Stats.Instruction_Count;
+   -- // ips = float64(iCount) / (time.Since(lastCPUtime).Seconds() * 1000)
+            MIPS := Float (I_Count);
+            -- // lastCPUtime = time.Now()
+            String'Write
+               (Channel,
+               Dasher_Write_Window_Addr & Character'Val (0) &
+               Character'Val (CPU_Row_1) & Dasher_Erase_EOL);
+            -- "PC:  %011o   Interrupts: %s    ATU: %s     IPS: %.fk/sec"
+            String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(CPU_Stats.PC), Radix, 12, true) & 
+                                    "  Interrupts: " & Memory.Boolean_To_YN (CPU_Stats.ION) &
+                                    "      ATU: " & Memory.Boolean_To_YN (CPU_Stats.ATU) &
+                                    "             MIPS: "  );
+            String'Write
+               (Channel,
+               Dasher_Write_Window_Addr & Character'Val (0) &
+               Character'Val (CPU_Row_2) & Dasher_Erase_EOL);
+            String'Write (Channel, "AC0: " &  Memory.Dword_To_String (CPU_Stats.AC(0), Radix, 12, true) &
+                                    "  AC1: " &  Memory.Dword_To_String (CPU_Stats.AC(1), Radix, 12, true) &
+                                    "  AC2: " &  Memory.Dword_To_String (CPU_Stats.AC(2), Radix, 12, true) &
+                                    "  AC3: " &  Memory.Dword_To_String (CPU_Stats.AC(3), Radix, 12, true));
+         
          or
             accept MTB_Update (Stats : in Devices.Magtape6026.Status_Rec) do
-               String'Write
-                 (Channel,
-                  Dasher_Write_Window_Addr & Character'Val (0) &
-                  Character'Val (MTB_Row_1) & Dasher_Erase_EOL);
-               String'Write
-                 (Channel,
-                  "MTA:  (MTC0) - Attached: " & Memory.Boolean_To_YN (Stats.Image_Attached(0)) &
-                  "  Mem Addr: " & Memory.Dword_To_String (Dword_T(Stats.Mem_Addr_Reg), Radix, 12, true) & 
-                  "  Curr Cmd: " & Integer'Image(Stats.Current_Cmd));
-               String'Write
-                 (Channel,
-                  Dasher_Write_Window_Addr & Character'Val (0) &
-                  Character'Val (MTB_Row_2) & Dasher_Erase_EOL);
-               String'Write
-                 (Channel,
-                  "               Image file: " & To_String(Stats.Image_Filename(0)));
-            end MTB_Update;
+               MTB_Stats := Stats;
+            end MTB_Update;               
+            String'Write
+               (Channel,
+               Dasher_Write_Window_Addr & Character'Val (0) &
+               Character'Val (MTB_Row_1) & Dasher_Erase_EOL);
+            String'Write
+               (Channel,
+               "MTA:  (MTC0) - Attached: " & Memory.Boolean_To_YN (MTB_Stats.Image_Attached(0)) &
+               "  Mem Addr: " & Memory.Dword_To_String (Dword_T(MTB_Stats.Mem_Addr_Reg), Radix, 12, true) & 
+               "  Curr Cmd: " & MTB_Stats.Current_Cmd'Image);
+            String'Write
+               (Channel,
+               Dasher_Write_Window_Addr & Character'Val (0) &
+               Character'Val (MTB_Row_2) & Dasher_Erase_EOL);
+            String'Write
+               (Channel,
+               "               Image file: " & To_String(MTB_Stats.Image_Filename(0)));
+
          or
             accept Stop do
                GNAT.Sockets.Close_Socket (Connection);
