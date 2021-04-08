@@ -206,8 +206,21 @@ package body CPU is
       procedure Eagle_IO (I : in Decoded_Instr_T) is
          -- Addr : Phys_Addr_T;
          -- Word : Word_T;
+         Dwd : Dword_T;
       begin
          case I.Instruction is
+
+            when I_ECLID | I_LCPID => -- these appear to be identical...
+               Dwd := Shift_Left (Dword_T(Model_No), 16);
+               Dwd := Dwd or Shift_Left(Dword_T(Microcode_Rev), 8);
+               Dwd := Dwd or (Mem_Size_LCPID and 16#0f#);
+               CPU.AC(0) := Dwd;
+
+            when I_NCLID =>
+               CPU.AC(0) := Dword_T(Model_No) and 16#ffff#;
+               CPU.AC(1) := Dword_T(Microcode_Rev) and 16#ffff#;
+               CPU.AC(2) := Dword_T(Mem_Size_NCLID) and 16#ffff#;
+
             when I_PRTSEL =>
                -- only handle the query mode, setting is a no-op on this 'single-channel' machine
                if Lower_Word (CPU.AC(0)) = 16#ffff# then
@@ -227,6 +240,7 @@ package body CPU is
       procedure Eagle_Op (I : in Decoded_Instr_T) is
          Acd_S32, Acs_S32 : Integer_32;
          S64 : Integer_64;
+         Shift : Integer;
       begin
          case I.Instruction is
 
@@ -253,12 +267,26 @@ package body CPU is
             when I_WAND =>
                CPU.AC(I.Acd) := CPU.AC(I.Acd) and CPU.AC(I.Acs);
 
+            when I_WANDI =>
+               CPU.AC(I.Ac) := CPU.AC(I.Ac) and I.Imm_DW;
+
             when I_WINC =>
                CPU.Carry := CPU.AC(I.Acs) = 16#ffff_ffff#; -- TODO handle overflow flag
                CPU.AC(I.Acd) := CPU.AC(I.Acs) + 1;
 
+            when I_WIORI =>
+               CPU.AC(I.Ac) := CPU.AC(I.Ac) or I.Imm_DW;
+
             when I_WLDAI =>
                CPU.AC(I.Ac) := I.Imm_DW;
+
+            when I_WLSHI =>
+               Shift := Integer(Integer_8(I.Word_2));
+               if Shift < 0 then -- shift right
+                  CPU.AC(I.Ac) := Shift_Right (CPU.AC(I.Ac), -Shift);
+               elsif Shift > 0 then -- shift left
+                  CPU.AC(I.Ac) := Shift_Left (CPU.AC(I.Ac), Shift);
+               end if;
 
             when I_WSUB =>
                Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
@@ -280,6 +308,7 @@ package body CPU is
       procedure Eagle_PC (I : in Decoded_Instr_T) is
          DW : Dword_T;
          Skip: Boolean;
+         S32_S, S32_D : Integer_32;
       begin
          case I.Instruction is
 
@@ -313,6 +342,28 @@ package body CPU is
                   CPU.PC := CPU.PC + 3;
                else
                   CPU.PC := CPU.PC + 2;
+               end if;
+                           
+            when I_WSGE | I_WSGT | I_WSLE | I_WSLT =>
+               if I.Acs = I.Acd then
+                  S32_D := 0;
+               else
+                  S32_D := Integer_32(CPU.AC(I.Acd));
+               end if;
+               S32_S := Integer_32(CPU.AC(I.Acs));
+               if I.Instruction = I_WSGE then
+                  Skip := S32_S >= S32_D;
+               elsif I.Instruction = I_WSGT then
+                  Skip := S32_S > S32_D;
+               elsif I.Instruction = I_WSLE then
+                  Skip := S32_S <= S32_D;
+               elsif I.Instruction = I_WSLT then
+                  Skip := S32_S < S32_D; 
+               end if;
+               if Skip then
+                  CPU.PC := CPU.PC + 2;
+               else
+                  CPU.PC := CPU.PC + 1;
                end if;
 
             when I_WSKBO =>
@@ -546,6 +597,12 @@ package body CPU is
          Word : Word_T;
       begin
          case I.Instruction is
+            when I_ISZ =>
+               Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
+               Word := Memory.RAM.Read_Word (Addr) + 1;
+               Memory.RAM.Write_Word (Addr, Word);
+               if Word = 0 then CPU.PC := CPU.PC + 1; end if;
+
             when I_LDA =>
                Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
                Word := Memory.RAM.Read_Word (Addr);
