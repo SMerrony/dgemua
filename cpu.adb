@@ -299,6 +299,35 @@ package body CPU is
                end if;
                if Skip then CPU.PC := CPU.PC + 2; else CPU.PC := CPU.PC + 1; end if;
 
+            when I_WSEQI | I_WSGTI | I_WSLEI | I_WSNEI =>
+               if I.Instruction = I_WSEQI then
+                  Skip := CPU.AC(I.Ac) = Memory.Sext_Word_To_Dword (I.Word_2);
+               elsif I.Instruction = I_WSGTI then
+                  Skip := Integer_32(CPU.AC(I.Ac)) >= Integer_32(Memory.Sext_Word_To_Dword (I.Word_2));
+               elsif I.Instruction = I_WSLEI then
+                  Skip := Integer_32(CPU.AC(I.Ac)) <= Integer_32(Memory.Sext_Word_To_Dword (I.Word_2));
+               else
+                  Skip := CPU.AC(I.Ac) /= Memory.Sext_Word_To_Dword (I.Word_2);
+               end if;
+               if Skip then
+                  CPU.PC := CPU.PC + 3;
+               else
+                  CPU.PC := CPU.PC + 2;
+               end if;
+
+            when I_WSKBO =>
+               if Memory.Test_DW_Bit (CPU.AC(0), I.Bit_Number) then
+                  CPU.PC := CPU.PC + 2;
+               else
+                  CPU.PC := CPU.PC + 1;
+            end if;
+
+            when I_WSKBZ =>
+               if not Memory.Test_DW_Bit (CPU.AC(0), I.Bit_Number) then
+                  CPU.PC := CPU.PC + 2;
+               else
+                  CPU.PC := CPU.PC + 1;
+            end if;
 
             when I_XJMP =>
                CPU.PC := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) or (CPU.PC and 16#7000_0000#);

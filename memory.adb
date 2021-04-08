@@ -243,6 +243,15 @@ package body Memory is
       return Res;
    end String_To_Dword;
 
+   function Sext_Word_To_Dword(Wd : in Word_T) return Dword_T is
+      Dw : Dword_T;
+   begin
+      Dw := Dword_T(Wd);
+      if (Wd and 16#8000#) /= 0 then
+         Dw := Dw or 16#ffff_0000#;
+      end if;
+      return Dw;
+   end Sext_Word_To_Dword;
 
    -- Convert an (unsigned) Double-Word to a String
    function Dword_To_String

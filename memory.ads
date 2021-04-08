@@ -131,6 +131,7 @@ package Memory is
         Zero_Pad : in Boolean := False) 
         return String;
     function String_To_Dword (Str : in String; Base : in Number_Base_T) return Dword_T;
+    function Sext_Word_To_Dword(Wd : in Word_T) return Dword_T;
 
     -- string/integer routines
     function Int_To_String

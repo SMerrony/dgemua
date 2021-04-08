@@ -140,4 +140,6 @@ package Devices.Magtape6026 is
         entry Start;
     end Status_Sender;
 
+    Unexpected_Return_Code : exception;
+
 end Devices.Magtape6026;

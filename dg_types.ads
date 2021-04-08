@@ -54,5 +54,6 @@ package DG_Types is
     Max_Pos_S32 : constant Integer_64 :=  (2 ** 31) - 1;
     Min_Neg_S32 : constant Integer_64 := -(Max_Pos_S32 + 1);
 
+    Not_Yet_Implemented : Exception;
 
 end DG_Types;

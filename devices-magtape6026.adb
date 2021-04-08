@@ -27,7 +27,6 @@ with Debug_Logs;       use Debug_Logs;
 with Devices;
 with Devices.Bus;
 with Memory;
-with Simh_Tapes;       use Simh_Tapes;
 with Status_Monitor;
 
 package body Devices.Magtape6026 is
@@ -73,7 +72,8 @@ package body Devices.Magtape6026 is
 
         procedure Do_Command is
             Hdr, Trailer : Dword_T; 
-            Img_Stream : Stream_Access;    
+            Img_Stream : Stream_Access;  
+            RC : Mt_Stat;  
         begin
             case State.Current_Cmd is
                 when Read =>
@@ -106,8 +106,45 @@ package body Devices.Magtape6026 is
                            State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_StatusChanged or SR_1_UnitReady;
                         end;
                     end if;
+
+                when Rewind =>
+                    Loggers.Debug_Print (Mt_Log, "DEBUG: *REWIND* command - Unit:" & State.Current_Unit'Image);
+                    Rewind (State.SIMH_File(State.Current_Unit));
+                    State.Status_Reg_1 := SR_1_Error or SR_1_HiDensity or SR_1_9Track or SR_1_StatusChanged or SR_1_UnitReady or SR_1_BOT;
+
+                when Space_Fwd =>
+                    Loggers.Debug_Print (Mt_Log, "DEBUG: *SPACE FORWARD* command - Unit:" & State.Current_Unit'Image);
+                    Img_Stream := stream(State.SIMH_File(State.Current_Unit));
+                    if State.Neg_Word_Count = 0 then -- one whole file
+                        RC := Space_Forward (Img_Stream, 0);
+                        -- according to the simH source, MA should be set to # files/recs skipped
+                        -- can't find any reference to this in the Periph Pgmrs Guide but it lets INSTL
+                        -- progress further...
+                        -- It seems to need the two's complement of the number...
+                        State.Mem_Addr_Reg := 16#ffff_ffff#;
+                        if RC = OK then
+                            State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady or SR_1_EOF or SR_1_Error;
+                        else
+                            State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady or SR_1_EOT or SR_1_StatusChanged;
+                        end if;
+                    else
+                        RC := Space_Forward (Img_Stream, Integer(State.Neg_Word_Count));
+                        case RC is
+                            when OK =>
+                                State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady or SR_1_StatusChanged;
+                            when Tmk =>
+                                State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady or SR_1_EOF or SR_1_StatusChanged or SR_1_Error;
+                            when InvRec =>
+                                State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady or SR_1_DataError or SR_1_StatusChanged or SR_1_Error;
+                            when others =>
+                                raise Unexpected_Return_Code with "from SimH Space Forward command";
+                        end case;
+                        State.Mem_Addr_Reg := Phys_Addr_T(State.Neg_Word_Count);
+                    end if;
+
                 when others =>
                     Loggers.Debug_Print (Mt_Log, "WARNING: Command not yet implemented: " & State.Current_Cmd'Image);
+                    raise Not_Yet_Implemented with "MTB Command " & State.Current_Cmd'Image;
             end case;
         end Do_Command;
 
