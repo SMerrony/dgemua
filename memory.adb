@@ -165,6 +165,11 @@ package body Memory is
       High_Byte := Byte_T (Shift_Right(Word and 16#ff00#, 8));
    end Get_Bytes_From_Word;
 
+   function Word_From_Bytes( Lo, Hi : in Byte_T) return Word_T is
+   begin
+      return Shift_Left(Word_T(Lo), 8) or Word_T(Hi);
+   end Word_From_Bytes;
+
    function Dword_From_Two_Words (Word_1, Word_2 : in Word_T) return Dword_T is
    begin
       return Shift_Left (Dword_T(Word_1), 16) or Dword_T(Word_2);

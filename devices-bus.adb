@@ -95,12 +95,12 @@ package body Devices.Bus is
           Bus.Devices(Dev).Data_Out_Proc := Data_Out_Proc;
        end Set_Data_Out_Proc;
 
-       procedure Data_Out (Dev : in Dev_Num_T; Datum : in Word_T; ABC : in Character; Flag : in IO_Flag_T) is
+       procedure Data_Out (Dev : in Dev_Num_T; Datum : in Word_T; ABC : in IO_Reg_T; Flag : in IO_Flag_T) is
        begin
           Bus.Devices(Dev).Data_Out_Proc (Datum, ABC, Flag);
        end Data_Out;
 
-       procedure Data_In  (Dev : in Dev_Num_T; ABC : in Character; Flag : in IO_Flag_T; Datum : out Word_T) is
+       procedure Data_In  (Dev : in Dev_Num_T; ABC : in IO_Reg_T; Flag : in IO_Flag_T; Datum : out Word_T) is
        begin
           Bus.Devices(Dev).Data_In_Proc(ABC, Flag, Datum);
        end Data_In;

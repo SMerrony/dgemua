@@ -240,7 +240,7 @@ package body CPU is
                CPU.Carry := false;
 
             when I_NLDAI =>
-               CPU.AC(I.Acd) := Dword_T(Integer_32(Word_To_Integer_16(I.Word_2)));
+               CPU.AC(I.Ac) := Dword_T(Integer_32(Word_To_Integer_16(I.Word_2)));
 
             when I_WADD =>
                Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
@@ -256,6 +256,9 @@ package body CPU is
             when I_WINC =>
                CPU.Carry := CPU.AC(I.Acs) = 16#ffff_ffff#; -- TODO handle overflow flag
                CPU.AC(I.Acd) := CPU.AC(I.Acs) + 1;
+
+            when I_WLDAI =>
+               CPU.AC(I.Ac) := I.Imm_DW;
 
             when I_WSUB =>
                Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
@@ -351,7 +354,6 @@ package body CPU is
 
       procedure Nova_IO (I : in Decoded_Instr_T) is
          Seg_Num : Integer := Integer(Shift_Right(CPU.PC, 28) and 16#07#);
-         ABC : Character;
          Datum : Word_T;
          Busy, Done : Boolean;
       begin
@@ -367,13 +369,12 @@ package body CPU is
                end if;
 
                if Bus.Actions.Is_Connected(I.IO_Dev) and Bus.Actions.Is_IO_Dev(I.IO_Dev) then
-                  ABC := Element(I.Mnemonic, 3);
-                  if Element(I.Mnemonic, 2) = 'I' then
-                        Devices.Bus.Actions.Data_In(I.IO_Dev, ABC, I.IO_Flag, Datum);
+                  if I.IO_Dir = Data_In then
+                        Devices.Bus.Actions.Data_In(I.IO_Dev, I.IO_Reg, I.IO_Flag, Datum);
                         CPU.AC(I.Ac) := Dword_T(Datum);
                      else
                         Datum := Lower_Word (CPU.AC(I.Ac));
-                        Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, ABC, I.IO_Flag);
+                        Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, I.IO_Reg, I.IO_Flag);
                   end if;
                else
                   Loggers.Debug_Print(Debug_Log, "WARNING: I/O Attempted to unattached or non-I/O capable device ");
@@ -521,6 +522,11 @@ package body CPU is
                Word := Memory.RAM.Read_Word (Addr);
                CPU.AC(I.Ac) := Dword_T(Word);
 
+            when I_STA =>
+               Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
+               Word := Lower_Word (CPU.AC(I.Ac));
+               Memory.RAM.Write_Word (Addr, Word);
+
             when others =>
                Put_Line ("ERROR: Nova_Mem_Ref instruction " & To_String(I.Mnemonic) & 
                          " not yet implemented");
@@ -591,45 +597,7 @@ package body CPU is
          Disass := Instr.Disassembly;
       end Single_Step;
 
-      procedure Run (Disassemble : in Boolean; Radix : in Number_Base_T; I_Counts : out Instr_Count_T) is
-            This_Op : Word_T;
-            Instr   : Decoded_Instr_T;
-            Segment : Integer;
-         begin
-         Run_Loop:
-            loop
-               -- FETCH
-               This_Op := Memory.RAM.Read_Word(CPU.PC);
 
-               -- DECODE
-               Segment := Integer(Shift_Right(CPU.PC, 29));
-               Instr := Instruction_Decode (Opcode => This_Op, 
-                                          PC => CPU.PC, 
-                                          LEF_Mode => CPU.SBR(Segment).LEF, 
-                                          IO_On => CPU.SBR(Segment).IO, 
-                                          ATU_On => CPU.ATU, 
-                                          Disassemble => Disassemble, 
-                                          Radix => Radix);
-
-               -- Instruction Counting
-               I_Counts(Instr.Instruction) := I_Counts(Instr.Instruction) + 1;
-
-               if Disassemble then
-                  Loggers.Debug_Print (Debug_Log, Get_Compact_Status(Radix) & "  " & To_String(Instr.Disassembly));
-               end if;
-
-               -- EXECUTE
-               Execute (Instr);
-
-               -- INTERRUPT?
-
-               -- BREAKPOINT?
-
-               -- Console Interrupt?
-   
-            end loop Run_Loop;
-
-      end Run;
 
       function Disassemble_Range (Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) return String is
          Skip_Decode : Integer := 0;
@@ -691,10 +659,30 @@ package body CPU is
                 " PC=" & Dword_To_String (Dword_T(CPU.PC), Radix, 12, true);
       end Get_Compact_Status;
 
+      function  Get_ATU return Boolean is
+      begin
+         return CPU.ATU;
+      end Get_ATU;
+
       function  Get_Instruction_Count return Unsigned_64 is
       begin
          return CPU.Instruction_Count;
       end Get_Instruction_Count;
+
+      function Get_IO (Seg : in Natural) return Boolean is
+      begin
+         return CPU.SBR(Seg).IO;
+      end Get_IO;
+
+      function Get_LEF (Seg : in Natural) return Boolean is
+      begin
+         return CPU.SBR(Seg).LEF;
+      end Get_LEF;
+
+      function  Get_PC return Phys_Addr_T is
+      begin
+         return CPU.PC;
+      end Get_PC;
 
       function Get_Status return CPU_Monitor_Rec is
          Stats : CPU_Monitor_Rec;
@@ -709,6 +697,49 @@ package body CPU is
       end Get_Status;
 
    end Actions;
+
+      procedure Run (Disassemble : in Boolean; Radix : in Number_Base_T; I_Counts : out Instr_Count_T) is
+            This_Op : Word_T;
+            Instr   : Decoded_Instr_T;
+            Segment : Integer;
+            PC      : Phys_Addr_T;
+         begin
+         Run_Loop:
+            loop
+               PC := Actions.Get_PC;
+
+               -- FETCH
+               This_Op := Memory.RAM.Read_Word(PC);
+
+               -- DECODE
+               Segment := Integer(Shift_Right(PC, 29));
+               Instr := Instruction_Decode (Opcode => This_Op, 
+                                          PC => PC, 
+                                          LEF_Mode => Actions.Get_LEF(Segment), 
+                                          IO_On => Actions.Get_IO(Segment), 
+                                          ATU_On => Actions.Get_ATU, 
+                                          Disassemble => Disassemble, 
+                                          Radix => Radix);
+
+               -- Instruction Counting
+               I_Counts(Instr.Instruction) := I_Counts(Instr.Instruction) + 1;
+
+               if Disassemble then
+                  Loggers.Debug_Print (Debug_Log, Actions.Get_Compact_Status(Radix) & "  " & To_String(Instr.Disassembly));
+               end if;
+
+               -- EXECUTE
+               Actions.Execute (Instr);
+
+               -- INTERRUPT?
+
+               -- BREAKPOINT?
+
+               -- Console Interrupt?
+   
+            end loop Run_Loop;
+
+      end Run;
 
    task body Status_Sender is 
       Stats : CPU_Monitor_Rec;

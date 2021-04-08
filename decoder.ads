@@ -60,7 +60,8 @@ package Decoder is
       Arg_Count    : Integer;
       Ac, Acs, Acd : AC_ID;           -- single, src, dest ACs
       Word_2       : Word_T;          -- 2nd word of instruction
-      ABC          : Character;       -- A/B/C I/O
+      IO_Dir       : IO_Dir_T;
+      IO_Reg       : IO_Reg_T;        -- A/B/C I/O   
       IO_Flag      : IO_Flag_T;
       IO_Dev       : Dev_Num_T;
       IO_Test      : IO_Test_T;

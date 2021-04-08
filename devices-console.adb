@@ -57,10 +57,10 @@ package body Devices.Console is
             end if;
         end Insert_Byte;
 
-        procedure  Data_In (ABC : in Character; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
+        procedure  Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
         begin
             Datum := Word_T(TTI_Dev.One_Char_Buff);
-            if ABC = 'A' then
+            if ABC = A then
                 case IO_Flag is
                     when S =>
                         Devices.Bus.States.Set_Busy( Devices.TTI, true);
@@ -79,10 +79,10 @@ package body Devices.Console is
         end Data_In;
 
         -- Data_Out is only here to support NIO commands to TTI
-        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in IO_Flag_T) is
+        procedure Data_Out( Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T) is
         begin
             case ABC is
-                when 'N' =>
+                when N =>
                     case IO_Flag is
                         when S =>
                             Devices.Bus.States.Set_Busy( Devices.TTI, true);
@@ -135,11 +135,11 @@ package body Devices.Console is
             end loop;
         end Put_String;
 
-        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in IO_Flag_T) is
+        procedure Data_Out( Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T) is
             ASCII_Byte : Byte_T;
         begin
             case ABC is
-                when 'A' =>
+                when A =>
                     ASCII_Byte := Memory.Get_Lower_Byte(Datum);
                     if IO_Flag = S then
                         Devices.Bus.States.Set_Busy( Devices.TTO, true);
@@ -152,7 +152,7 @@ package body Devices.Console is
                     if Devices.Bus.States.Is_Dev_Masked (15) = false then
                         Devices.Bus.States.Send_Interrupt(Devices.TTO, 15);
                     end if;
-                when 'N' =>
+                when N =>
                     case IO_Flag is
                         when S =>
                             Devices.Bus.States.Set_Busy( Devices.TTO, true);

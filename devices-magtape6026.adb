@@ -20,13 +20,14 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Ada.Exceptions;         use Ada.Exceptions;
-with Ada.Text_IO;            
-with Debug_Logs;             use Debug_Logs;
+with Ada.Exceptions;   use Ada.Exceptions;
+with Ada.Text_IO;
+
+with Debug_Logs;       use Debug_Logs;
 with Devices;
 with Devices.Bus;
 with Memory;
-with Simh_Tapes;             use Simh_Tapes;
+with Simh_Tapes;       use Simh_Tapes;
 with Status_Monitor;
 
 package body Devices.Magtape6026 is
@@ -35,10 +36,9 @@ package body Devices.Magtape6026 is
 
         procedure Init is
         begin
-
-            --Devices.Bus.Actions.Set_Reset_Proc (Devices.TTI, Reset'Access);
+            --Devices.Bus.Actions.Set_Reset_Proc (Devices.MTB, Reset'Access);
             Devices.Bus.Actions.Set_Data_In_Proc (Devices.MTB, Data_In'Access);
-            --Devices.Bus.Actions.Set_Data_Out_Proc (Devices.TTI, Data_Out'Access);
+            Devices.Bus.Actions.Set_Data_Out_Proc (Devices.MTB, Data_Out'Access);
             State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady;
             State.Status_Reg_2 := SR_2_PE_Mode;
             Status_Sender.Start;
@@ -71,16 +71,56 @@ package body Devices.Magtape6026 is
             Devices.Bus.Actions.Set_Image_Detached (Devices.MTB);
         end Detach;
 
+        procedure Do_Command is
+            Hdr, Trailer : Dword_T; 
+            Img_Stream : Stream_Access;    
+        begin
+            case State.Current_Cmd is
+                when Read =>
+                    Loggers.Debug_Print (Mt_Log, "DEBUG: *READ* command - Unit:" & State.Current_Unit'Image &
+                        " Word Count: "  & State.Neg_Word_Count'Image &
+                        " Location: " & State.Mem_Addr_Reg'Image);
+                    Img_Stream := stream(State.SIMH_File(State.Current_Unit));
+                    Read_Meta_Data (Img_Stream, Hdr);
+                    if Hdr = Mtr_Tmk then
+                        Loggers.Debug_Print (Mt_Log, "WARNING: Header is EOF (Tape Mark) Indicator");
+                        State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady or SR_1_Error or SR_1_Error;
+                    else
+                        declare
+                           Tape_Rec : Mt_Rec(0..Integer(Hdr));
+                           W : Natural := 0;
+                           Wd : Word_T;
+                        begin
+                           Read_Record_Data (Img_Stream, Natural(Hdr), Tape_Rec);
+                           while W < Natural(Hdr) loop
+                              Wd := Memory.Word_From_Bytes(Tape_Rec(W), Tape_Rec(W+1));
+                              W := W + 2;
+                              Memory.RAM.Write_Word (State.Mem_Addr_Reg, Wd); -- FIXME should use DCH mappped write
+                              State.Neg_Word_Count := State.Neg_Word_Count + 1;
+                              exit when State.Neg_Word_Count = 0;
+                           end loop;
+                           Read_Meta_Data (Img_Stream, Trailer);
+                           Loggers.Debug_Print (Mt_Log, "DEBUG: " & W'Image & " bytes loaded");
+                           Loggers.Debug_Print (Mt_Log, "DEBUG: Read SimH Trailer: " & Trailer'Image);
+                           -- TODO Need to verify how status should be set here...
+                           State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_StatusChanged or SR_1_UnitReady;
+                        end;
+                    end if;
+                when others =>
+                    Loggers.Debug_Print (Mt_Log, "WARNING: Command not yet implemented: " & State.Current_Cmd'Image);
+            end case;
+        end Do_Command;
+
         procedure Handle_Flag ( IO_Flag : IO_Flag_T) is 
         begin
             case IO_Flag is
                 when S =>
                     Loggers.Debug_Print (Mt_Log, "... S flag set");
-                    if State.Current_Cmd /= Cmd_Rewind then
+                    if State.Current_Cmd /= Rewind then
                         Devices.Bus.States.Set_Busy (Devices.MTB, true);
                     end if;
                     Devices.Bus.States.Set_Done (Devices.MTB, false);
-                    -- FIXME: Do_Command;
+                    Do_Command;
                     Devices.Bus.States.Set_Busy (Devices.MTB, false);
                     Devices.Bus.States.Set_Done (Devices.MTB, true);
                 when C =>
@@ -95,22 +135,50 @@ package body Devices.Magtape6026 is
         end Handle_Flag;
 
         -- Data_In is called from Bus to implement DIx from the mt device
-        procedure  Data_In (ABC : in Character; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
+        procedure  Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
         begin
             case ABC is
-                when 'A' => -- Read status register 1 - see p.IV-18 of Peripherals guide
+                when A => -- Read status register 1 - see p.IV-18 of Peripherals guide
                     Datum := State.Status_Reg_1;
                     Loggers.Debug_Print (Mt_Log, "DIA - Read SR1 - returning: " & Datum'Image);
-                 when 'B' => --Read memory addr register 1 - see p.IV-19 of Peripherals guide
+                 when B => --Read memory addr register 1 - see p.IV-19 of Peripherals guide
                     Datum := Word_T(State.Mem_Addr_Reg);
                     Loggers.Debug_Print (Mt_Log, "DIB - Read MA - returning: " & Datum'Image);  
-                when 'C' => -- Read status register 2 - see p.IV-18 of Peripherals guide
+                when C => -- Read status register 2 - see p.IV-18 of Peripherals guide
                     Datum := State.Status_Reg_2;
                     Loggers.Debug_Print (Mt_Log, "DIC - Read SR2 - returning: " & Datum'Image); 
                 when others => null;    
             end case;
             Handle_Flag (IO_Flag);
         end Data_In;
+
+        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T) is
+        begin
+            case ABC is
+                when A => -- specify Command and Drive - p.IV-17
+                    -- which command?
+                    for C in Cmd_T'Range loop
+                       if (Datum and Cmd_Mask) = Commands(C) then
+                          State.Current_Cmd := C;
+                          exit;
+                        end if;
+                    end loop;
+                    --which unit?
+                    State.Current_Unit := Natural(Datum and 16#0007#);
+                    Loggers.Debug_Print (Mt_Log, "INFO: DOA - Specify Command: " & State.Current_Cmd'Image &
+                        " Unit: " & State.Current_Unit'Image);
+                when B =>
+                    State.Mem_Addr_Reg := Phys_Addr_T (Datum);
+                    Loggers.Debug_Print (Mt_Log, "INFO: DOB - Mem Addr set to: " & State.Mem_Addr_Reg'Image);
+                when C =>
+                    State.Neg_Word_Count := Memory.Word_To_Integer_16(Datum);
+                    Loggers.Debug_Print (Mt_Log, "INFO: DOC - Neg. Word Count set to : " & State.Neg_Word_Count'Image);
+                when N => -- TODO
+                    Loggers.Debug_Print (Mt_Log, "WARNING: NIO - Flag is : " & Datum'Image );
+                when others => null;    
+            end case;
+            Handle_Flag (IO_Flag);
+        end Data_Out;
 
         function Get_Image_Name (Unit : in Natural) return String is
         begin

@@ -31,11 +31,14 @@ package DG_Types is
 
     type Phys_Addr_T is new Unsigned_32;
 
-    type AC_ID is new Integer range 0 .. 3;
-    type IO_Flag_T is (None, S, C, P);
-    type IO_Test_T is (BN, BZ, DN, DZ);
     Devices_Max : constant Integer := 63;
+
+    type AC_ID is new Integer range 0 .. 3;
     type Dev_Num_T is new Integer range 0 .. Devices_Max;
+    type IO_Dir_T  is (Data_In, Data_Out);
+    type IO_Reg_T  is (A, B, C, N);
+    type IO_Flag_T is (None, S, C, P);
+    type IO_Test_T is (BN, BZ, DN, DZ);  
 
     Dasher_NL          : constant Character := Character'Val(8#12#);
     Dasher_Erase_EOL   : constant Character := Character'Val(8#13#);

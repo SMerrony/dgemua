@@ -23,6 +23,8 @@
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
+with Interfaces;       use Interfaces; 
+
 with DG_Types;   use DG_Types;
 with Simh_Tapes; use Simh_Tapes;
 
@@ -33,29 +35,45 @@ package Devices.Magtape6026 is
 
     Cmd_Mask : constant Word_T := 16#00b8#;
 
-    Cmd_Read_Bits         : constant Word_T := 16#0000#;
-    Cmd_Rewind_Bits       : constant Word_T := 16#0008#;
-    Cmd_Ctrl_Mode_Bits    : constant Word_T := 16#0010#;
-    Cmd_Space_Fwd_Bits    : constant Word_T := 16#0018#;
-    Cmd_Space_Rev_Bits    : constant Word_T := 16#0020#;
-    Cmd_Wite_Bits         : constant Word_T := 16#0028#;
-    Cmd_Write_EOF_Bits    : constant Word_T := 16#0030#;
-    Cmd_Erase_Bits        : constant Word_T := 16#0038#;
-    Cmd_Read_Nonstop_Bits : constant Word_T := 16#0080#;
-    Cmd_Unload_Bits       : constant Word_T := 16#0088#;
-    Cmd_Drive_Mode_Bits   : constant Word_T := 16#0090#;
+    -- Cmd_Read_Bits         : constant Word_T := 16#0000#;
+    -- Cmd_Rewind_Bits       : constant Word_T := 16#0008#;
+    -- Cmd_Ctrl_Mode_Bits    : constant Word_T := 16#0010#;
+    -- Cmd_Space_Fwd_Bits    : constant Word_T := 16#0018#;
+    -- Cmd_Space_Rev_Bits    : constant Word_T := 16#0020#;
+    -- Cmd_Wite_Bits         : constant Word_T := 16#0028#;
+    -- Cmd_Write_EOF_Bits    : constant Word_T := 16#0030#;
+    -- Cmd_Erase_Bits        : constant Word_T := 16#0038#;
+    -- Cmd_Read_Nonstop_Bits : constant Word_T := 16#0080#;
+    -- Cmd_Unload_Bits       : constant Word_T := 16#0088#;
+    -- Cmd_Drive_Mode_Bits   : constant Word_T := 16#0090#;
 
-    Cmd_Read         : constant Integer := 0;
-    Cmd_Rewind       : constant Integer := 1;
-    Cmd_Ctrl_Mode    : constant Integer := 2;
-    Cmd_Space_Fwd    : constant Integer := 3;
-    Cmd_Space_Rev    : constant Integer := 4;
-    Cmd_Write        : constant Integer := 5;
-    Cmd_Write_EOF    : constant Integer := 6;
-    Cmd_Erase        : constant Integer := 7;
-    Cmd_Read_Nonstop : constant Integer := 8;
-    Cmd_Unload       : constant Integer := 9;
-    Cmd_Drive_Mode   : constant Integer := 10;
+    type Cmd_T is (Read,Rewind,Ctrl_Mode,Space_Fwd,Space_Rev,Write,Write_EOF,Erase,Read_Nonstop,Unload,Drive_Mode);
+    type Cmd_Bits_T is array (Cmd_T range Cmd_T'Range) of Word_T;
+    Commands : constant Cmd_Bits_T := (
+        Read        => 16#0000#,
+        Rewind      => 16#0008#,
+        Ctrl_Mode   => 16#0010#,
+        Space_Fwd   => 16#0018#,
+        Space_Rev   => 16#0020#,
+        Write       => 16#0028#,
+        Write_EOF   => 16#0030#,
+        Erase       => 16#0038#,
+        Read_Nonstop=> 16#0080#,
+        Unload      => 16#0088#,
+        Drive_Mode  => 16#0090#
+    );
+
+    -- Cmd_Read         : constant Integer := 0;
+    -- Cmd_Rewind       : constant Integer := 1;
+    -- Cmd_Ctrl_Mode    : constant Integer := 2;
+    -- Cmd_Space_Fwd    : constant Integer := 3;
+    -- Cmd_Space_Rev    : constant Integer := 4;
+    -- Cmd_Write        : constant Integer := 5;
+    -- Cmd_Write_EOF    : constant Integer := 6;
+    -- Cmd_Erase        : constant Integer := 7;
+    -- Cmd_Read_Nonstop : constant Integer := 8;
+    -- Cmd_Unload       : constant Integer := 9;
+    -- Cmd_Drive_Mode   : constant Integer := 10;
 
     SR_1_Error         : constant Word_T := Shift_Left (1, 15);
     SR_1_DataLate      : constant Word_T := Shift_Left (1, 14);
@@ -87,8 +105,10 @@ package Devices.Magtape6026 is
     type MT6026_Rec is record
         -- DG device state
         Mem_Addr_Reg               : Phys_Addr_T;
-        Current_Cmd                : Integer;
+        Current_Cmd                : Cmd_T;
+        Current_Unit               : Natural;
         Status_Reg_1, Status_Reg_2 : Word_T;
+        Neg_Word_Count             : Integer_16;
         Image_Attached             : Att_Arr;
         Image_Filename             : FN_Arr;
         SIMH_File                  : File_Arr;
@@ -98,7 +118,7 @@ package Devices.Magtape6026 is
         Image_Attached             : Att_Arr;
         Image_Filename             : FN_Arr;
         Mem_Addr_Reg               : Phys_Addr_T;
-        Current_Cmd                : Integer;
+        Current_Cmd                : Cmd_T;
         Status_Reg_1, Status_Reg_2 : Word_T;
     end record;
 
@@ -107,7 +127,8 @@ package Devices.Magtape6026 is
         procedure Attach
            (Unit : in Natural; Image_Name : in String; OK : out Boolean);
         procedure Detach (Unit : in Natural);
-        procedure Data_In (ABC : in Character; IO_Flag : in IO_Flag_T; Datum : out Word_T);
+        procedure Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
+        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
         function  Get_Image_Name (Unit : in Natural) return String;
         function  Get_Status return Status_Rec;
         procedure Load_TBOOT;

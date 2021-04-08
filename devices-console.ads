@@ -36,8 +36,8 @@ package Devices.Console is
         procedure Init;
         procedure Reset;
         procedure Insert_Byte (B : in Byte_T);
-        procedure Data_In (ABC : in Character; IO_Flag : in IO_Flag_T; Datum : out Word_T);
-        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in IO_Flag_T);
+        procedure Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
+        procedure Data_Out( Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
     private
         TTI_Dev : TTI_T;
     end TTIn;
@@ -48,7 +48,7 @@ package Devices.Console is
         procedure Put_Byte (B : in Byte_T);
         procedure Put_Char (C : in Character);
         procedure Put_String (S : in String);
-        procedure Data_Out( Datum : in Word_T; ABC : in Character; IO_Flag : in IO_Flag_T);
+        procedure Data_Out( Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
     private 
         SCP_Chan : GNAT.Sockets.Stream_Access;
     end TTOut;

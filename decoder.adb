@@ -325,6 +325,17 @@ package body Decoder is
 
          when NOVA_DATA_IO_FMT => -- eg. DOA/B/C, DIA/B/C
             Decoded.Ac := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            if Decoded.Instruction = I_DIA or Decoded.Instruction = I_DIB or Decoded.Instruction = I_DIC then
+               Decoded.IO_Dir := Data_In;
+            else
+               Decoded.IO_Dir := Data_Out;
+            end if;
+            case Decoded.Instruction is
+               when I_DIA | I_DOA => Decoded.IO_Reg := A;
+               when I_DIB | I_DOB => Decoded.IO_Reg := B;
+               when I_DIC | I_DOC => Decoded.IO_Reg := C;
+               when others => null;
+            end case; 
             Decoded.IO_Flag := Decode_IO_Flag (Get_W_Bits (Opcode, 8, 2));
             Decoded.IO_Dev  := Dev_Num_T(Integer_16(Get_W_Bits (Opcode, 10, 6)));
             if Disassemble then
@@ -384,7 +395,7 @@ package body Decoder is
             Decoded.Imm_DW := Memory.RAM.Read_Dword (PC + 1);
             if Disassemble then
                Decoded.Disassembly :=
-                 Decoded.Disassembly & " " & Decoded.Imm_DW'Image & "," & 
+                 Decoded.Disassembly & " " & Dword_To_String(Decoded.Imm_DW, Radix, 12, false ) & "," & 
                  Decoded.Ac'Image & " [3-Word Instruction]";
             end if;
 

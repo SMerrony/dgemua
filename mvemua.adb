@@ -185,7 +185,7 @@ procedure MVEmuA is
 
       Start_Time := Clock;
 
-      CPU.Actions.Run (Debug_Logging, Console_Radix, I_Counts);
+      CPU.Run (Debug_Logging, Console_Radix, I_Counts);
 
       Elapsed := Clock - Start_Time;
       I_Count := CPU.Actions.Get_Instruction_Count;
