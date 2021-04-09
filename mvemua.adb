@@ -144,6 +144,9 @@ procedure MVEmuA is
          when others =>
             TTOut.Put_String (Dasher_NL & " *** Booting from that device is not yet implemented ***");
       end case;   
+      exception
+         when Constraint_Error =>
+            TTOut.Put_String (Dasher_NL & " *** Invalid Device Number ***");
    end Boot;
 
    procedure Check (Command : in Slice_Set) is

@@ -97,12 +97,48 @@ package body Memory is
          Put_Line ("INFO: BMC_DCH Registers initialised");
       end Reset;
 
+      function  Read_Reg(Reg : in Integer) return Word_T is
+      begin
+         return Registers(Reg);
+      end Read_Reg;
+
+      -- Write_Reg populates a given 16-bit register with the supplied data
+      -- N.B. Addressed by REGISTER not slot
+      procedure Write_Reg (Reg : in Integer; Datum : Word_T) is
+      begin
+         if Reg = IO_Chan_Def_Reg then
+            -- certain bits in the new data cause IOCDR bits to be flipped rather than set
+            for B in 0 .. 15 loop
+               case B is
+                  when 3 | 4 | 7 | 8 | 14 =>
+                     if Test_W_Bit (Datum, B) then
+                        Flip_W_Bit (Registers(IO_Chan_Def_Reg), B);
+                     end if;
+                  when others =>
+                     if Test_W_Bit (Datum, B) then
+                        Set_W_Bit (Registers(IO_Chan_Def_Reg), B);
+                     else
+                        Clear_W_Bit (Registers(IO_Chan_Def_Reg), B);
+                     end if;
+               end case;
+            end loop;
+         else
+            Registers(Reg) := Datum;
+         end if;
+      end Write_Reg;
+
    end BMC_DCH;
 
    procedure Clear_W_Bit (Word : in out Word_T; Bit_Num : in Integer) is
    begin
       Word := Word and not Shift_Left (1, 15 - Bit_Num);
    end Clear_W_Bit;
+
+   -- Flip_W_Bit flips a single bit in a Word using DG numbering
+   procedure Flip_W_Bit (Word : in out Word_T; Bit_Num : in Integer) is
+   begin
+      Word := Word xor Shift_Left (1, 15 - Bit_Num);
+   end Flip_W_Bit;
 
    procedure Set_W_Bit (Word : in out Word_T; Bit_Num : in Integer) is
    begin

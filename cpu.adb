@@ -228,10 +228,27 @@ package body CPU is
 
       procedure Eagle_IO (I : in Decoded_Instr_T) is
          -- Addr : Phys_Addr_T;
-         -- Word : Word_T;
+         Word : Word_T;
          Dwd : Dword_T;
       begin
          case I.Instruction is
+
+            when I_CIO =>
+               Word := Lower_Word (CPU.AC(I.Acs));
+               declare
+                  IO_Chan : Word_T := Get_W_Bits (Word, 1, 3);
+                  Map_Reg_Addr : Integer := Integer(Word and 16#0fff#);
+               begin
+                  if IO_Chan /= 0 and IO_Chan /= 7 then
+                     raise Unsupported_IO_Channel with "Attempt to use CIO on channel " & IO_Chan'Image;
+                  end if;
+                  if Test_W_Bit (Word, 0) then -- write command
+                     Memory.BMC_DCH.Write_Reg (Map_Reg_Addr, Lower_Word(CPU.AC(I.Acd)));
+                  else  -- read command
+                     CPU.AC(I.Acd) := Dword_T(Memory.BMC_DCH.Read_Reg(Map_Reg_Addr));
+                  end if;
+               end;
+               
 
             when I_ECLID | I_LCPID => -- these appear to be identical...
                Dwd := Shift_Left (Dword_T(Model_No), 16);

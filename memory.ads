@@ -94,6 +94,8 @@ package Memory is
     protected BMC_DCH is
         procedure Init (Debug_Logging : in Boolean);
         procedure Reset;
+        function  Read_Reg (Reg : in Integer) return Word_T;
+        procedure Write_Reg (Reg : in Integer; Datum : Word_T); 
     private
         Registers  : BMC_DCH_Regs_Array;
         Is_Logging : Boolean;
@@ -104,6 +106,7 @@ package Memory is
 
     -- bit routines
     procedure Clear_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
+    procedure Flip_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
     procedure Set_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
     function Test_W_Bit
        (Word : in Word_T; Bit_Num : in Integer) return Boolean;
@@ -156,5 +159,7 @@ package Memory is
     function Integer_16_To_Word is new Ada.Unchecked_Conversion(Integer_16, Word_T);
     function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
     function Integer_64_To_Unsigned_64 is new Ada.Unchecked_Conversion(Integer_64, Unsigned_64);
+
+    Unsupported_IO_Channel : exception;
 
 end Memory;
