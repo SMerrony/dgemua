@@ -155,5 +155,6 @@ package Memory is
     function Word_To_Integer_16 is new Ada.Unchecked_Conversion(Word_T, Integer_16);
     function Integer_16_To_Word is new Ada.Unchecked_Conversion(Integer_16, Word_T);
     function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
+    function Integer_64_To_Unsigned_64 is new Ada.Unchecked_Conversion(Integer_64, Unsigned_64);
 
 end Memory;

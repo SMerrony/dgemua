@@ -170,9 +170,32 @@ package body CPU is
          Word : Word_T;
       begin
          case I.Instruction is
+
+            when I_WBLM =>
+               -- AC0 - unused, AC1 - no. wds to move (if neg then descending order), AC2 - src, AC3 - dest
+               if CPU.AC(1) /= 0 then
+                  while CPU.AC(1) /= 0 loop
+                     Memory.RAM.Write_Word(Phys_Addr_T(CPU.AC(3)), 
+                                           Memory.RAM.Read_Word (Phys_Addr_T(CPU.AC(2))));
+                     if Memory.Test_DW_Bit (CPU.AC(1), 0) then
+                        CPU.AC(1) := CPU.AC(1) + 1;
+                        CPU.AC(2) := CPU.AC(2) - 1;
+                        CPU.AC(3) := CPU.AC(3) - 1;
+                     else
+                        CPU.AC(1) := CPU.AC(1) - 1;
+                        CPU.AC(2) := CPU.AC(2) + 1;
+                        CPU.AC(3) := CPU.AC(3) + 1;
+                     end if;
+                  end loop;
+               end if;
+
             when I_XLDB =>
                Addr := Resolve_15bit_Disp (false, I.Mode, I.Disp_15, I.Disp_Offset); -- TODO 'Long' resolve???
                CPU.AC(I.Ac) := Dword_T(Memory.RAM.Read_Byte(Addr, I.Low_Byte));
+
+            when I_XLEF =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               CPU.AC(I.Ac) := Dword_T(Addr);
 
             when I_XNLDA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -238,7 +261,7 @@ package body CPU is
       end Eagle_IO;
 
       procedure Eagle_Op (I : in Decoded_Instr_T) is
-         Acd_S32, Acs_S32 : Integer_32;
+         Acd_S32, Acs_S32, S32: Integer_32;
          S64 : Integer_64;
          Shift : Integer;
       begin
@@ -254,7 +277,19 @@ package body CPU is
                CPU.Carry := false;
 
             when I_NLDAI =>
-               CPU.AC(I.Ac) := Dword_T(Integer_32(Word_To_Integer_16(I.Word_2)));
+               CPU.AC(I.Ac) := Memory.Sext_Word_To_Dword(I.Word_2);
+
+            when I_SSPT =>  -- NO-OP - see p.8-5 of MV/10000 Sys Func Chars 
+               Loggers.Debug_Print(Debug_Log, "INFO: SSPT is a No-Op on this VM, continuing...");
+
+            when I_WADC =>
+               Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
+               Acs_S32 := Dword_To_Integer_32(not CPU.AC(I.Acs));
+               S64 := Integer_64(Acd_S32) + Integer_64(Acs_S32);
+               CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
+               Set_OVR (CPU.Carry);
+               S64 := Integer_64(Memory.Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+               CPU.AC(I.Acd) := Dword_T(S64);
 
             when I_WADD =>
                Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
@@ -287,6 +322,21 @@ package body CPU is
                elsif Shift > 0 then -- shift left
                   CPU.AC(I.Ac) := Shift_Left (CPU.AC(I.Ac), Shift);
                end if;
+
+            when I_WNEG =>
+               CPU.Carry := CPU.AC(I.Acs) = 16#8000_0000#; -- TODO Error in PoP?
+               Set_OVR(CPU.Carry);
+               CPU.AC(I.Acd) := (not CPU.AC(I.Acs)) + 1;
+
+            when I_WMOV =>
+               CPU.AC(I.Acd) := CPU.AC(I.Acs);
+
+            when I_WSBI =>
+               S32 := Integer_32(Integer_16(I.Imm_U16));
+               S64 := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac))) - Integer_64(S32);
+               CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
+               Set_OVR(CPU.Carry);
+               CPU.AC(I.Ac) := Dword_T(S64);
 
             when I_WSUB =>
                Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
@@ -404,6 +454,7 @@ package body CPU is
                Addr := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15);
                Addr := (Addr and 16#0000_7fff#) or Ring;
 
+
             when others =>
                Put_Line ("ERROR: ECLIPSE_MEMREF instruction " & To_String(I.Mnemonic) & 
                          " not yet implemented");
@@ -415,12 +466,21 @@ package body CPU is
 
       procedure Eclipse_Op (I : in Decoded_Instr_T) is
          Word : Word_T;
+         Dword : Dword_T;
       begin
          case I.Instruction is
 
             when I_ANDI =>
                Word := Lower_Word (CPU.AC(I.Ac));
                CPU.AC(I.Ac) := Dword_T(Word and Word_T(I.Imm_S16)) and 16#0000_ffff#;
+
+            when I_HXL =>
+               Dword := Shift_Left (CPU.AC(I.Ac), Integer(I.Imm_U16) * 4);
+               CPU.AC(I.Ac) := Dword and 16#0000_ffff#;
+                           
+            when I_HXR =>
+               Dword := Shift_Right (CPU.AC(I.Ac), Integer(I.Imm_U16) * 4);
+               CPU.AC(I.Ac) := Dword and 16#0000_ffff#;
 
             when others =>
                Put_Line ("ERROR: ECLIPSE_OP instruction " & To_String(I.Mnemonic) & 
