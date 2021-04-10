@@ -157,6 +157,7 @@ package Memory is
     function Char_To_Byte is new Ada.Unchecked_Conversion(Character, Byte_T);
     function Byte_To_Char is new Ada.Unchecked_Conversion(Byte_T, Character);
     function Dword_To_Integer_32 is new Ada.Unchecked_Conversion(Dword_T, Integer_32);
+    function Integer_32_To_Phys is new Ada.Unchecked_Conversion(Integer_32, Phys_Addr_T);
     function Word_To_Integer_16 is new Ada.Unchecked_Conversion(Word_T, Integer_16);
     function Integer_16_To_Word is new Ada.Unchecked_Conversion(Integer_16, Word_T);
     function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);

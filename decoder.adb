@@ -163,16 +163,17 @@ package body Decoder is
       end if;
    end Decode_8bit_Disp;
 
-   function Decode_15bit_Disp (D15 : Word_T; Mode : Mode_T) return Integer_16 is
+   function Decode_15bit_Disp (D15 : in Word_T; Mode : in Mode_T) return Integer_16 is
    begin
       if Mode = Absolute then
-         return Integer_16 (D15 and 2#0111_1111_1111_1111#); -- zero extend
+         return Integer_16 (D15 and 16#7fff#); -- zero extend
       end if;
-      if Test_W_Bit (D15, 1) then
-         return Word_To_Integer_16 (D15 or 2#1100_0000_0000_0000#);
-      else
-         return Integer_16 (D15 and 2#0011_1111_1111_1111#);
-      end if;
+      -- if Test_W_Bit (D15, 1) then
+      --    return Word_To_Integer_16 (D15 or 2#1100_0000_0000_0000#);
+      -- else
+      --    return Integer_16 (D15 and 2#0011_1111_1111_1111#);
+      -- end if;
+      return Memory.Word_To_Integer_16(Shift_Left(D15, 1)) / 2;
    end Decode_15bit_Disp; -- TODO Test/verify this
 
    procedure Decode_16bit_Byte_Disp (D16 : in Word_T; Disp_16 : out Integer_16; Lo_Byte : out Boolean) is
@@ -349,6 +350,19 @@ package body Decoder is
                   Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
             end if;
 
+         when NOACC_MODE_IND_2_WORD_E_FMT => -- eg. EJSR
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 6, 2)));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " &
+                 Char_Indirect(Decoded.Ind) &
+                  Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & String_Mode(Decoded.Mode) &
+                 " [2-Word Instruction]";
+            end if;
+
          when NOACC_MODE_IND_2_WORD_X_FMT => -- eg. XJSR
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
@@ -472,6 +486,20 @@ package body Decoder is
                  Int_To_String (Integer(Decoded.Disp_15 * 2), Radix, 8, false, true) & "+" &
                  Low_Byte_To_Char (Decoded.Low_Byte) &
                  String_Mode(Decoded.Mode) & " [2-Word Instruction]";
+            end if;
+
+         when ONEACC_MODE_IND_2_WORD_E_FMT => -- eg. DSPA, ELDA, ELDB, ELEF, ESTA
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 6, 2)));
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
+                 Char_Indirect(Decoded.Ind) & 
+                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & String_Mode(Decoded.Mode) &
+                 " [2-Word Instruction]";
             end if;
 
          when ONEACC_MODE_IND_2_WORD_X_FMT => -- eg. XNLDA, XWMUL & many others

@@ -138,7 +138,7 @@ package body CPU is
                -- Zero-extend to 28 bits, force to current ring
                Eff := (Phys_Addr_T(Disp15) and 16#0000_7fff#) or Ring;
             when PC =>
-               Eff := Phys_Addr_T(Integer_32(CPU.PC) + Disp32 + Integer_32(Disp_Offset));
+               Eff := Memory.Integer_32_To_Phys(Integer_32(CPU.PC) + Disp32 + Integer_32(Disp_Offset));
             when AC2 =>
                Eff := Phys_Addr_T(Integer_32(CPU.AC(2)) + Disp32) or Ring;
             when AC3 =>
@@ -588,6 +588,14 @@ package body CPU is
          Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
       begin
          case I.Instruction is
+            when I_ELEF =>
+               Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+               CPU.AC(I.Ac) := Dword_T(Addr);
+
+            when I_ESTA =>
+               Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+               RAM.Write_Word (Addr, Lower_Word(CPU.AC(I.Ac)));
+
             when I_LEF =>
                Addr := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15);
                Addr := (Addr and 16#0000_7fff#) or Ring;
@@ -635,6 +643,28 @@ package body CPU is
          CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
       end Eclipse_Op;
 
+      procedure Eclipse_PC (I : in Decoded_Instr_T) is
+         Addr : Phys_Addr_T;
+         Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+      begin
+         case I.Instruction is
+
+            when I_EJMP =>
+               Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+               CPU.PC := Addr;
+
+            when I_EJSR =>
+               CPU.AC(3) := Dword_T(CPU.PC) + 2;
+               Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+               CPU.PC := Addr;
+
+            when others =>
+               Put_Line ("ERROR: ECLIPSE_PC instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: ECLIPSE_PC instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+      end Eclipse_PC;
 
       procedure Nova_IO (I : in Decoded_Instr_T) is
          Seg_Num : Integer := Integer(Shift_Right(CPU.PC, 28) and 16#07#);
@@ -651,7 +681,7 @@ package body CPU is
                if I.IO_Dev = Devices.CPU then
                   case I.Instruction is
                      when I_DIC =>
-                        Put_Line ("INFO: Resting I/O Devices due to DIC CPU instruction");
+                        Put_Line ("INFO: Reseting I/O Devices due to DIC CPU instruction");
                         Devices.Bus.Actions.Reset_All_IO_Devices;
 
                      when others =>
@@ -667,8 +697,12 @@ package body CPU is
                            Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, I.IO_Reg, I.IO_Flag);
                      end if;
                   else
-                     Loggers.Debug_Print(Debug_Log, "WARNING: I/O Attempted to unattached or non-I/O capable device ");
-                     return;
+                     if I.IO_Dev = 2 then
+                        Loggers.Debug_Print(Debug_Log, "WARNING: Ignoring I/O to device " & I.IO_Dev'Image);
+                     else
+                        Loggers.Debug_Print(Debug_Log, "WARNING: I/O Attempted to unattached or non-I/O capable device ");
+                        raise IO_Device_Error;
+                     end if;
                   end if;
                end if;
 
@@ -876,6 +910,7 @@ package body CPU is
             when EAGLE_PC       => Eagle_PC(Instr);
             when ECLIPSE_MEMREF => Eclipse_Mem_Ref(Instr);
             when ECLIPSE_OP     => Eclipse_Op(Instr);
+            when ECLIPSE_PC     => Eclipse_PC(Instr);
             when NOVA_IO        => Nova_IO(Instr);  
             when NOVA_MEMREF    => Nova_Mem_Ref(Instr);
             when NOVA_OP        => Nova_Op(Instr);
