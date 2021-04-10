@@ -20,28 +20,29 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Ada.Text_IO;
+with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Real_Time;         use Ada.Real_Time;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Text_IO;
 
 with GNAT.Ctrl_C;
 with GNAT.OS_Lib;
 with GNAT.Sockets;
 with GNAT.String_Split;     use GNAT.String_Split;
 
-with Interfaces; use Interfaces;
+with Interfaces;            use Interfaces;
 
 with CPU;
 with Decoder;
-with Debug_Logs;             use Debug_Logs;
+with Debug_Logs;            use Debug_Logs;
 with Devices;
 with Devices.Bus;
-with Devices.Console;        use Devices.Console;
+with Devices.Console;       use Devices.Console;
 with Devices.Magtape6026;
-with DG_Types;               use DG_Types;
-with Memory;                 use Memory;
+with DG_Types;              use DG_Types;
+with Memory;                use Memory;
 with Simh_Tapes;
 with Status_Monitor;
 
@@ -60,10 +61,14 @@ procedure MVEmuA is
    Connection : GNAT.Sockets.Socket_Type;
    Client     : GNAT.Sockets.Sock_Addr_Type;
 
-   Command_Line : Unbounded_String;
-   Command      : Unbounded_String;
+   Command_Line  : Unbounded_String;
+   Command       : Unbounded_String;
+   Arg_Num       : Positive := 1;
+   Do_Script_Arg : Natural := 0;
 
    Console_Radix  : Number_Base_T := Octal; -- default console I/O number base
+
+   procedure Do_Command (Cmd : in Unbounded_String);
 
    procedure Show_Help is
    begin
@@ -177,6 +182,29 @@ procedure MVEmuA is
       TTOut.Put_String (CPU.Actions.Disassemble_Range(Low_Addr, High_Addr, Console_Radix));
    end Disassemble;
 
+   procedure Do_Script (Command : in Slice_Set) is
+      use Ada.Text_IO;
+      Do_File : File_Type;
+      Script_Line : Unbounded_String;
+   begin
+      if Slice_Count (Command) < 2 then
+         TTOut.Put_String (Dasher_NL & " *** DO command requires argument: <script_file> ***");
+         return;
+      end if;
+      Open (Do_File, In_File, Slice (Command, 2));
+      while not End_Of_File (Do_File) loop
+         Script_Line := To_Unbounded_String (Get_Line (Do_File));
+         if Ada.Strings.Unbounded.Element(Script_Line, 1) /= '#' then
+            TTOut.Put_String (Dasher_NL & To_String (Script_Line));
+            Do_Command (Script_Line);
+         end if;
+      end loop;
+      Close (Do_File);
+   exception
+      when Name_Error =>
+         TTOut.Put_String (Dasher_NL & " *** DO command script cannot be opened ***");
+   end Do_Script;
+
    procedure Run is
       I_Counts : CPU.Instr_Count_T;
       I_Count  : Unsigned_64;
@@ -259,6 +287,8 @@ procedure MVEmuA is
          Check (Words);
       elsif Command = "DIS" then
          Disassemble (Words);
+      elsif Command = "DO" then
+         Do_Script (Words);        
       elsif Command = "exit" or Command = "EXIT" or command = "quit" or command = "QUIT" then
          Clean_Exit;
       elsif Command = "SHOW" then
@@ -269,6 +299,19 @@ procedure MVEmuA is
    end Do_Command;
 
 begin
+   while Arg_Num <= Ada.Command_Line.Argument_Count loop
+      if Ada.Command_Line.Argument (Arg_num) = "-do" then
+         Arg_Num := Arg_Num + 1;
+         Do_Script_Arg := Arg_Num;
+      elsif Ada.Command_Line.Argument (Arg_num) = "-version" then
+         Ada.Text_IO.Put_Line ("MV/Emua version " & Sem_Ver);
+         GNAT.OS_Lib.OS_Exit (0);
+      end if;
+      Arg_Num := Arg_Num + 1;
+   end loop;
+
+   GNAT.Ctrl_C.Install_Handler(Clean_Exit'Unrestricted_Access);
+
    Ada.Text_IO.Put_Line ("INFO: Will not start until console connects...");
    GNAT.Sockets.Create_Socket (Socket => Receiver);
    GNAT.Sockets.Set_Socket_Option
@@ -320,10 +363,12 @@ begin
       Devices.Console.TTOut.Put_Char (ASCII.FF);
       Devices.Console.TTOut.Put_String (" *** Welcome to the MV/Emulator - Type HE for help ***" & ASCII.LF);
 
-      -- TODO - handle DO scripts
+      -- Handle any DO script - N.B. will not pass here until start-up script is complete...
+      if Do_Script_Arg > 0 then
+         Do_Command (To_Unbounded_String ("DO " &  Ada.Command_Line.Argument (Do_Script_Arg)));
+      end if;
 
 
-      GNAT.Ctrl_C.Install_Handler(Clean_Exit'Unrestricted_Access);
 
       -- the main SCP/console interaction loop
       SCP_Handler.Set_SCP_IO (true);
