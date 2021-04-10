@@ -1,14 +1,14 @@
 # dgemua Status
 
-* Last status update: 5th April 2021
-* Last significant progress: TBOOT "Tape file number?" prompt displayed! - 5th April 2021
+* Last status update: 10th April 2021
+* Last significant progress: TBOOT Appears to be running to completion 10th April 2021
 
 ## What Works?
 Nothing yet - rewrite just begun.
 
 ## What's Next?
 Initial milestones are to run from image of AOS/VS 7.73 system tape image...
-* File 0 - TBOOT 
+* File 0 - TBOOT - Appears to be working - 10th April 2021
 * File 2 - DFMTR 
 * File 3 - INSTL 
 

@@ -78,7 +78,7 @@ package body CPU is
                                   Mode        : in Mode_T;
                                   Disp15      : in Integer_16) return Phys_Addr_T is
          Eff    : Phys_Addr_T;
-         Ring   : Phys_Addr_T := CPU.PC and 16#0700_0000#;
+         Ring   : Phys_Addr_T := CPU.PC and 16#7000_0000#;
          Disp32 : Integer_32;
          Ind_Addr : Word_T;
          Indirection_Level : Integer := 0;
@@ -124,7 +124,7 @@ package body CPU is
                                    Disp15      : in Integer_16;
                                    Disp_Offset : in Natural) return Phys_Addr_T is
          Eff    : Phys_Addr_T;
-         Ring   : Phys_Addr_T := CPU.PC and 16#0700_0000#;
+         Ring   : Phys_Addr_T := CPU.PC and 16#7000_0000#;
          Disp32 : Integer_32;
          Ind_Addr : Dword_T;
          Indirection_Level : Integer := 0;
@@ -165,6 +165,48 @@ package body CPU is
 
          return Eff;
       end Resolve_15bit_Disp;
+
+      function Resolve_31bit_Disp (Indirect    : in Boolean; 
+                                   Mode        : in Mode_T;
+                                   Disp        : in Integer_32;
+                                   Disp_Offset : in Natural) return Phys_Addr_T is
+         Eff    : Phys_Addr_T;
+         Ring   : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+         Ind_Addr : Dword_T;
+         Indirection_Level : Integer := 0;
+      begin
+         case Mode is
+            when Absolute =>
+               -- Zero-extend to 28 bits
+               Eff := Phys_Addr_T(Disp); --  or Ring;
+            when PC =>
+               Eff := Phys_Addr_T(Integer_32(CPU.PC) + Disp + Integer_32(Disp_Offset));
+            when AC2 =>
+               Eff := Phys_Addr_T(Integer_32(CPU.AC(2)) + Disp);
+            when AC3 =>
+               Eff := Phys_Addr_T(Integer_32(CPU.AC(3)) + Disp);
+         end case;
+
+         if Indirect then
+            Eff := Eff or Ring;
+            Ind_Addr := Memory.RAM.Read_Dword (Eff);
+            while (Ind_Addr and 16#8000_0000#) /= 0 loop
+               Indirection_Level := Indirection_Level + 1;
+               if Indirection_Level > 15 then
+                  raise Indirection_Failure with "Too many levels of indirection";
+               end if;
+               Ind_Addr := Memory.RAM.Read_Dword (Phys_Addr_T(Ind_Addr) and 16#7fff_ffff#);
+            end loop;
+            Eff := Phys_Addr_T(Ind_Addr) or Ring;
+         end if;
+
+         if not CPU.ATU then
+            -- constrain to 1st 32MB
+            Eff := Eff and 16#01ff_ffff#;
+         end if;
+
+         return Eff and 16#7fff_ffff#;
+      end Resolve_31bit_Disp;
 
       procedure Eagle_Mem_Ref (I : in Decoded_Instr_T) is
          Addr : Phys_Addr_T;
@@ -398,6 +440,9 @@ package body CPU is
                Set_OVR (CPU.Carry);
                CPU.AC(I.Acd) := Dword_T(S64);
 
+            when I_ZEX =>
+               CPU.AC(I.Acd) := 0 or Dword_T(Lower_Word(CPU.AC(I.Acs)));
+
             when others =>
                Put_Line ("ERROR: EAGLE_Op instruction " & To_String(I.Mnemonic) & 
                          " not yet implemented");
@@ -415,6 +460,26 @@ package body CPU is
          S32_S, S32_D : Integer_32;
       begin
          case I.Instruction is
+
+            when I_LWDSZ =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               DW := RAM.Read_Dword(Addr) - 1;
+               RAM.Write_Dword(Addr, DW);
+               if DW = 0 then
+                  CPU.PC := CPU.PC + 4;
+               else
+                  CPU.PC := CPU.PC + 3;
+               end if;
+
+            when I_LWISZ =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               DW := RAM.Read_Dword(Addr) + 1;
+               RAM.Write_Dword(Addr, DW);
+               if DW = 0 then
+                  CPU.PC := CPU.PC + 4;
+               else
+                  CPU.PC := CPU.PC + 3;
+               end if;
 
             when I_WBR =>
                CPU.PC := Phys_Addr_T(Integer_32(CPU.PC) + Integer_32(I.Disp_8));
@@ -584,20 +649,27 @@ package body CPU is
 
                -- catch CPU I/O instructions
                if I.IO_Dev = Devices.CPU then
-                  raise Execution_Failure with "CPU I/O not yet implemented";
-               end if;
+                  case I.Instruction is
+                     when I_DIC =>
+                        Put_Line ("INFO: Resting I/O Devices due to DIC CPU instruction");
+                        Devices.Bus.Actions.Reset_All_IO_Devices;
 
-               if Bus.Actions.Is_Connected(I.IO_Dev) and Bus.Actions.Is_IO_Dev(I.IO_Dev) then
-                  if I.IO_Dir = Data_In then
-                        Devices.Bus.Actions.Data_In(I.IO_Dev, I.IO_Reg, I.IO_Flag, Datum);
-                        CPU.AC(I.Ac) := Dword_T(Datum);
-                     else
-                        Datum := Lower_Word (CPU.AC(I.Ac));
-                        Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, I.IO_Reg, I.IO_Flag);
-                  end if;
+                     when others =>
+                        raise Execution_Failure with "CPU I/O not yet implemented";
+                  end case;
                else
-                  Loggers.Debug_Print(Debug_Log, "WARNING: I/O Attempted to unattached or non-I/O capable device ");
-                  return;
+                  if Bus.Actions.Is_Connected(I.IO_Dev) and Bus.Actions.Is_IO_Dev(I.IO_Dev) then
+                     if I.IO_Dir = Data_In then
+                           Devices.Bus.Actions.Data_In(I.IO_Dev, I.IO_Reg, I.IO_Flag, Datum);
+                           CPU.AC(I.Ac) := Dword_T(Datum);
+                        else
+                           Datum := Lower_Word (CPU.AC(I.Ac));
+                           Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, I.IO_Reg, I.IO_Flag);
+                     end if;
+                  else
+                     Loggers.Debug_Print(Debug_Log, "WARNING: I/O Attempted to unattached or non-I/O capable device ");
+                     return;
+                  end if;
                end if;
 
             when I_NIO =>

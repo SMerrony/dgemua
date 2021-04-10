@@ -56,6 +56,8 @@ package Devices.Bus is
     protected Actions is
         procedure Init;
         procedure Connect (Dev : in Dev_Num_T);
+        procedure Reset_IO_Device(Dev : in Dev_Num_T);
+        procedure Reset_All_IO_Devices;
         procedure Set_Reset_Proc (Dev : in Dev_Num_T; Reset_Proc : in Reset_Proc_T);
         procedure Set_Data_Out_Proc (Dev : in Dev_Num_T; Data_Out_Proc : in Data_Out_Proc_T);
         procedure Data_Out (Dev : in Dev_Num_T; Datum : in Word_T; ABC : in IO_Reg_T; Flag : in IO_Flag_T); 

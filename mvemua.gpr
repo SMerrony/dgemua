@@ -1,20 +1,60 @@
-project mvemua is
-   type Mode_Type is ("debug", "release"); -- all possible values
-   Mode : Mode_Type := external ("mode", "debug"); 
+project Mvemua is
 
-   package Compiler is
-      case Mode is
-         when "debug" =>
-            for Switches ("Ada")
-               use ("-g");
-         when "release" =>
-            for Switches ("Ada")
-               use ("-O2");
-      end case;
-   end Compiler;
-   
+   type Mode_Type is
+      ("debug", "release"); -- all possible values
+   Mode : Mode_Type := external ("mode", "debug");
    for Ignore_Source_Sub_Dirs use (".git");
    for Object_Dir use "./obj";
    for Exec_Dir use ".";
    for Main use ("mvemua.adb");
-end mvemua;
+
+   package Compiler is
+
+      case Mode is
+
+         when "debug" =>
+            for Switches ("Ada") use ("-g");
+
+         when "release" =>
+            for Switches ("Ada") use ("-O2");
+      end case;
+   end Compiler;
+
+   package Builder is
+
+      case Mode is
+
+         when "debug" =>
+            for Switches ("ada") use ("-j4");
+
+         when "release" =>
+
+      end case;
+   end Builder;
+
+   package Binder is
+
+      case Mode is
+
+         when "debug" =>
+            for Switches ("ada") use ("-Es");
+
+         when "release" =>
+
+      end case;
+   end Binder;
+
+   package Linker is
+
+      case Mode is
+
+         when "debug" =>
+            for Switches ("ada") use ("-g");
+
+         when "release" =>
+
+      end case;
+   end Linker;
+
+end Mvemua;
+

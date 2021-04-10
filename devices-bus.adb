@@ -85,6 +85,25 @@ package body Devices.Bus is
           Put_Line ("INFO: " & To_String(Bus.Devices(Dev).Mnemonic) & " connected to bus");
        end Connect;
 
+       procedure Reset_IO_Device(Dev : in Dev_Num_T) is
+       begin
+          if Bus.Devices(Dev).Connected and Bus.Devices(Dev).IO_Device and (Bus.Devices(Dev).Reset_Proc /= null) then
+             Bus.Devices(Dev).Reset_Proc.all;
+          else
+             Put_Line ("INFO: Ignoring attempt to reset non-I/O/resetable device No. " & Get_Device_Name_Or_Number (Dev));
+          end if;
+
+       end Reset_IO_Device;
+
+       procedure Reset_All_IO_Devices is
+       begin
+          for D in Dev_Num_T'Range loop
+             if Bus.Devices(D).Connected and Bus.Devices(D).IO_Device then
+                Reset_IO_Device (D);
+             end if;
+          end loop;
+       end Reset_All_IO_Devices;
+
        procedure Set_Reset_Proc (Dev : in Dev_Num_T; Reset_Proc : in Reset_Proc_T) is
        begin
           Bus.Devices(Dev).Reset_Proc := Reset_Proc;

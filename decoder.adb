@@ -181,6 +181,21 @@ package body Decoder is
       Disp_16 := Integer_16(D16) / 2;
    end Decode_16bit_Byte_Disp;
 
+   function Decode_31bit_Disp (W_1, W_2 : in Word_T; Mode : in Mode_T) return Integer_32 is
+      Dw_1, Dw_2 : Dword_T;
+      Disp : Integer_32;
+   begin
+      Dw_1 := Shift_Left(Dword_T(W_1 and 16#7fff#), 16);
+      Dw_2 := Dword_T(W_2);
+      if Mode /= Absolute then
+         if Test_W_Bit (W_1, 1) then
+            Dw_1 := Dw_1 or 16#8000_0000#;
+         end if;
+      end if;
+      Disp :=  Memory.Dword_To_Integer_32(Dw_1 or Dw_2);
+      return Disp;
+   end Decode_31bit_Disp;
+
    function Decode_Carry (Cr : Word_T) return Carry_T is
    begin
       case Cr is
@@ -347,6 +362,18 @@ package body Decoder is
                  " [2-Word Instruction]";
             end if;
 
+         when NOACC_MODE_IND_3_WORD_FMT => -- eg. LJMP/LJSR, LNISZ, LNDSZ, LWDS
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
+            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2, Decoded.Word_3, Decoded.Mode);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Char_Indirect(Decoded.Ind) &
+                 Int_To_String (Integer(Decoded.Disp_31), Radix, 12, false, true) & String_Mode(Decoded.Mode);
+            end if;
+
          when NOVA_DATA_IO_FMT => -- eg. DOA/B/C, DIA/B/C
             Decoded.Ac := AC_ID(Get_W_Bits (Opcode, 3, 2));
             if Decoded.Instruction = I_DIA or Decoded.Instruction = I_DIB or Decoded.Instruction = I_DIC then
@@ -497,7 +524,7 @@ package body Decoder is
               (Debug_Log,
                "ERROR: Unhandled instruction format: " & Decoded.Format'Image &
                " for instruction: " & To_String (Decoded.Mnemonic));
-            raise Decode_Failed with "Unhandled instruction format";
+            raise Decode_Failed with "Unhandled instruction format: " & Decoded.Format'Image;
       end case;
 
       return Decoded;
