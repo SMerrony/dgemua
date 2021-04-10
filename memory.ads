@@ -95,7 +95,9 @@ package Memory is
         procedure Init (Debug_Logging : in Boolean);
         procedure Reset;
         function  Read_Reg (Reg : in Integer) return Word_T;
-        procedure Write_Reg (Reg : in Integer; Datum : Word_T); 
+        procedure Write_Reg (Reg : in Integer; Datum : in Word_T); 
+        procedure Write_Slot (Slot : in Integer; Datum : in Dword_T);
+        procedure Write_Word_DCH_Chan (Unmapped : in out Phys_Addr_T; Datum : in Word_T);
     private
         Registers  : BMC_DCH_Regs_Array;
         Is_Logging : Boolean;
@@ -160,6 +162,7 @@ package Memory is
     function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
     function Integer_64_To_Unsigned_64 is new Ada.Unchecked_Conversion(Integer_64, Unsigned_64);
 
+    Invalid_DCH_Slot       : exception;
     Unsupported_IO_Channel : exception;
 
 end Memory;

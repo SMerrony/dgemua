@@ -105,5 +105,6 @@ package CPU is
 
    Execution_Failure : exception;
    Indirection_Failure : exception;
+   Not_Yet_Implemented : exception;
 
 end CPU;

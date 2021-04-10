@@ -291,13 +291,19 @@ package body Decoder is
 
       case Decoded.Format is  
 
-         when IO_TEST_DEV_FMT => -- eg. SKPn
-            Decoded.IO_Test := Decode_IO_Test (Get_W_Bits (Opcode, 8, 2));
-            Decoded.IO_Dev  := Dev_Num_T(Get_W_Bits (Opcode, 10, 6));
+         when IMM_MODE_2_WORD_FMT => -- eg. XNADI, XNSBI, XNSUB, XWADI, XWSBI
+            Decoded.Imm_U16 := Decode_2bit_Imm (Get_W_Bits (Opcode, 1, 2));
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
             if Disassemble then
                Decoded.Disassembly :=
-                  Decoded.Disassembly & Decoded.IO_Test'Image & " " &
-                  Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
+                 Decoded.Disassembly & " " &
+                 Char_Indirect(Decoded.Ind) &
+                  Int_To_String (Integer(Decoded.Imm_U16), Radix, 8, false, true) & "," &
+                  Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & 
+                  String_Mode(Decoded.Mode) & " [2-Word Instruction]";
             end if;
 
          when IMM_ONEACC_FMT => -- eg. ADI, HXL, NADI, SBI, WADI, WLSI, WSBI
@@ -308,6 +314,24 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Imm_U16'Image & Decoded.Ac'Image;
+            end if;
+
+         when IO_FLAGS_DEV_FMT => -- eg. NIO
+            Decoded.IO_Flag := Decode_IO_Flag (Get_W_Bits (Opcode, 8, 2));
+            Decoded.IO_Dev  := Dev_Num_T(Get_W_Bits (Opcode, 10, 6));
+            if Disassemble then
+               Decoded.Disassembly :=
+                  Decoded.Disassembly & Decoded.IO_Flag'Image & " " &
+                  Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
+            end if;
+
+         when IO_TEST_DEV_FMT => -- eg. SKPn
+            Decoded.IO_Test := Decode_IO_Test (Get_W_Bits (Opcode, 8, 2));
+            Decoded.IO_Dev  := Dev_Num_T(Get_W_Bits (Opcode, 10, 6));
+            if Disassemble then
+               Decoded.Disassembly :=
+                  Decoded.Disassembly & Decoded.IO_Test'Image & " " &
+                  Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
             end if;
 
          when NOACC_MODE_IND_2_WORD_X_FMT => -- eg. XJSR

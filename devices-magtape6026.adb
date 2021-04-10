@@ -75,6 +75,13 @@ package body Devices.Magtape6026 is
             Img_Stream : Stream_Access;  
             RC : Mt_Stat;  
         begin
+            -- currently only supporting one drive (Unit 0)...
+            if State.Current_Unit /= 0 then
+                Loggers.Debug_Print (Mt_Log, "WARNING: Command issued for Unit #" & State.Current_Unit'Image);
+                State.Status_Reg_1 := SR_1_Error or SR_1_Illegal;
+                State.Status_Reg_2 := SR_2_Error;
+                return;
+            end if;
             case State.Current_Cmd is
                 when Read =>
                     Loggers.Debug_Print (Mt_Log, "DEBUG: *READ* command - Unit:" & State.Current_Unit'Image &
@@ -84,7 +91,7 @@ package body Devices.Magtape6026 is
                     Read_Meta_Data (Img_Stream, Hdr);
                     if Hdr = Mtr_Tmk then
                         Loggers.Debug_Print (Mt_Log, "WARNING: Header is EOF (Tape Mark) Indicator");
-                        State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady or SR_1_Error or SR_1_Error;
+                        State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady or SR_1_EOF or SR_1_Error;
                     else
                         declare
                            Tape_Rec : Mt_Rec(0..Integer(Hdr));
@@ -95,7 +102,7 @@ package body Devices.Magtape6026 is
                            while W < Natural(Hdr) loop
                               Wd := Memory.Word_From_Bytes(Tape_Rec(W), Tape_Rec(W+1));
                               W := W + 2;
-                              Memory.RAM.Write_Word (State.Mem_Addr_Reg, Wd); -- FIXME should use DCH mappped write
+                              Memory.BMC_DCH.Write_Word_DCH_Chan(State.Mem_Addr_Reg, Wd);
                               State.Neg_Word_Count := State.Neg_Word_Count + 1;
                               exit when State.Neg_Word_Count = 0;
                            end loop;

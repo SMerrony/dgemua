@@ -24,6 +24,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;           use Ada.Text_IO;
 
 with CPU_Instructions;      use CPU_Instructions;
+with Debug_Logs;            use Debug_Logs;
 with Decoder;               use Decoder;
 with Devices;               use Devices;
 with Devices.Bus;           use Devices.Bus;
@@ -168,6 +169,7 @@ package body CPU is
       procedure Eagle_Mem_Ref (I : in Decoded_Instr_T) is
          Addr : Phys_Addr_T;
          Word : Word_T;
+         S64  : Integer_64;
       begin
          case I.Instruction is
 
@@ -209,9 +211,29 @@ package body CPU is
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                Memory.RAM.Write_Word (Addr, Memory.Lower_Word(CPU.AC(I.Ac)));
 
+            when I_XWADI =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               S64 := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr))) + Integer_64(I.Imm_U16);
+               if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
+                  CPU.Carry := true;
+                  Set_OVR (true);
+               end if;
+               S64 := Integer_64(Memory.Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+               RAM.Write_Dword (Addr, Dword_T(S64));
+
             when I_XWLDA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                CPU.AC(I.Ac) := Memory.RAM.Read_Dword (Addr);
+
+            when I_XWSBI =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               S64 := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr))) - Integer_64(I.Imm_U16);
+               if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
+                  CPU.Carry := true;
+                  Set_OVR (true);
+               end if;
+               S64 := Integer_64(Memory.Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+               RAM.Write_Dword (Addr, Dword_T(S64));
 
             when I_XWSTA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -266,6 +288,19 @@ package body CPU is
                if Lower_Word (CPU.AC(0)) = 16#ffff# then
                   -- return default I/O channel if -1 passed in
                   CPU.AC(0) := 0;
+               end if;
+
+            when I_WLMP =>
+               if CPU.AC(0) = 0 then
+                  Loggers.Debug_Print (Debug_Log, "WARNING: WLMP called with AC0 = 0, No-Op");
+               else
+                  while CPU.AC(1) /= 0 loop
+                     Dwd := RAM.Read_Dword(Phys_Addr_T(CPU.AC(2)));
+                     BMC_DCH.Write_Slot(Integer(CPU.AC(0) and 16#0000_07ff#), Dwd);
+                     CPU.AC(2) := CPU.AC(2) + 2;
+                     CPU.AC(0) := CPU.AC(0) + 1;
+                     CPU.AC(1) := CPU.AC(1) - 1;
+                  end loop;
                end if;
 
             when others =>
@@ -373,8 +408,10 @@ package body CPU is
       end Eagle_Op;
 
       procedure Eagle_PC (I : in Decoded_Instr_T) is
-         DW : Dword_T;
-         Skip: Boolean;
+         Addr : Phys_Addr_T;
+         Word : Word_T;
+         DW   : Dword_T;
+         Skip : Boolean;
          S32_S, S32_D : Integer_32;
       begin
          case I.Instruction is
@@ -454,6 +491,25 @@ package body CPU is
                CPU.AC(3) := Dword_T(CPU.PC + 2);
                CPU.PC := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) or (CPU.PC and 16#7000_0000#);
 
+            when I_XNDSZ =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               Word := RAM.Read_Word (Addr) - 1;
+               RAM.Write_Word (Addr, Word);
+               if Word = 0 then 
+                  CPU.PC := CPU.PC + 3;
+               else
+                  CPU.PC := CPU.PC + 2;
+               end if;
+                           
+            when I_XNISZ =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               Word := RAM.Read_Word (Addr) + 1;
+               RAM.Write_Word (Addr, Word);
+               if Word = 0 then 
+                  CPU.PC := CPU.PC + 3;
+               else
+                  CPU.PC := CPU.PC + 2;
+               end if;
             when others =>
                Put_Line ("ERROR: EAGLE_PC instruction " & To_String(I.Mnemonic) & 
                          " not yet implemented");
@@ -484,8 +540,14 @@ package body CPU is
       procedure Eclipse_Op (I : in Decoded_Instr_T) is
          Word : Word_T;
          Dword : Dword_T;
+         S16   : Integer_16;
       begin
          case I.Instruction is
+
+            when I_ADDI =>
+               S16 := Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)));
+               S16 := S16 + Word_To_Integer_16(I.Word_2);
+               CPU.AC(I.Ac) := Dword_T(S16) and 16#0000_ffff#;
 
             when I_ANDI =>
                Word := Lower_Word (CPU.AC(I.Ac));
@@ -537,6 +599,24 @@ package body CPU is
                   Loggers.Debug_Print(Debug_Log, "WARNING: I/O Attempted to unattached or non-I/O capable device ");
                   return;
                end if;
+
+            when I_NIO =>
+               -- catch CPU I/O instructions
+               if I.IO_Dev = Devices.CPU then
+                  raise Execution_Failure with "CPU I/O not yet implemented";
+               end if;
+               case I.IO_Flag is
+                  when None => null;
+                  when S => 
+                     Devices.Bus.States.Set_Busy (I.IO_Dev, true);
+                     Devices.Bus.States.Set_Done (I.IO_Dev, false);
+                  when C => 
+                     Devices.Bus.States.Set_Busy (I.IO_Dev, false);
+                     Devices.Bus.States.Set_Done (I.IO_Dev, false);   
+                  when P =>
+                     raise Not_Yet_Implemented with "NIO Pulse";
+               end case;
+               Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, N, I.IO_Flag);
 
             when I_SKP =>
                case I.IO_Dev is

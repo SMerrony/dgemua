@@ -25,6 +25,8 @@ with Ada.Strings;           use Ada.Strings;
 with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
+with Debug_Logs;            use Debug_Logs;
+
 package body Memory is
 
    protected body RAM is
@@ -94,7 +96,7 @@ package body Memory is
          Registers (IO_Chan_Mask_Reg)   :=
            IOC_MR_MK1 or IOC_MR_MK2 or IOC_MR_MK3 or IOC_MR_MK4 or
            IOC_MR_MK5 or IOC_MR_MK6;
-         Put_Line ("INFO: BMC_DCH Registers initialised");
+         Put_Line ("INFO: BMC_DCH Registers Reset");
       end Reset;
 
       function  Read_Reg(Reg : in Integer) return Word_T is
@@ -104,8 +106,11 @@ package body Memory is
 
       -- Write_Reg populates a given 16-bit register with the supplied data
       -- N.B. Addressed by REGISTER not slot
-      procedure Write_Reg (Reg : in Integer; Datum : Word_T) is
+      procedure Write_Reg (Reg : in Integer; Datum : in Word_T) is
       begin
+         if Is_Logging then
+            Loggers.Debug_Print (Map_Log, "Write_Reg with Register: " & Reg'Image & " Datum:" & Datum'Image);
+         end if;
          if Reg = IO_Chan_Def_Reg then
             -- certain bits in the new data cause IOCDR bits to be flipped rather than set
             for B in 0 .. 15 loop
@@ -126,6 +131,58 @@ package body Memory is
             Registers(Reg) := Datum;
          end if;
       end Write_Reg;
+
+      -- Write_Slot populates a whole SLOT (pair of registers) with the supplied doubleword
+      -- N.B. Addressed by SLOT not register
+      procedure Write_Slot (Slot : in Integer; Datum : in Dword_T) is
+      begin
+         if Is_Logging then
+            Loggers.Debug_Print (Map_Log, "Write_Slot with Slot: " & Slot'Image & " Datum:" & Datum'Image);
+         end if;
+         Registers(Slot * 2) := Upper_Word (Datum);
+         Registers((Slot * 2) + 1) := Lower_Word (Datum);
+      end Write_Slot;
+
+      function Get_DCH_Mode return Boolean is
+      begin
+         return Test_W_Bit(Registers(IO_Chan_Def_Reg), 14);
+      end Get_DCH_Mode;
+
+      function Resolve_DCH_Mapped_Addr (M_Addr : in Phys_Addr_T) return Phys_Addr_T is
+         P_Addr, P_Page : Phys_Addr_T;
+         Slot : Integer;
+         Offset : Phys_Addr_T;
+      begin
+         -- the slot is up to 9 bits long
+         Slot := Integer(Shift_Right(M_Addr, 10) and 16#001f#) + First_DCH_Slot;
+         if (Slot < First_DCH_Slot) or (Slot > (First_DCH_Slot + Num_DCH_Slots)) then
+            raise Invalid_DCH_Slot;
+         end if;
+         Offset := M_Addr and 16#0000_03ff#;
+	      -- N.B. at some point between 1980 and 1987 the lower 5 bits of the odd word were
+	      -- prepended to the even word to extend the mappable space
+         P_Page := Shift_Left(Phys_Addr_T(Registers(Slot * 2) and 16#0000_001f#), 16) or 
+                     Phys_Addr_T (Registers((Slot * 2) + 1));
+         P_Addr := Shift_Left (P_Page, 10) or Offset;
+         if Is_Logging then
+            Loggers.Debug_Print (Map_Log, "Resolve_DCH_Mapped_Addr got: " & M_Addr'Image &
+               " Returning: " & P_Addr'Image);
+         end if;
+         return P_Addr;
+      end Resolve_DCH_Mapped_Addr;
+
+      procedure Write_Word_DCH_Chan (Unmapped : in out Phys_Addr_T; Datum : in Word_T) is
+         P_Addr : Phys_Addr_T;
+      begin
+         if Get_DCH_Mode then
+            P_Addr := Resolve_DCH_Mapped_Addr (Unmapped);
+         else
+            P_Addr := Unmapped;
+         end if;
+         RAM.Write_Word (P_Addr, Datum);
+         -- auto-increment the supplied address
+         Unmapped := Unmapped + 1;
+      end Write_Word_DCH_Chan;
 
    end BMC_DCH;
 
