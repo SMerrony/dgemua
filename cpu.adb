@@ -787,6 +787,29 @@ package body CPU is
                CPU.PC := Addr;
                return; -- because PC has been set
 
+            when I_SAVE =>
+               declare
+                  NFP_Sav, NSP_Sav, Word : Word_T;
+               begin
+                  NFP_Sav := RAM.Read_Word (Memory.NFP_Loc or Ring);
+                  NSP_Sav := RAM.Read_Word (Memory.NSP_Loc or Ring);
+                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(0)));
+                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(1)));
+                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(2)));
+                  Narrow_Stack.Push(Ring, NFP_Sav);
+                  Word := Lower_Word(CPU.AC(3));
+                  if CPU.Carry then
+                     Word := Word or 16#8000#;
+                  else
+                     Word := Word and 16#7fff#;
+                  end if;
+                  Narrow_Stack.Push(Ring, Word);
+                  RAM.Write_Word (Memory.NSP_Loc or Ring, NSP_Sav + 5 + Word_T(I.Imm_U16));
+                  RAM.Write_Word (Memory.NFP_Loc or Ring, NSP_Sav + 5);
+                  CPU.AC(3) := Dword_T(NSP_Sav) + 5;
+
+               end;
+
             when others =>
                Put_Line ("ERROR: Eclipse_Stack instruction " & To_String(I.Mnemonic) & 
                         " not yet implemented");

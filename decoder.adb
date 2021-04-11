@@ -537,6 +537,9 @@ package body Decoder is
          when UNIQUE_1_WORD_FMT => -- nothing to do 
             null;
 
+         when UNIQUE_2_WORD_FMT =>
+            Decoded.Imm_U16 := Unsigned_16(RAM.Read_Word(PC + 1));
+
          when WSKB_FMT => -- eg. WSKBO/Z
             Tmp_8bit := Byte_T(Memory.Get_W_Bits(Opcode, 1, 3));
             Tmp_8bit := Shift_Left (Tmp_8bit, 2);
@@ -552,7 +555,8 @@ package body Decoder is
               (Debug_Log,
                "ERROR: Unhandled instruction format: " & Decoded.Format'Image &
                " for instruction: " & To_String (Decoded.Mnemonic));
-            raise Decode_Failed with "Unhandled instruction format: " & Decoded.Format'Image;
+            raise Decode_Failed with "Unhandled instruction format: " & Decoded.Format'Image &
+               " for: " & To_String(Decoded.Mnemonic);
       end case;
 
       return Decoded;
