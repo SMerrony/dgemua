@@ -350,7 +350,7 @@ package body Decoder is
                   Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
             end if;
 
-         when NOACC_MODE_IND_2_WORD_E_FMT => -- eg. EJSR
+         when NOACC_MODE_IND_2_WORD_E_FMT => -- eg. EJSR, PSHJ
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 6, 2)));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);

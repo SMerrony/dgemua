@@ -74,18 +74,22 @@ package body CPU is
          CPU.Instruction_Count := 0;
       end Prepare_For_Running;
 
+      procedure Set_Debug_Logging (OnOff : in Boolean) is
+      begin
+         CPU.Debug_Logging := OnOff;
+      end Set_Debug_Logging;
+
       function Resolve_8bit_Disp (Indirect    : in Boolean; 
                                   Mode        : in Mode_T;
                                   Disp15      : in Integer_16) return Phys_Addr_T is
          Eff    : Phys_Addr_T;
          Ring   : Phys_Addr_T := CPU.PC and 16#7000_0000#;
-         Disp32 : Integer_32;
          Ind_Addr : Word_T;
          Indirection_Level : Integer := 0;
       begin
          if Mode /= Absolute then
             -- relative mode, sign-extend to 32-bits
-            Disp32 := Integer_32(Disp15); -- Disp15 is already sexted by decoder
+            Eff := Integer_32_To_Phys(Integer_32(Disp15)); -- Disp15 is already sexted by decoder
          end if;
          case Mode is
             when Absolute =>
@@ -93,9 +97,9 @@ package body CPU is
             when PC =>
                Eff := Eff + CPU.PC;
             when AC2 =>
-               Eff := Phys_Addr_T(Integer_32(CPU.AC(2)) + Disp32) or Ring;
+               Eff := Eff + Phys_Addr_T(Integer_32(CPU.AC(2)));
             when AC3 =>
-               Eff := Phys_Addr_T(Integer_32(CPU.AC(3)) + Disp32) or Ring;   
+               Eff := Eff + Phys_Addr_T(Integer_32(CPU.AC(3)));
          end case;
 
          if Indirect then
@@ -588,6 +592,37 @@ package body CPU is
          Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
       begin
          case I.Instruction is
+
+            when I_BLM => -- AC0 - unused, AC1 - no. wds to move, AC2 - src, AC3 - dest
+               declare
+                  Num_Wds :  Word_T := Lower_Word(CPU.AC(1));
+                  Src, Dest : Phys_Addr_T;
+               begin
+                  if (Num_Wds = 0)  or (Num_Wds > 32768) then
+                     Loggers.Debug_Print (Debug_Log, "WARNING: BLM called with AC1 out of bounds, No-Op");
+                  else
+                     Src  := Ring or Phys_Addr_T(Lower_Word(CPU.AC(2)));
+                     Dest := Ring or Phys_Addr_T(Lower_Word(CPU.AC(3)));
+                     if CPU.Debug_Logging then
+                        Loggers.Debug_Print (Debug_Log, "BLM moving" & Num_Wds'Image & " words from" &
+                           Src'Image & " to" & Dest'Image);
+                     end if;
+                     while Num_Wds /= 0 loop
+                        RAM.Write_Word (Dest, RAM.Read_Word(Src));
+                        Num_Wds := Num_Wds - 1;
+                        Src := Src + 1;
+                        Dest := Dest + 1;
+                     end loop;
+                     CPU.AC(1) := 0;
+                     CPU.AC(2) := Dword_T(Src); -- TODO verify this
+                     CPU.AC(3) := Dword_T(Dest);
+                  end if;
+               end;
+
+            when I_ELDA =>
+               Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+               CPU.AC(I.Ac) := Dword_T(RAM.Read_Word(Addr));
+
             when I_ELEF =>
                Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
                CPU.AC(I.Ac) := Dword_T(Addr);
@@ -595,6 +630,9 @@ package body CPU is
             when I_ESTA =>
                Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
                RAM.Write_Word (Addr, Lower_Word(CPU.AC(I.Ac)));
+
+            when I_LDB =>
+               CPU.AC(I.Acd) := Dword_T (RAM.Read_Byte_Eclipse_BA (Ring, Lower_Word(CPU.AC(I.Acs))));
 
             when I_LEF =>
                Addr := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15);
@@ -622,6 +660,11 @@ package body CPU is
                S16 := S16 + Word_To_Integer_16(I.Word_2);
                CPU.AC(I.Ac) := Dword_T(S16) and 16#0000_ffff#;
 
+            when I_ADI =>
+               Word := Lower_Word (CPU.AC(I.Ac));
+               Word := Word + Word_T(I.Imm_U16);
+               CPU.AC(I.Ac) := Dword_T(Word);
+
             when I_ANDI =>
                Word := Lower_Word (CPU.AC(I.Ac));
                CPU.AC(I.Ac) := Dword_T(Word and Word_T(I.Imm_S16)) and 16#0000_ffff#;
@@ -633,6 +676,11 @@ package body CPU is
             when I_HXR =>
                Dword := Shift_Right (CPU.AC(I.Ac), Integer(I.Imm_U16) * 4);
                CPU.AC(I.Ac) := Dword and 16#0000_ffff#;
+
+            when I_SBI =>
+               Word := Lower_Word(CPU.AC(I.Ac));
+               Word := Word - Word_T(I.Imm_U16);
+               CPU.AC(I.Ac) := Dword_T(Word);
 
             when others =>
                Put_Line ("ERROR: ECLIPSE_OP instruction " & To_String(I.Mnemonic) & 
@@ -648,6 +696,37 @@ package body CPU is
          Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
       begin
          case I.Instruction is
+
+            when I_CLM => 
+               declare
+                  Acs, L, H : Integer_16;
+                  Incr : Phys_Addr_T;
+               begin
+                  Acs := Word_To_Integer_16(Lower_Word(CPU.AC(I.Acs)));
+                  if I.Acs = I.Acd then
+                     L := Word_To_Integer_16(RAM.Read_Word(CPU.PC + 1));
+                     H := Word_To_Integer_16(RAM.Read_Word(CPU.PC + 2));
+                     if (Acs < L) or (Acs > H) then
+                        Incr := 3;
+                     else
+                        Incr := 4;
+                     end if;
+                  else
+                     L := Word_To_Integer_16(RAM.Read_Word (Phys_Addr_T (Lower_Word (CPU.AC(I.Acd))) or Ring));
+                     H := Word_To_Integer_16(RAM.Read_Word (Phys_Addr_T (Lower_Word (CPU.AC(I.Acd)) + 1) or Ring));
+                     if (Acs < L) or (Acs > H) then
+                        Incr := 1;
+                     else
+                        Incr := 2;
+                     end if;
+                  end if;
+                  if CPU.Debug_Logging then
+                     Loggers.Debug_Print (Debug_Log, "CLM Compared " & Acs'Image &
+                     " with limits " & L'Image & " and " & H'Image &
+                     ", moving PC by " & Incr'Image);
+                  end if;
+                  CPU.PC := ((CPU.PC + Incr) and 16#7fff#) or Ring;
+               end;
 
             when I_EJMP =>
                Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
@@ -668,26 +747,52 @@ package body CPU is
 
       procedure Eclipse_Stack (I : in Decoded_Instr_T) is
          Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
-         First, Last : Natural;
+         First, Last, This_Ac : Natural;
+         Addr : Phys_Addr_T;
       begin
          case I.Instruction is
+            when I_POP =>
+               First := Natural(I.Acs);
+               Last  := Natural(I.Acd);
+               if Last > First then First := First + 4; end if;
+               This_Ac := First;
+               loop
+                  if CPU.Debug_Logging then
+                     Loggers.Debug_Print (Debug_Log, "POP popping AC" & This_AC'Image);
+                  end if;
+                  CPU.AC(AC_Circle(This_AC)) := Dword_T(Narrow_Stack.Pop (Ring));
+                  exit when This_Ac = Last;
+                  This_Ac := This_Ac -1;
+               end loop;
+
+            when I_POPJ =>
+               Addr := Phys_Addr_T(Narrow_Stack.Pop(Ring));
+               CPU.PC := (Addr and 16#7fff#) or Ring;
+               return; -- because PC has been set
+
             when I_PSH =>
-            First := Natural(I.Acs);
-            Last  := Natural(I.Acd);
-            if Last < First then Last := Last + 4; end if;
-            for This_AC in First .. Last loop
-               if CPU.Debug_Logging then
-                  Loggers.Debug_Print (Debug_Log, "PSH pushing AC" & This_AC'Image);
-               end if;
-               Narrow_Stack.Push (Ring, Lower_Word(CPU.AC(AC_Circle(This_AC))));
-            end loop;
+               First := Natural(I.Acs);
+               Last  := Natural(I.Acd);
+               if Last < First then Last := Last + 4; end if;
+               for This_AC in First .. Last loop
+                  if CPU.Debug_Logging then
+                     Loggers.Debug_Print (Debug_Log, "PSH pushing AC" & This_AC'Image);
+                  end if;
+                  Narrow_Stack.Push (Ring, Lower_Word(CPU.AC(AC_Circle(This_AC))));
+               end loop;
+
+            when I_PSHJ =>
+               Narrow_Stack.Push (Ring, Lower_Word(DWord_T(CPU.PC)) + 2);
+               Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+               CPU.PC := Addr;
+               return; -- because PC has been set
 
             when others =>
                Put_Line ("ERROR: Eclipse_Stack instruction " & To_String(I.Mnemonic) & 
                         " not yet implemented");
                raise Execution_Failure with "ERROR: Eclipse_Stack instruction " & To_String(I.Mnemonic) & 
                         " not yet implemented"; 
-      end case;
+         end case;
          CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
       end Eclipse_Stack;
 
@@ -916,6 +1021,14 @@ package body CPU is
          case I.Instruction is
             when I_JMP =>
                CPU.PC := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) or Ring_Mask;
+
+            when I_JSR =>
+               declare
+                  Tmp_PC : Dword_T := Dword_T(CPU.PC) + 1;
+               begin
+                  CPU.PC := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) or Ring_Mask;
+                  CPU.AC(3) := Tmp_PC;
+               end;
 
             when others =>
                Put_Line ("ERROR: Nova_PC instruction " & To_String(I.Mnemonic) & 

@@ -214,6 +214,8 @@ procedure MVEmuA is
       CPU.Actions.Prepare_For_Running;
       SCP_Handler.Set_SCP_IO(false);  
 
+      CPU.Actions.Set_Debug_Logging (true); -- TODO - not here!
+
       Start_Time := Clock;
 
       CPU.Run (Debug_Logging, Console_Radix, I_Counts);

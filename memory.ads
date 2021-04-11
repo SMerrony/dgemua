@@ -90,6 +90,7 @@ package Memory is
     protected RAM is
         procedure Init (Debug_Logging : in Boolean);
         function  Read_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T;
+        function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T;
         function  Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T;
         procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T);
         function  Read_Word (Word_Addr : in Phys_Addr_T) return Word_T;
@@ -102,6 +103,7 @@ package Memory is
 
     protected Narrow_Stack is
         procedure Push (Segment : in Phys_Addr_T; Datum : in Word_T);
+        function  Pop  (Segment : in Phys_Addr_T) return Word_T;
     end Narrow_Stack;
 
     protected BMC_DCH is

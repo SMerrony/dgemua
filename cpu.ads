@@ -79,6 +79,7 @@ package CPU is
       procedure Reset;
       procedure Boot (Dev : Dev_Num_T; PC : Phys_Addr_T);
       procedure Prepare_For_Running;
+      procedure Set_Debug_Logging (OnOff : in Boolean);
       -- procedure Run (Disassemble : in Boolean; Radix : in Number_Base_T; I_Counts : out Instr_Count_T);
       procedure Single_Step (Radix : in Number_Base_T; Disass : out Unbounded_String);
       procedure Execute (Instr : in Decoded_Instr_T);
