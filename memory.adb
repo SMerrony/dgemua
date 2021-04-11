@@ -78,6 +78,16 @@ package body Memory is
 
    end RAM;
 
+   protected body Narrow_Stack is
+      procedure Push (Segment : in Phys_Addr_T; Datum : in Word_T) is
+         New_NSP : Word_T := RAM.Read_Word (NSP_Loc or Segment) + 1;
+      begin
+         RAM.Write_Word (NSP_Loc or Segment, New_NSP);
+         RAM.Write_Word (Phys_Addr_T(New_NSP) or Segment, Datum);
+      end Push;
+
+   end Narrow_Stack;
+
    protected body BMC_DCH is
 
       procedure Init (Debug_logging : in Boolean) is

@@ -36,6 +36,15 @@ package Memory is
 
     type Number_Base_T is (Binary, Octal, Decimal, Hex);
 
+    -- Page 0 special locations
+    NSP_Loc : constant Phys_Addr_T := 8#40#;
+    NFP_Loc : constant Phys_Addr_T := 8#41#;
+    NSL_Loc : constant Phys_Addr_T := 8#42#;
+    NSF_Loc : constant Phys_Addr_T := 8#43#;
+
+    type AC_Circle_T is array (0..7) of AC_ID;
+    AC_Circle : constant AC_Circle_T := (0,1,2,3,0,1,2,3);
+
     -- BMC/DCH Stuff...
     Num_BMC_Regs        : constant Integer := 2_048;
     First_DCH_Slot_Reg  : constant Integer := Num_BMC_Regs;
@@ -90,6 +99,10 @@ package Memory is
         ATU_Enabled : Boolean;
         Is_Logging  : Boolean;
     end RAM;
+
+    protected Narrow_Stack is
+        procedure Push (Segment : in Phys_Addr_T; Datum : in Word_T);
+    end Narrow_Stack;
 
     protected BMC_DCH is
         procedure Init (Debug_Logging : in Boolean);

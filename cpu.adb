@@ -666,6 +666,31 @@ package body CPU is
          end case;
       end Eclipse_PC;
 
+      procedure Eclipse_Stack (I : in Decoded_Instr_T) is
+         Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+         First, Last : Natural;
+      begin
+         case I.Instruction is
+            when I_PSH =>
+            First := Natural(I.Acs);
+            Last  := Natural(I.Acd);
+            if Last < First then Last := Last + 4; end if;
+            for This_AC in First .. Last loop
+               if CPU.Debug_Logging then
+                  Loggers.Debug_Print (Debug_Log, "PSH pushing AC" & This_AC'Image);
+               end if;
+               Narrow_Stack.Push (Ring, Lower_Word(CPU.AC(AC_Circle(This_AC))));
+            end loop;
+
+            when others =>
+               Put_Line ("ERROR: Eclipse_Stack instruction " & To_String(I.Mnemonic) & 
+                        " not yet implemented");
+               raise Execution_Failure with "ERROR: Eclipse_Stack instruction " & To_String(I.Mnemonic) & 
+                        " not yet implemented"; 
+      end case;
+         CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+      end Eclipse_Stack;
+
       procedure Nova_IO (I : in Decoded_Instr_T) is
          Seg_Num : Integer := Integer(Shift_Right(CPU.PC, 28) and 16#07#);
          Datum : Word_T;
@@ -911,6 +936,7 @@ package body CPU is
             when ECLIPSE_MEMREF => Eclipse_Mem_Ref(Instr);
             when ECLIPSE_OP     => Eclipse_Op(Instr);
             when ECLIPSE_PC     => Eclipse_PC(Instr);
+            when ECLIPSE_STACK  => Eclipse_Stack(Instr);
             when NOVA_IO        => Nova_IO(Instr);  
             when NOVA_MEMREF    => Nova_Mem_Ref(Instr);
             when NOVA_OP        => Nova_Op(Instr);
