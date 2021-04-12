@@ -1,6 +1,6 @@
 # DG/Emua Status
 
-* Last status update: 10th April 2021
+* Last status update: 12th April 2021
 * Last significant progress: TBOOT Appears to be running to completion 10th April 2021
 
 ## What Works?

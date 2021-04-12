@@ -57,6 +57,17 @@ package body Memory is
          return Byte_T (W and 16#00ff#);
       end Read_Byte;
 
+      procedure Write_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean; Byt : in Byte_T) is
+         Wd : Word_T := Read_Word(Word_Addr);
+      begin
+         if Low_Byte then
+            Wd := (Wd and 16#ff00#) or Word_T(Byt);
+         else
+            Wd := Shift_Left(Word_T(Byt), 8) or (Wd and 16#00ff#);
+         end if;
+         Write_Word(Word_Addr, Wd);
+      end Write_Byte;
+
       function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T is
          Low_Byte : Boolean := Test_W_Bit(BA_16, 15);
          Addr : Phys_Addr_T;
@@ -298,6 +309,7 @@ package body Memory is
    begin
       return Word_T (DW and 16#0000_ffff#);
    end Lower_Word;
+   pragma Inline (Lower_Word);
 
    function Upper_Word (DW : in Dword_T) return Word_T is
    begin

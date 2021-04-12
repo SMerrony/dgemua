@@ -638,6 +638,15 @@ package body CPU is
                Addr := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15);
                Addr := (Addr and 16#0000_7fff#) or Ring;
 
+            when I_STB =>
+               declare
+                  Low_Byte : Boolean := Test_DW_Bit(CPU.AC(I.Acs), 31);
+               begin
+                  Addr := Shift_Right (Phys_Addr_T(Lower_Word(CPU.AC(I.Acs))), 1);
+                  Addr := (Addr and 16#7fff#) or Ring;
+                  RAM.Write_Byte(Addr, Low_Byte, Byte_T(CPU.AC(I.Acd)));
+               end;
+
 
             when others =>
                Put_Line ("ERROR: ECLIPSE_MEMREF instruction " & To_String(I.Mnemonic) & 
@@ -681,6 +690,11 @@ package body CPU is
                Word := Lower_Word(CPU.AC(I.Ac));
                Word := Word - Word_T(I.Imm_U16);
                CPU.AC(I.Ac) := Dword_T(Word);
+                   
+            when I_XCH =>
+               DWord := CPU.AC(I.Acs);
+               CPU.AC(I.Acs) := CPU.AC(I.Acd) and 16#0000_ffff#;
+               CPU.AC(I.Acd) := DWord and 16#0000_ffff#;
 
             when others =>
                Put_Line ("ERROR: ECLIPSE_OP instruction " & To_String(I.Mnemonic) & 
@@ -726,6 +740,33 @@ package body CPU is
                      ", moving PC by " & Incr'Image);
                   end if;
                   CPU.PC := ((CPU.PC + Incr) and 16#7fff#) or Ring;
+               end;
+
+            when I_DSPA =>
+               declare
+                  Table_Start, Offset, Table_Entry,
+                  Low_Limit, High_Limit : Phys_Addr_T;
+               begin
+                  Table_Start := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+                  Offset     := Phys_Addr_T(Lower_Word(CPU.AC(I.Ac)));
+                  Low_Limit  := Phys_Addr_T(RAM.Read_Word(Table_Start - 2));
+                  High_Limit := Phys_Addr_T(RAM.Read_Word(Table_Start - 1));
+                  if CPU.Debug_Logging then
+                     Loggers.Debug_Print (Debug_Log, 
+                     "DSPA called with table at " & Table_Start'Image &
+                     ", offset of " & Offset'Image &
+                     ", Low: " & Low_Limit'Image & ", High: " & High_Limit'Image);
+                  end if;
+                  if (Offset < Low_Limit) or (Offset > High_Limit) then
+                     raise Out_Of_Bounds with "in DSPA";
+                  end if;
+                  Table_Entry := Table_Start - Low_Limit + Offset;
+                  Addr := Phys_Addr_T(RAM.Read_Word(Table_Entry));
+                  if Addr = 16#ffff_ffff# then
+                     CPU.PC := CPU.PC + 2;
+                  else
+                     CPU.PC := (Addr and 16#0000_ffff#) or Ring;
+                  end if;
                end;
 
             when I_EJMP =>
@@ -787,27 +828,43 @@ package body CPU is
                CPU.PC := Addr;
                return; -- because PC has been set
 
+            when I_RTN => -- complement of I_SAVE below
+               declare
+                  NFP_Sav, Popped_Wd : Word_T;
+               begin
+                  NFP_Sav := RAM.Read_Word (Memory.NFP_Loc or Ring);
+                  RAM.Write_Word (Memory.NSP_Loc or Ring, NFP_Sav);
+                  Popped_Wd := Narrow_Stack.Pop (Ring);             -- 5
+                  CPU.Carry := Test_W_Bit (Popped_Wd, 0);
+                  CPU.PC    := Phys_Addr_T(Popped_Wd and 16#7fff#) or Ring;
+                  CPU.AC(3) := Dword_T(Narrow_Stack.Pop(Ring));     -- 4
+                  CPU.AC(2) := Dword_T(Narrow_Stack.Pop(Ring));     -- 3
+                  CPU.AC(1) := Dword_T(Narrow_Stack.Pop(Ring));     -- 2
+                  CPU.AC(0) := Dword_T(Narrow_Stack.Pop(Ring));     -- 1
+                  RAM.Write_Word (Memory.NFP_Loc or Ring, Lower_Word(CPU.AC(3)));
+                  return; -- because PC has been set
+               end;
+
             when I_SAVE =>
                declare
                   NFP_Sav, NSP_Sav, Word : Word_T;
                begin
                   NFP_Sav := RAM.Read_Word (Memory.NFP_Loc or Ring);
                   NSP_Sav := RAM.Read_Word (Memory.NSP_Loc or Ring);
-                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(0)));
-                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(1)));
-                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(2)));
-                  Narrow_Stack.Push(Ring, NFP_Sav);
+                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(0))); -- 1
+                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(1))); -- 2
+                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(2))); -- 3 
+                  Narrow_Stack.Push(Ring, NFP_Sav);               -- 4
                   Word := Lower_Word(CPU.AC(3));
                   if CPU.Carry then
                      Word := Word or 16#8000#;
                   else
                      Word := Word and 16#7fff#;
                   end if;
-                  Narrow_Stack.Push(Ring, Word);
+                  Narrow_Stack.Push(Ring, Word);                  -- 5
                   RAM.Write_Word (Memory.NSP_Loc or Ring, NSP_Sav + 5 + Word_T(I.Imm_U16));
                   RAM.Write_Word (Memory.NFP_Loc or Ring, NSP_Sav + 5);
                   CPU.AC(3) := Dword_T(NSP_Sav) + 5;
-
                end;
 
             when others =>
@@ -904,6 +961,36 @@ package body CPU is
          end case;
          CPU.PC := CPU.PC + 1;
       end Nova_IO;
+
+      procedure Nova_Math (I : in Decoded_Instr_T) is
+      begin
+         case I.Instruction is
+            when I_DIV =>
+               declare
+                  UW, LW, Quot : Word_T;
+                  DW : Dword_T;
+               begin
+                  UW := Lower_Word (CPU.AC(0));
+                  LW := Lower_Word (CPU.AC(1));
+                  DW := Dword_From_Two_Words (UW, LW);
+                  Quot := Lower_Word (CPU.AC(2));
+                  if (UW >= Quot) or (Quot = 0) then
+                     CPU.Carry := true;
+                  else
+                     CPU.Carry := false;
+                     CPU.AC(0) := (Dw mod Dword_T(Quot)) and 16#0000_ffff#;
+                     CPU.AC(1) := (Dw / Dword_T(Quot)) and 16#0000_ffff#;
+                  end if;
+               end;           
+
+            when others =>
+               Put_Line ("ERROR: NOVA_MATH instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: NOVA_MATH instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+         CPU.PC := CPU.PC + 1;
+      end Nova_Math;
 
       procedure Nova_Op (I : in Decoded_Instr_T) is
          Wide_Shifter           : Dword_T;
@@ -1074,6 +1161,7 @@ package body CPU is
             when ECLIPSE_PC     => Eclipse_PC(Instr);
             when ECLIPSE_STACK  => Eclipse_Stack(Instr);
             when NOVA_IO        => Nova_IO(Instr);  
+            when NOVA_MATH      => Nova_MATH(Instr);  
             when NOVA_MEMREF    => Nova_Mem_Ref(Instr);
             when NOVA_OP        => Nova_Op(Instr);
             when NOVA_PC        => Nova_PC(Instr);
