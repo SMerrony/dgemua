@@ -96,6 +96,10 @@ package body Memory is
 
       procedure Write_Word (Word_Addr : in Phys_Addr_T; Datum : Word_T) is
       begin
+         -- -- DEBUGGING
+         -- if Word_Addr = 50 then
+         --    Put_Line ("Writing to Location ")
+         -- end if;
          RAM (Integer (Word_Addr)) := Datum;
       end Write_Word;
 

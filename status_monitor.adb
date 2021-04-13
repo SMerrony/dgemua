@@ -32,6 +32,15 @@ with CPU;
 with DG_Types; use DG_Types;
 with Memory;   use Memory;
 
+-- Status_Monitor maintains a near real-time status screen available on STAT_PORT.
+--
+-- The screen uses DG DASHER control codes for formatting, so a DASHER terminal emulator
+-- should be attached to it for good results.
+--
+-- The Monitor task waits for status updates
+-- from known senders and upon receiving an update refreshes the display of that status
+-- on the monitor page.  It is therefore the responsibility of the sender to update the
+-- status as often as it sees fit.
 package body Status_Monitor is
 
    task body Monitor is
@@ -41,6 +50,7 @@ package body Status_Monitor is
       Channel               : GNAT.Sockets.Stream_Access;
       Radix                 : Number_Base_T := Octal;
       CPU_Stats             : CPU.CPU_Monitor_Rec;
+      DPF_Stats             : Devices.Disk6061.Status_Rec;
       MTB_Stats             : Devices.Magtape6026.Status_Rec;
       Last_CPU_Time         : Ada.Calendar.Time;
       I_Count, Last_I_Count : Unsigned_64 := 0;
@@ -98,7 +108,20 @@ package body Status_Monitor is
                                     "  AC1: " &  Memory.Dword_To_String (CPU_Stats.AC(1), Radix, 12, true) &
                                     "  AC2: " &  Memory.Dword_To_String (CPU_Stats.AC(2), Radix, 12, true) &
                                     "  AC3: " &  Memory.Dword_To_String (CPU_Stats.AC(3), Radix, 12, true));
-         
+         or
+            accept DPF_Update (Stats : in Devices.Disk6061.Status_Rec) do
+               DPF_Stats := Stats;
+            end DPF_Update;    
+            String'Write
+               (Channel,
+               Dasher_Write_Window_Addr & Character'Val (0) &
+               Character'Val (DPF_Row_1) & Dasher_Erase_EOL);
+            String'Write
+               (Channel,
+               "DPF:  (DPF0) - Attached: " & Memory.Boolean_To_YN (DPF_Stats.Image_Attached) &
+               "  Cylinder: " & DPF_Stats.Cylinder'Image & 
+               "  Surface: " & DPF_Stats.Surface'Image &
+               "  Sector: " & DPF_Stats.Sector'Image);   
          or
             accept MTB_Update (Stats : in Devices.Magtape6026.Status_Rec) do
                MTB_Stats := Stats;

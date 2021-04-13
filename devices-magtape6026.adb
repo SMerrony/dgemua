@@ -35,13 +35,29 @@ package body Devices.Magtape6026 is
 
         procedure Init is
         begin
-            --Devices.Bus.Actions.Set_Reset_Proc (Devices.MTB, Reset'Access);
+            Devices.Bus.Actions.Set_Reset_Proc (Devices.MTB, Reset'Access);
             Devices.Bus.Actions.Set_Data_In_Proc (Devices.MTB, Data_In'Access);
             Devices.Bus.Actions.Set_Data_Out_Proc (Devices.MTB, Data_Out'Access);
             State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady;
             State.Status_Reg_2 := SR_2_PE_Mode;
             Status_Sender.Start;
         end Init;
+
+        procedure Reset is
+        begin
+            for Tape in 0 .. Max_Tapes loop
+               if State.Image_Attached(Tape) then
+                  Rewind (State.SIMH_File(Tape));
+                end if;
+            end loop;
+            -- BOT is an error state!
+            State.Status_Reg_1 := SR_1_Error or SR_1_HiDensity or SR_1_9Track or SR_1_BOT or SR_1_StatusChanged or SR_1_UnitReady;
+            State.Status_Reg_2 := SR_2_PE_Mode;
+            State.Mem_Addr_Reg := 0;
+            State.Neg_Word_Count := 0;
+            State.Current_Unit := 0;
+            Loggers.Debug_Print (Mt_Log, "Unit reset via bus Reset call");
+        end Reset;
 
         procedure Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean) is
         begin

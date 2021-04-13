@@ -40,6 +40,7 @@ with Debug_Logs;            use Debug_Logs;
 with Devices;
 with Devices.Bus;
 with Devices.Console;       use Devices.Console;
+with Devices.Disk6061;
 with Devices.Magtape6026;
 with DG_Types;              use DG_Types;
 with Memory;                use Memory;
@@ -119,7 +120,15 @@ procedure MVEmuA is
             else
                TTOut.Put_String (Dasher_NL & " *** Could not attach Tape Image ***");
             end if;
-
+         elsif Dev = "DPF" then
+            Devices.Disk6061.Drives.Attach (0, Image_Name, OK);
+            if OK then
+               TTOut.Put_String (Dasher_NL & " *** Disk Image Attached ***");
+            else
+               TTOut.Put_String (Dasher_NL & " *** Could not attach Disk Image ***");
+            end if;
+         else
+               TTOut.Put_String (Dasher_NL & " *** Unknown or unimplemented Device for ATT command ***");
          end if;
       end;
 
@@ -169,6 +178,24 @@ procedure MVEmuA is
       Debug_Logs.Loggers.Debug_Logs_Dump (Log_Dir);
       GNAT.OS_Lib.OS_Exit (0);
    end Clean_Exit;
+
+   procedure Create_Blank (Command : in Slice_Set) is
+      OK : Boolean;
+   begin
+      if Slice_Count (Command) < 3 then
+         TTOut.Put_String (Dasher_NL & " *** CREATE command requires arguments: DPF and <filename> ***");
+         return;
+      end if;
+      if Slice (Command, 2) = "DPF" then
+         TTOut.Put_String (Dasher_NL & "Attempting to CREATE new empty DPF-type disk image, please wait...");
+         Devices.Disk6061.Create_Blank(Slice(Command,3), OK);
+         if OK then
+            TTOut.Put_String (Dasher_NL & "Empty MV/Em DPF-type disk image created");
+         else 
+            TTOut.Put_String (Dasher_NL & " *** Error: could not create empty disk image ***");
+         end if;
+      end if;
+   end Create_Blank;
 
    procedure Disassemble (Command : in Slice_Set) is
       Low_Addr, High_Addr : Phys_Addr_T;
@@ -287,6 +314,8 @@ procedure MVEmuA is
          Attach (Words);
       elsif Command = "CHECK" then
          Check (Words);
+      elsif Command = "CREATE" then
+         Create_Blank (Words);  
       elsif Command = "DIS" then
          Disassemble (Words);
       elsif Command = "DO" then
@@ -359,7 +388,8 @@ begin
       Devices.Bus.Actions.Connect (Devices.MTB);
       Devices.Magtape6026.Drives.Init;
 
-      -- TODO - More devices...
+      Devices.Bus.Actions.Connect (Devices.DPF);
+      Devices.Disk6061.Drives.Init (Debug_Logging);
 
       -- say hello...
       Devices.Console.TTOut.Put_Char (ASCII.FF);

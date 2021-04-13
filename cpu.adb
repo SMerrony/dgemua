@@ -212,6 +212,23 @@ package body CPU is
          return Eff and 16#7fff_ffff#;
       end Resolve_31bit_Disp;
 
+      procedure Resolve_Eclipse_Bit_Addr (Acd, Acs  : in AC_ID; 
+                                          Word_Addr : out Phys_Addr_T; 
+                                          Bit_Num   : out Natural) is
+      begin
+         -- TODO handle segments and indirection
+         if Acd = Acs then 
+            Word_Addr := 0;
+         else
+            if Test_DW_Bit (CPU.AC(Acd), 0) then
+               raise Not_Yet_Implemented with "Indirect 16-bit BIT pointers";
+            end if;
+            Word_Addr := Phys_Addr_T(CPU.AC(Acs)) and 16#0000_7fff#;
+         end if;
+         Word_Addr := Word_Addr + Phys_Addr_T (Shift_Right (CPU.AC(Acd), 4));
+         Bit_Num := Natural(CPU.AC(Acd) and 16#000f#);
+      end Resolve_Eclipse_Bit_Addr;
+
       procedure Eagle_Mem_Ref (I : in Decoded_Instr_T) is
          Addr : Phys_Addr_T;
          Word : Word_T;
@@ -360,7 +377,8 @@ package body CPU is
 
       procedure Eagle_Op (I : in Decoded_Instr_T) is
          Acd_S32, Acs_S32, S32: Integer_32;
-         S64 : Integer_64;
+         S64   : Integer_64;
+         -- Word  : Word_T;
          Shift : Integer;
       begin
          case I.Instruction is
@@ -661,6 +679,7 @@ package body CPU is
          Word : Word_T;
          Dword : Dword_T;
          S16   : Integer_16;
+         Shift : Integer;
       begin
          case I.Instruction is
 
@@ -686,6 +705,22 @@ package body CPU is
                Dword := Shift_Right (CPU.AC(I.Ac), Integer(I.Imm_U16) * 4);
                CPU.AC(I.Ac) := Dword and 16#0000_ffff#;
 
+            when I_LSH =>
+               Word := Lower_Word (CPU.AC(I.Acd));
+               Shift := Integer(Byte_To_Integer_8 (Get_Lower_Byte (Lower_Word (CPU.AC(I.Acs)))));
+               if Shift /= 0 then
+                  if (Shift < -15) or (Shift > 15) then
+                     Word := 0;
+                  else
+                     if Shift > 0 then
+                        Word := Shift_Right (Word, Shift);
+                     else
+                        Word := Shift_Left (Word, Shift * (-1));
+                     end if;
+                  end if;
+               end if;
+               CPU.AC(I.Acd) := Dword_T(Word);
+
             when I_SBI =>
                Word := Lower_Word(CPU.AC(I.Ac));
                Word := Word - Word_T(I.Imm_U16);
@@ -708,6 +743,8 @@ package body CPU is
       procedure Eclipse_PC (I : in Decoded_Instr_T) is
          Addr : Phys_Addr_T;
          Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+         Word : Word_T;
+         Bit_Num : Natural;
       begin
          case I.Instruction is
 
@@ -777,6 +814,17 @@ package body CPU is
                CPU.AC(3) := Dword_T(CPU.PC) + 2;
                Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
                CPU.PC := Addr;
+
+            when I_SNB =>
+               Resolve_Eclipse_Bit_Addr (I.Acd , I.Acs, Addr, Bit_Num);
+               Addr := Addr or Ring;
+               Word := RAM.Read_Word (Addr);
+               if Test_W_Bit (Word, Bit_Num) then
+                  CPU.PC := CPU.PC + 2;
+               else
+                  CPU.PC := CPU.PC + 1;
+               end if;
+
 
             when others =>
                Put_Line ("ERROR: ECLIPSE_PC instruction " & To_String(I.Mnemonic) & 

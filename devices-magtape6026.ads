@@ -124,6 +124,7 @@ package Devices.Magtape6026 is
 
     protected Drives is
         procedure Init;
+        procedure Reset;
         procedure Attach
            (Unit : in Natural; Image_Name : in String; OK : out Boolean);
         procedure Detach (Unit : in Natural);
