@@ -83,6 +83,7 @@ package Devices is
     end record;   
 
     type State_Arr_T is array (Dev_Num_T'Range) of State_Rec;
+    type PMB_Arr_T is array (Dev_Num_T'Range) of Integer;
 
     -- function Mnemonic_Or_Octal (Dev_Num : Dev_Num_T) return Unbounded_String;
 

@@ -53,7 +53,7 @@ package body Devices.Console is
             Devices.Bus.States.Set_Done( Devices.TTI, true);
             -- send IRQ if not masked out
             if Devices.Bus.States.Is_Dev_Masked (14) = false then
-               Devices.Bus.States.Send_Interrupt(Devices.TTI, 14);
+               Devices.Bus.States.Send_Interrupt(Devices.TTI);
             end if;
         end Insert_Byte;
 
@@ -150,7 +150,7 @@ package body Devices.Console is
                     Devices.Bus.States.Set_Done( Devices.TTO, true);
                     -- send IRQ if not masked out
                     if Devices.Bus.States.Is_Dev_Masked (15) = false then
-                        Devices.Bus.States.Send_Interrupt(Devices.TTO, 15);
+                        Devices.Bus.States.Send_Interrupt(Devices.TTO);
                     end if;
                 when N =>
                     case IO_Flag is

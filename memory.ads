@@ -87,6 +87,18 @@ package Memory is
 
     type RAM_Array is array (0 .. Mem_Size_Words - 1) of Word_T;
 
+    type BMC_Addr_T is record
+        Is_Logical : Boolean;
+        -- Physical...
+        Bk  : Natural;      -- Bank Selector
+        XCA : Natural;      -- eXtended Channel Addr
+        CA  : Phys_Addr_T;  -- Channel Addr
+        -- Logical...
+        TT  : Natural;      -- Translation Table
+        TTR : Natural;      -- TT Register
+        P_Low : Phys_Addr_T; -- Page Low Order
+    end record;
+
     protected RAM is
         procedure Init (Debug_Logging : in Boolean);
         function  Read_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T;
@@ -114,6 +126,8 @@ package Memory is
         procedure Write_Reg (Reg : in Integer; Datum : in Word_T); 
         procedure Write_Slot (Slot : in Integer; Datum : in Dword_T);
         procedure Write_Word_DCH_Chan (Unmapped : in out Phys_Addr_T; Datum : in Word_T);
+        procedure Write_Word_BMC_16 (Unmapped : in out Word_T; Datum : in Word_T);
+        procedure Read_Word_BMC_16 (Unmapped : in out Word_T; Datum : out Word_T);
     private
         Registers  : BMC_DCH_Regs_Array;
         Is_Logging : Boolean;
@@ -129,6 +143,7 @@ package Memory is
     function Test_W_Bit
        (Word : in Word_T; Bit_Num : in Integer) return Boolean;
     function Get_W_Bits (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T;
+    function Get_DW_Bits (Dword : in Dword_T; First_Bit, Num_Bits : Natural) return Dword_T;
     function Test_DW_Bit (DW: in Dword_T; Bit_Num : in Integer) return Boolean;
 
     -- byte routines

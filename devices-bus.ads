@@ -53,6 +53,8 @@ package Devices.Bus is
         Interrupting_Dev : Int_Dev_Arr; 
     end record;
 
+    PMBs : PMB_Arr_T;
+
     protected Actions is
         procedure Init;
         procedure Connect (Dev : in Dev_Num_T);
@@ -83,8 +85,8 @@ package Devices.Bus is
         procedure Set_Done (Dev : in Dev_Num_T; Done_State : in Boolean);
         
         function  Is_Dev_Masked (PMB : in Integer) return Boolean;
-        procedure Send_Interrupt (Dev : in Dev_Num_T; PMB : in Integer);
-        procedure Clear_Interrupt (Dev : in Dev_Num_T; PMB : in Integer); 
+        procedure Send_Interrupt (Dev : in Dev_Num_T);
+        procedure Clear_Interrupt (Dev : in Dev_Num_T); 
     private 
         State : State_T;
     end States;

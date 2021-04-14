@@ -37,11 +37,12 @@ package Devices.Disk6061 is
    Sectors_Per_Disk   : constant Integer := Surfaces_Per_Disk * Sectors_Per_Track * Cylinders_Per_Disk;
    Physical_Byte_Size : constant Integer := Sectors_Per_Disk * Bytes_Per_Sector;
 
+	-- Cmd_T vals are in numeric order - do not change!
     type Cmd_T is (Read, Recal, Seek, Stop, Offset_Fwd, Offset_Rev, Write_Disable, 
                     Release, Trespass, Set_Alt_Mode_1, Set_Alt_Mode_2, No_Op, 
                     Verify, Read_Buffers, Write, Format);
 
-    type Ins_Mode is (Normal, Alt_1, Alt2);
+    type Ins_Mode is (Normal, Alt_1, Alt_2);
 
 	Drive_Stat_Drive_Fault  : Word_T := 2#0000_0000_0000_0001#;
 	Drive_Stat_Write_Fault  : Word_T := 2#0000_0000_0000_0010#;
@@ -92,13 +93,13 @@ package Devices.Disk6061 is
 	   Debug_Logging    : Boolean;
 	   -- DG Data...
 	   Cmd_Drv_Addr     : Byte_T;
-	   Command          : Integer_8;
-	   Drive            : Unsigned_8;
+	   Command          : Word_T;
+	   Drive            : Word_T;
 	   Map_Enabled      : Boolean;
 	   Mem_Addr         : Word_T;
-	   EMA              : Unsigned_8;
+	   EMA              : Word_T;
 	   Cylinder         : Word_T;
-	   Surface, Sector  : Unsigned_8;
+	   Surface, Sector  : Word_T;                 
 	   Sector_Cnt       : Integer_8;
 	   ECC              : Dword_T;
 	   Drive_Status     : Word_T;
@@ -112,7 +113,7 @@ package Devices.Disk6061 is
 	   Image_Attached   : Boolean;
 	   Image_Filename   : Unbounded_String;
 	   Cylinder         : Word_T;
-	   Surface, Sector  : Unsigned_8;
+	   Surface, Sector  : Word_T;
 	   Reads, Writes    : Unsigned_64;
 	end record;
 
@@ -120,8 +121,8 @@ package Devices.Disk6061 is
 		procedure Init (Debug_Logging : in Boolean);
 		procedure Reset;
 		procedure Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean);
-		-- procedure Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
-        -- procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
+		procedure Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
+        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
 		function  Get_Status return Status_Rec;
 		-- procedure Load_DKBT;
 	private

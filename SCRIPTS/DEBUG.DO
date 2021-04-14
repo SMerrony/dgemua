@@ -18,7 +18,7 @@
 ATT MTB TAPES/STARTER.9TRK
 #
 # Attach a 6061-type disk image
-# ATT DPF disks/DISK1.DPF
+ATT DPF DISKS/DISK1.DPF
 #
 # and a 6239-type disk image
 # ATT DSKP disks/DISK1.DSKP

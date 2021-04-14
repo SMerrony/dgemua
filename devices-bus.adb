@@ -73,6 +73,10 @@ package body Devices.Bus is
                Bus.Devs_By_Priority(D).Clear;
             end loop;
 
+            for D in Bus.Devices'Range loop
+               PMBs(D) := Bus.Devices(D).PMB;
+            end loop;
+
             Put_Line ("INFO: Bus initialised");
         end Init;
 
@@ -192,6 +196,12 @@ package body Devices.Bus is
           end if;
           return Dev'Image;
        end Get_Device_Name_Or_Number;
+       
+       function Get_PMB (Dev : in Dev_Num_T) return Integer is
+       begin
+         return Bus.Devices(Dev).PMB;
+       end Get_PMB;
+
 
     end Actions;
 
@@ -233,17 +243,17 @@ package body Devices.Bus is
           return Memory.Test_W_Bit (State.IRQ_Mask, PMB);
        end Is_Dev_Masked;
 
-       procedure Send_Interrupt (Dev : in Dev_Num_T; PMB : in Integer) is
+       procedure Send_Interrupt (Dev : in Dev_Num_T) is
        begin
           State.Interrupting_Dev(Dev) := true;
-          State.IRQs_By_Priority(PMB) := true;
+          State.IRQs_By_Priority(PMBs(Dev)) := true;
           State.IRQ := true;
        end Send_Interrupt;
 
-       procedure Clear_Interrupt (Dev : in Dev_Num_T; PMB : in Integer) is
+       procedure Clear_Interrupt (Dev : in Dev_Num_T) is
        begin
           State.Interrupting_Dev(Dev) := false;
-          State.IRQs_By_Priority(PMB) := false;
+          State.IRQs_By_Priority(PMBs(Dev)) := false;
           --Bus.IRQ := false;
        end Clear_Interrupt;
 

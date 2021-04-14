@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/mvemua",
-            "args": [],
+            "args": ["-do", "SCRIPTS/DEBUG.DO"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

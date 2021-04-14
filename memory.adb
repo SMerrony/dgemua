@@ -198,6 +198,18 @@ package body Memory is
          return Test_W_Bit (Registers (IO_Chan_Def_Reg), 14);
       end Get_DCH_Mode;
 
+      function Resolve_BMC_Mapped_Addr (M_Addr : in Phys_Addr_T) return Phys_Addr_T is
+         Slot           : Integer := Integer(Shift_Right(M_Addr, 10));
+         P_Addr, P_Page : Phys_Addr_T;
+      begin
+         -- N.B. at some point between 1980 and 1987 the lower 5 bits of the odd word were
+	      -- prepended to the even word to extend the mappable space 
+         P_Page := Shift_Left (Phys_Addr_T(Registers(Slot * 2)) and 16#0000_001f#, 16) +
+                   Shift_Left (Phys_Addr_T(Registers((Slot * 2) + 1)), 10);
+         P_Addr := (M_Addr and 16#0000_03ff#) or P_Page;
+         return P_Addr;
+      end Resolve_BMC_Mapped_Addr;
+
       function Resolve_DCH_Mapped_Addr
         (M_Addr : in Phys_Addr_T) return Phys_Addr_T
       is
@@ -245,6 +257,49 @@ package body Memory is
          Unmapped := Unmapped + 1;
       end Write_Word_DCH_Chan;
 
+      function Decode_BMC_Addr (Unmapped : in Phys_Addr_T) return BMC_Addr_T is
+         In_Addr : Phys_Addr_T := Shift_Left(Unmapped, 10);
+         Res : BMC_Addr_T;
+      begin
+         Res.Is_Logical := Test_DW_Bit (Dword_T(In_Addr), 0);
+         if Res.Is_Logical then
+            Res.TT   := Natural(Get_DW_Bits(Dword_T(In_Addr), 2, 5));
+            Res.TTR  := Natural(Get_DW_Bits(Dword_T(In_Addr), 7, 5));
+            Res.P_Low := Unmapped and 16#0000_3fff#;
+         else
+            Res.Bk  := Natural(Get_DW_Bits(Dword_T(In_Addr), 1, 3));
+            Res.XCA := Natural(Get_DW_Bits(Dword_T(In_Addr), 4, 3));
+            Res.CA  := Unmapped and 16#0000_7fff#;
+         end if;
+         return Res;
+      end Decode_BMC_Addr;
+
+      procedure Read_Word_BMC_16 (Unmapped : in out Word_T; Datum : out Word_T) is
+         P_Addr : Phys_Addr_T;
+         Decoded : BMC_Addr_T := Decode_BMC_Addr (Phys_Addr_T(Unmapped));
+      begin
+         if Decoded.Is_Logical then
+            P_Addr := Resolve_BMC_Mapped_Addr (Phys_Addr_T(Unmapped)); -- FIXME
+         else
+            P_Addr := Decoded.CA;
+         end if;
+         Datum := RAM.Read_Word (P_Addr);
+         Unmapped := Unmapped + 1;
+      end Read_Word_BMC_16;
+
+      procedure Write_Word_BMC_16 (Unmapped : in out Word_T; Datum : in Word_T) is
+         P_Addr : Phys_Addr_T;
+         Decoded : BMC_Addr_T := Decode_BMC_Addr (Phys_Addr_T(Unmapped));
+      begin
+         if Decoded.Is_Logical then
+            P_Addr := Resolve_BMC_Mapped_Addr (Phys_Addr_T(Unmapped)); -- FIXME
+         else
+            P_Addr := Decoded.CA;
+         end if;
+         RAM.Write_Word (P_Addr, Datum);
+         Unmapped := Unmapped + 1;
+      end Write_Word_BMC_16;
+
    end BMC_DCH;
 
    procedure Clear_W_Bit (Word : in out Word_T; Bit_Num : in Integer) is
@@ -289,6 +344,15 @@ package body Memory is
       end if;
       return Shift_Right (Word, 16 - (First_Bit + Num_Bits)) and Mask;
    end Get_W_Bits;
+
+   function Get_DW_Bits (Dword : in Dword_T; First_Bit, Num_Bits : Natural) return Dword_T is
+      Mask : Dword_T := Shift_Left (1, Num_Bits) - 1;
+   begin
+      if First_Bit >= 32 then
+         return 0;
+      end if;
+      return Shift_Right (Dword, 32 - (First_Bit + Num_Bits)) and Mask;
+   end Get_DW_Bits;
 
    -- return DG lower (RH) byte of a Word
    function Get_Lower_Byte (Word : in Word_T) return Byte_T is
