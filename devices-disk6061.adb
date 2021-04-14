@@ -102,6 +102,16 @@ package body Devices.Disk6061 is
             Sector_IO.Set_Index (State.Image_File, Sector_IO.Count(Offset));
         end Position_Image;
 
+        function Printable_Addr return String is
+        begin
+            return "DRV: " & State.Drive'Image &
+                   ", CYL: " & State.Cylinder'Image &
+                   ", SURF: " & State.Surface'Image &
+                   ", SECT: " & State.Sector'Image &
+                   ", SECCNT: " & State.Sector_Cnt'Image;
+        end Printable_Addr;
+
+
         procedure Do_Command is
         begin
             State.Instruction_Mode := Normal; -- ??? is this right ???
@@ -112,10 +122,16 @@ package body Devices.Disk6061 is
                     State.Sector   := 0;
                     Position_Image;
                     State.RW_Status := RW_Stat_RW_Done or RW_Stat_Drive_0_Done;
+                    if State.Debug_Logging then
+                        Loggers.Debug_Print (Dpf_Log, "RECAL done " & Printable_Addr);
+                    end if;
                 when Cmd_T'Pos(Seek) =>
                     Position_Image;
                     State.RW_Status := RW_Stat_RW_Done or RW_Stat_Drive_0_Done;
                     State.Drive_Status := Drive_Stat_Ready;
+                    if State.Debug_Logging then
+                        Loggers.Debug_Print (Dpf_Log, "SEEK done  " & Printable_Addr);
+                    end if;
                 when Cmd_T'Pos(Read) =>
                     State.RW_Status := 0;
                     while State.Sector_Cnt /= 0 loop
@@ -143,7 +159,9 @@ package body Devices.Disk6061 is
                        State.Reads := State.Reads + 1;
                     end loop;
                     State.RW_Status := RW_Stat_RW_Done or RW_Stat_Drive_0_Done;
-
+                    if State.Debug_Logging then
+                        Loggers.Debug_Print (Dpf_Log, "READ done  " & Printable_Addr);
+                    end if;
                 when Cmd_T'Pos(Release) =>
                     -- I think this is a No-Op on a single CPU machine
                     null;
@@ -181,7 +199,9 @@ package body Devices.Disk6061 is
                         State.Drive_Status := Drive_Stat_Ready;
                         State.RW_Status := RW_Stat_RW_Done; -- or RW_Stat_Drive_0_Done;
                     end;
-
+                    if State.Debug_Logging then
+                        Loggers.Debug_Print (Dpf_Log, "WRITE done  " & Printable_Addr);
+                    end if;
                 when others =>
                     raise Not_Yet_Implemented with State.Command'Image;                                               
             end case;

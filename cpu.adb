@@ -697,6 +697,36 @@ package body CPU is
                Word := Lower_Word (CPU.AC(I.Ac));
                CPU.AC(I.Ac) := Dword_T(Word and Word_T(I.Imm_S16)) and 16#0000_ffff#;
 
+            when I_DLSH =>
+               declare
+                  D_Plus_1 : AC_ID;
+               begin
+                  if I.Acd = 3 then
+                     D_Plus_1 := 0;
+                  else
+                     D_Plus_1 := I.Acd + 1;
+                  end if;
+                  Shift := Integer(Byte_To_Integer_8 (Get_Lower_Byte (Lower_Word (CPU.AC(I.Acs)))));
+                  Dword := Dword_From_Two_Words (Lower_Word(CPU.AC(I.Acd)), Lower_Word(CPU.AC(D_Plus_1)));
+                  if Shift /= 0 then
+                     if (Shift < -31) or (Shift > 31) then
+                        Dword := 0;
+                     else
+                        if Shift > 0 then
+                           Word := Shift_Right (Word, Shift);
+                        else
+                           Word := Shift_Left (Word, Shift * (-1));
+                        end if;
+                     end if;
+                  end if;
+                  CPU.AC(I.Acd) := Dword_T(Upper_Word (Dword));
+                  CPU.AC(D_Plus_1) := Dword_T(Lower_Word (Dword));
+               end;
+
+            when I_IORI =>
+               Word := Lower_Word (CPU.AC(I.Ac)) or I.Word_2;
+               CPU.AC(I.Ac) := Dword_T(Word);
+
             when I_HXL =>
                Dword := Shift_Left (CPU.AC(I.Ac), Integer(I.Imm_U16) * 4);
                CPU.AC(I.Ac) := Dword and 16#0000_ffff#;
@@ -1011,12 +1041,12 @@ package body CPU is
       end Nova_IO;
 
       procedure Nova_Math (I : in Decoded_Instr_T) is
+         DW : Dword_T;
       begin
          case I.Instruction is
             when I_DIV =>
                declare
                   UW, LW, Quot : Word_T;
-                  DW : Dword_T;
                begin
                   UW := Lower_Word (CPU.AC(0));
                   LW := Lower_Word (CPU.AC(1));
@@ -1029,7 +1059,14 @@ package body CPU is
                      CPU.AC(0) := (Dw mod Dword_T(Quot)) and 16#0000_ffff#;
                      CPU.AC(1) := (Dw / Dword_T(Quot)) and 16#0000_ffff#;
                   end if;
-               end;           
+               end;     
+
+            when I_MUL =>      
+               DW := ((CPU.AC(1) and 16#0000_ffff#) *
+                      (CPU.AC(2) and 16#0000_ffff#)) +
+                      (CPU.AC(0) and 16#0000_ffff#);
+               CPU.AC(0) := Dword_T(Upper_Word (DW));
+               CPU.AC(1) := Dword_T(Lower_Word (DW));
 
             when others =>
                Put_Line ("ERROR: NOVA_MATH instruction " & To_String(I.Mnemonic) & 
@@ -1148,6 +1185,12 @@ package body CPU is
          Word : Word_T;
       begin
          case I.Instruction is
+            when I_DSZ =>
+               Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
+               Word := Memory.RAM.Read_Word (Addr) - 1;
+               Memory.RAM.Write_Word (Addr, Word);
+               if Word = 0 then CPU.PC := CPU.PC + 1; end if;
+
             when I_ISZ =>
                Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
                Word := Memory.RAM.Read_Word (Addr) + 1;
