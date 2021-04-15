@@ -145,6 +145,7 @@ package body Devices.Console is
                         Devices.Bus.States.Set_Busy( Devices.TTO, true);
                         Devices.Bus.States.Set_Done( Devices.TTO, false);
                     end if;
+                    -- if ASCII_Byte = 93 then raise IO_Error with "Debugging dev #"; end if;
                     TTOut.Put_Byte (ASCII_Byte);
                     Devices.Bus.States.Set_Busy( Devices.TTO, false);
                     Devices.Bus.States.Set_Done( Devices.TTO, true);

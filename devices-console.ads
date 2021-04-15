@@ -64,5 +64,6 @@ package Devices.Console is
       entry Start (Sock : in GNAT.Sockets.Socket_Type);
    end Console_Handler;
    
+   IO_Error : exception;
 
 end Devices.Console;

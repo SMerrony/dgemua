@@ -637,6 +637,63 @@ package body CPU is
                   end if;
                end;
 
+            when I_CMP =>
+               declare
+                  Byte_1, Byte_2 : Byte_T;
+                  Res            : Dword_T := 0;
+                  Str_1_BP, Str_2_BP : Word_T;
+                  Str_1_Len : Integer_16 := Word_To_Integer_16(Lower_Word(CPU.AC(1)));
+                  Str_2_Len : Integer_16 := Word_To_Integer_16(Lower_Word(CPU.AC(0)));
+               begin
+                  if (Str_1_Len = 0) and (Str_2_Len = 0) then
+                     CPU.AC(1) := 0;
+                  else
+                     Str_1_BP := Lower_Word(CPU.AC(3));
+                     Str_2_BP := Lower_Word(CPU.AC(2));
+                     loop
+                        if Str_1_Len = 0 then 
+                           Byte_1 := 32; 
+                        else 
+                           Byte_1 := RAM.Read_Byte_Eclipse_BA(Ring,Str_1_BP); 
+                        end if;
+                        if Str_2_Len = 0 then 
+                           Byte_2 := 32; 
+                        else 
+                           Byte_2 := RAM.Read_Byte_Eclipse_BA(Ring,Str_2_BP); 
+                        end if;     
+                        if Byte_1 > Byte_2 then
+                           Res := 1;
+                           exit;
+                        end if;
+                        if Byte_1 < Byte_2 then
+                           Res := 16#ffff_ffff#;
+                           exit;
+                        end if;
+                        if Str_1_Len > 0 then
+                           Str_1_BP  := Str_1_BP + 1;
+                           Str_1_Len := Str_1_Len - 1;
+                        end if;
+                        if Str_1_Len < 0 then
+                           Str_1_BP  := Str_1_BP - 1;
+                           Str_1_Len := Str_1_Len + 1;
+                        end if;
+                        if Str_2_Len > 0 then
+                           Str_2_BP  := Str_2_BP + 1;
+                           Str_2_Len := Str_2_Len - 1;
+                        end if;
+                        if Str_2_Len < 0 then
+                           Str_2_BP  := Str_2_BP - 1;
+                           Str_2_Len := Str_2_Len + 1;
+                        end if;
+                        exit when (Str_1_Len = 0) and (Str_2_Len = 0);
+                     end loop;
+                     CPU.AC(0) := Dword_T(Str_2_Len);
+                     CPU.AC(1) := Res;
+                     CPU.AC(2) := Dword_T(Str_2_BP);
+                     CPU.AC(3) := Dword_T(Str_1_BP);                    
+                  end if;
+               end;
+               
             when I_ELDA =>
                Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
                CPU.AC(I.Ac) := Dword_T(RAM.Read_Word(Addr));
@@ -743,9 +800,9 @@ package body CPU is
                      Word := 0;
                   else
                      if Shift > 0 then
-                        Word := Shift_Right (Word, Shift);
+                        Word := Shift_Left (Word, Shift);
                      else
-                        Word := Shift_Left (Word, Shift * (-1));
+                        Word := Shift_Right (Word, Shift * (-1));
                      end if;
                   end if;
                end if;
@@ -999,18 +1056,18 @@ package body CPU is
                if I.IO_Dev = Devices.CPU then
                   raise Execution_Failure with "CPU I/O not yet implemented";
                end if;
-               case I.IO_Flag is
-                  when None => null;
-                  when S => 
-                     Devices.Bus.States.Set_Busy (I.IO_Dev, true);
-                     Devices.Bus.States.Set_Done (I.IO_Dev, false);
-                  when C => 
-                     Devices.Bus.States.Set_Busy (I.IO_Dev, false);
-                     Devices.Bus.States.Set_Done (I.IO_Dev, false);   
-                  when P =>
-                     raise Not_Yet_Implemented with "NIO Pulse";
-               end case;
-               Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, N, I.IO_Flag);
+               -- case I.IO_Flag is
+               --    when None => null;
+               --    when S => 
+               --       Devices.Bus.States.Set_Busy (I.IO_Dev, true);
+               --       Devices.Bus.States.Set_Done (I.IO_Dev, false);
+               --    when C => 
+               --       Devices.Bus.States.Set_Busy (I.IO_Dev, false);
+               --       Devices.Bus.States.Set_Done (I.IO_Dev, false);   
+               --    when P =>
+               --       raise Not_Yet_Implemented with "NIO Pulse";
+               -- end case;
+               Devices.Bus.Actions.Data_Out(I.IO_Dev, 0, N, I.IO_Flag);
 
             when I_SKP =>
                case I.IO_Dev is
@@ -1027,7 +1084,10 @@ package body CPU is
                case I.IO_Test is
                   when BN => if Busy then CPU.PC := CPU.PC + 1; end if;
                   when BZ => if not Busy then CPU.PC := CPU.PC + 1; end if;
-                  when DN => if Done then CPU.PC := CPU.PC + 1; end if;
+                  when DN => 
+                     if Done then 
+                        CPU.PC := CPU.PC + 1; 
+                     end if;
                   when DZ => if not Done then CPU.PC := CPU.PC + 1; end if;
                end case;
                           
