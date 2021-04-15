@@ -254,7 +254,7 @@ package body Devices.Disk6061 is
                         when Normal =>
                             Datum := State.Drive_Status and 16#feff#;
                         when Alt_1 =>
-                            Datum := 16#8000# or (Word_T(State.EMA) and 16#001f#);
+                            Datum := 16#8000# or (State.EMA and 16#001f#);
                         when Alt_2 =>
                             Datum := 0; -- return 0 for ECC
                     end case;  
@@ -263,12 +263,17 @@ package body Devices.Disk6061 is
                     if State.Map_Enabled then 
                         Datum := 16#8000#;
                     end if;
-                    Datum := Datum or (Shift_Left(Word_T(State.Surface) and 16#001f#,10));  
-                    Datum := Datum or (Shift_Left(Word_T(State.Sector) and 16#001f#,5)); 
+                    Datum := Datum or Shift_Left(State.Surface and 16#001f#,10);  
+                    Datum := Datum or Shift_Left(State.Sector and 16#001f#,5); 
                     Datum := Datum or (Word_T(State.Sector_Cnt) and 16#001f#);
                 when N =>
                     raise Not_Yet_Implemented with "N flag on data in to DPF";
             end case;
+            if State.Debug_Logging then
+                Loggers.Debug_Print (Dpf_Log, "DI" & ABC'Image & " [" & State.Instruction_Mode'Image & 
+                    "] Returning: " & Dword_To_String(Dword_T(Datum), Binary, 16, true));
+            end if;
+                    
             Handle_Flag (IO_Flag);
         end Data_In;
 
@@ -346,7 +351,7 @@ package body Devices.Disk6061 is
         Empty_Sector : constant Sector := (others => 0);
     begin
         Sector_IO.Create (Tmp_File, Out_File, Image_Name);
-        for S in 0 .. Sectors_Per_Disk loop
+        for S in 1 .. Sectors_Per_Disk loop
             Sector_IO.Write (Tmp_File, Empty_Sector);
         end loop;
         Sector_IO.Close (Tmp_File);

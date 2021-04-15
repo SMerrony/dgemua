@@ -499,6 +499,7 @@ package body Memory is
       Tmp_DW    : Dword_T          := DW;
       Bas_DW    : Dword_T;
       Remainder : Integer;
+      Binaries  : String (1 .. 2)  := "01";
       Octals    : String (1 .. 8)  := "01234567";
       Decimals  : String (1 .. 10) := "0123456789";
       Hexes     : String (1 .. 16) := "0123456789ABCDEF";
@@ -527,6 +528,8 @@ package body Memory is
          Remainder := Integer (Tmp_DW mod Bas_DW);
          Tmp_DW    := Tmp_DW / Bas_DW;
          case Base is
+            when Binary =>
+               Res (Col) := Binaries (Remainder + 1);
             when Octal =>
                Res (Col) := Octals (Remainder + 1);
             when Decimal =>

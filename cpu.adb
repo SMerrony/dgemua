@@ -104,13 +104,13 @@ package body CPU is
 
          if Indirect then
             Eff := Eff or Ring;
-            Ind_Addr := Memory.RAM.Read_Word (Eff);
+            Ind_Addr := RAM.Read_Word (Eff);
             while (Ind_Addr and 16#8000#) /= 0 loop
                Indirection_Level := Indirection_Level + 1;
                if Indirection_Level > 15 then
                   raise Indirection_Failure with "Too many levels of indirection";
                end if;
-               Ind_Addr := Memory.RAM.Read_Word (Phys_Addr_T(Ind_Addr) or Ring);
+               Ind_Addr := RAM.Read_Word (Phys_Addr_T(Ind_Addr) or Ring);
             end loop;
             Eff := Phys_Addr_T(Ind_Addr) or Ring;
          end if;
@@ -142,7 +142,7 @@ package body CPU is
                -- Zero-extend to 28 bits, force to current ring
                Eff := (Phys_Addr_T(Disp15) and 16#0000_7fff#) or Ring;
             when PC =>
-               Eff := Memory.Integer_32_To_Phys(Integer_32(CPU.PC) + Disp32 + Integer_32(Disp_Offset));
+               Eff := Integer_32_To_Phys(Integer_32(CPU.PC) + Disp32 + Integer_32(Disp_Offset));
             when AC2 =>
                Eff := Phys_Addr_T(Integer_32(CPU.AC(2)) + Disp32) or Ring;
             when AC3 =>
@@ -151,13 +151,13 @@ package body CPU is
 
          if Indirect then
             Eff := Eff or Ring;
-            Ind_Addr := Memory.RAM.Read_Dword (Eff);
+            Ind_Addr := RAM.Read_Dword (Eff);
             while (Ind_Addr and 16#8000_0000#) /= 0 loop
                Indirection_Level := Indirection_Level + 1;
                if Indirection_Level > 15 then
                   raise Indirection_Failure with "Too many levels of indirection";
                end if;
-               Ind_Addr := Memory.RAM.Read_Dword (Phys_Addr_T(Ind_Addr) and 16#7fff_ffff#);
+               Ind_Addr := RAM.Read_Dword (Phys_Addr_T(Ind_Addr) and 16#7fff_ffff#);
             end loop;
             Eff := Phys_Addr_T(Ind_Addr) or Ring;
          end if;
@@ -193,13 +193,13 @@ package body CPU is
 
          if Indirect then
             Eff := Eff or Ring;
-            Ind_Addr := Memory.RAM.Read_Dword (Eff);
+            Ind_Addr := RAM.Read_Dword (Eff);
             while (Ind_Addr and 16#8000_0000#) /= 0 loop
                Indirection_Level := Indirection_Level + 1;
                if Indirection_Level > 15 then
                   raise Indirection_Failure with "Too many levels of indirection";
                end if;
-               Ind_Addr := Memory.RAM.Read_Dword (Phys_Addr_T(Ind_Addr) and 16#7fff_ffff#);
+               Ind_Addr := RAM.Read_Dword (Phys_Addr_T(Ind_Addr) and 16#7fff_ffff#);
             end loop;
             Eff := Phys_Addr_T(Ind_Addr) or Ring;
          end if;
@@ -238,25 +238,23 @@ package body CPU is
 
             when I_WBLM =>
                -- AC0 - unused, AC1 - no. wds to move (if neg then descending order), AC2 - src, AC3 - dest
-               if CPU.AC(1) /= 0 then
-                  while CPU.AC(1) /= 0 loop
-                     Memory.RAM.Write_Word(Phys_Addr_T(CPU.AC(3)), 
-                                           Memory.RAM.Read_Word (Phys_Addr_T(CPU.AC(2))));
-                     if Memory.Test_DW_Bit (CPU.AC(1), 0) then
-                        CPU.AC(1) := CPU.AC(1) + 1;
-                        CPU.AC(2) := CPU.AC(2) - 1;
-                        CPU.AC(3) := CPU.AC(3) - 1;
-                     else
-                        CPU.AC(1) := CPU.AC(1) - 1;
-                        CPU.AC(2) := CPU.AC(2) + 1;
-                        CPU.AC(3) := CPU.AC(3) + 1;
-                     end if;
-                  end loop;
-               end if;
-
+               while CPU.AC(1) /= 0 loop
+                  RAM.Write_Word(Phys_Addr_T(CPU.AC(3)), 
+                                          RAM.Read_Word (Phys_Addr_T(CPU.AC(2))));
+                  if Test_DW_Bit (CPU.AC(1), 0) then
+                     CPU.AC(1) := CPU.AC(1) + 1;
+                     CPU.AC(2) := CPU.AC(2) - 1;
+                     CPU.AC(3) := CPU.AC(3) - 1;
+                  else
+                     CPU.AC(1) := CPU.AC(1) - 1;
+                     CPU.AC(2) := CPU.AC(2) + 1;
+                     CPU.AC(3) := CPU.AC(3) + 1;
+                  end if;
+               end loop;
+  
             when I_XLDB =>
                Addr := Resolve_15bit_Disp (false, I.Mode, I.Disp_15, I.Disp_Offset); -- TODO 'Long' resolve???
-               CPU.AC(I.Ac) := Dword_T(Memory.RAM.Read_Byte(Addr, I.Low_Byte));
+               CPU.AC(I.Ac) := Dword_T(RAM.Read_Byte(Addr, I.Low_Byte));
 
             when I_XLEF =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -264,7 +262,7 @@ package body CPU is
 
             when I_XNLDA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
-               Word := Memory.RAM.Read_Word (Addr);
+               Word := RAM.Read_Word (Addr);
                CPU.AC(I.Ac) := Dword_T(Word);
                if Test_W_Bit (Word, 0) then
                   CPU.AC(I.Ac) := CPU.AC(I.Ac) or 16#ffff_0000#;
@@ -272,7 +270,7 @@ package body CPU is
 
             when I_XNSTA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
-               Memory.RAM.Write_Word (Addr, Memory.Lower_Word(CPU.AC(I.Ac)));
+               RAM.Write_Word (Addr, Lower_Word(CPU.AC(I.Ac)));
 
             when I_XWADI =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -281,12 +279,12 @@ package body CPU is
                   CPU.Carry := true;
                   Set_OVR (true);
                end if;
-               S64 := Integer_64(Memory.Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+               S64 := Integer_64(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
                RAM.Write_Dword (Addr, Dword_T(S64));
 
             when I_XWLDA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
-               CPU.AC(I.Ac) := Memory.RAM.Read_Dword (Addr);
+               CPU.AC(I.Ac) := RAM.Read_Dword (Addr);
 
             when I_XWSBI =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -295,12 +293,12 @@ package body CPU is
                   CPU.Carry := true;
                   Set_OVR (true);
                end if;
-               S64 := Integer_64(Memory.Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+               S64 := Integer_64(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
                RAM.Write_Dword (Addr, Dword_T(S64));
 
             when I_XWSTA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
-               Memory.RAM.Write_Dword (Addr, CPU.AC(I.Ac));
+               RAM.Write_Dword (Addr, CPU.AC(I.Ac));
 
             when others =>
                Put_Line ("ERROR: EAGLE_MEMREF instruction " & To_String(I.Mnemonic) & 
@@ -328,9 +326,9 @@ package body CPU is
                      raise Unsupported_IO_Channel with "Attempt to use CIO on channel " & IO_Chan'Image;
                   end if;
                   if Test_W_Bit (Word, 0) then -- write command
-                     Memory.BMC_DCH.Write_Reg (Map_Reg_Addr, Lower_Word(CPU.AC(I.Acd)));
+                     BMC_DCH.Write_Reg (Map_Reg_Addr, Lower_Word(CPU.AC(I.Acd)));
                   else  -- read command
-                     CPU.AC(I.Acd) := Dword_T(Memory.BMC_DCH.Read_Reg(Map_Reg_Addr));
+                     CPU.AC(I.Acd) := Dword_T(BMC_DCH.Read_Reg(Map_Reg_Addr));
                   end if;
                end;
                
@@ -393,7 +391,7 @@ package body CPU is
                CPU.Carry := false;
 
             when I_NLDAI =>
-               CPU.AC(I.Ac) := Memory.Sext_Word_To_Dword(I.Word_2);
+               CPU.AC(I.Ac) := Sext_Word_To_Dword(I.Word_2);
 
             when I_SSPT =>  -- NO-OP - see p.8-5 of MV/10000 Sys Func Chars 
                Loggers.Debug_Print(Debug_Log, "INFO: SSPT is a No-Op on this VM, continuing...");
@@ -404,7 +402,7 @@ package body CPU is
                S64 := Integer_64(Acd_S32) + Integer_64(Acs_S32);
                CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
                Set_OVR (CPU.Carry);
-               S64 := Integer_64(Memory.Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+               S64 := Integer_64(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
                CPU.AC(I.Acd) := Dword_T(S64);
 
             when I_WADD =>
@@ -521,13 +519,13 @@ package body CPU is
 
             when I_WSEQI | I_WSGTI | I_WSLEI | I_WSNEI =>
                if I.Instruction = I_WSEQI then
-                  Skip := CPU.AC(I.Ac) = Memory.Sext_Word_To_Dword (I.Word_2);
+                  Skip := CPU.AC(I.Ac) = Sext_Word_To_Dword (I.Word_2);
                elsif I.Instruction = I_WSGTI then
-                  Skip := Integer_32(CPU.AC(I.Ac)) >= Integer_32(Memory.Sext_Word_To_Dword (I.Word_2));
+                  Skip := Integer_32(CPU.AC(I.Ac)) >= Integer_32(Sext_Word_To_Dword (I.Word_2));
                elsif I.Instruction = I_WSLEI then
-                  Skip := Integer_32(CPU.AC(I.Ac)) <= Integer_32(Memory.Sext_Word_To_Dword (I.Word_2));
+                  Skip := Integer_32(CPU.AC(I.Ac)) <= Integer_32(Sext_Word_To_Dword (I.Word_2));
                else
-                  Skip := CPU.AC(I.Ac) /= Memory.Sext_Word_To_Dword (I.Word_2);
+                  Skip := CPU.AC(I.Ac) /= Sext_Word_To_Dword (I.Word_2);
                end if;
                if Skip then
                   CPU.PC := CPU.PC + 3;
@@ -558,14 +556,14 @@ package body CPU is
                end if;
 
             when I_WSKBO =>
-               if Memory.Test_DW_Bit (CPU.AC(0), I.Bit_Number) then
+               if Test_DW_Bit (CPU.AC(0), I.Bit_Number) then
                   CPU.PC := CPU.PC + 2;
                else
                   CPU.PC := CPU.PC + 1;
             end if;
 
             when I_WSKBZ =>
-               if not Memory.Test_DW_Bit (CPU.AC(0), I.Bit_Number) then
+               if not Test_DW_Bit (CPU.AC(0), I.Bit_Number) then
                   CPU.PC := CPU.PC + 2;
                else
                   CPU.PC := CPU.PC + 1;
@@ -597,6 +595,7 @@ package body CPU is
                else
                   CPU.PC := CPU.PC + 2;
                end if;
+               
             when others =>
                Put_Line ("ERROR: EAGLE_PC instruction " & To_String(I.Mnemonic) & 
                          " not yet implemented");
@@ -752,7 +751,7 @@ package body CPU is
 
             when I_ANDI =>
                Word := Lower_Word (CPU.AC(I.Ac));
-               CPU.AC(I.Ac) := Dword_T(Word and Word_T(I.Imm_S16)) and 16#0000_ffff#;
+               CPU.AC(I.Ac) := Dword_T(Word and Integer_16_To_Word(I.Imm_S16)) and 16#0000_ffff#;
 
             when I_DLSH =>
                declare
@@ -967,8 +966,8 @@ package body CPU is
                declare
                   NFP_Sav, Popped_Wd : Word_T;
                begin
-                  NFP_Sav := RAM.Read_Word (Memory.NFP_Loc or Ring);
-                  RAM.Write_Word (Memory.NSP_Loc or Ring, NFP_Sav);
+                  NFP_Sav := RAM.Read_Word (NFP_Loc or Ring);
+                  RAM.Write_Word (NSP_Loc or Ring, NFP_Sav);
                   Popped_Wd := Narrow_Stack.Pop (Ring);             -- 5
                   CPU.Carry := Test_W_Bit (Popped_Wd, 0);
                   CPU.PC    := Phys_Addr_T(Popped_Wd and 16#7fff#) or Ring;
@@ -976,7 +975,7 @@ package body CPU is
                   CPU.AC(2) := Dword_T(Narrow_Stack.Pop(Ring));     -- 3
                   CPU.AC(1) := Dword_T(Narrow_Stack.Pop(Ring));     -- 2
                   CPU.AC(0) := Dword_T(Narrow_Stack.Pop(Ring));     -- 1
-                  RAM.Write_Word (Memory.NFP_Loc or Ring, Lower_Word(CPU.AC(3)));
+                  RAM.Write_Word (NFP_Loc or Ring, Lower_Word(CPU.AC(3)));
                   return; -- because PC has been set
                end;
 
@@ -984,8 +983,8 @@ package body CPU is
                declare
                   NFP_Sav, NSP_Sav, Word : Word_T;
                begin
-                  NFP_Sav := RAM.Read_Word (Memory.NFP_Loc or Ring);
-                  NSP_Sav := RAM.Read_Word (Memory.NSP_Loc or Ring);
+                  NFP_Sav := RAM.Read_Word (NFP_Loc or Ring);
+                  NSP_Sav := RAM.Read_Word (NSP_Loc or Ring);
                   Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(0))); -- 1
                   Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(1))); -- 2
                   Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(2))); -- 3 
@@ -997,8 +996,8 @@ package body CPU is
                      Word := Word and 16#7fff#;
                   end if;
                   Narrow_Stack.Push(Ring, Word);                  -- 5
-                  RAM.Write_Word (Memory.NSP_Loc or Ring, NSP_Sav + 5 + Word_T(I.Imm_U16));
-                  RAM.Write_Word (Memory.NFP_Loc or Ring, NSP_Sav + 5);
+                  RAM.Write_Word (NSP_Loc or Ring, NSP_Sav + 5 + Word_T(I.Imm_U16));
+                  RAM.Write_Word (NFP_Loc or Ring, NSP_Sav + 5);
                   CPU.AC(3) := Dword_T(NSP_Sav) + 5;
                end;
 
@@ -1247,25 +1246,25 @@ package body CPU is
          case I.Instruction is
             when I_DSZ =>
                Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
-               Word := Memory.RAM.Read_Word (Addr) - 1;
-               Memory.RAM.Write_Word (Addr, Word);
+               Word := RAM.Read_Word (Addr) - 1;
+               RAM.Write_Word (Addr, Word);
                if Word = 0 then CPU.PC := CPU.PC + 1; end if;
 
             when I_ISZ =>
                Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
-               Word := Memory.RAM.Read_Word (Addr) + 1;
-               Memory.RAM.Write_Word (Addr, Word);
+               Word := RAM.Read_Word (Addr) + 1;
+               RAM.Write_Word (Addr, Word);
                if Word = 0 then CPU.PC := CPU.PC + 1; end if;
 
             when I_LDA =>
                Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
-               Word := Memory.RAM.Read_Word (Addr);
+               Word := RAM.Read_Word (Addr);
                CPU.AC(I.Ac) := Dword_T(Word);
 
             when I_STA =>
                Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
                Word := Lower_Word (CPU.AC(I.Ac));
-               Memory.RAM.Write_Word (Addr, Word);
+               RAM.Write_Word (Addr, Word);
 
             when others =>
                Put_Line ("ERROR: Nova_Mem_Ref instruction " & To_String(I.Mnemonic) & 
@@ -1335,7 +1334,7 @@ package body CPU is
          Segment : Integer;
 
       begin
-         This_Op := Memory.RAM.Read_Word(CPU.PC);
+         This_Op := RAM.Read_Word(CPU.PC);
          Segment := Integer(Shift_Right(CPU.PC, 29));
          Instr := Instruction_Decode (Opcode => This_Op, 
                            PC => CPU.PC, 
@@ -1460,7 +1459,7 @@ package body CPU is
                PC := Actions.Get_PC;
 
                -- FETCH
-               This_Op := Memory.RAM.Read_Word(PC);
+               This_Op := RAM.Read_Word(PC);
 
                -- DECODE
                Segment := Integer(Shift_Right(PC, 29));
