@@ -25,6 +25,7 @@ with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Real_Time;         use Ada.Real_Time;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Streams.Stream_IO; 
 with Ada.Text_IO;
 
 with GNAT.Ctrl_C;
@@ -172,10 +173,26 @@ procedure MVEmuA is
       TTOut.Put_String (Simh_Tapes.Scan_Image (Slice (Command, 2)));
    end Check;
 
+   procedure Dump_Memory_Readable ( Filename : in String) is
+      use Ada.Streams.Stream_IO;
+      Write_File : File_Type;
+      Writer : Stream_Access;
+      Addr : Phys_Addr_T := 0;
+   begin
+      Create (Write_File, Out_File, Filename);
+      Writer := Stream(Write_File);
+      while Addr < Phys_Addr_T(Mem_Size_Words) loop
+         String'Write (Writer, Dword_To_String(Dword_T(Addr), Octal, 12, false) & " " &
+            Dword_To_String(Dword_T(RAM.Read_Word(Addr)), Hex, 4, true) & Dasher_NL);
+         Addr := Addr + 1;
+      end loop;
+   end;
+
    procedure Clean_Exit is
    begin
       TTOut.Put_String (Dasher_NL & " *** MV/Emulator stopping at user request ***" );
       Debug_Logs.Loggers.Debug_Logs_Dump (Log_Dir);
+      Dump_Memory_Readable ("mvemua.dmp");
       GNAT.OS_Lib.OS_Exit (0);
    end Clean_Exit;
 

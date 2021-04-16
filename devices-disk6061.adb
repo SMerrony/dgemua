@@ -121,9 +121,10 @@ package body Devices.Disk6061 is
                     State.Surface  := 0;
                     State.Sector   := 0;
                     Position_Image;
+                    State.Drive_Status := Drive_Stat_Ready;
                     State.RW_Status := RW_Stat_RW_Done or RW_Stat_Drive_0_Done;
                     if State.Debug_Logging then
-                        Loggers.Debug_Print (Dpf_Log, "RECAL done " & Printable_Addr);
+                        Loggers.Debug_Print (Dpf_Log, "... RECAL done " & Printable_Addr);
                     end if;
                 when Cmd_T'Pos(Seek) =>
                     Position_Image;
@@ -133,6 +134,9 @@ package body Devices.Disk6061 is
                         Loggers.Debug_Print (Dpf_Log, "SEEK done  " & Printable_Addr);
                     end if;
                 when Cmd_T'Pos(Read) =>
+                    if State.Debug_Logging then
+                        Loggers.Debug_Print (Dpf_Log, "... READ called  " & Printable_Addr);
+                    end if;
                     State.RW_Status := 0;
                     while State.Sector_Cnt /= 0 loop
                        if State.Cylinder >= Word_T(Cylinders_Per_Disk) then
@@ -160,7 +164,7 @@ package body Devices.Disk6061 is
                     end loop;
                     State.RW_Status := RW_Stat_RW_Done or RW_Stat_Drive_0_Done;
                     if State.Debug_Logging then
-                        Loggers.Debug_Print (Dpf_Log, "READ done  " & Printable_Addr);
+                        Loggers.Debug_Print (Dpf_Log, "... READ done    " & Printable_Addr);
                     end if;
                 when Cmd_T'Pos(Release) =>
                     -- I think this is a No-Op on a single CPU machine
@@ -170,6 +174,9 @@ package body Devices.Disk6061 is
                     declare
                        Datum : Word_T;
                     begin
+                        if State.Debug_Logging then
+                            Loggers.Debug_Print (Dpf_Log, "... WRITE called  " & Printable_Addr);
+                        end if;
                         State.RW_Status := 0;
                         while State.Sector_Cnt /= 0 loop
                             if State.Cylinder >= Word_T(Cylinders_Per_Disk) then
@@ -196,12 +203,13 @@ package body Devices.Disk6061 is
                             State.Sector_Cnt := State.Sector_Cnt + 1;
                             State.Writes := State.Writes + 1;
                         end loop;
+                        if State.Debug_Logging then
+                            Loggers.Debug_Print (Dpf_Log, "... WRITE done    " & Printable_Addr);
+                        end if;
                         State.Drive_Status := Drive_Stat_Ready;
                         State.RW_Status := RW_Stat_RW_Done; -- or RW_Stat_Drive_0_Done;
                     end;
-                    if State.Debug_Logging then
-                        Loggers.Debug_Print (Dpf_Log, "WRITE done  " & Printable_Addr);
-                    end if;
+
                 when others =>
                     raise Not_Yet_Implemented with State.Command'Image;                                               
             end case;
@@ -304,13 +312,22 @@ package body Devices.Disk6061 is
                     State.Instruction_Mode := Normal;
                     if State.Command = Cmd_T'Pos (Set_Alt_Mode_1) then
                         State.Instruction_Mode := Alt_1;
+                        if State.Debug_Logging then
+                            Loggers.Debug_Print (Dpf_Log, "... Alt Mode 1 set");
+                        end if;    
                     elsif State.Command = Cmd_T'Pos (Set_Alt_Mode_2) then
                         State.Instruction_Mode := Alt_2;
+                        if State.Debug_Logging then
+                            Loggers.Debug_Print (Dpf_Log, "... Alt Mode 2 set");
+                        end if;
                     end if;
                     if State.Command = Cmd_T'Pos (No_Op) then
                         State.Instruction_Mode := Normal;
                         State.RW_Status := 0;
                         State.Drive_Status := Drive_Stat_Ready;
+                        if State.Debug_Logging then
+                            Loggers.Debug_Print (Dpf_Log, "... NO OP command done");
+                        end if;
                     end if;
                     State.Last_DOA_Was_Seek := State.Command = Cmd_T'Pos (Seek);
                 when B =>
