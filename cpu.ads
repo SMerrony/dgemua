@@ -62,6 +62,7 @@ package CPU is
       -- emulator internals
       Debug_Logging     : Boolean;
       Instruction_Count : Unsigned_64;
+      SCP_IO            : Boolean;
 
    end record;
 

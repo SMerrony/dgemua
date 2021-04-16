@@ -220,6 +220,7 @@ package body Devices.Console is
         SCP_Handler.Get_SCP_IO (SCP_IO);
         if One_Char = ASCII.ESC then
             SCP_Handler.Set_SCP_IO (true);
+            -- CPU.Set_SCPIO(true);
         elsif SCP_IO then
             case One_Char is
                 when ASCII.CR =>

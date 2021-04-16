@@ -28,6 +28,7 @@ with Debug_Logs;            use Debug_Logs;
 with Decoder;               use Decoder;
 with Devices;               use Devices;
 with Devices.Bus;           use Devices.Bus;
+with Devices.Console;
 with Debug_Logs;            use Debug_Logs;
 with Memory;                use Memory;
 with Status_Monitor;
@@ -1446,6 +1447,16 @@ package body CPU is
          return Stats;
       end Get_Status;
 
+      -- function  Get_SCPIO return Boolean is
+      -- begin
+      --    return CPU.SCP_IO;
+      -- end Get_SCPIO;
+
+      -- function Set_SCPIO (SCP_IO : in Boolean) is
+      -- begin
+      --    CPU.SCP_IO := SCP_IO;
+      -- end Set_SCPIO;
+
    end Actions;
 
       procedure Run (Disassemble : in Boolean; Radix : in Number_Base_T; I_Counts : out Instr_Count_T) is
@@ -1453,6 +1464,7 @@ package body CPU is
             Instr   : Decoded_Instr_T;
             Segment : Integer;
             PC      : Phys_Addr_T;
+            SCP_IO  : Boolean;
          begin
          Run_Loop:
             loop
@@ -1486,6 +1498,12 @@ package body CPU is
                -- BREAKPOINT?
 
                -- Console Interrupt?
+               -- N.B. This feels too expensive, should probably move flag into CPU
+               Devices.Console.SCP_Handler.Get_SCP_IO (SCP_IO);
+               if SCP_IO then 
+                  Devices.Console.TTOut.Put_String (" *** Console ESCape ***");
+                  exit Run_Loop;
+               end if;
    
             end loop Run_Loop;
 
