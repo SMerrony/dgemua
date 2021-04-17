@@ -131,7 +131,7 @@ package body Devices.Disk6061 is
                     State.RW_Status := RW_Stat_RW_Done or RW_Stat_Drive_0_Done;
                     State.Drive_Status := Drive_Stat_Ready;
                     if State.Debug_Logging then
-                        Loggers.Debug_Print (Dpf_Log, "SEEK done  " & Printable_Addr);
+                        Loggers.Debug_Print (Dpf_Log, "... SEEK done  " & Printable_Addr);
                     end if;
                 when Cmd_T'Pos(Read) =>
                     if State.Debug_Logging then
@@ -293,9 +293,16 @@ package body Devices.Disk6061 is
                 when A =>
                     State.Command := Shift_Right (Datum and 16#0780#, 7);
                     State.Drive   := Shift_Right (Datum and 16#0060#, 5);
-                    State.Drive   := Shift_Right (Datum and 16#0060#, 5);
+                    State.EMA   := Shift_Right (Datum and 16#0060#, 5);
+                    if State.Debug_Logging then
+                            Loggers.Debug_Print (Dpf_Log, "DOA [Specify Cmd,Drv,EMA] to DRV:" & State.Drive'Image &
+                                " with data: " & Dword_To_String(Dword_T(Datum), Binary, 16, true));
+                    end if;
                     if Test_W_Bit(Datum, 0) then
                         State.RW_Status := State.RW_Status and 2#1011_1100_0000_0100#; -- clear R/W status
+                        if State.Debug_Logging then
+                            Loggers.Debug_Print (Dpf_Log, "... Clear R/W Done etc.");
+                        end if;
                     end if;
                     if Test_W_Bit(Datum, 1) then
                         State.RW_Status := State.RW_Status and not RW_Stat_Drive_0_Done;
@@ -330,6 +337,11 @@ package body Devices.Disk6061 is
                         end if;
                     end if;
                     State.Last_DOA_Was_Seek := State.Command = Cmd_T'Pos (Seek);
+                    if State.Debug_Logging then
+                        Loggers.Debug_Print (Dpf_Log, "... CMD: " & Cmd_T'Val(State.Command)'Image & 
+                            ", DRV:" & State.Drive'Image &
+                            ", EMA: " & Dword_To_String(Dword_T(State.EMA), Octal, 10, false));
+                    end if;
                 when B =>
                     if Test_W_Bit (Datum, 0) then
                         State.EMA := State.EMA or 16#01#;
@@ -337,9 +349,20 @@ package body Devices.Disk6061 is
                         State.EMA := State.EMA and 16#fe#;
                     end if;
                     State.Mem_Addr := Datum and 16#7fff#;
+                    if State.Debug_Logging then
+                        Loggers.Debug_Print (Dpf_Log, "DOB [Specify Memory Addr] with data " &
+                            Dword_To_String(Dword_T(Datum), Binary, 16, true) & Dasher_NL &
+                            "... MEM Addr: " & Dword_To_String(Dword_T(State.Mem_Addr), Octal, 10) & Dasher_NL &
+                            "... EMA: " & Dword_To_String(Dword_T(State.EMA), Octal, 10));
+                    end if;
                 when C =>
                     if State.Last_DOA_Was_Seek then
                         State.Cylinder := Datum and 16#03ff#; -- mask off lower 10 bits
+                        if State.Debug_Logging then
+                            Loggers.Debug_Print (Dpf_Log, "DOC [Specify Cylinder] after SEEK with data " &
+                                Dword_To_String(Dword_T(Datum), Binary, 16, true) & Dasher_NL &
+                                "... CYL:" & State.Cylinder'Image);
+                        end if;
                     else
                         declare
                            Tmp_Byte : Byte_T;
@@ -352,6 +375,14 @@ package body Devices.Disk6061 is
                                 Tmp_Byte := Tmp_Byte or 16#e0#; -- sign extend
                             end if;
                             State.Sector_Cnt :=  Byte_To_Integer_8(Tmp_Byte);
+                            if State.Debug_Logging then
+                                Loggers.Debug_Print (Dpf_Log, "DOC [Specify Surf,Sect,Cnt] with data " &
+                                Dword_To_String(Dword_T(Datum), Binary, 16, true) & Dasher_NL &
+                                "... MAP: " & Boolean_To_YN (State.Map_Enabled) &
+                                ", SURF:" & State.Surface'Image &
+                                "., SECT:" & State.Sector'Image &
+                                "., SECCNT:" & State.Sector_Cnt'Image);
+                            end if;
                         end;
                     end if;
                 when N => -- dummy value for NIO - we just handle the flag below

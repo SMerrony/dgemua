@@ -62,8 +62,10 @@ package Devices.Console is
 
     task Console_Handler is   
       entry Start (Sock : in GNAT.Sockets.Socket_Type);
-   end Console_Handler;
+    end Console_Handler;
    
+    SCP_IO : Boolean := true;
+
    IO_Error : exception;
 
 end Devices.Console;

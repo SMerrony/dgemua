@@ -770,9 +770,9 @@ package body CPU is
                         Dword := 0;
                      else
                         if Shift > 0 then
-                           Word := Shift_Right (Word, Shift);
+                           Word := Shift_Left (Word, Shift);
                         else
-                           Word := Shift_Left (Word, Shift * (-1));
+                           Word := Shift_Right (Word, Shift * (-1));
                         end if;
                      end if;
                   end if;
@@ -1447,15 +1447,15 @@ package body CPU is
          return Stats;
       end Get_Status;
 
-      -- function  Get_SCPIO return Boolean is
+      -- function  Get_SCP_IO return Boolean is
       -- begin
       --    return CPU.SCP_IO;
-      -- end Get_SCPIO;
+      -- end Get_SCP_IO;
 
-      -- function Set_SCPIO (SCP_IO : in Boolean) is
+      -- procedure Set_SCP_IO (SCP : in Boolean) is
       -- begin
-      --    CPU.SCP_IO := SCP_IO;
-      -- end Set_SCPIO;
+      --    CPU.SCP_IO := SCP;
+      -- end Set_SCP_IO;
 
    end Actions;
 
@@ -1464,7 +1464,6 @@ package body CPU is
             Instr   : Decoded_Instr_T;
             Segment : Integer;
             PC      : Phys_Addr_T;
-            SCP_IO  : Boolean;
          begin
          Run_Loop:
             loop
@@ -1498,9 +1497,7 @@ package body CPU is
                -- BREAKPOINT?
 
                -- Console Interrupt?
-               -- N.B. This feels too expensive, should probably move flag into CPU
-               Devices.Console.SCP_Handler.Get_SCP_IO (SCP_IO);
-               if SCP_IO then 
+               if Devices.Console.SCP_IO then 
                   Devices.Console.TTOut.Put_String (" *** Console ESCape ***");
                   exit Run_Loop;
                end if;

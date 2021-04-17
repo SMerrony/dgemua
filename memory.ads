@@ -28,7 +28,8 @@ with DG_Types;   use DG_Types;
 
 package Memory is
 
-    Mem_Size_Words : constant Integer := 8_388_608;
+    Mem_Size_Words : constant Integer     := 8_388_608;
+    Max_Phys_Addr  : constant Phys_Addr_T := Phys_Addr_T(Mem_Size_Words - 1);
     -- MemSizeLCPID is the code returned by the LCPID to indicate the size of RAM in half megabytes
 	Mem_Size_LCPID : constant Dword_T := Dword_T(((Mem_Size_Words * 2) / (256 * 1024)) - 1); -- 0x3F
 	-- MemSizeNCLID is the code returned by NCLID to indicate size of RAM in 32Kb increments
@@ -85,7 +86,8 @@ package Memory is
 
     type BMC_DCH_Regs_Array is array (0 .. Last_Reg) of Word_T;
 
-    type RAM_Array is array (0 .. Mem_Size_Words - 1) of Word_T;
+    subtype Legal_Addrs is Phys_Addr_T range 0 .. Max_Phys_Addr;
+    type RAM_Array is array (Legal_Addrs) of Word_T;
 
     type BMC_Addr_T is record
         Is_Logical : Boolean;

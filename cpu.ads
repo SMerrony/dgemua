@@ -62,7 +62,7 @@ package CPU is
       -- emulator internals
       Debug_Logging     : Boolean;
       Instruction_Count : Unsigned_64;
-      SCP_IO            : Boolean;
+      -- SCP_IO            : Boolean;
 
    end record;
 
@@ -94,6 +94,8 @@ package CPU is
       function  Get_IO (Seg : in Natural) return Boolean;
       function  Get_PC return Phys_Addr_T;
       function  Get_Status return CPU_Monitor_Rec;
+      -- procedure Set_SCP_IO (SCP : in Boolean);
+      -- function  Get_SCP_IO return Boolean;
    private
       CPU : CPU_T;
    end Actions;

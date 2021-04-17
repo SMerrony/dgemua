@@ -26,6 +26,7 @@ with GNAT.OS_Lib;
 
 use type Ada.Streams.Stream_Element_Count;
 
+with CPU;
 with Devices.Bus;
 with Memory;
 
@@ -174,7 +175,7 @@ package body Devices.Console is
     end TTOut;
 
     task body SCP_Handler is
-      SCP_IO  : Boolean; -- True if console I/O is directed to the SCP
+      -- SCP_IO  : Boolean; -- True if console I/O is directed to the SCP
       SCP_Buffer : Unbounded_String;
       SCP_Line_Ready : Boolean := false;
     begin

@@ -50,7 +50,7 @@ package body Memory is
       is
          W : Word_T;
       begin
-         W := RAM (Integer (Word_Addr));
+         W := RAM (Word_Addr);
          if not Low_Byte then
             W := Shift_Right (W, 8);
          end if;
@@ -80,7 +80,7 @@ package body Memory is
       begin
          return
            Dword_From_Two_Words
-             (RAM (Integer (Word_Addr)), RAM (Integer (Word_Addr) + 1));
+             (RAM (Word_Addr), RAM (Word_Addr + 1));
       end Read_Dword;
 
       procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T) is
@@ -91,7 +91,8 @@ package body Memory is
 
       function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
       begin
-         return RAM (Integer (Word_Addr));
+         -- return RAM (Integer (Word_Addr));
+         return RAM (Word_Addr);
       end Read_Word;
 
       procedure Write_Word (Word_Addr : in Phys_Addr_T; Datum : Word_T) is
@@ -100,7 +101,8 @@ package body Memory is
          -- if Word_Addr = 50 then
          --    Put_Line ("Writing to Location ")
          -- end if;
-         RAM (Integer (Word_Addr)) := Datum;
+         -- RAM (Integer (Word_Addr)) := Datum;
+         RAM (Word_Addr) := Datum;
       end Write_Word;
 
    end RAM;
