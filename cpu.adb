@@ -770,9 +770,9 @@ package body CPU is
                         Dword := 0;
                      else
                         if Shift > 0 then
-                           Word := Shift_Left (Word, Shift);
+                           Dword := Shift_Left (Dword, Shift);
                         else
-                           Word := Shift_Right (Word, Shift * (-1));
+                           Dword := Shift_Right (Dword, Shift * (-1));
                         end if;
                      end if;
                   end if;
