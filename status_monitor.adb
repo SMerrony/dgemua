@@ -96,18 +96,18 @@ package body Status_Monitor is
                Dasher_Write_Window_Addr & Character'Val (0) &
                Character'Val (CPU_Row_1) & Dasher_Erase_EOL);
             -- "PC:  %011o   Interrupts: %s    ATU: %s     IPS: %.fk/sec"
-            String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(CPU_Stats.PC), Radix, 12, true) & 
+            String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(CPU_Stats.PC), Radix, 11, true) & 
                                     "  Interrupts: " & Memory.Boolean_To_YN (CPU_Stats.ION) &
-                                    "      ATU: " & Memory.Boolean_To_YN (CPU_Stats.ATU) &
-                                    "             MIPS: "  );
+                                    "     ATU: " & Memory.Boolean_To_YN (CPU_Stats.ATU) &
+                                    "            MIPS: "  );
             String'Write
                (Channel,
                Dasher_Write_Window_Addr & Character'Val (0) &
                Character'Val (CPU_Row_2) & Dasher_Erase_EOL);
-            String'Write (Channel, "AC0: " &  Memory.Dword_To_String (CPU_Stats.AC(0), Radix, 12, true) &
-                                    "  AC1: " &  Memory.Dword_To_String (CPU_Stats.AC(1), Radix, 12, true) &
-                                    "  AC2: " &  Memory.Dword_To_String (CPU_Stats.AC(2), Radix, 12, true) &
-                                    "  AC3: " &  Memory.Dword_To_String (CPU_Stats.AC(3), Radix, 12, true));
+            String'Write (Channel, "AC0: " &  Memory.Dword_To_String (CPU_Stats.AC(0), Radix, 11, true) &
+                                    "  AC1: " &  Memory.Dword_To_String (CPU_Stats.AC(1), Radix, 11, true) &
+                                    "  AC2: " &  Memory.Dword_To_String (CPU_Stats.AC(2), Radix, 11, true) &
+                                    "  AC3: " &  Memory.Dword_To_String (CPU_Stats.AC(3), Radix, 11, true));
          or
             accept DPF_Update (Stats : in Devices.Disk6061.Status_Rec) do
                DPF_Stats := Stats;

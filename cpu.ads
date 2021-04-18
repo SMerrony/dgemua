@@ -20,6 +20,8 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Containers;
+with Ada.Containers.Ordered_Sets;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with Interfaces; use Interfaces;
@@ -74,6 +76,8 @@ package CPU is
       Instruction_Count        : Unsigned_64;
    end record;
 
+   package BP_Sets is new Ada.Containers.Ordered_Sets (Element_Type => Phys_Addr_T);
+
    type Instr_Count_T is array (Instr_Mnemonic_T range Instr_Mnemonic_T'Range) of Unsigned_64;
 
    protected Actions is
@@ -81,10 +85,9 @@ package CPU is
       procedure Boot (Dev : Dev_Num_T; PC : Phys_Addr_T);
       procedure Prepare_For_Running;
       procedure Set_Debug_Logging (OnOff : in Boolean);
-      -- procedure Run (Disassemble : in Boolean; Radix : in Number_Base_T; I_Counts : out Instr_Count_T);
       procedure Single_Step (Radix : in Number_Base_T; Disass : out Unbounded_String);
       procedure Execute (Instr : in Decoded_Instr_T);
-      function  Disassemble_Range( Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) 
+      function  Disassemble_Range (Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) 
          return String;
       procedure Set_OVR (New_OVR : in Boolean);
       function  Get_Compact_Status (Radix : Number_Base_T) return string;
@@ -101,7 +104,10 @@ package CPU is
    end Actions;
 
    procedure Init;
-   procedure Run (Disassemble : in Boolean; Radix : in Number_Base_T; I_Counts : out Instr_Count_T);
+   procedure Run (Disassemble : in Boolean; 
+                  Radix : in Number_Base_T; 
+                  Breakpoints : in BP_Sets.Set;
+                  I_Counts : out Instr_Count_T);
 
    task Status_Sender is
         entry Start;

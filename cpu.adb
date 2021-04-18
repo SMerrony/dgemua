@@ -1401,13 +1401,13 @@ package body CPU is
 
       function Get_Compact_Status (Radix : Number_Base_T) return String is
       begin
-         return "AC0=" & Dword_To_String (CPU.AC(0), Radix, 12, true) &
-                " AC1=" & Dword_To_String (CPU.AC(1), Radix, 12, true) &
-                " AC2=" & Dword_To_String (CPU.AC(2), Radix, 12, true) &
-                " AC3=" & Dword_To_String (CPU.AC(3), Radix, 12, true) &
+         return "AC0=" & Dword_To_String (CPU.AC(0), Radix, 11, true) &
+                " AC1=" & Dword_To_String (CPU.AC(1), Radix, 11, true) &
+                " AC2=" & Dword_To_String (CPU.AC(2), Radix, 11, true) &
+                " AC3=" & Dword_To_String (CPU.AC(3), Radix, 11, true) &
                 " C:" & Boolean_To_YN (CPU.Carry) &
                 " I:" & Boolean_To_YN (CPU.ION) &
-                " PC=" & Dword_To_String (Dword_T(CPU.PC), Radix, 12, true);
+                " PC=" & Dword_To_String (Dword_T(CPU.PC), Radix, 11, true);
       end Get_Compact_Status;
 
       function  Get_ATU return Boolean is
@@ -1447,23 +1447,18 @@ package body CPU is
          return Stats;
       end Get_Status;
 
-      -- function  Get_SCP_IO return Boolean is
-      -- begin
-      --    return CPU.SCP_IO;
-      -- end Get_SCP_IO;
-
-      -- procedure Set_SCP_IO (SCP : in Boolean) is
-      -- begin
-      --    CPU.SCP_IO := SCP;
-      -- end Set_SCP_IO;
-
    end Actions;
 
-      procedure Run (Disassemble : in Boolean; Radix : in Number_Base_T; I_Counts : out Instr_Count_T) is
+      procedure Run (Disassemble : in Boolean; 
+                     Radix : in Number_Base_T; 
+                     Breakpoints : in BP_Sets.Set;
+                     I_Counts : out Instr_Count_T) is
+            use Ada.Containers;
             This_Op : Word_T;
             Instr   : Decoded_Instr_T;
             Segment : Integer;
             PC      : Phys_Addr_T;
+            Any_Breakpoints : Boolean := Breakpoints.Length /= 0;
          begin
          Run_Loop:
             loop
@@ -1495,6 +1490,12 @@ package body CPU is
                -- INTERRUPT?
 
                -- BREAKPOINT?
+               if Any_Breakpoints then
+                  if Breakpoints.Contains (PC) then
+                     Devices.Console.SCP_Handler.Set_SCP_IO (true);
+                     Devices.Console.TTOut.Put_String (" *** BREAKpoint hit ***");
+                  end if;
+               end if;
 
                -- Console Interrupt?
                if Devices.Console.SCP_IO then 

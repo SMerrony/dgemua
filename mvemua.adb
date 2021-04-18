@@ -21,6 +21,8 @@
 -- SOFTWARE.
 
 with Ada.Command_Line;
+with Ada.Containers;
+with Ada.Containers.Ordered_Sets;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Real_Time;         use Ada.Real_Time;
@@ -67,6 +69,8 @@ procedure MVEmuA is
    Command       : Unbounded_String;
    Arg_Num       : Positive := 1;
    Do_Script_Arg : Natural := 0;
+
+   Breakpoints : CPU.BP_Sets.Set;
 
    Console_Radix  : Number_Base_T := Octal; -- default console I/O number base
 
@@ -163,6 +167,30 @@ procedure MVEmuA is
          when Constraint_Error =>
             TTOut.Put_String (Dasher_NL & " *** Invalid Device Number ***");
    end Boot;
+
+   procedure Break_Clear (Command : in Slice_Set) is
+      BP_Addr : Phys_Addr_T;
+   begin
+      if Slice_Count (Command) < 2 then
+         TTOut.Put_String (Dasher_NL & " *** NOBREAK command requires an address argument ***");
+         return;
+      end if;
+      BP_Addr  := Phys_Addr_T(String_To_Dword (Slice (Command, 2), Console_Radix));
+      Breakpoints.Exclude (BP_Addr);
+      TTOut.Put_String (Dasher_NL & " *** BREAKpoint cleared ***");
+   end Break_Clear;
+
+   procedure Break_Set (Command : in Slice_Set) is
+      BP_Addr : Phys_Addr_T;
+   begin
+      if Slice_Count (Command) < 2 then
+         TTOut.Put_String (Dasher_NL & " *** BREAK command requires an address argument ***");
+         return;
+      end if;
+      BP_Addr  := Phys_Addr_T(String_To_Dword (Slice (Command, 2), Console_Radix));
+      Breakpoints.Include (BP_Addr);
+      TTOut.Put_String (Dasher_NL & " *** BREAKpoint set ***");
+   end Break_Set;
 
    procedure Check (Command : in Slice_Set) is
    begin
@@ -262,7 +290,7 @@ procedure MVEmuA is
 
       Start_Time := Clock;
 
-      CPU.Run (Debug_Logging, Console_Radix, I_Counts);
+      CPU.Run (Debug_Logging, Console_Radix, Breakpoints, I_Counts);
 
       Elapsed := Clock - Start_Time;
       I_Count := CPU.Actions.Get_Instruction_Count;
@@ -287,10 +315,20 @@ procedure MVEmuA is
          return;
       end if;
       declare
+         use Ada.Containers;
          What : String := Slice (Command, 2);
       begin
          if What = "DEV" then
             TTOut.Put_String (Dasher_NL & Devices.Bus.Actions.Get_Printable_Device_List);
+         elsif What = "BREAK" then
+            if Breakpoints.Length = 0 then
+               TTOut.Put_String (Dasher_NL & " *** No Breakpoints are set ***");
+            else
+               TTOut.Put_String (Dasher_NL & " *** Breakpoints: ");
+               for BP of Breakpoints loop
+                  TTOut.Put_String (Dword_To_String(Dword_T(BP), Console_Radix, 12, false));
+               end loop;
+            end if;
          else
             TTOut.Put_String (Dasher_NL & " *** Unknown or Unimplemented SHOW command");
          end if;
@@ -329,6 +367,8 @@ procedure MVEmuA is
       -- enulator commands
       elsif Command = "ATT" then
          Attach (Words);
+      elsif Command = "BREAK" then
+         Break_Set (Words);   
       elsif Command = "CHECK" then
          Check (Words);
       elsif Command = "CREATE" then
@@ -339,7 +379,9 @@ procedure MVEmuA is
          Do_Script (Words);        
       elsif Command = "exit" or Command = "EXIT" or command = "quit" or command = "QUIT" then
          Clean_Exit;
-      elsif Command = "SHOW" then
+      elsif Command = "NOBREAK" then
+         Break_Clear (Words);   
+      elsif Command = "SHOW" or Command = "SHO" or Command = "SH" then
          Show (Words);
       else
          Devices.Console.TTOut.Put_String (Dasher_NL & " *** Unknown SCP-CLI Command ***");
