@@ -608,6 +608,8 @@ package body CPU is
       procedure Eclipse_Mem_Ref (I : in Decoded_Instr_T) is
          Addr : Phys_Addr_T;
          Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+         Bit_Num : Natural;
+         Word : Word_T;
       begin
          case I.Instruction is
 
@@ -636,6 +638,17 @@ package body CPU is
                      CPU.AC(3) := Dword_T(Dest);
                   end if;
                end;
+
+            when I_BTO | I_BTZ =>
+               Resolve_Eclipse_Bit_Addr (I.Acd, I.Acs, Addr, Bit_Num);
+               Addr := Addr or Ring;
+               Word := RAM.Read_Word (Addr);
+               if I.Instruction = I_BTO then
+                  Set_W_Bit (Word, Bit_Num);
+               else
+                  Clear_W_Bit (Word, Bit_Num);
+               end if;
+               RAM.Write_Word (Addr, Word);
 
             when I_CMP =>
                declare
@@ -743,7 +756,7 @@ package body CPU is
             when I_ADDI =>
                S16 := Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)));
                S16 := S16 + Word_To_Integer_16(I.Word_2);
-               CPU.AC(I.Ac) := Dword_T(S16) and 16#0000_ffff#;
+               CPU.AC(I.Ac) := Dword_T(Integer_16_To_Word(S16)) and 16#0000_ffff#;
 
             when I_ADI =>
                Word := Lower_Word (CPU.AC(I.Ac));
@@ -753,6 +766,21 @@ package body CPU is
             when I_ANDI =>
                Word := Lower_Word (CPU.AC(I.Ac));
                CPU.AC(I.Ac) := Dword_T(Word and Integer_16_To_Word(I.Imm_S16)) and 16#0000_ffff#;
+
+            when I_DHXL =>
+               declare
+                  D_Plus_1 : AC_ID;
+               begin
+                  if I.Acd = 3 then
+                     D_Plus_1 := 0;
+                  else
+                     D_Plus_1 := I.Acd + 1;
+                  end if;
+                  Dword := Dword_From_Two_Words (Lower_Word(CPU.AC(I.Acd)), Lower_Word(CPU.AC(D_Plus_1)));
+                  Dword := Shift_Left (Dword, Natural(I.Imm_U16) * 4);
+                  CPU.AC(I.Acd) := Dword_T(Upper_Word (Dword));
+                  CPU.AC(D_Plus_1) := Dword_T(Lower_Word (Dword));
+               end;
 
             when I_DLSH =>
                declare
@@ -779,6 +807,10 @@ package body CPU is
                   CPU.AC(I.Acd) := Dword_T(Upper_Word (Dword));
                   CPU.AC(D_Plus_1) := Dword_T(Lower_Word (Dword));
                end;
+
+            when I_IOR =>
+               Word := Lower_Word (CPU.AC(I.Acd)) or Lower_Word (CPU.AC(I.Acs));
+               CPU.AC(I.Acd) := Dword_T(Word);
 
             when I_IORI =>
                Word := Lower_Word (CPU.AC(I.Ac)) or I.Word_2;
