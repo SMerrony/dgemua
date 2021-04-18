@@ -145,7 +145,7 @@ package body Devices.Disk6061 is
                             return;
                        end if;
                        if State.Sector >= Word_T(Sectors_Per_Track) then
-                            State.Sector_Cnt := 0;
+                            State.Sector := 0;
                             State.Surface := State.Surface + 1;
                        end if;    
                        if State.Surface >= Word_T(Surfaces_Per_Disk) then
@@ -185,7 +185,7 @@ package body Devices.Disk6061 is
                                     return;
                             end if;
                             if State.Sector >= Word_T(Sectors_Per_Track) then
-                                    State.Sector_Cnt := 0;
+                                    State.Sector := 0;
                                     State.Surface := State.Surface + 1;
                             end if;    
                             if State.Surface >= Word_T(Surfaces_Per_Disk) then
