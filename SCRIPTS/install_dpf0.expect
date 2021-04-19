@@ -1,0 +1,25 @@
+# Mini-Expect DasherG script that installs AOS/VS onto DPF0.
+# It is assumed that mvem is running and at the TBOOT "file number" prompt.
+# See LICENCE file for detais.
+send "3\n"
+expect "name? "
+send "DPF0\n"
+expect "27] ?  "
+send "\n"
+expect "[Y] ?  "
+send "\n"
+expect "MTC0] ?  "
+send "\n"
+expect "22] ?  "
+send "\n"
+expect "4] ?  "
+send "\n"
+expect "[Y] ?  "
+send "\n"
+expect "MTC0] ?  "
+send "\n"
+expect "22] ?  "
+send "\n"
+expect "5] ?  "
+send "\n"
+exit

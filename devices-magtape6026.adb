@@ -202,7 +202,7 @@ package body Devices.Magtape6026 is
                     Datum := State.Status_Reg_1;
                     Loggers.Debug_Print (Mt_Log, "DIA - Read SR1 - returning: " & Datum'Image);
                  when B => --Read memory addr register 1 - see p.IV-19 of Peripherals guide
-                    Datum := Word_T(State.Mem_Addr_Reg);
+                    Datum := Word_T(State.Mem_Addr_Reg and 16#0000_ffff#);
                     Loggers.Debug_Print (Mt_Log, "DIB - Read MA - returning: " & Datum'Image);  
                 when C => -- Read status register 2 - see p.IV-18 of Peripherals guide
                     Datum := State.Status_Reg_2;

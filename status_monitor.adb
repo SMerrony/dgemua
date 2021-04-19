@@ -20,7 +20,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Ada.Calendar;
+with Ada.Real_Time;         use Ada.Real_Time;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Integer_Text_IO;   use Ada.Integer_Text_IO;
@@ -43,6 +43,23 @@ with Memory;   use Memory;
 -- status as often as it sees fit.
 package body Status_Monitor is
 
+   function To_Float(TS : Time_Span) return Float is
+      SC1, SC2, SC3 : Seconds_Count;
+      TS1, TS2, TS3 : Time_Span;
+   begin
+      -- Use Split(Time_Of()) to split time span into seconds and fraction
+      -- Repeat twice to get microseconds and fraction thereof
+      Split(Time_Of(0, TS), SC1, TS1);
+      Split(Time_Of(0, TS1*1000), SC2, TS2);
+      Split(Time_Of(0, TS2*1000), SC3, TS3);
+      -- NOTE: it is safe to multiply by 1000 because RM95 D.8(31)
+      -- guarantees that Time_Span'Last is >= 3600 seconds.
+
+      -- Finally do the conversion of the remaining time-span to duration
+      -- and add to other pieces.
+      return (Float(SC1)*1.0E9 + Float(SC2)*1.0E6 + Float(SC3)*1.0E3 + Float(To_Duration(TS3*1000))) / 1.0E9;
+   end To_Float;
+
    task body Monitor is
       Receiver              : GNAT.Sockets.Socket_Type;
       Connection            : GNAT.Sockets.Socket_Type;
@@ -52,9 +69,17 @@ package body Status_Monitor is
       CPU_Stats             : CPU.CPU_Monitor_Rec;
       DPF_Stats             : Devices.Disk6061.Status_Rec;
       MTB_Stats             : Devices.Magtape6026.Status_Rec;
-      Last_CPU_Time         : Ada.Calendar.Time;
+      Now, 
+      Last_CPU_Time,
+      Last_DPF_Time         : Time;
+      CPU_Elapsed,
+      DPF_Elapsed           : Time_Span;
       I_Count, Last_I_Count : Unsigned_64 := 0;
       MIPS                  : Float;
+      MIPS_I                : Natural;
+      DPF_IO_Count, Last_DPF_IO_Count : Unsigned_64 := 0;
+      DPF_IOPS              : Float;
+      DPF_IOPS_I            : Natural;
    begin
       loop
          select
@@ -86,20 +111,21 @@ package body Status_Monitor is
             accept CPU_Update (Stats : in CPU.CPU_Monitor_Rec) do
                CPU_Stats := Stats;
             end CPU_Update;
+            Now := Clock;
             I_Count      := CPU_Stats.Instruction_Count - Last_I_Count;
             Last_I_Count := CPU_Stats.Instruction_Count;
-   -- // ips = float64(iCount) / (time.Since(lastCPUtime).Seconds() * 1000)
-            MIPS := Float (I_Count);
-            -- // lastCPUtime = time.Now()
+            CPU_Elapsed := Now - Last_CPU_Time;
+            MIPS := Float (I_Count) / To_Float(CPU_Elapsed);
+            MIPS_I := Natural(MIPS) / 1000;
+            Last_CPU_Time := Now;
             String'Write
                (Channel,
                Dasher_Write_Window_Addr & Character'Val (0) &
                Character'Val (CPU_Row_1) & Dasher_Erase_EOL);
-            -- "PC:  %011o   Interrupts: %s    ATU: %s     IPS: %.fk/sec"
             String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(CPU_Stats.PC), Radix, 11, true) & 
                                     "  Interrupts: " & Memory.Boolean_To_YN (CPU_Stats.ION) &
                                     "     ATU: " & Memory.Boolean_To_YN (CPU_Stats.ATU) &
-                                    "            MIPS: "  );
+                                    "            KIPS: " & MIPS_I'Image );
             String'Write
                (Channel,
                Dasher_Write_Window_Addr & Character'Val (0) &
@@ -112,6 +138,13 @@ package body Status_Monitor is
             accept DPF_Update (Stats : in Devices.Disk6061.Status_Rec) do
                DPF_Stats := Stats;
             end DPF_Update;    
+            Now := Clock;
+            DPF_IO_Count := DPF_Stats.Reads + DPF_Stats.Writes - Last_DPF_IO_Count;
+            Last_DPF_IO_Count := DPF_Stats.Reads + DPF_Stats.Writes;
+            DPF_Elapsed := Now - Last_DPF_Time;
+            DPF_IOPS := Float(DPF_IO_Count) / To_Float(DPF_Elapsed);
+            DPF_IOPS_I := Natural(DPF_IOPS) / 1000;
+            Last_DPF_Time := Now;
             String'Write
                (Channel,
                Dasher_Write_Window_Addr & Character'Val (0) &
@@ -119,9 +152,10 @@ package body Status_Monitor is
             String'Write
                (Channel,
                "DPF:  (DPF0) - Attached: " & Memory.Boolean_To_YN (DPF_Stats.Image_Attached) &
-               "  Cylinder: " & DPF_Stats.Cylinder'Image & 
-               "  Surface: " & DPF_Stats.Surface'Image &
-               "  Sector: " & DPF_Stats.Sector'Image);   
+               "  Cyl: " & DPF_Stats.Cylinder'Image & 
+               "  Surf: " & DPF_Stats.Surface'Image &
+               "  Sect: " & DPF_Stats.Sector'Image &
+               "  KIOPS: " & DPF_IOPS_I'Image);   
          or
             accept MTB_Update (Stats : in Devices.Magtape6026.Status_Rec) do
                MTB_Stats := Stats;

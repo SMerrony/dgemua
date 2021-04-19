@@ -707,6 +707,55 @@ package body CPU is
                   end if;
                end;
                
+            when I_CMV =>
+               declare
+                  Dest_Ascend, Src_Ascend : Boolean;
+                  Dest_Cnt, Src_Cnt : Integer_16;
+               begin
+                  Dest_Cnt := Word_To_Integer_16(Lower_Word(CPU.AC(0)));
+                  if Dest_Cnt = 0 then
+                     Loggers.Debug_Print (Debug_Log, "WARNING: CMV called with AC0 = 0, not moving anything");
+                     CPU.Carry := false;
+                  else
+                     Dest_Ascend := Dest_Cnt > 0;
+                     Src_Cnt := Word_To_Integer_16(Lower_Word(CPU.AC(3)));
+                     Src_Ascend := Src_Cnt > 0;
+                     CPU.Carry := (Abs Src_Cnt) > (Abs Dest_Cnt);
+                     -- move Src_Cnt bytes
+                     loop
+                        RAM.Write_Byte_Eclipse_BA(Ring, Lower_Word(CPU.AC(2)), 
+                                                  RAM.Read_Byte_Eclipse_BA(Ring, Lower_Word(CPU.AC(3))));
+                        if Src_Ascend then
+                           CPU.AC(3) := CPU.AC(3) + 1;
+                           Src_Cnt := Src_Cnt - 1;
+                        else
+                           CPU.AC(3) := CPU.AC(3) - 1;
+                           Src_Cnt := Src_Cnt + 1;
+                        end if;
+                        if Dest_Ascend then
+                           CPU.AC(2) := CPU.AC(2) + 1;
+                           Dest_Cnt := Dest_Cnt - 1;
+                        else
+                           CPU.AC(2) := CPU.AC(2) - 1;
+                           Dest_Cnt := Dest_Cnt + 1;
+                        end if;
+                        exit when (Src_Cnt = 0) or (Dest_Cnt = 0);
+                     end loop;
+                     -- now fill any excess bytes with ASCII spaces
+                     while Dest_Cnt /= 0 loop
+                        RAM.Write_Byte_Eclipse_BA(Ring, Lower_Word(CPU.AC(2)), 32);
+                        if Dest_Ascend then
+                           CPU.AC(2) := CPU.AC(2) + 1;
+                           Dest_Cnt := Dest_Cnt - 1;
+                        else
+                           CPU.AC(2) := CPU.AC(2) - 1;
+                           Dest_Cnt := Dest_Cnt + 1;
+                        end if;
+                     end loop;
+                     CPU.AC(0) := 0;
+                     CPU.AC(1) := Dword_T(Src_Cnt);
+                  end if;                  
+               end;
             when I_ELDA =>
                Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
                CPU.AC(I.Ac) := Dword_T(RAM.Read_Word(Addr));

@@ -25,7 +25,7 @@ project Mvemua is
       case Mode is
 
          when "debug" =>
-            for Switches ("ada") use ("-j4");
+            for Switches ("ada") use ("-j4", "-g");
 
          when "release" =>
 

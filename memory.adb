@@ -76,6 +76,14 @@ package body Memory is
          return Read_Byte(Addr, Low_Byte);
       end Read_Byte_Eclipse_BA;
 
+      procedure Write_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T; Datum : in Byte_T) is
+         Low_Byte : Boolean := Test_W_Bit(BA_16, 15);
+         Addr : Phys_Addr_T;
+      begin
+         Addr := Shift_Right(Phys_Addr_T(BA_16), 1) or Segment;
+         Write_Byte (Addr, Low_Byte, Datum);
+      end Write_Byte_Eclipse_BA;
+
       function Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T is
       begin
          return
