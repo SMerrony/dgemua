@@ -51,6 +51,8 @@ package DG_Types is
     Dasher_Dim_Off     : constant Character := Character'Val(8#35#);
     Dasher_Delete      : constant Character := Character'Val(8#177#);
 
+    Max_Pos_S16 : constant Integer_32 :=  (2 ** 15) - 1;
+    Min_Neg_S16 : constant Integer_32 := -(Max_Pos_S16 + 1);
     Max_Pos_S32 : constant Integer_64 :=  (2 ** 31) - 1;
     Min_Neg_S32 : constant Integer_64 := -(Max_Pos_S32 + 1);
 

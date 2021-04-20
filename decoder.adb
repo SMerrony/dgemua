@@ -445,6 +445,13 @@ package body Decoder is
                  Decoded.Acs'Image & "," & Decoded.Acd'Image & " " & String_Skip (Decoded.Skip);
             end if;
 
+         when ONEACC_1_WORD_FMT => -- eg. CVWN, HLV, LDAFP
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Ac'Image;
+            end if;
+
          when ONEACC_IMM_2_WORD_FMT => -- eg. IORI
             Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
@@ -516,6 +523,21 @@ package body Decoder is
                  " [2-Word Instruction]";
             end if;
 
+         when ONEACC_MODE_IND_3_WORD_FMT => -- eg. LLEF, LNADD/SUB LNDIV, LNLDA/STA, LNMUL, LWLDA/LWSTA, LNLDA
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 1, 2)));
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
+            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2, Decoded.Word_3, Decoded.Mode);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " &Decoded.Ac'Image & "," &
+                 Char_Indirect(Decoded.Ind) & 
+                 Int_To_String (Integer(Decoded.Disp_31), Radix, 11, false, true) & String_Mode(Decoded.Mode) &
+                 " [3-Word Instruction]";
+            end if;
+
          when SPLIT_8BIT_DISP_FMT => -- eg. WBR, always a signed displacement
             Tmp_8bit := Byte_T(Memory.Get_W_Bits(Opcode, 1, 4));
             Tmp_8bit := Shift_Left (Tmp_8bit, 4);
@@ -532,6 +554,17 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Acs'Image & "," & Decoded.Acd'Image;
+            end if;
+
+         when TWOACC_IMM_2_WORD_FMT => -- eg. CIOI
+            Decoded.Acs     := AC_ID(Get_W_Bits (Opcode, 1, 2));
+            Decoded.Acd     := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & 
+                 Dword_To_String (Dword_T(Decoded.Word_2), Radix, 11) & "," &
+                 Decoded.Acs'Image & "," & Decoded.Acd'Image;
             end if;
 
          when UNIQUE_1_WORD_FMT => -- nothing to do 

@@ -237,6 +237,25 @@ package body CPU is
       begin
          case I.Instruction is
 
+            when I_LLEF =>
+               CPU.AC(I.Ac) := Dword_T(Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset));
+
+            when I_LNLDA =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               CPU.AC(I.Ac) := Sext_Word_To_Dword (RAM.Read_Word(Addr));
+
+            when I_LNSTA =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               RAM.Write_Word (Addr, Lower_Word(CPU.AC(I.Ac)));
+
+            when I_LWLDA =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               CPU.AC(I.Ac) := RAM.Read_Dword (Addr);
+
+            when I_LWSTA =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               RAM.Write_Dword (Addr, CPU.AC(I.Ac));
+
             when I_WBLM =>
                -- AC0 - unused, AC1 - no. wds to move (if neg then descending order), AC2 - src, AC3 - dest
                while CPU.AC(1) /= 0 loop
@@ -333,6 +352,23 @@ package body CPU is
                   end if;
                end;
                
+            when I_CIOI =>
+               -- TODO handle I/O channel
+               declare
+                  Map_Reg_Addr : Integer;
+               begin
+                  if I.Acs = I.Acd then
+                     Word := I.Word_2;
+                  else
+                     Word := I.Word_2 or Lower_Word (CPU.AC(I.Acs));
+                  end if;
+                  Map_Reg_Addr := Integer(Word and 16#0fff#);
+                  if Test_W_Bit (Word, 0) then -- write command
+                     BMC_DCH.Write_Reg (Map_Reg_Addr, Lower_Word(CPU.AC(I.Acd)));
+                  else  -- read command
+                     CPU.AC(I.Acd) := Dword_T(BMC_DCH.Read_Reg(Map_Reg_Addr));
+                  end if;
+               end;
 
             when I_ECLID | I_LCPID => -- these appear to be identical...
                Dwd := Shift_Left (Dword_T(Model_No), 16);
@@ -390,9 +426,30 @@ package body CPU is
 
             when I_CRYTZ =>
                CPU.Carry := false;
+            
+            when I_NADD =>
+               S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acd)))) + 
+                      Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acs))));
+               CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
+               Set_OVR (CPU.Carry);
+               CPU.AC(I.Acd) := Integer_32_To_Dword(S32);
 
             when I_NLDAI =>
                CPU.AC(I.Ac) := Sext_Word_To_Dword(I.Word_2);
+
+            when I_NMUL =>
+               S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acd)))) * 
+                      Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acs))));
+               CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
+               Set_OVR (CPU.Carry);
+               CPU.AC(I.Acd) := Integer_32_To_Dword(S32); 
+
+            when I_NSUB =>
+               S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acd)))) - 
+                      Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acs))));
+               CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
+               Set_OVR (CPU.Carry);
+               CPU.AC(I.Acd) := Integer_32_To_Dword(S32);
 
             when I_SSPT =>  -- NO-OP - see p.8-5 of MV/10000 Sys Func Chars 
                Loggers.Debug_Print(Debug_Log, "INFO: SSPT is a No-Op on this VM, continuing...");
@@ -414,11 +471,21 @@ package body CPU is
                Set_OVR (CPU.Carry);
                CPU.AC(I.Acd) := Dword_T(S64);
 
+            when I_WADI =>
+               S32 := Integer_32(Integer_16(I.Imm_U16));
+               S64 := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac))) + Integer_64(S32);
+               CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
+               Set_OVR(CPU.Carry);
+               CPU.AC(I.Ac) := Dword_T(S64);
+
             when I_WAND =>
                CPU.AC(I.Acd) := CPU.AC(I.Acd) and CPU.AC(I.Acs);
 
             when I_WANDI =>
                CPU.AC(I.Ac) := CPU.AC(I.Ac) and I.Imm_DW;
+
+            when I_WCOM =>
+               CPU.AC(I.Acd) := not CPU.AC(I.Acs);
 
             when I_WINC =>
                CPU.Carry := CPU.AC(I.Acs) = 16#ffff_ffff#; -- TODO handle overflow flag
@@ -431,12 +498,19 @@ package body CPU is
                CPU.AC(I.Ac) := I.Imm_DW;
 
             when I_WLSHI =>
-               Shift := Integer(Integer_8(I.Word_2));
+               Shift := Integer(Byte_To_Integer_8(Byte_T(I.Word_2 and 16#00ff#)));
                if Shift < 0 then -- shift right
                   CPU.AC(I.Ac) := Shift_Right (CPU.AC(I.Ac), -Shift);
                elsif Shift > 0 then -- shift left
                   CPU.AC(I.Ac) := Shift_Left (CPU.AC(I.Ac), Shift);
                end if;
+
+            when I_WNADI =>
+               Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Ac));
+               S64 := Integer_64(Acd_S32) + Integer_64(Word_To_Integer_16(I.Word_2));
+               CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
+               Set_OVR (CPU.Carry);
+               CPU.AC(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
 
             when I_WNEG =>
                CPU.Carry := CPU.AC(I.Acs) = 16#8000_0000#; -- TODO Error in PoP?
@@ -481,6 +555,33 @@ package body CPU is
          S32_S, S32_D : Integer_32;
       begin
          case I.Instruction is
+
+            when I_LJMP =>
+               CPU.PC := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+
+            when I_LJSR =>
+               CPU.AC(3) := Dword_T(CPU.PC) + 3;
+               CPU.PC := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+
+            when I_LNDSZ =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               Word := RAM.Read_Word(Addr) - 1;
+               RAM.Write_Word (Addr, Word);
+               if Word = 0 then
+                  CPU.PC := CPU.PC + 4;
+               else
+                  CPU.PC := CPU.PC + 3;
+               end if;
+                         
+            when I_LNISZ =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               Word := RAM.Read_Word(Addr) + 1;
+               RAM.Write_Word (Addr, Word);
+               if Word = 0 then
+                  CPU.PC := CPU.PC + 4;
+               else
+                  CPU.PC := CPU.PC + 3;
+               end if;  
 
             when I_LWDSZ =>
                Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
@@ -538,9 +639,9 @@ package body CPU is
                if I.Acs = I.Acd then
                   S32_D := 0;
                else
-                  S32_D := Integer_32(CPU.AC(I.Acd));
+                  S32_D := Dword_To_Integer_32(CPU.AC(I.Acd));
                end if;
-               S32_S := Integer_32(CPU.AC(I.Acs));
+               S32_S := Dword_To_Integer_32(CPU.AC(I.Acs));
                if I.Instruction = I_WSGE then
                   Skip := S32_S >= S32_D;
                elsif I.Instruction = I_WSGT then
@@ -596,7 +697,27 @@ package body CPU is
                else
                   CPU.PC := CPU.PC + 2;
                end if;
-               
+                           
+            when I_XWDSZ =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               DW   := RAM.Read_Dword (Addr) - 1;
+               RAM.Write_Dword (Addr, DW);
+               if DW = 0 then 
+                  CPU.PC := CPU.PC + 3;
+               else
+                  CPU.PC := CPU.PC + 2;
+               end if;
+                         
+            when I_XWISZ =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               DW   := RAM.Read_Dword (Addr) + 1;
+               RAM.Write_Dword (Addr, DW);
+               if DW = 0 then 
+                  CPU.PC := CPU.PC + 3;
+               else
+                  CPU.PC := CPU.PC + 2;
+               end if;  
+
             when others =>
                Put_Line ("ERROR: EAGLE_PC instruction " & To_String(I.Mnemonic) & 
                          " not yet implemented");
