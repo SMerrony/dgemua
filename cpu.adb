@@ -726,6 +726,172 @@ package body CPU is
          end case;
       end Eagle_PC;
 
+      -- Wide Stack Helper subprograms...
+
+      procedure WS_Pop (DW : out Dword_T) is
+      begin
+         DW := RAM.Read_Dword (CPU.WSP);
+         CPU.WSP := CPU.WSP - 2;
+      end WS_Pop;
+
+      procedure WS_Push (Datum : in Dword_T) is
+      begin
+         CPU.WSP := CPU.WSP + 2;
+         RAM.Write_Dword (CPU.WSP, Datum);
+      end WS_Push;
+
+      -- WSP_Check_Bounds does a pre-flight check to see if the intended change of WSP would cause a stack fault
+      -- Is_Save must be set by WMSP, WSSVR, WSSVS, WSAVR & WSAVS
+      procedure WSP_Check_Bounds (Delta_Words : in Integer; Is_Save : in Boolean;
+                                  OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
+      begin
+         OK := true;
+         if Delta_Words > 0 then
+            if CPU.WSP + Phys_Addr_T(Delta_Words) > CPU.WSL then
+               OK := false;
+               Secondary_Fault := WSF_Overflow;
+               if Is_Save then
+                  Primary_Fault := WSF_Pending;
+               else
+                  Primary_Fault := WSF_Overflow;
+               end if;
+            end if;
+         else
+            if CPU.WSP - Phys_Addr_T(abs Delta_Words) < CPU.WSB then
+               OK := false;
+               Secondary_Fault := WSF_Underflow;
+               if Is_Save then
+                  Primary_Fault := WSF_Pending;
+               else
+                  Primary_Fault := WSF_Underflow;
+               end if;
+            end if;
+         end if;
+      end WSP_Check_Bounds;
+
+      procedure WSP_Handle_Fault (Ring : in Phys_Addr_T; I_Len : in Positive; Primary_Fault, Secondary_Fault : in Dword_T) is
+         DW : Dword_T;
+         WSFH_Addr : Phys_Addr_T;
+      begin
+         -- from pp.5-23 of PoP
+         -- step 1
+         if Primary_Fault = WSF_Overflow then
+            CPU.WSP := CPU.WSL; -- Seems odd, should this be WSB???
+         end if;
+         -- step 2
+         DW := Dword_T(CPU.PC);
+         if Primary_Fault /= WSF_Pending then
+            DW := DW + Dword_T(I_Len);
+         end if;
+         if CPU.Carry then
+            DW := DW or 16#8000_0000#;
+         end if;
+         WS_Push (Dword_From_Two_Words(CPU.PSR, 0));
+         WS_Push (CPU.AC(0));
+         WS_Push (CPU.AC(1));
+         WS_Push (CPU.AC(2));
+         WS_Push (Dword_T(CPU.WFP));
+         WS_Push (DW);
+         -- step 3
+         Clear_W_Bit (CPU.PSR, 0); -- OVK
+         Clear_W_Bit (CPU.PSR, 1); -- OVR
+         Clear_W_Bit (CPU.PSR, 2); -- IRES
+         -- step 4
+         CPU.WSP := CPU.WSP and 16#7fff_ffff#;
+         -- step 5
+         CPU.WSL := CPU.WSL or 16#8000_0000#;
+         -- step 6
+         RAM.Write_Dword (Ring and WFP_Loc, Dword_T(CPU.WFP));
+         RAM.Write_Dword (Ring and WSP_Loc, Dword_T(CPU.WSP));
+         RAM.Write_Dword (Ring and WSL_Loc, Dword_T(CPU.WSL));
+         RAM.Write_Dword (Ring and WSB_Loc, Dword_T(CPU.WSB));
+         -- step 7
+         CPU.AC(0) := Dword_T(CPU.PC);
+         -- step 8
+         CPU.AC(1) := Primary_Fault;
+         -- step 9
+         WSFH_Addr := Phys_Addr_T(RAM.Read_Word(Ring or WSFH_Loc)) or Ring;
+         Loggers.Debug_Print(Debug_Log, "Jumping to Wide Stack Fault Handler at " & 
+                            Dword_To_String (Dword_T(WSFH_Addr), Octal, 11));
+         CPU.PC := WSFH_Addr;
+      end WSP_Handle_Fault;
+
+      procedure Eagle_Stack (I : in Decoded_Instr_T) is
+         Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+         OK   : Boolean;
+         DW, Primary_Fault, Secondary_Fault : Dword_T;
+         Req_Space : Integer;
+      begin
+         case I.Instruction is
+
+            when I_WSAVR | I_WSAVS =>
+               Req_Space := Integer(Word_To_Integer_16(I.Word_2));
+               WSP_Check_Bounds (Delta_Words => (Req_Space * 2) + 12, 
+                                 Is_Save => true, 
+                                 OK => OK, 
+                                 Primary_Fault => Primary_Fault, 
+                                 Secondary_Fault => Secondary_Fault);
+               if not OK then
+                  Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WSAVR/S");
+                  WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+                  return; -- We have set the PC
+               end if;
+               DW := CPU.AC(3) and 16#7fff_ffff#;
+               if CPU.Carry then
+                  DW := DW or 16#8000_0000#;
+               end if;
+               WS_Push (CPU.AC(0));
+               WS_Push (CPU.AC(1));
+               WS_Push (CPU.AC(2));
+               WS_Push (Dword_T(CPU.WFP));
+               WS_Push (DW);
+               CPU.WFP := CPU.WSP;
+               CPU.AC(3) := Dword_T(CPU.WSP);
+               if Req_Space > 0 then
+                  CPU.WSP := CPU.WSP + Phys_Addr_T(Req_Space * 2);
+               end if;
+               if I.Instruction = I_WSAVR then
+                  Set_OVK (false);
+               else
+                  Set_OVK (true);
+               end if;
+
+
+            when I_STAFP =>
+               -- TODO Segment handling here?
+               CPU.WFP := Phys_Addr_T(CPU.AC(I.Ac));
+               -- according the PoP does not write through to page zero...
+               Set_OVR (false);
+            
+            when I_STASB =>
+               CPU.WSB := Phys_Addr_T(CPU.AC(I.Ac));
+               RAM.Write_Dword (Ring or WSB_Loc, CPU.AC(I.Ac));
+               Set_OVR (false);
+
+            when I_STASL =>
+               CPU.WSL := Phys_Addr_T(CPU.AC(I.Ac));
+               RAM.Write_Dword (Ring or WSL_Loc, CPU.AC(I.Ac));
+               Set_OVR (false);
+
+            when I_STASP =>
+               -- TODO Segment handling here?
+               CPU.WSP := Phys_Addr_T(CPU.AC(I.Ac));
+               -- according the PoP does not write through to page zero...
+               Set_OVR (false);
+
+            when I_STATS =>
+               RAM.Write_Dword (CPU.WSP, CPU.AC(I.Ac));
+               Set_OVR (false);
+
+            when others =>
+               Put_Line ("ERROR: EAGLE_STACK instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: EAGLE_STACK instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+         CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+      end Eagle_Stack;
+
       procedure Eclipse_Mem_Ref (I : in Decoded_Instr_T) is
          Addr : Phys_Addr_T;
          Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
@@ -1509,6 +1675,7 @@ package body CPU is
             when EAGLE_IO       => Eagle_IO(Instr);
             when EAGLE_OP       => Eagle_Op(Instr);
             when EAGLE_PC       => Eagle_PC(Instr);
+            when EAGLE_STACK    => Eagle_Stack(Instr);
             when ECLIPSE_MEMREF => Eclipse_Mem_Ref(Instr);
             when ECLIPSE_OP     => Eclipse_Op(Instr);
             when ECLIPSE_PC     => Eclipse_PC(Instr);
@@ -1591,6 +1758,15 @@ package body CPU is
          end loop;
          return To_String (Tmp_Dis);
       end Disassemble_Range;
+
+      procedure Set_OVK (New_OVK : in Boolean) is
+      begin
+        if New_OVK then
+            Set_W_Bit(CPU.PSR, 0);
+        else
+            Clear_W_Bit(CPU.PSR, 0);
+        end if;
+      end Set_OVK;
 
       procedure Set_OVR (New_OVR : in Boolean) is
       begin

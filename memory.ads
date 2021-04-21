@@ -37,11 +37,23 @@ package Memory is
 
     type Number_Base_T is (Binary, Octal, Decimal, Hex);
 
-    -- Page 0 special locations
+    -- Page 0 special locations for stacks
+    WSFH_Loc : constant Phys_Addr_T := 8#14#;
+    WFP_Loc : constant Phys_Addr_T := 8#20#;
+    WSP_Loc : constant Phys_Addr_T := 8#22#;
+    WSL_Loc : constant Phys_Addr_T := 8#24#;
+    WSB_Loc : constant Phys_Addr_T := 8#26#;
     NSP_Loc : constant Phys_Addr_T := 8#40#;
     NFP_Loc : constant Phys_Addr_T := 8#41#;
     NSL_Loc : constant Phys_Addr_T := 8#42#;
     NSF_Loc : constant Phys_Addr_T := 8#43#;
+
+    -- Wide Stack Fault codes 
+    WSF_Overflow        : constant Dword_T := 0;
+    WSF_Pending         : constant Dword_T := 1;
+    WSF_Too_Many_Args   : constant Dword_T := 2;
+    WSF_Underflow       : constant Dword_T := 3;
+    WSF_Return_Overflow : constant Dword_T := 4;
 
     type AC_Circle_T is array (0..7) of AC_ID;
     AC_Circle : constant AC_Circle_T := (0,1,2,3,0,1,2,3);

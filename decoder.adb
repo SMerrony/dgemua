@@ -388,6 +388,22 @@ package body Decoder is
                  Int_To_String (Integer(Decoded.Disp_31), Radix, 12, false, true) & String_Mode(Decoded.Mode);
             end if;
 
+         when NOACC_MODE_IND_3_WORD_XCALL_FMT => -- Unique to XCALL?
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            Decoded.Arg_Count := Integer(Decoded.Word_3);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " &
+                 Char_Indirect(Decoded.Ind) &
+                  Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & 
+                  String_Mode(Decoded.Mode) & "," &
+                  Decoded.Arg_Count'Image & " [3-Word Instruction]";
+            end if;
+
          when NOVA_DATA_IO_FMT => -- eg. DOA/B/C, DIA/B/C
             Decoded.Ac := AC_ID(Get_W_Bits (Opcode, 3, 2));
             if Decoded.Instruction = I_DIA or Decoded.Instruction = I_DIB or Decoded.Instruction = I_DIC then
@@ -571,7 +587,8 @@ package body Decoder is
             null;
 
          when UNIQUE_2_WORD_FMT =>
-            Decoded.Imm_U16 := Unsigned_16(RAM.Read_Word(PC + 1));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Imm_U16 := Unsigned_16(Decoded.Word_2);
 
          when WSKB_FMT => -- eg. WSKBO/Z
             Tmp_8bit := Byte_T(Memory.Get_W_Bits(Opcode, 1, 3));

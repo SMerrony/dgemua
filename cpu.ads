@@ -89,6 +89,7 @@ package CPU is
       procedure Execute (Instr : in Decoded_Instr_T);
       function  Disassemble_Range (Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) 
          return String;
+      procedure Set_OVK (New_OVK : in Boolean);
       procedure Set_OVR (New_OVR : in Boolean);
       function  Get_Compact_Status (Radix : Number_Base_T) return string;
       function  Get_Instruction_Count return Unsigned_64;
