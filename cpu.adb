@@ -30,7 +30,9 @@ with Devices;               use Devices;
 with Devices.Bus;           use Devices.Bus;
 with Devices.Console;
 with Debug_Logs;            use Debug_Logs;
+with DG_Floats;             use DG_Floats;
 with Memory;                use Memory;
+with Resolver;              use Resolver;
 with Status_Monitor;
 
 package body CPU is
@@ -230,15 +232,158 @@ package body CPU is
          Bit_Num := Natural(CPU.AC(Acd) and 16#000f#);
       end Resolve_Eclipse_Bit_Addr;
 
+      -- Wide Stack Helper subprograms...
+
+      procedure WS_Pop (DW : out Dword_T) is
+      begin
+         DW := RAM.Read_Dword (CPU.WSP);
+         CPU.WSP := CPU.WSP - 2;
+      end WS_Pop;
+
+      procedure WS_Pop_QW (QW : out Qword_T) is
+         RHS, LHS : Dword_T;
+      begin
+         WS_Pop(RHS);
+         WS_Pop(LHS);
+         QW := Shift_Left(Qword_T(LHS), 32) or Qword_T(RHS);
+      end WS_Pop_QW;
+
+
+      procedure WS_Push (Datum : in Dword_T) is
+      begin
+         CPU.WSP := CPU.WSP + 2;
+         RAM.Write_Dword (CPU.WSP, Datum);
+      end WS_Push;
+
+      procedure WS_Push_QW (Datum : in Qword_T) is
+      begin
+         CPU.WSP := CPU.WSP + 2;
+         RAM.Write_Dword (CPU.WSP, Dword_T( Shift_Right (Datum, 32)));
+         CPU.WSP := CPU.WSP + 2;
+         RAM.Write_Dword (CPU.WSP, Dword_T(Datum));
+      end WS_Push_QW;
+
+      -- WSP_Check_Bounds does a pre-flight check to see if the intended change of WSP would cause a stack fault
+      -- Is_Save must be set by WMSP, WSSVR, WSSVS, WSAVR & WSAVS
+      procedure WSP_Check_Bounds (Delta_Words : in Integer; Is_Save : in Boolean;
+                                  OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
+      begin
+         OK := true;
+         if Delta_Words > 0 then
+            if CPU.WSP + Phys_Addr_T(Delta_Words) > CPU.WSL then
+               OK := false;
+               Secondary_Fault := WSF_Overflow;
+               if Is_Save then
+                  Primary_Fault := WSF_Pending;
+               else
+                  Primary_Fault := WSF_Overflow;
+               end if;
+            end if;
+         else
+            if CPU.WSP - Phys_Addr_T(abs Delta_Words) < CPU.WSB then
+               OK := false;
+               Secondary_Fault := WSF_Underflow;
+               if Is_Save then
+                  Primary_Fault := WSF_Pending;
+               else
+                  Primary_Fault := WSF_Underflow;
+               end if;
+            end if;
+         end if;
+      end WSP_Check_Bounds;
+
+      procedure WSP_Handle_Fault (Ring : in Phys_Addr_T; I_Len : in Positive; Primary_Fault, Secondary_Fault : in Dword_T) is
+         DW : Dword_T;
+         WSFH_Addr : Phys_Addr_T;
+      begin
+         -- from pp.5-23 of PoP
+         -- step 1
+         if Primary_Fault = WSF_Overflow then
+            CPU.WSP := CPU.WSL; -- Seems odd, should this be WSB???
+         end if;
+         -- step 2
+         DW := Dword_T(CPU.PC);
+         if Primary_Fault /= WSF_Pending then
+            DW := DW + Dword_T(I_Len);
+         end if;
+         if CPU.Carry then
+            DW := DW or 16#8000_0000#;
+         end if;
+         WS_Push (Dword_From_Two_Words(CPU.PSR, 0));
+         WS_Push (CPU.AC(0));
+         WS_Push (CPU.AC(1));
+         WS_Push (CPU.AC(2));
+         WS_Push (Dword_T(CPU.WFP));
+         WS_Push (DW);
+         -- step 3
+         Clear_W_Bit (CPU.PSR, 0); -- OVK
+         Clear_W_Bit (CPU.PSR, 1); -- OVR
+         Clear_W_Bit (CPU.PSR, 2); -- IRES
+         -- step 4
+         CPU.WSP := CPU.WSP and 16#7fff_ffff#;
+         -- step 5
+         CPU.WSL := CPU.WSL or 16#8000_0000#;
+         -- step 6
+         RAM.Write_Dword (Ring and WFP_Loc, Dword_T(CPU.WFP));
+         RAM.Write_Dword (Ring and WSP_Loc, Dword_T(CPU.WSP));
+         RAM.Write_Dword (Ring and WSL_Loc, Dword_T(CPU.WSL));
+         RAM.Write_Dword (Ring and WSB_Loc, Dword_T(CPU.WSB));
+         -- step 7
+         CPU.AC(0) := Dword_T(CPU.PC);
+         -- step 8
+         CPU.AC(1) := Primary_Fault;
+         -- step 9
+         WSFH_Addr := Phys_Addr_T(RAM.Read_Word(Ring or WSFH_Loc)) or Ring;
+         Loggers.Debug_Print(Debug_Log, "Jumping to Wide Stack Fault Handler at " & 
+                            Dword_To_String (Dword_T(WSFH_Addr), Octal, 11));
+         CPU.PC := WSFH_Addr;
+      end WSP_Handle_Fault;
+
+      procedure Eagle_Decimal (I : in Decoded_Instr_T) Is
+      begin
+         case I.Word_2 is
+            when 0 => raise Execution_Failure with "ERROR: WDMOV Not Yet Implemented";
+            when 1 => -- WDCMP
+               -- Short-circuit certain equality
+               if (CPU.AC(0) = CPU.AC(1) and (CPU.AC(2) = CPU.AC(3))) then
+                  CPU.AC(1) := 0;
+               else
+                  raise Execution_Failure with "ERROR: WDCMP not fully implemented";
+               end if;
+            when 2 => raise Execution_Failure with "ERROR: WDINC Not Yet Implemented";
+            when 3 => raise Execution_Failure with "ERROR: WDDEC Not Yet Implemented";
+            when others =>
+               Put_Line ("ERROR: EAGLE_DECIMAL instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented");
+               raise Execution_Failure with "ERROR: EAGLE_DECIMAL instruction " & To_String(I.Mnemonic) & 
+                         " not yet implemented";
+         end case;
+         CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+      end Eagle_Decimal;
+
       procedure Eagle_Mem_Ref (I : in Decoded_Instr_T) is
          Addr : Phys_Addr_T;
          Word : Word_T;
          S64  : Integer_64;
+         I32  : Integer_32;
+         DW   : Dword_T;
       begin
          case I.Instruction is
 
             when I_LLEF =>
                CPU.AC(I.Ac) := Dword_T(Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset));
+
+            when I_LLEFB =>
+               DW := Shift_Right(Dword_T(I.Disp_32), 1);
+               if Test_DW_Bit (Dword_T(I.Disp_32), 0) then
+                  DW := DW or 16#8000_0000#;
+               end if;
+               I32 := Dword_To_Integer_32(DW);
+               Addr := Shift_Left(Resolve_31bit_Disp (false, I.Mode, I32, I.Disp_Offset), 1);
+               if Test_DW_Bit (Dword_T(I.Disp_32), 31) then
+                  Addr := Addr or 1;
+               end if;
+               CPU.AC(I.Ac) := Dword_T(Addr);
 
             when I_LNLDA =>
                Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
@@ -247,15 +392,30 @@ package body CPU is
             when I_LNSTA =>
                Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
                RAM.Write_Word (Addr, Lower_Word(CPU.AC(I.Ac)));
+            
+            when I_LWADD =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               I32 := Dword_To_Integer_32(RAM.Read_Dword(Addr)) + Dword_To_Integer_32(CPU.AC(I.Ac));
+               CPU.AC(I.Ac) := Integer_32_To_Dword(I32);
 
             when I_LWLDA =>
                Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
                CPU.AC(I.Ac) := RAM.Read_Dword (Addr);
 
+            when I_LWMUL =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               I32 := Dword_To_Integer_32(RAM.Read_Dword(Addr)) * Dword_To_Integer_32(CPU.AC(I.Ac));
+               CPU.AC(I.Ac) := Integer_32_To_Dword(I32);
+   
             when I_LWSTA =>
                Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
                RAM.Write_Dword (Addr, CPU.AC(I.Ac));
 
+            when I_LWSUB =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               I32 := Dword_To_Integer_32(CPU.AC(I.Ac)) - Dword_To_Integer_32(RAM.Read_Dword(Addr));
+               CPU.AC(I.Ac) := Integer_32_To_Dword(I32);
+   
             when I_WBLM =>
                -- AC0 - unused, AC1 - no. wds to move (if neg then descending order), AC2 - src, AC3 - dest
                while CPU.AC(1) /= 0 loop
@@ -271,6 +431,26 @@ package body CPU is
                      CPU.AC(3) := CPU.AC(3) + 1;
                   end if;
                end loop;
+
+            when I_WBTO | I_WBTZ =>
+               declare
+                  Offset : Phys_Addr_T := Phys_Addr_T(Shift_Right(CPU.AC(I.Acd), 4));
+                  Bit_Num : Integer := Integer(CPU.AC(I.Acd) and 16#0000_000f#);
+               begin
+                  if I.Acs = I.Acd then
+                     Addr := CPU.PC and 16#7000_0000#;
+                  else
+                     Addr := Resolve_32bit_Indirectable_Addr(CPU.ATU, CPU.AC(I.Acs));
+                  end if;
+                  Word := RAM.Read_Word (Addr + Offset);
+                  if I.Instruction = I_WBTO then
+                     Set_W_Bit (Word, Bit_Num);
+                  else
+                     Clear_W_Bit (Word, Bit_Num);
+                  end if;
+                  RAM.Write_Word (Addr + Offset, Word);
+               end;            
+
   
             when I_XLDB =>
                Addr := Resolve_15bit_Disp (false, I.Mode, I.Disp_15, I.Disp_Offset); -- TODO 'Long' resolve???
@@ -471,12 +651,22 @@ package body CPU is
                Set_OVR (CPU.Carry);
                CPU.AC(I.Acd) := Dword_T(S64);
 
+            when I_WADDI =>
+               S32 := Dword_To_Integer_32(I.Imm_DW);
+               S64 := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac))) + Integer_64(S32);
+               CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
+               Set_OVR(CPU.Carry);
+               CPU.AC(I.Ac) := Dword_T(S64);
+
             when I_WADI =>
                S32 := Integer_32(Integer_16(I.Imm_U16));
                S64 := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac))) + Integer_64(S32);
                CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
                Set_OVR(CPU.Carry);
                CPU.AC(I.Ac) := Dword_T(S64);
+
+            when I_WANC => -- fnarr, fnarr
+               CPU.AC(I.Acd) := CPU.AC(I.Acd) and (not CPU.AC(I.Acs));
 
             when I_WAND =>
                CPU.AC(I.Acd) := CPU.AC(I.Acd) and CPU.AC(I.Acs);
@@ -487,9 +677,31 @@ package body CPU is
             when I_WCOM =>
                CPU.AC(I.Acd) := not CPU.AC(I.Acs);
 
+            when I_WDIV =>
+               if CPU.AC(I.Acs) /= 0 then
+                  Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
+                  Acs_S32 := Dword_To_Integer_32(CPU.AC(I.Acs));
+                  S64 := Integer_64(Acd_S32) / Integer_64(Acs_S32);
+                  if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
+                     Set_OVR(true);
+                  else
+                     CPU.AC(I.Acd) := Dword_T(S64);
+                     Set_OVR(false);
+                  end if;
+               else
+                  Set_OVR (true);
+               end if;
+
+            when I_WHLV =>
+               S32 := Dword_To_Integer_32(CPU.AC(I.Ac)) / 2;
+               CPU.AC(I.Ac) := Integer_32_To_Dword(S32);
+
             when I_WINC =>
                CPU.Carry := CPU.AC(I.Acs) = 16#ffff_ffff#; -- TODO handle overflow flag
                CPU.AC(I.Acd) := CPU.AC(I.Acs) + 1;
+
+            when I_WIOR =>
+               CPU.AC(I.Acd) :=  CPU.AC(I.Acd) or CPU.AC(I.Acs);
 
             when I_WIORI =>
                CPU.AC(I.Ac) := CPU.AC(I.Ac) or I.Imm_DW;
@@ -504,6 +716,17 @@ package body CPU is
                elsif Shift > 0 then -- shift left
                   CPU.AC(I.Ac) := Shift_Left (CPU.AC(I.Ac), Shift);
                end if;
+
+            when I_WLSI =>
+               CPU.AC(I.Ac) := Shift_Left (CPU.AC(I.Ac), Integer(I.Imm_U16));
+
+            when I_WMUL =>
+               Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
+               Acs_S32 := Dword_To_Integer_32(CPU.AC(I.Acs));
+               S64 := Integer_64(Acd_S32) * Integer_64(Acs_S32);
+               CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
+               Set_OVR (CPU.Carry);
+               CPU.AC(I.Acd) := Dword_T(S64);
 
             when I_WNADI =>
                Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Ac));
@@ -556,6 +779,76 @@ package body CPU is
       begin
          case I.Instruction is
 
+            when I_DSZTS | I_ISZTS =>
+               Addr := CPU.WSP;
+               if I.Instruction = I_DSZTS then
+                  DW := RAM.Read_Dword (Addr) - 1;
+               else 
+                  DW := RAM.Read_Dword (Addr) + 1;
+               end if;
+               RAM.Write_Dword (Addr, DW);
+               Set_OVR (false);
+               if DW = 0 then
+                  CPU.PC := CPU.PC + 2;
+               else
+                  CPU.PC := CPU.PC + 1;
+               end if;
+
+            when I_LCALL => -- FIXME - LCALL only handling trivial case
+               declare
+                  OK : Boolean;
+                  Primary_Fault, Secondary_Fault : Dword_T;
+                  Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+               begin
+                  CPU.AC(3) := Dword_T(CPU.PC) + 4;
+                  if I.Arg_Count >= 0 then
+                     DW := Dword_T(I.Arg_Count);
+                  else
+                     DW := RAM.Read_Dword (CPU.WSP) and 16#0000_ffff#;
+                  end if;
+                  DW := DW or Shift_Left(Dword_T(CPU.PSR), 16);
+                  WSP_Check_Bounds (Delta_Words => 2, 
+                                    Is_Save => false, 
+                                    OK => OK, 
+                                    Primary_Fault => Primary_Fault, 
+                                    Secondary_Fault => Secondary_Fault);
+                  if not OK then
+                     Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WSAVR/S");
+                     WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+                     -- return;
+                  end if;
+                  WS_Push (DW);
+                  CPU.PC := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset); 
+               end;
+
+            when I_LDSP =>
+               declare
+                  Hi, Lo : Integer_32;
+                  Val    : Integer_32 := Dword_To_Integer_32(CPU.AC(I.Ac));
+                  Table_Addr : Phys_Addr_T;
+                  Table_Ix : Phys_Addr_T;
+               begin
+                  Table_Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+                  Hi := Dword_To_Integer_32(RAM.Read_Dword(Table_Addr - 2));
+                  Lo := Dword_To_Integer_32(RAM.Read_Dword(Table_Addr - 4));
+                  if Val < Lo or Val > Hi then
+                     CPU.PC := CPU.PC + 3;
+                  else
+                     Table_Ix := Table_Addr + (2 * Phys_Addr_T(Val)) - (2 * Phys_Addr_T(Lo));
+                     DW := RAM.Read_Dword (Table_Ix);
+                     if Test_DW_Bit (DW, 4) then
+                        -- sign-extend from 28-bits
+                        DW := DW or 16#ffff_0000#;
+                     end if;
+                     if DW = 16#ffff_ffff# then
+                        CPU.PC := CPU.PC + 3;
+                     else
+                        S32_D := Integer_32(Table_Ix) + Dword_To_Integer_32(DW);
+                        CPU.PC := Phys_Addr_T(S32_D);
+                     end if;
+                  end if;
+               end;
+
             when I_LJMP =>
                CPU.PC := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
 
@@ -603,6 +896,22 @@ package body CPU is
                   CPU.PC := CPU.PC + 3;
                end if;
 
+            when I_NSALA =>
+               Word := not Lower_Word (CPU.AC(I.Ac));
+               if (Word and I.Word_2) = 0 then
+                  CPU.PC := CPU.PC + 3;
+               else
+                  CPU.PC := CPU.PC + 2;
+               end if;
+
+            when I_NSANA =>
+               Word := Lower_Word (CPU.AC(I.Ac));
+               if (Word and I.Word_2) = 0 then
+                  CPU.PC := CPU.PC + 3;
+               else
+                  CPU.PC := CPU.PC + 2;
+               end if;
+
             when I_WBR =>
                CPU.PC := Phys_Addr_T(Integer_32(CPU.PC) + Integer_32(I.Disp_8));
 
@@ -618,6 +927,30 @@ package body CPU is
                   Skip := CPU.Ac(I.Acs) /= DW;
                end if;
                if Skip then CPU.PC := CPU.PC + 2; else CPU.PC := CPU.PC + 1; end if;
+
+            when I_WCLM =>
+               declare
+                  Hi, Lo : Integer_32;
+                  Val    : Integer_32 := Dword_To_Integer_32(CPU.AC(I.Acs));
+               begin
+                  if I.Acs /= I.Acd then
+                     Lo := Dword_To_Integer_32(RAM.Read_Dword (Phys_Addr_T(CPU.AC(I.Acd))));
+                     Hi := Dword_To_Integer_32(RAM.Read_Dword (Phys_Addr_T(CPU.AC(I.Acd)+2)));
+                     if (Val >= Lo) and (Val <= Hi) then
+                        CPU.PC := CPU.PC + 2;
+                     else
+                        CPU.PC := CPU.PC + 1;
+                     end if;
+                  else
+                     Lo := Dword_To_Integer_32(RAM.Read_Dword (Phys_Addr_T(CPU.PC + 1)));
+                     Hi := Dword_To_Integer_32(RAM.Read_Dword (Phys_Addr_T(CPU.PC + 3)));
+                     if (Val >= Lo) and (Val <= Hi) then
+                        CPU.PC := CPU.PC + 6;
+                     else
+                        CPU.PC := CPU.PC + 5;
+                     end if;
+                  end if;
+               end;
 
             when I_WSEQI | I_WSGTI | I_WSLEI | I_WSNEI =>
                if I.Instruction = I_WSEQI then
@@ -670,6 +1003,17 @@ package body CPU is
                else
                   CPU.PC := CPU.PC + 1;
             end if;
+
+            when I_XCALL => -- FIXME - XCALL only handling trivial case
+               CPU.AC(3) := Dword_T(CPU.PC) + 3;
+               if I.Arg_Count >= 0 then
+                  DW := Shift_Left(Dword_T(CPU.PSR), 16);
+                  DW := DW or (Dword_T(I.Arg_Count) and 16#0000_ffff#);
+               else
+                  DW := Dword_T(I.Arg_Count) and 16#0000_7fff#;
+               end if;
+               WS_Push (DW);
+               CPU.PC := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
 
             when I_XJMP =>
                CPU.PC := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) or (CPU.PC and 16#7000_0000#);
@@ -726,103 +1070,137 @@ package body CPU is
          end case;
       end Eagle_PC;
 
-      -- Wide Stack Helper subprograms...
-
-      procedure WS_Pop (DW : out Dword_T) is
-      begin
-         DW := RAM.Read_Dword (CPU.WSP);
-         CPU.WSP := CPU.WSP - 2;
-      end WS_Pop;
-
-      procedure WS_Push (Datum : in Dword_T) is
-      begin
-         CPU.WSP := CPU.WSP + 2;
-         RAM.Write_Dword (CPU.WSP, Datum);
-      end WS_Push;
-
-      -- WSP_Check_Bounds does a pre-flight check to see if the intended change of WSP would cause a stack fault
-      -- Is_Save must be set by WMSP, WSSVR, WSSVS, WSAVR & WSAVS
-      procedure WSP_Check_Bounds (Delta_Words : in Integer; Is_Save : in Boolean;
-                                  OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
-      begin
-         OK := true;
-         if Delta_Words > 0 then
-            if CPU.WSP + Phys_Addr_T(Delta_Words) > CPU.WSL then
-               OK := false;
-               Secondary_Fault := WSF_Overflow;
-               if Is_Save then
-                  Primary_Fault := WSF_Pending;
-               else
-                  Primary_Fault := WSF_Overflow;
-               end if;
-            end if;
-         else
-            if CPU.WSP - Phys_Addr_T(abs Delta_Words) < CPU.WSB then
-               OK := false;
-               Secondary_Fault := WSF_Underflow;
-               if Is_Save then
-                  Primary_Fault := WSF_Pending;
-               else
-                  Primary_Fault := WSF_Underflow;
-               end if;
-            end if;
-         end if;
-      end WSP_Check_Bounds;
-
-      procedure WSP_Handle_Fault (Ring : in Phys_Addr_T; I_Len : in Positive; Primary_Fault, Secondary_Fault : in Dword_T) is
-         DW : Dword_T;
-         WSFH_Addr : Phys_Addr_T;
-      begin
-         -- from pp.5-23 of PoP
-         -- step 1
-         if Primary_Fault = WSF_Overflow then
-            CPU.WSP := CPU.WSL; -- Seems odd, should this be WSB???
-         end if;
-         -- step 2
-         DW := Dword_T(CPU.PC);
-         if Primary_Fault /= WSF_Pending then
-            DW := DW + Dword_T(I_Len);
-         end if;
-         if CPU.Carry then
-            DW := DW or 16#8000_0000#;
-         end if;
-         WS_Push (Dword_From_Two_Words(CPU.PSR, 0));
-         WS_Push (CPU.AC(0));
-         WS_Push (CPU.AC(1));
-         WS_Push (CPU.AC(2));
-         WS_Push (Dword_T(CPU.WFP));
-         WS_Push (DW);
-         -- step 3
-         Clear_W_Bit (CPU.PSR, 0); -- OVK
-         Clear_W_Bit (CPU.PSR, 1); -- OVR
-         Clear_W_Bit (CPU.PSR, 2); -- IRES
-         -- step 4
-         CPU.WSP := CPU.WSP and 16#7fff_ffff#;
-         -- step 5
-         CPU.WSL := CPU.WSL or 16#8000_0000#;
-         -- step 6
-         RAM.Write_Dword (Ring and WFP_Loc, Dword_T(CPU.WFP));
-         RAM.Write_Dword (Ring and WSP_Loc, Dword_T(CPU.WSP));
-         RAM.Write_Dword (Ring and WSL_Loc, Dword_T(CPU.WSL));
-         RAM.Write_Dword (Ring and WSB_Loc, Dword_T(CPU.WSB));
-         -- step 7
-         CPU.AC(0) := Dword_T(CPU.PC);
-         -- step 8
-         CPU.AC(1) := Primary_Fault;
-         -- step 9
-         WSFH_Addr := Phys_Addr_T(RAM.Read_Word(Ring or WSFH_Loc)) or Ring;
-         Loggers.Debug_Print(Debug_Log, "Jumping to Wide Stack Fault Handler at " & 
-                            Dword_To_String (Dword_T(WSFH_Addr), Octal, 11));
-         CPU.PC := WSFH_Addr;
-      end WSP_Handle_Fault;
-
       procedure Eagle_Stack (I : in Decoded_Instr_T) is
          Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
          OK   : Boolean;
          DW, Primary_Fault, Secondary_Fault : Dword_T;
+         QW : Qword_T;
          Req_Space : Integer;
+         First, Last, This_Ac : Natural;
+         Addr : Phys_Addr_T;
       begin
          case I.Instruction is
+
+           when I_LDAFP =>
+               CPU.AC(I.Ac) := Dword_T(CPU.WFP);
+               Set_OVR (false);
+            when I_LDASB =>
+               CPU.AC(I.Ac) := Dword_T(CPU.WSB);
+               Set_OVR (false); 
+            when I_LDASL =>
+               CPU.AC(I.Ac) := Dword_T(CPU.WSL);
+               Set_OVR (false);
+            when I_LDASP =>
+               CPU.AC(I.Ac) := Dword_T(CPU.WSP);
+               Set_OVR (false); 
+            when I_LDATS =>
+               CPU.AC(I.Ac) := RAM.Read_Dword (CPU.WSP);
+               Set_OVR (false);
+
+           when I_STAFP =>
+               -- TODO Segment handling here?
+               CPU.WFP := Phys_Addr_T(CPU.AC(I.Ac));
+               -- according the PoP does not write through to page zero...
+               Set_OVR (false);
+            
+            when I_STASB =>
+               CPU.WSB := Phys_Addr_T(CPU.AC(I.Ac));
+               RAM.Write_Dword (Ring or WSB_Loc, CPU.AC(I.Ac));
+               Set_OVR (false);
+
+            when I_STASL =>
+               CPU.WSL := Phys_Addr_T(CPU.AC(I.Ac));
+               RAM.Write_Dword (Ring or WSL_Loc, CPU.AC(I.Ac));
+               Set_OVR (false);
+
+            when I_STASP =>
+               -- TODO Segment handling here?
+               CPU.WSP := Phys_Addr_T(CPU.AC(I.Ac));
+               -- according the PoP does not write through to page zero...
+               Set_OVR (false);
+
+            when I_STATS =>
+               RAM.Write_Dword (CPU.WSP, CPU.AC(I.Ac));
+               Set_OVR (false);
+
+            when I_WFPOP =>
+               WS_Pop_QW (QW);   CPU.FPAC(3) := Long_Float(QW);
+               WS_Pop_QW (QW);   CPU.FPAC(2) := Long_Float(QW);
+               WS_Pop_QW (QW);   CPU.FPAC(1) := Long_Float(QW);
+               WS_Pop_QW (QW);   CPU.FPAC(0) := Long_Float(QW);
+               WS_Pop_QW (QW);
+               -- CPU.FPSR := 0;
+               CPU.FPSR := QW and 16#7ff0_0000_0000_0000#; -- copy bits 1..11
+               if (QW and 16#7800_0000_0000_0000#)  /= 0 then
+                  Set_QW_Bit (CPU.FPSR, 0);
+                  CPU.FPSR := QW and 16#0000_000f_0000_0000#; -- copy bits 28..31
+                  CPU.FPSR := QW and 16#0000_0000_7fff_ffff#; -- copy bits 33..63
+               end if;
+
+            when I_WFPSH =>
+               WS_Push_QW (CPU.FPSR); -- TODO Is this right?
+               WS_Push_QW (Qword_T(CPU.FPAC(0))); -- FIXME WRONG!
+               WS_Push_QW (Qword_T(CPU.FPAC(1)));
+               WS_Push_QW (Qword_T(CPU.FPAC(2)));
+               WS_Push_QW (Qword_T(CPU.FPAC(3)));
+
+            when I_WPOP =>
+               First := Natural(I.Acs);
+               Last  := Natural(I.Acd);
+               if Last > First then First := First + 4; end if;
+               This_Ac := First;
+               loop
+                  if CPU.Debug_Logging then
+                     Loggers.Debug_Print (Debug_Log, "POP popping AC" & This_AC'Image);
+                  end if;
+                  WS_Pop(CPU.AC(AC_Circle(This_AC)));
+                  exit when This_Ac = Last;
+                  This_Ac := This_Ac -1;
+               end loop;
+
+            when I_WPOPJ =>
+               WS_Pop(DW);
+               DW := (DW and 16#0fff_ffff#) or Dword_T(Ring);
+               CPU.PC := Phys_Addr_T(DW);
+               WSP_Check_Bounds (Delta_Words => 0, 
+                                 Is_Save => false, 
+                                 OK => OK, 
+                                 Primary_Fault => Primary_Fault, 
+                                 Secondary_Fault => Secondary_Fault);
+               if not OK then
+                  Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WPOPJ");
+                  WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+                  return; -- We have set the PC
+               end if;
+               return; -- we've set PC
+
+
+            when I_WPSH =>
+               First := Natural(I.Acs);
+               Last := Natural(I.Acd);
+               if Last < First then Last := Last + 4; end if;
+               for This_AC in First .. Last loop
+                  if CPU.Debug_Logging then
+                     Loggers.Debug_Print (Debug_Log, "WPSH pushing AC" & This_AC'Image);
+                  end if;   
+                  WS_Push (CPU.AC(AC_Circle(This_AC)));
+               end loop;
+               Set_OVR (false);
+
+            when I_WRTN => -- FIXME: WRTN incomplete, handle PSR and Rings
+               CPU.WSP := CPU.WFP;
+               WS_Pop (DW);
+               CPU.Carry := Test_DW_Bit (DW, 0);
+               CPU.PC := Phys_Addr_T(DW and 16#7fff_ffff#);
+               WS_Pop (CPU.AC(3));
+               CPU.WFP := Phys_Addr_T(CPU.AC(3));
+               WS_Pop (CPU.AC(2));
+               WS_Pop (CPU.AC(1));
+               WS_Pop (CPU.AC(0));
+               WS_Pop (DW);
+               CPU.PSR := Upper_Word (DW);
+               CPU.WSP := CPU.WSP - Phys_Addr_T (Shift_Left ((DW and 16#0000_7fff#), 1));
+               return; -- We've set PC
 
             when I_WSAVR | I_WSAVS =>
                Req_Space := Integer(Word_To_Integer_16(I.Word_2));
@@ -856,33 +1234,10 @@ package body CPU is
                   Set_OVK (true);
                end if;
 
-
-            when I_STAFP =>
-               -- TODO Segment handling here?
-               CPU.WFP := Phys_Addr_T(CPU.AC(I.Ac));
-               -- according the PoP does not write through to page zero...
-               Set_OVR (false);
-            
-            when I_STASB =>
-               CPU.WSB := Phys_Addr_T(CPU.AC(I.Ac));
-               RAM.Write_Dword (Ring or WSB_Loc, CPU.AC(I.Ac));
-               Set_OVR (false);
-
-            when I_STASL =>
-               CPU.WSL := Phys_Addr_T(CPU.AC(I.Ac));
-               RAM.Write_Dword (Ring or WSL_Loc, CPU.AC(I.Ac));
-               Set_OVR (false);
-
-            when I_STASP =>
-               -- TODO Segment handling here?
-               CPU.WSP := Phys_Addr_T(CPU.AC(I.Ac));
-               -- according the PoP does not write through to page zero...
-               Set_OVR (false);
-
-            when I_STATS =>
-               RAM.Write_Dword (CPU.WSP, CPU.AC(I.Ac));
-               Set_OVR (false);
-
+            when I_XPEF =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               WS_Push (Dword_T(Addr));
+ 
             when others =>
                Put_Line ("ERROR: EAGLE_STACK instruction " & To_String(I.Mnemonic) & 
                          " not yet implemented");
@@ -891,6 +1246,28 @@ package body CPU is
          end case;
          CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
       end Eagle_Stack;
+
+      procedure Eclipse_FPU (I : in Decoded_Instr_T) is
+      begin
+         case I.Instruction is
+
+            when I_FCLE =>
+               CPU.FPSR := 0; -- TODO verify - PoP contradicts itself
+
+            when I_FTD =>
+               Clear_QW_Bit (CPU.FPSR, FPSR_Te);
+
+            when I_FTE =>
+               Set_QW_Bit (CPU.FPSR, FPSR_Te);
+                     
+            when others =>
+               Put_Line ("ERROR: ECLIPSE_FPU instruction " & To_String(I.Mnemonic) & 
+                           " not yet implemented");
+               raise Execution_Failure with "ERROR: ECLIPSE_FPU instruction " & To_String(I.Mnemonic) & 
+                           " not yet implemented";
+         end case;
+         CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+      end Eclipse_FPU;
 
       procedure Eclipse_Mem_Ref (I : in Decoded_Instr_T) is
          Addr : Phys_Addr_T;
@@ -1670,12 +2047,13 @@ package body CPU is
       procedure Execute (Instr : in Decoded_Instr_T) is
       begin
          case Instr.Instr_Type is
-
+            when EAGLE_DECIMAL  => Eagle_Decimal(Instr);
             when EAGLE_MEMREF   => Eagle_Mem_Ref(Instr);
             when EAGLE_IO       => Eagle_IO(Instr);
             when EAGLE_OP       => Eagle_Op(Instr);
             when EAGLE_PC       => Eagle_PC(Instr);
             when EAGLE_STACK    => Eagle_Stack(Instr);
+            when ECLIPSE_FPU    => Eclipse_FPU(Instr);
             when ECLIPSE_MEMREF => Eclipse_Mem_Ref(Instr);
             when ECLIPSE_OP     => Eclipse_Op(Instr);
             when ECLIPSE_PC     => Eclipse_PC(Instr);

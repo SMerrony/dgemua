@@ -317,6 +317,11 @@ package body Memory is
       Word := Word and not Shift_Left (1, 15 - Bit_Num);
    end Clear_W_Bit;
 
+   procedure Clear_QW_Bit (QW : in out Qword_T; Bit_Num : in Integer) is
+   begin
+      QW := QW and not Shift_Left (1, 63 - Bit_Num);
+   end Clear_QW_Bit;
+
    -- Flip_W_Bit flips a single bit in a Word using DG numbering
    procedure Flip_W_Bit (Word : in out Word_T; Bit_Num : in Integer) is
    begin
@@ -327,6 +332,11 @@ package body Memory is
    begin
       Word := Word or Shift_Left (1, 15 - Bit_Num);
    end Set_W_Bit;
+
+   procedure Set_QW_Bit (QW : in out Qword_T; Bit_Num : in Integer) is
+   begin
+      QW := QW or Shift_Left (1, 63 - Bit_Num);
+   end Set_QW_Bit;
 
    -- Does Word have bit <n> set?
    function Test_W_Bit (Word : in Word_T; Bit_Num : in Integer) return Boolean

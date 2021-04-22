@@ -40,7 +40,7 @@ package CPU is
 
 
    type Acc_T is array (AC_ID) of Dword_T;
-   type FPacc_T is array (AC_ID) of Float;
+   type FPacc_T is array (AC_ID) of Long_Float;
    -- TODO SBR_T is currently an abstraction of the Segment Base Registers - may need to represent physically
    -- via a 32-bit DWord in the future
    type SBR_Phys_Addr is mod 2**19;
@@ -60,13 +60,22 @@ package CPU is
       SBR                      : SBRs;        -- Segment Base Registers (see above)
       SR                       : Word_T;      -- Not sure about this... fake Switch Register
       WFP, WSP, WSL, WSB       : Phys_Addr_T; -- Active Wide Stack values
-
       -- emulator internals
       Debug_Logging     : Boolean;
       Instruction_Count : Unsigned_64;
-      -- SCP_IO            : Boolean;
-
    end record;
+
+   -- FPU SR bits
+   FPSR_Any : constant Integer := 0;
+   FPSR_Ovr : constant Integer := 1;
+   FPSR_Unf : constant Integer := 2;
+   FPSR_Inv : constant Integer := 3;
+   FPSR_Mof : constant Integer := 4;
+   FPSR_Te  : constant Integer := 5;
+   FPSR_Z   : constant Integer := 6;
+   FPSR_N   : constant Integer := 7;  
+   FPSR_Rnd : constant Integer := 8;
+   FPSR_Par : constant Integer := 22;          
 
    -- Data sent to the Status_Monitor
    type CPU_Monitor_Rec is record

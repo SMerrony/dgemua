@@ -160,6 +160,8 @@ package Memory is
     function Get_W_Bits (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T;
     function Get_DW_Bits (Dword : in Dword_T; First_Bit, Num_Bits : Natural) return Dword_T;
     function Test_DW_Bit (DW: in Dword_T; Bit_Num : in Integer) return Boolean;
+    procedure Clear_QW_Bit (QW : in out Qword_T; Bit_Num : in Integer);
+    procedure Set_QW_Bit (QW : in out Qword_T; Bit_Num : in Integer);
 
     -- byte routines
     function Get_Lower_Byte (Word : in Word_T) return Byte_T;
@@ -209,6 +211,7 @@ package Memory is
     function Integer_16_To_Word is new Ada.Unchecked_Conversion(Integer_16, Word_T);
     function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
     function Integer_64_To_Unsigned_64 is new Ada.Unchecked_Conversion(Integer_64, Unsigned_64);
+    function Unsigned_32_To_Integer is new Ada.Unchecked_Conversion(Unsigned_32, Integer);
 
     Invalid_DCH_Slot       : exception;
     Unsupported_IO_Channel : exception;

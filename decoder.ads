@@ -54,6 +54,7 @@ package Decoder is
       Disp_8       : Integer_8;       -- signed 8-bit displacement
       Disp_15      : Integer_16;      -- signed 15-bit displacement
       Disp_31      : Integer_32;      -- signed 31-bit displacement
+      Disp_32      : Unsigned_32;
       Imm_S16      : Integer_16;      -- signed 16-bit immediate
       Imm_U16      : Unsigned_16;
       Imm_DW       : Dword_T;

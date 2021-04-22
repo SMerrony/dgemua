@@ -388,6 +388,20 @@ package body Decoder is
                  Int_To_String (Integer(Decoded.Disp_31), Radix, 12, false, true) & String_Mode(Decoded.Mode);
             end if;
 
+         when NOACC_MODE_IND_4_WORD_FMT => -- eg. LCALL
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2, Memory.RAM.Read_Word (PC + 2), Decoded.Mode);
+            Decoded.Arg_Count := Integer(Word_To_Integer_16(Memory.RAM.Read_Word (PC + 3)));
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Char_Indirect(Decoded.Ind) &
+                 Int_To_String (Integer(Decoded.Disp_31), Radix, 12, false, true) & 
+                 String_Mode(Decoded.Mode) & "," & Decoded.Arg_Count'Image &
+                 " [4-Word Instruction]";
+            end if;
+
          when NOACC_MODE_IND_3_WORD_XCALL_FMT => -- Unique to XCALL?
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
@@ -478,6 +492,16 @@ package body Decoder is
                  Decoded.Ac'Image & " [2-Word Instruction]";
             end if;
 
+         when ONEACC_IMM_3_WORD_FMT => -- eg. WADDI, WUGTI, WXORI
+             Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
+             Decoded.Imm_DW  := RAM.Read_Dword (PC + 1);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & 
+                 Int_To_String (Integer(Decoded.Word_3), Radix, 11, false, true) & "," &
+                 Decoded.Ac'Image & " [3-Word Instruction]";
+            end if;
+
          when ONEACC_IMMDWD_3_WORD_FMT => -- eg. WANDI, WIORI, WLDAI
             Decoded.Ac     := AC_ID(Get_W_Bits (Opcode, 3, 2));
             Decoded.Imm_DW := Memory.RAM.Read_Dword (PC + 1);
@@ -509,6 +533,19 @@ package body Decoder is
                  Int_To_String (Integer(Decoded.Disp_15 * 2), Radix, 8, false, true) & "+" &
                  Low_Byte_To_Char (Decoded.Low_Byte) &
                  String_Mode(Decoded.Mode) & " [2-Word Instruction]";
+            end if;
+         
+         when ONEACC_MODE_3_WORD_FMT => -- eg. LLDB, LLEFB
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 1, 2)));
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);   
+            Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
+            Decoded.Disp_32 := Unsigned_32(Dword_From_Two_Words(Decoded.Word_2,Decoded.Word_3));
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
+                 Int_To_String (Unsigned_32_To_Integer(Decoded.Disp_32), Radix, 8, false, true) &
+                 String_Mode(Decoded.Mode) & " [3-Word Instruction]";
             end if;
 
          when ONEACC_MODE_IND_2_WORD_E_FMT => -- eg. DSPA, ELDA, ELDB, ELEF, ESTA
@@ -589,6 +626,18 @@ package body Decoder is
          when UNIQUE_2_WORD_FMT =>
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Imm_U16 := Unsigned_16(Decoded.Word_2);
+
+         when WIDE_DEC_SPECIAL_FMT => -- Funky - following word defines OpCode...
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            if Disassemble then
+               case Decoded.Word_2 is
+                  when 0 => Decoded.Disassembly := To_Unbounded_String ("WDMOV");
+                  when 1 => Decoded.Disassembly := To_Unbounded_String ("WDCMP");
+                  when 2 => Decoded.Disassembly := To_Unbounded_String ("WDINC");
+                  when 3 => Decoded.Disassembly := To_Unbounded_String ("WDDEC");
+                  when others => raise Decode_Failed with "Unknown WDxxx instruction";
+               end case;
+            end if;
 
          when WSKB_FMT => -- eg. WSKBO/Z
             Tmp_8bit := Byte_T(Memory.Get_W_Bits(Opcode, 1, 3));
