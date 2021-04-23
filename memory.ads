@@ -116,7 +116,10 @@ package Memory is
     protected RAM is
         procedure Init (Debug_Logging : in Boolean);
         function  Read_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T;
+        function  Read_Byte_BA (BA : in Dword_T) return Byte_T;
         procedure Write_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean; Byt : in Byte_T);
+        procedure Write_Byte_BA (BA : in Dword_T; Datum : in Byte_T);
+        procedure Copy_Byte_BA (Src, Dest : in Dword_T);
         function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T;
         procedure Write_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T; Datum : in Byte_T);
         function  Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T;

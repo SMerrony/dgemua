@@ -179,7 +179,7 @@ package body Decoder is
    procedure Decode_16bit_Byte_Disp (D16 : in Word_T; Disp_16 : out Integer_16; Lo_Byte : out Boolean) is
    begin
       Lo_Byte := Test_W_Bit (D16, 15);
-      Disp_16 := Integer_16(D16) / 2;
+      Disp_16 := Word_To_Integer_16(D16) / 2;
    end Decode_16bit_Byte_Disp;
 
    function Decode_31bit_Disp (W_1, W_2 : in Word_T; Mode : in Mode_T) return Integer_32 is
@@ -348,6 +348,15 @@ package body Decoder is
                Decoded.Disassembly :=
                   Decoded.Disassembly & Decoded.IO_Test'Image & " " &
                   Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
+            end if;
+         when NOACC_MODE_3_WORD_FMT => -- eg. LPEFB
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
+            Decoded.Disp_32 := Unsigned_32(Memory.RAM.Read_Dword (PC + 1));
+            if Disassemble then
+               Decoded.Disassembly :=
+                  Decoded.Disassembly & " " &
+                  Int_To_String (Integer(Decoded.Disp_32), Radix, 8, false, true) &
+                  "," & String_Mode(Decoded.Mode) & " [3-Word Instruction]";
             end if;
 
          when NOACC_MODE_IND_2_WORD_E_FMT => -- eg. EJSR, PSHJ
@@ -599,6 +608,22 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Disp_8'Image;
+            end if;
+
+         when THREE_WORD_DO_FMT => -- eg. XNDO
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 1, 2));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
+                 Int_To_String (Integer(Decoded.Word_3), Radix, 11, false, true) & " " &
+                 Char_Indirect(Decoded.Ind) & 
+                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) &
+                 String_Mode(Decoded.Mode) & " [3-Word Instruction]";
             end if;
 
          when TWOACC_1_WORD_FMT => -- eg. ANC, BTO, WSUB and MANY others

@@ -57,6 +57,12 @@ package body Memory is
          return Byte_T (W and 16#00ff#);
       end Read_Byte;
 
+      function Read_Byte_BA (BA : in Dword_T) return Byte_T is
+         LB : Boolean := Test_DW_Bit (BA, 31);
+      begin
+         return Read_Byte (Phys_Addr_T(Shift_Right(BA, 1)), LB);
+      end Read_Byte_BA;
+
       procedure Write_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean; Byt : in Byte_T) is
          Wd : Word_T := Read_Word(Word_Addr);
       begin
@@ -67,6 +73,21 @@ package body Memory is
          end if;
          Write_Word(Word_Addr, Wd);
       end Write_Byte;
+
+      procedure Write_Byte_BA (BA : in Dword_T; Datum : in Byte_T) is
+         LB : Boolean := Test_DW_Bit (BA, 31);
+      begin
+         Write_Byte (Phys_Addr_T(Shift_Right(BA, 1)), LB, Datum);
+      end Write_Byte_BA;
+
+      procedure Copy_Byte_BA (Src, Dest : in Dword_T) is
+         Src_LB  : Boolean := Test_DW_Bit (Src, 31);
+         Dest_LB : Boolean := Test_DW_Bit (Dest, 31);
+         Byt     : Byte_T;
+      begin
+         Byt := Read_Byte (Phys_Addr_T(Shift_Right(Src, 1)), Src_LB);
+         Write_Byte (Phys_Addr_T(Shift_Right(Dest, 1)), Dest_LB, Byt);
+      end Copy_Byte_BA;
 
       function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T is
          Low_Byte : Boolean := Test_W_Bit(BA_16, 15);

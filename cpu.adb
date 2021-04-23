@@ -366,6 +366,7 @@ package body CPU is
          Word : Word_T;
          S64  : Integer_64;
          I32  : Integer_32;
+         I16_Ac, I16_Mem : Integer_16;
          DW   : Dword_T;
       begin
          case I.Instruction is
@@ -449,9 +450,194 @@ package body CPU is
                      Clear_W_Bit (Word, Bit_Num);
                   end if;
                   RAM.Write_Word (Addr + Offset, Word);
-               end;            
+               end;  
 
+            when I_WCMP =>
+               declare
+                  Str1_Dir, Str2_Dir : Integer_32;
+                  Str1_Char, Str2_Char : Byte_T;
+                  function Get_Dir(AC : in Dword_T) return Integer_32 is
+                  begin
+                     if AC = 0 then return 0; end if;
+                     if Test_DW_Bit (AC, 0) then
+                        return -1;
+                     else
+                        return 1;
+                     end if;
+                  end Get_Dir;
+               begin
+                  Str1_Dir := Get_Dir(CPU.AC(1));
+                  Str2_Dir := Get_Dir(CPU.AC(0));
+                  if (Str1_Dir = 0) and (Str2_Dir = 0) then
+                     Loggers.Debug_Print (Debug_Log, "WARNING: WCMP called with 2 zero lengths not doing anything");
+                  else
+                     while (CPU.AC(1) /= 0) and (CPU.AC(0) /= 0) loop
+                        -- read the two bytes to compare, substitute with a space if one string has run out
+                        if CPU.AC(1) /= 0 then
+                           Str1_Char := RAM.Read_Byte_BA (CPU.AC(3));
+                        else
+                           Str1_Char := 32;
+                        end if;
+                        if CPU.AC(0) /= 0 then
+                           Str2_Char := RAM.Read_Byte_BA (CPU.AC(2));
+                        else
+                           Str2_Char := 32;
+                        end if;
+                        Loggers.Debug_Print (Debug_Log, "... Comparing " & Str1_Char'Image & " and " & Str2_Char'Image);
+                        -- compare
+                        if Str1_Char < Str2_Char then
+                           CPU.AC(1) := 16#ffff_ffff#;
+                           exit;
+                        end if;
+                        if Str1_Char > Str2_Char then
+                           CPU.AC(1) := 1;
+                           exit;
+                        end if;
+                        -- they were equal, so adjust remaining lengths, move pointers, and loop round
+                        if CPU.AC(0) /= 0 then
+                           CPU.AC(0) := Dword_T(Dword_To_Integer_32(CPU.AC(0)) + Str2_Dir);
+                        end if;
+                        if CPU.AC(1) /= 0 then
+                           CPU.AC(1) := Dword_T(Dword_To_Integer_32(CPU.AC(1)) + Str1_Dir);
+                        end if;
+                        CPU.AC(2) := Dword_T(Dword_To_Integer_32(CPU.AC(2)) + Str2_Dir);
+                        CPU.AC(3) := Dword_T(Dword_To_Integer_32(CPU.AC(3)) + Str1_Dir);
+                     end loop;
+                  end if;
+               end;
+
+            when I_WCMV =>
+               declare
+                  Dest_Ascend, Src_Ascend : Boolean;
+                  Dest_Cnt, Src_Cnt : Integer_32;
+               begin
+                  Dest_Cnt := Dword_To_Integer_32(CPU.AC(0));
+                  if Dest_Cnt = 0 then
+                     Loggers.Debug_Print (Debug_Log, "WARNING: WCMV called with AC0 = 0, not moving anything");
+                     CPU.Carry := false;
+                  else
+                     Dest_Ascend := Dest_Cnt > 0;
+                     Src_Cnt := Dword_To_Integer_32(CPU.AC(1));
+                     Src_Ascend := Src_Cnt > 0;
+                     CPU.Carry := (Abs Src_Cnt) > (Abs Dest_Cnt);
+                     -- move Src_Cnt bytes
+                     loop
+                        RAM.Copy_Byte_BA(CPU.AC(3),CPU.AC(2));
+                        if Src_Ascend then
+                           CPU.AC(3) := CPU.AC(3) + 1;
+                           Src_Cnt := Src_Cnt - 1;
+                        else
+                           CPU.AC(3) := CPU.AC(3) - 1;
+                           Src_Cnt := Src_Cnt + 1;
+                        end if;
+                        if Dest_Ascend then
+                           CPU.AC(2) := CPU.AC(2) + 1;
+                           Dest_Cnt := Dest_Cnt - 1;
+                        else
+                           CPU.AC(2) := CPU.AC(2) - 1;
+                           Dest_Cnt := Dest_Cnt + 1;
+                        end if;
+                        exit when (Src_Cnt = 0) or (Dest_Cnt = 0);
+                     end loop;
+                     -- now fill any excess bytes with ASCII spaces
+                     while Dest_Cnt /= 0 loop
+                        RAM.Write_Byte_BA(CPU.AC(2), 32);
+                        if Dest_Ascend then
+                           CPU.AC(2) := CPU.AC(2) + 1;
+                           Dest_Cnt := Dest_Cnt - 1;
+                        else
+                           CPU.AC(2) := CPU.AC(2) - 1;
+                           Dest_Cnt := Dest_Cnt + 1;
+                        end if;
+                     end loop;
+                     CPU.AC(0) := 0;
+                     CPU.AC(1) := Dword_T(Src_Cnt);
+                  end if;                  
+               end;
+
+            when I_WCST =>
+               declare
+                   Delim_Tab_Addr : Phys_Addr_T;
+                   type Delim_Tab_T is array (0 .. 255) of Boolean;
+                   Delim_Tab : Delim_Tab_T;
+                   Wd        : Word_T;
+                   Inc_Dec   : Integer_32 := 1;
+                   Char_Val  : Integer;
+               begin
+                  if CPU.AC(1) = 0 then
+                     Loggers.Debug_Print (Debug_Log, "WARNING: WCST called with AC1 = 0, not scanning anything");
+                  else
+                     Delim_Tab_Addr := Resolve_32bit_Indirectable_Addr (CPU.ATU, CPU.AC(0));
+                     CPU.AC(0) := Dword_T(Delim_Tab_Addr);
+                     -- load the table which is 256 bits stored as 16 words
+                     for T_Ix in 0 .. 15 loop
+                        Wd := RAM.Read_Word (Delim_Tab_Addr + Phys_Addr_T(T_Ix));
+                        for Bit in 0 .. 15 loop
+                           Delim_Tab((T_Ix * 16) + Bit) := Test_W_Bit (Wd, Bit);
+                        end loop;
+                     end loop;  
+                     if Test_DW_Bit (CPU.AC(1), 0) then
+                        Inc_Dec := -1;
+                     end if;
+                     while CPU.AC(1) /= 0 loop
+                        Char_Val := Integer(RAM.Read_Byte_BA(CPU.AC(3)));
+                        if Delim_Tab(Char_Val) then
+                           CPU.AC(1) := 0;
+                           exit;
+                        end if;
+                        CPU.AC(1) := Dword_T(Dword_To_Integer_32(CPU.AC(1)) + Inc_Dec);
+                        CPU.AC(3) := Dword_T(Dword_To_Integer_32(CPU.AC(3)) + Inc_Dec);
+                     end loop;
+                  end if;
+               end;
+
+            when I_WCTR =>
+               declare
+                  Trans_Tab_Addr : Phys_Addr_T;
+                  type Trans_Tab_T is array (0 .. 255) of Byte_T;
+                  Trans_Tab : Trans_Tab_T;
+                  Src_Byte, Trans_Byte, Str2_Byte, Trans2_Byte : Byte_T;
+               begin
+                  if CPU.AC(1) = 0 then
+                     Loggers.Debug_Print (Debug_Log, "WARNING: WCTR called with AC1 = 0, not translating anything");
+                  else
+                     Trans_Tab_Addr := Shift_Left(Resolve_32bit_Indirectable_Addr (CPU.ATU, CPU.AC(0)),1);
+                     for C in 0 .. 255 loop
+                        Trans_Tab(C) := RAM.Read_Byte_BA (Dword_T(Trans_Tab_Addr) + Dword_T(C));
+                     end loop;
+                     while CPU.AC(1) /= 0 loop
+                        Src_Byte := RAM.Read_Byte_BA (CPU.AC(3));
+                        CPU.AC(3) := CPU.AC(3) + 1;
+                        Trans_Byte := Trans_Tab(Integer(Src_Byte));
+                        if Test_DW_Bit (CPU.AC(1), 0) then
+                           -- move mode
+                           RAM.Write_Byte_BA(CPU.AC(2), Trans_Byte);
+                           CPU.AC(2) := CPU.AC(2) + 1;
+                           CPU.AC(1) := CPU.AC(1) + 1;
+                        else
+                           -- compare mode
+                           Str2_Byte := RAM.Read_Byte_BA (CPU.AC(2));
+                           CPU.AC(2) := CPU.AC(2) + 1;
+                           Trans2_Byte := Trans_Tab(Integer(Str2_Byte));
+                           if Src_Byte < Trans2_Byte then
+                              CPU.AC(1) := 16#ffff_ffff#;
+                              exit;
+                           elsif Src_Byte > Trans2_Byte then
+                              CPU.AC(1) := CPU.AC(1) + 1;
+                              exit;
+                           end if;
+                           CPU.AC(1) := CPU.AC(1) - 1;
+                        end if;
+                     end loop;
+                  end if;
+               end;
+
+            when I_WLDB =>
+               CPU.AC(I.Acd) := Dword_T(RAM.Read_Byte_BA(CPU.AC(I.Acs)));
   
+            when I_WSTB =>
+               RAM.Write_Byte_BA (CPU.AC(I.Acs), Byte_T(CPU.AC(I.Acd) and 16#00ff#));
+
             when I_XLDB =>
                Addr := Resolve_15bit_Disp (false, I.Mode, I.Disp_15, I.Disp_Offset); -- TODO 'Long' resolve???
                CPU.AC(I.Ac) := Dword_T(RAM.Read_Byte(Addr, I.Low_Byte));
@@ -459,6 +645,35 @@ package body CPU is
             when I_XLEF =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                CPU.AC(I.Ac) := Dword_T(Addr);
+
+            when I_XLEFB =>
+               Addr := Resolve_15bit_Disp (false, I.Mode, I.Disp_15, I.Disp_Offset);
+               Addr := Shift_Left (Addr, 1);
+               if I.Low_Byte then
+                  Addr := Addr + 1;
+               end if;
+               CPU.AC(I.Ac) := Dword_T(Addr); -- FIXME constrain to Ring? or in Resolve?
+
+            when I_XNADD =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               I16_Mem := Word_To_Integer_16(RAM.Read_Word(Addr));
+               I16_Ac  := Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)));
+               I16_Ac := I16_Ac + I16_Mem;
+               I32 := Integer_32(I16_Ac) + Integer_32(I16_Mem);
+               if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
+                  CPU.Carry := true;
+                  Set_OVR (true);
+               end if;
+               CPU.AC(I.Ac) := Integer_32_To_Dword(Integer_32(I16_Ac));
+
+            when I_XNADI =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               I32 := Integer_32(Word_To_Integer_16(RAM.Read_Word(Addr))) + Integer_32(I.Imm_U16);
+               if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
+                  CPU.Carry := true;
+                  Set_OVR (true);
+               end if;
+               RAM.Write_Word (Addr, Word_T(I32));
 
             when I_XNLDA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -468,9 +683,42 @@ package body CPU is
                   CPU.AC(I.Ac) := CPU.AC(I.Ac) or 16#ffff_0000#;
                end if;
 
+            when I_XNMUL =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               I16_Mem := Word_To_Integer_16(RAM.Read_Word(Addr));
+               I16_Ac  := Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)));
+               I16_Ac := I16_Ac * I16_Mem;
+               I32 := Integer_32(I16_Ac) * Integer_32(I16_Mem);
+               if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
+                  CPU.Carry := true;
+                  Set_OVR (true);
+               end if;
+               CPU.AC(I.Ac) := Integer_32_To_Dword(Integer_32(I16_Ac));
+
+            when I_XNSBI =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               I32 := Integer_32(Word_To_Integer_16(RAM.Read_Word(Addr))) - Integer_32(I.Imm_U16);
+               if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
+                  CPU.Carry := true;
+                  Set_OVR (true);
+               end if;
+               RAM.Write_Word (Addr, Word_T(I32));
+
             when I_XNSTA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                RAM.Write_Word (Addr, Lower_Word(CPU.AC(I.Ac)));
+
+            when I_XNSUB =>
+               Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               I16_Mem := Word_To_Integer_16(RAM.Read_Word(Addr));
+               I16_Ac  := Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)));
+               I16_Ac := I16_Ac - I16_Mem;
+               I32 := Integer_32(I16_Ac) - Integer_32(I16_Mem);
+               if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
+                  CPU.Carry := true;
+                  Set_OVR (true);
+               end if;
+               CPU.AC(I.Ac) := Integer_32_To_Dword(Integer_32(I16_Ac));
 
             when I_XWADI =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -606,6 +854,17 @@ package body CPU is
 
             when I_CRYTZ =>
                CPU.Carry := false;
+
+            when I_CVWN =>
+               if ((CPU.AC(I.Ac) and 16#ffff_0000#) = 0) or ((CPU.AC(I.Ac) and 16#ffff_0000#) = 16#ffff_0000#) then
+                  Set_OVR (true);
+               else
+                  Set_OVR (false);
+               end if;
+               CPU.AC(I.Ac) := CPU.AC(I.Ac) and 16#0000_ffff#;
+               if Test_DW_Bit (CPU.AC(I.Ac), 16) then
+                  CPU.AC(I.Ac) := CPU.AC(I.Ac) or 16#ffff_0000#;
+               end if;
             
             when I_NADD =>
                S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acd)))) + 
@@ -649,6 +908,7 @@ package body CPU is
                S64 := Integer_64(Acd_S32) + Integer_64(Acs_S32);
                CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
                Set_OVR (CPU.Carry);
+               S64 := Integer_64(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
                CPU.AC(I.Acd) := Dword_T(S64);
 
             when I_WADDI =>
@@ -656,6 +916,7 @@ package body CPU is
                S64 := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac))) + Integer_64(S32);
                CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
                Set_OVR(CPU.Carry);
+               S64 := Integer_64(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
                CPU.AC(I.Ac) := Dword_T(S64);
 
             when I_WADI =>
@@ -663,6 +924,7 @@ package body CPU is
                S64 := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac))) + Integer_64(S32);
                CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
                Set_OVR(CPU.Carry);
+               S64 := Integer_64(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
                CPU.AC(I.Ac) := Dword_T(S64);
 
             when I_WANC => -- fnarr, fnarr
@@ -720,13 +982,19 @@ package body CPU is
             when I_WLSI =>
                CPU.AC(I.Ac) := Shift_Left (CPU.AC(I.Ac), Integer(I.Imm_U16));
 
+            when I_WMOV =>
+               CPU.AC(I.Acd) := CPU.AC(I.Acs);
+
+            when I_WMOVR =>
+               CPU.AC(I.Ac) := Shift_Right(CPU.AC(I.Ac), 1);
+
             when I_WMUL =>
                Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
                Acs_S32 := Dword_To_Integer_32(CPU.AC(I.Acs));
                S64 := Integer_64(Acd_S32) * Integer_64(Acs_S32);
                CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
                Set_OVR (CPU.Carry);
-               CPU.AC(I.Acd) := Dword_T(S64);
+               CPU.AC(I.Acd) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
 
             when I_WNADI =>
                Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Ac));
@@ -740,15 +1008,12 @@ package body CPU is
                Set_OVR(CPU.Carry);
                CPU.AC(I.Acd) := (not CPU.AC(I.Acs)) + 1;
 
-            when I_WMOV =>
-               CPU.AC(I.Acd) := CPU.AC(I.Acs);
-
             when I_WSBI =>
                S32 := Integer_32(Integer_16(I.Imm_U16));
                S64 := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac))) - Integer_64(S32);
                CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
                Set_OVR(CPU.Carry);
-               CPU.AC(I.Ac) := Dword_T(S64);
+               CPU.AC(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
 
             when I_WSUB =>
                Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Acd));
@@ -756,7 +1021,7 @@ package body CPU is
                S64 := Integer_64(Acd_S32) - Integer_64(Acs_S32);
                CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
                Set_OVR (CPU.Carry);
-               CPU.AC(I.Acd) := Dword_T(S64);
+               CPU.AC(I.Acd) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
 
             when I_ZEX =>
                CPU.AC(I.Acd) := 0 or Dword_T(Lower_Word(CPU.AC(I.Acs)));
@@ -875,6 +1140,10 @@ package body CPU is
                else
                   CPU.PC := CPU.PC + 3;
                end if;  
+
+            when I_LPSHJ =>
+               WS_Push (Dword_T(CPU.PC) + 3);
+               CPU.PC := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
 
             when I_LWDSZ =>
                Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
@@ -1022,6 +1291,26 @@ package body CPU is
                CPU.AC(3) := Dword_T(CPU.PC + 2);
                CPU.PC := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) or (CPU.PC and 16#7000_0000#);
 
+            when I_XNDO =>
+               declare
+                  Loop_Var_Addr    : Phys_Addr_T;
+                  Loop_Var, Ac_Var : Integer_32;
+               begin
+                  Loop_Var_Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+                  Word := RAM.Read_Word (Loop_Var_Addr) + 1 ;
+                  Loop_Var := Integer_32(Word_To_Integer_16(Word)); 
+                  RAM.Write_Word(Loop_Var_Addr, Word);
+                  Ac_Var := Dword_To_Integer_32(CPU.AC(I.Ac));
+                  CPU.AC(I.Ac) := Integer_32_To_Dword(Loop_Var);
+                  if Loop_Var > Ac_Var then 
+                     -- loop ends
+                     CPU.PC := CPU.PC + 1 + Phys_Addr_T(I.Word_3);
+                  else
+                     CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+                  end if;
+               end;
+
+
             when I_XNDSZ =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                Word := RAM.Read_Word (Addr) - 1;
@@ -1097,6 +1386,31 @@ package body CPU is
                CPU.AC(I.Ac) := RAM.Read_Dword (CPU.WSP);
                Set_OVR (false);
 
+           when I_LPEF =>
+                Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+                WS_Push (Dword_T(Addr));
+                Set_OVR (false);
+
+            when I_LPEFB =>
+               WSP_Check_Bounds (Delta_Words => 2, 
+                                 Is_Save => false, 
+                                 OK => OK, 
+                                 Primary_Fault => Primary_Fault, 
+                                 Secondary_Fault => Secondary_Fault);
+               if not OK then
+                  Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by LPEFB");
+                  WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+                  return; -- We have set the PC
+               end if;
+               -- FIXME should the byte address have sign preserved?
+               Addr := Resolve_31bit_Disp (false, I.Mode, Integer_32(Shift_Right(I.Disp_32,1)), I.Disp_Offset);
+               Addr := Shift_Left(Addr, 1);
+               if I.Disp_32 mod 2 = 1 then
+                  Addr := Addr + 1;
+               end if;
+               WS_Push (Dword_T(Addr));
+               Set_OVR (false);
+
            when I_STAFP =>
                -- TODO Segment handling here?
                CPU.WFP := Phys_Addr_T(CPU.AC(I.Ac));
@@ -1143,6 +1457,25 @@ package body CPU is
                WS_Push_QW (Qword_T(CPU.FPAC(1)));
                WS_Push_QW (Qword_T(CPU.FPAC(2)));
                WS_Push_QW (Qword_T(CPU.FPAC(3)));
+
+            when I_WMSP =>
+               declare
+                  DeltaWds : Integer := Integer( Dword_To_Integer_32(CPU.AC(I.Ac))) * 2;
+               begin
+                  WSP_Check_Bounds (Delta_Words => DeltaWds, 
+                                    Is_Save => false, 
+                                    OK => OK, 
+                                    Primary_Fault => Primary_Fault, 
+                                    Secondary_Fault => Secondary_Fault);
+                  if not OK then
+                     Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WMSP");
+                     WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+                     return; -- We have set the PC
+                  end if;
+                  CPU.WSP := CPU.WSP + Phys_Addr_T(DeltaWds);
+                  Set_OVR (false);
+               end;
+
 
             when I_WPOP =>
                First := Natural(I.Acs);
@@ -1382,7 +1715,7 @@ package body CPU is
                      CPU.Carry := false;
                   else
                      Dest_Ascend := Dest_Cnt > 0;
-                     Src_Cnt := Word_To_Integer_16(Lower_Word(CPU.AC(3)));
+                     Src_Cnt := Word_To_Integer_16(Lower_Word(CPU.AC(1)));
                      Src_Ascend := Src_Cnt > 0;
                      CPU.Carry := (Abs Src_Cnt) > (Abs Dest_Cnt);
                      -- move Src_Cnt bytes

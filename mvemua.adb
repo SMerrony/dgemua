@@ -278,7 +278,7 @@ procedure MVEmuA is
    end Do_Script;
 
    procedure Run is
-      I_Counts : CPU.Instr_Count_T;
+      I_Counts : CPU.Instr_Count_T := (others => 0);
       I_Count  : Unsigned_64;
       Start_Time : Time;
       Elapsed : Time_Span;
@@ -297,6 +297,14 @@ procedure MVEmuA is
       SCP_Handler.Set_SCP_IO(true);   
       TTOut.Put_String (Dasher_NL & " *** MV/Emua executed " & Unsigned_64'Image(I_Count) & 
                         " instructions in" & Duration'Image(To_Duration(Elapsed)) & " seconds ***");
+
+      Ada.Text_IO.Put_Line ("Instruction Execution Count by Mnemonic");
+      for I in I_Counts'Range loop
+         if I_Counts(I) > 0 then
+            Ada.Text_IO.Put(I'Image & ASCII.HT & I_Counts(I)'Image & Dasher_NL);
+         end if;
+      end loop;
+
    
    exception
       when others =>
@@ -305,6 +313,12 @@ procedure MVEmuA is
          SCP_Handler.Set_SCP_IO(true);   
          TTOut.Put_String (Dasher_NL & " *** MV/Emua executed " & Unsigned_64'Image(I_Count) & 
                            " instructions in" & Duration'Image(To_Duration(Elapsed)) & " seconds ***");
+         Ada.Text_IO.Put_Line ("Instruction Execution Count by Mnemonic");
+         for I in I_Counts'Range loop
+            if I_Counts(I) > 0 then
+               Ada.Text_IO.Put(I'Image & ASCII.HT & I_Counts(I)'Image & Dasher_NL);
+            end if;
+         end loop;                  
          raise;
    end run;
 
