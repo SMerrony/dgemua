@@ -61,6 +61,8 @@ package CPU is
       SR                       : Word_T;      -- Not sure about this... fake Switch Register
       WFP, WSP, WSL, WSB       : Phys_Addr_T; -- Active Wide Stack values
       -- emulator internals
+      XCT_Mode          : Boolean;
+      XCT_Opcode        : Word_T;
       Debug_Logging     : Boolean;
       Instruction_Count : Unsigned_64;
    end record;
@@ -107,8 +109,9 @@ package CPU is
       function  Get_IO (Seg : in Natural) return Boolean;
       function  Get_PC return Phys_Addr_T;
       function  Get_Status return CPU_Monitor_Rec;
-      -- procedure Set_SCP_IO (SCP : in Boolean);
-      -- function  Get_SCP_IO return Boolean;
+      function  Get_XCT_Mode return Boolean;
+      procedure Set_XCT_Mode (YN : in Boolean);
+      function  Get_XCT_Opcode return Word_T;
    private
       CPU : CPU_T;
    end Actions;

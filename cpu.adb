@@ -75,6 +75,7 @@ package body CPU is
       procedure Prepare_For_Running is
       begin
          CPU.Instruction_Count := 0;
+         CPU.XCT_Mode := false;
       end Prepare_For_Running;
 
       procedure Set_Debug_Logging (OnOff : in Boolean) is
@@ -708,6 +709,12 @@ package body CPU is
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                RAM.Write_Word (Addr, Lower_Word(CPU.AC(I.Ac)));
 
+            when I_XSTB =>
+               Addr := Resolve_15bit_Disp (false, I.Mode, I.Disp_15, I.Disp_Offset); -- TODO 'Long' resolve???
+               RAM.Write_Byte (Word_Addr => Addr, 
+                               Low_Byte => I.Low_Byte, 
+                               Byt => Byte_T(CPU.AC(I.Ac) and 16#0000_00ff#));
+
             when I_XNSUB =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                I16_Mem := Word_To_Integer_16(RAM.Read_Word(Addr));
@@ -1064,8 +1071,8 @@ package body CPU is
                   OK : Boolean;
                   Primary_Fault, Secondary_Fault : Dword_T;
                   Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+                  PC_4 : Dword_T := Dword_T(CPU.PC) + 4;
                begin
-                  CPU.AC(3) := Dword_T(CPU.PC) + 4;
                   if I.Arg_Count >= 0 then
                      DW := Dword_T(I.Arg_Count);
                   else
@@ -1084,6 +1091,7 @@ package body CPU is
                   end if;
                   WS_Push (DW);
                   CPU.PC := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset); 
+                  CPU.AC(3) := PC_4;
                end;
 
             when I_LDSP =>
@@ -1570,7 +1578,26 @@ package body CPU is
             when I_XPEF =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                WS_Push (Dword_T(Addr));
- 
+
+            when I_XPEFB =>
+               Addr := Resolve_15bit_Disp (false, I.Mode, I.Disp_15, I.Disp_Offset);
+               Addr := Shift_Left(Addr, 1);
+               if I.Low_Byte then
+                  Addr := Addr + 1;
+               end if;
+               WS_Push (Dword_T(Addr));
+               Set_OVR (false);
+               WSP_Check_Bounds (Delta_Words => 0, 
+                                 Is_Save => false, 
+                                 OK => OK, 
+                                 Primary_Fault => Primary_Fault, 
+                                 Secondary_Fault => Secondary_Fault);
+               if not OK then
+                  Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by LPEFB");
+                  WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+                  return; -- We have set the PC
+               end if;
+
             when others =>
                Put_Line ("ERROR: EAGLE_STACK instruction " & To_String(I.Mnemonic) & 
                          " not yet implemented");
@@ -1895,6 +1922,11 @@ package body CPU is
                DWord := CPU.AC(I.Acs);
                CPU.AC(I.Acs) := CPU.AC(I.Acd) and 16#0000_ffff#;
                CPU.AC(I.Acd) := DWord and 16#0000_ffff#;
+
+            when I_XCT=> -- funkiness ahead...
+               CPU.XCT_Mode := true;
+               CPU.XCT_Opcode := Lower_Word (CPU.AC(I.Ac));
+               return; -- PC NOT advanced
 
             when others =>
                Put_Line ("ERROR: ECLIPSE_OP instruction " & To_String(I.Mnemonic) & 
@@ -2536,65 +2568,91 @@ package body CPU is
          return Stats;
       end Get_Status;
 
+      function Get_XCT_Mode return Boolean is
+      begin
+         return CPU.XCT_Mode;
+      end Get_XCT_Mode;
+
+      procedure Set_XCT_Mode (YN : in Boolean) is
+      begin
+         CPU.XCT_Mode := YN;
+      end Set_XCT_Mode;
+
+      function Get_XCT_Opcode return Word_T is
+      begin
+         return CPU.XCT_Opcode;
+      end Get_XCT_Opcode;
+
    end Actions;
 
-      procedure Run (Disassemble : in Boolean; 
-                     Radix : in Number_Base_T; 
-                     Breakpoints : in BP_Sets.Set;
-                     I_Counts : out Instr_Count_T) is
-            use Ada.Containers;
-            This_Op : Word_T;
-            Instr   : Decoded_Instr_T;
-            Segment : Integer;
-            PC      : Phys_Addr_T;
-            Any_Breakpoints : Boolean := Breakpoints.Length /= 0;
-         begin
-         Run_Loop:
-            loop
-               PC := Actions.Get_PC;
+   procedure Run (Disassemble : in Boolean; 
+                  Radix : in Number_Base_T; 
+                  Breakpoints : in BP_Sets.Set;
+                  I_Counts : out Instr_Count_T) is
+         use Ada.Containers;
+         This_Op : Word_T;
+         Instr   : Decoded_Instr_T;
+         Segment : Integer;
+         PC      : Phys_Addr_T;
+         XCT     : Boolean;
+         Any_Breakpoints : Boolean := Breakpoints.Length /= 0;
+      begin
+      Run_Loop:
+         loop
+            PC := Actions.Get_PC;
 
-               -- FETCH
+            -- FETCH
+            XCT := Actions.Get_XCT_Mode;
+            if XCT then
+               This_Op := Actions.Get_XCT_Opcode;
+            else
                This_Op := RAM.Read_Word(PC);
+            end if;
 
-               -- DECODE
-               Segment := Integer(Shift_Right(PC, 29));
-               Instr := Instruction_Decode (Opcode => This_Op, 
-                                          PC => PC, 
-                                          LEF_Mode => Actions.Get_LEF(Segment), 
-                                          IO_On => Actions.Get_IO(Segment), 
-                                          ATU_On => Actions.Get_ATU, 
-                                          Disassemble => Disassemble, 
-                                          Radix => Radix);
+            -- DECODE
+            Segment := Integer(Shift_Right(PC, 29));
+            Instr := Instruction_Decode (Opcode => This_Op, 
+                                       PC => PC, 
+                                       LEF_Mode => Actions.Get_LEF(Segment), 
+                                       IO_On => Actions.Get_IO(Segment), 
+                                       ATU_On => Actions.Get_ATU, 
+                                       Disassemble => Disassemble, 
+                                       Radix => Radix);
 
-               -- Instruction Counting
-               I_Counts(Instr.Instruction) := I_Counts(Instr.Instruction) + 1;
+            -- Instruction Counting
+            I_Counts(Instr.Instruction) := I_Counts(Instr.Instruction) + 1;
 
-               if Disassemble then
-                  Loggers.Debug_Print (Debug_Log, Actions.Get_Compact_Status(Radix) & "  " & To_String(Instr.Disassembly));
+            if Disassemble then
+               Loggers.Debug_Print (Debug_Log, Actions.Get_Compact_Status(Radix) & "  " & To_String(Instr.Disassembly));
+            end if;
+
+            -- EXECUTE
+            Actions.Execute (Instr);
+
+            -- INTERRUPT?
+
+            -- XCT
+            if XCT then
+               Actions.Set_XCT_Mode(false);
+            end if;
+
+            -- BREAKPOINT?
+            if Any_Breakpoints then
+               if Breakpoints.Contains (PC) then
+                  Devices.Console.SCP_Handler.Set_SCP_IO (true);
+                  Devices.Console.TTOut.Put_String (" *** BREAKpoint hit ***");
                end if;
+            end if;
 
-               -- EXECUTE
-               Actions.Execute (Instr);
+            -- Console Interrupt?
+            if Devices.Console.SCP_IO then 
+               Devices.Console.TTOut.Put_String (" *** Console ESCape ***");
+               exit Run_Loop;
+            end if;
 
-               -- INTERRUPT?
+         end loop Run_Loop;
 
-               -- BREAKPOINT?
-               if Any_Breakpoints then
-                  if Breakpoints.Contains (PC) then
-                     Devices.Console.SCP_Handler.Set_SCP_IO (true);
-                     Devices.Console.TTOut.Put_String (" *** BREAKpoint hit ***");
-                  end if;
-               end if;
-
-               -- Console Interrupt?
-               if Devices.Console.SCP_IO then 
-                  Devices.Console.TTOut.Put_String (" *** Console ESCape ***");
-                  exit Run_Loop;
-               end if;
-   
-            end loop Run_Loop;
-
-      end Run;
+   end Run;
 
    task body Status_Sender is 
       Stats : CPU_Monitor_Rec;
