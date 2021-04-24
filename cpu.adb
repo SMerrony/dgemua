@@ -387,9 +387,21 @@ package body CPU is
                end if;
                CPU.AC(I.Ac) := Dword_T(Addr);
 
+            when I_LNADI =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               Word := RAM.Read_Word (Addr);
+               Word := Word + Word_T(I.Imm_U16);
+               RAM.Write_Word (Addr, Word);
+
             when I_LNLDA =>
                Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
                CPU.AC(I.Ac) := Sext_Word_To_Dword (RAM.Read_Word(Addr));
+
+             when I_LNSBI =>
+               Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               Word := RAM.Read_Word (Addr);
+               Word := Word - Word_T(I.Imm_U16);
+               RAM.Write_Word (Addr, Word);   
 
             when I_LNSTA =>
                Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
@@ -880,12 +892,31 @@ package body CPU is
                Set_OVR (CPU.Carry);
                CPU.AC(I.Acd) := Integer_32_To_Dword(S32);
 
+            when I_NADI =>
+               S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)))) +
+                        Integer_32(I.Imm_U16);
+               CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
+               Set_OVR (CPU.Carry);
+               CPU.AC(I.Ac) := Integer_32_To_Dword(S32); 
+
             when I_NLDAI =>
                CPU.AC(I.Ac) := Sext_Word_To_Dword(I.Word_2);
 
             when I_NMUL =>
                S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acd)))) * 
                       Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acs))));
+               CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
+               Set_OVR (CPU.Carry);
+               CPU.AC(I.Acd) := Integer_32_To_Dword(S32); 
+
+            when I_NNEG =>
+               S32 := -Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acs))));
+               Set_OVR (CPU.AC(I.Acs) = 8#100000#);
+               CPU.AC(I.Acd) := Integer_32_To_Dword(S32); 
+
+            when I_NSBI =>
+               S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)))) -
+                        Integer_32(I.Imm_U16);
                CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
                Set_OVR (CPU.Carry);
                CPU.AC(I.Acd) := Integer_32_To_Dword(S32); 
@@ -961,6 +992,26 @@ package body CPU is
                   Set_OVR (true);
                end if;
 
+            when I_WDIVS =>
+               declare
+                  Divd : Integer_64;
+               begin
+                  if CPU.AC(2) = 0 then
+                     Set_OVR (true);
+                  else
+                     S64 := Integer_64(Qword_From_Two_Dwords(CPU.AC(0), CPU.AC(1)));
+                     S32 := Dword_To_Integer_32(CPU.AC(2));  
+                     Divd := S64 / Integer_64(S32);
+                     if (Divd < -2147483648) or (Divd > 2147483647) then
+                         Set_OVR (true);
+                     else
+                        CPU.AC(0) := Dword_T(S64 mod Integer_64(S32));
+                        CPU.AC(1) := Dword_T(Divd);
+                        Set_OVR(false);
+                     end if;
+                  end if;
+               end;
+
             when I_WHLV =>
                S32 := Dword_To_Integer_32(CPU.AC(I.Ac)) / 2;
                CPU.AC(I.Ac) := Integer_32_To_Dword(S32);
@@ -1029,6 +1080,15 @@ package body CPU is
                CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
                Set_OVR (CPU.Carry);
                CPU.AC(I.Acd) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+
+            when I_WXCH =>
+               declare
+                  DW : Dword_T;
+               begin
+                  DW := CPU.AC(I.Acs);
+                  CPU.AC(I.Acs) := CPU.AC(I.Acd);
+                  CPU.AC(I.Acd) := DW;
+               end;
 
             when I_ZEX =>
                CPU.AC(I.Acd) := 0 or Dword_T(Lower_Word(CPU.AC(I.Acs)));

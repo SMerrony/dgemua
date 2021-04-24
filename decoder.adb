@@ -372,6 +372,21 @@ package body Decoder is
                   "," & String_Mode(Decoded.Mode) & " [3-Word Instruction]";
             end if;
 
+         when NOACC_MODE_IMM_IND_3_WORD_FMT => -- eg. LNADI, LNSBI
+            Decoded.Imm_U16 := Decode_2bit_Imm (Get_W_Bits (Opcode, 1, 2));
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
+            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2, Decoded.Word_3, Decoded.Mode);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & 
+                 Int_To_String (Integer(Decoded.Imm_U16), Radix, 8, false, true) & " " &
+                 Char_Indirect(Decoded.Ind) &
+                 Int_To_String (Integer(Decoded.Disp_31), Radix, 12, false, true) & String_Mode(Decoded.Mode);
+            end if;
+
          when NOACC_MODE_IND_2_WORD_E_FMT => -- eg. EJSR, PSHJ
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 6, 2)));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);

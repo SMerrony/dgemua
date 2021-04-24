@@ -443,6 +443,11 @@ package body Memory is
       return Shift_Left (Dword_T (Word_1), 16) or Dword_T (Word_2);
    end Dword_From_Two_Words;
 
+   function Qword_From_Two_Dwords (Dword_1, Dword_2 : in Dword_T) return Qword_T is
+   begin
+      return Shift_Left (Qword_T(Dword_1), 32) or Qword_T(Dword_2);
+   end Qword_From_Two_Dwords;
+
    function Boolean_To_YN (B : Boolean) return Character is
    begin
       if B then

@@ -1,7 +1,7 @@
 # DG/Emua Status
 
-* Last status update: 19th April 2021
-* Last significant progress: INSTL Appears to be running to completion 19th April 2021
+* Last status update: 24th April 2021
+* Last significant progress: FIXUP produces UNKNOWN ERROR CODE 2 - that's further than mvemg gets!
 
 ## What Works?
 * File 0 - TBOOT - Appears to be working - 10th April 2021

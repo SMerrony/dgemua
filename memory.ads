@@ -193,6 +193,9 @@ package Memory is
     function String_To_Dword (Str : in String; Base : in Number_Base_T) return Dword_T;
     function Sext_Word_To_Dword(Wd : in Word_T) return Dword_T;
 
+    -- Qword routines
+    function Qword_From_Two_Dwords (Dword_1, Dword_2 : in Dword_T) return Qword_T;
+
     -- string/integer routines
     function Int_To_String
        (Int      : in Integer; 
