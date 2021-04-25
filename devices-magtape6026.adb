@@ -116,7 +116,7 @@ package body Devices.Magtape6026 is
                         begin
                            Read_Record_Data (Img_Stream, Natural(Hdr), Tape_Rec);
                            while W < Natural(Hdr) loop
-                              Wd := Memory.Word_From_Bytes(Tape_Rec(W), Tape_Rec(W+1));
+                              Wd := Word_From_Bytes(Tape_Rec(W), Tape_Rec(W+1));
                               W := W + 2;
                               Memory.BMC_DCH.Write_Word_DCH_Chan(State.Mem_Addr_Reg, Wd);
                               State.Neg_Word_Count := State.Neg_Word_Count + 1;
@@ -231,7 +231,7 @@ package body Devices.Magtape6026 is
                     State.Mem_Addr_Reg := Phys_Addr_T (Datum);
                     Loggers.Debug_Print (Mt_Log, "INFO: DOB - Mem Addr set to: " & State.Mem_Addr_Reg'Image);
                 when C =>
-                    State.Neg_Word_Count := Memory.Word_To_Integer_16(Datum);
+                    State.Neg_Word_Count := Word_To_Integer_16(Datum);
                     Loggers.Debug_Print (Mt_Log, "INFO: DOC - Neg. Word Count set to : " & State.Neg_Word_Count'Image);
                 when N => -- TODO
                     Loggers.Debug_Print (Mt_Log, "WARNING: NIO - Flag is : " & Datum'Image );

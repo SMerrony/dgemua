@@ -122,18 +122,18 @@ package body Status_Monitor is
                (Channel,
                Dasher_Write_Window_Addr & Character'Val (0) &
                Character'Val (CPU_Row_1) & Dasher_Erase_EOL);
-            String'Write (Channel, "PC:  " & Memory.Dword_To_String (Dword_T(CPU_Stats.PC), Radix, 11, true) & 
-                                    "  Interrupts: " & Memory.Boolean_To_YN (CPU_Stats.ION) &
-                                    "     ATU: " & Memory.Boolean_To_YN (CPU_Stats.ATU) &
+            String'Write (Channel, "PC:  " & Dword_To_String (Dword_T(CPU_Stats.PC), Radix, 11, true) & 
+                                    "  Interrupts: " & Boolean_To_YN (CPU_Stats.ION) &
+                                    "     ATU: " & Boolean_To_YN (CPU_Stats.ATU) &
                                     "            KIPS: " & MIPS_I'Image );
             String'Write
                (Channel,
                Dasher_Write_Window_Addr & Character'Val (0) &
                Character'Val (CPU_Row_2) & Dasher_Erase_EOL);
-            String'Write (Channel, "AC0: " &  Memory.Dword_To_String (CPU_Stats.AC(0), Radix, 11, true) &
-                                    "  AC1: " &  Memory.Dword_To_String (CPU_Stats.AC(1), Radix, 11, true) &
-                                    "  AC2: " &  Memory.Dword_To_String (CPU_Stats.AC(2), Radix, 11, true) &
-                                    "  AC3: " &  Memory.Dword_To_String (CPU_Stats.AC(3), Radix, 11, true));
+            String'Write (Channel, "AC0: " &  Dword_To_String (CPU_Stats.AC(0), Radix, 11, true) &
+                                    "  AC1: " &  Dword_To_String (CPU_Stats.AC(1), Radix, 11, true) &
+                                    "  AC2: " &  Dword_To_String (CPU_Stats.AC(2), Radix, 11, true) &
+                                    "  AC3: " &  Dword_To_String (CPU_Stats.AC(3), Radix, 11, true));
          or
             accept DPF_Update (Stats : in Devices.Disk6061.Status_Rec) do
                DPF_Stats := Stats;
@@ -151,7 +151,7 @@ package body Status_Monitor is
                Character'Val (DPF_Row_1) & Dasher_Erase_EOL);
             String'Write
                (Channel,
-               "DPF:  (DPF0) - Attached: " & Memory.Boolean_To_YN (DPF_Stats.Image_Attached) &
+               "DPF:  (DPF0) - Attached: " & Boolean_To_YN (DPF_Stats.Image_Attached) &
                "  Cyl: " & DPF_Stats.Cylinder'Image & 
                "  Surf: " & DPF_Stats.Surface'Image &
                "  Sect: " & DPF_Stats.Sector'Image &
@@ -166,8 +166,8 @@ package body Status_Monitor is
                Character'Val (MTB_Row_1) & Dasher_Erase_EOL);
             String'Write
                (Channel,
-               "MTA:  (MTC0) - Attached: " & Memory.Boolean_To_YN (MTB_Stats.Image_Attached(0)) &
-               "  Mem Addr: " & Memory.Dword_To_String (Dword_T(MTB_Stats.Mem_Addr_Reg), Radix, 12, true) & 
+               "MTA:  (MTC0) - Attached: " & Boolean_To_YN (MTB_Stats.Image_Attached(0)) &
+               "  Mem Addr: " & Dword_To_String (Dword_T(MTB_Stats.Mem_Addr_Reg), Radix, 12, true) & 
                "  Curr Cmd: " & MTB_Stats.Current_Cmd'Image);
             String'Write
                (Channel,

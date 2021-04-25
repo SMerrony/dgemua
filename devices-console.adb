@@ -28,6 +28,7 @@ use type Ada.Streams.Stream_Element_Count;
 
 with CPU;
 with Devices.Bus;
+with DG_Types;    use DG_Types;
 with Memory;
 
 package body Devices.Console is
@@ -141,7 +142,7 @@ package body Devices.Console is
         begin
             case ABC is
                 when A =>
-                    ASCII_Byte := Memory.Get_Lower_Byte(Datum);
+                    ASCII_Byte := Get_Lower_Byte(Datum);
                     if IO_Flag = S then
                         Devices.Bus.States.Set_Busy( Devices.TTO, true);
                         Devices.Bus.States.Set_Done( Devices.TTO, false);
@@ -217,7 +218,7 @@ package body Devices.Console is
       end Start;
 
       loop   
-        One_Char := Memory.Byte_To_Char(Byte_T'Input (SCP_Chan));
+        One_Char := Byte_To_Char(Byte_T'Input (SCP_Chan));
         SCP_Handler.Get_SCP_IO (SCP_IO);
         if One_Char = ASCII.ESC then
             SCP_Handler.Set_SCP_IO (true);
@@ -237,7 +238,7 @@ package body Devices.Console is
                     SCP_Buffer := SCP_Buffer & One_Char;
             end case;
         else
-            TTIn.Insert_Byte (Memory.Char_To_Byte(One_Char));
+            TTIn.Insert_Byte (Char_To_Byte(One_Char));
         end if;
             
       end loop;

@@ -160,6 +160,9 @@ procedure MVEmuA is
          when Devices.MTB =>
             Devices.Magtape6026.Drives.Load_TBOOT;
             CPU.Actions.Boot (Devices.MTB, 10);
+         when Devices.DPF =>
+            Devices.Disk6061.Drives.Load_DKBT;
+            CPU.Actions.Boot (Devices.DPF, 10);
          when others =>
             TTOut.Put_String (Dasher_NL & " *** Booting from that device is not yet implemented ***");
       end case;   

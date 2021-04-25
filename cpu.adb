@@ -31,6 +31,7 @@ with Devices.Bus;           use Devices.Bus;
 with Devices.Console;
 with Debug_Logs;            use Debug_Logs;
 with DG_Floats;             use DG_Floats;
+with DG_Types;              use DG_Types;
 with Memory;                use Memory;
 with Resolver;              use Resolver;
 with Status_Monitor;
@@ -405,7 +406,7 @@ package body CPU is
 
             when I_LNSTA =>
                Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
-               RAM.Write_Word (Addr, Lower_Word(CPU.AC(I.Ac)));
+               RAM.Write_Word (Addr, DG_Types.Lower_Word(CPU.AC(I.Ac)));
             
             when I_LWADD =>
                Addr := Resolve_31bit_Disp (I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
@@ -670,7 +671,7 @@ package body CPU is
             when I_XNADD =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                I16_Mem := Word_To_Integer_16(RAM.Read_Word(Addr));
-               I16_Ac  := Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)));
+               I16_Ac  := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)));
                I16_Ac := I16_Ac + I16_Mem;
                I32 := Integer_32(I16_Ac) + Integer_32(I16_Mem);
                if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
@@ -699,7 +700,7 @@ package body CPU is
             when I_XNMUL =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                I16_Mem := Word_To_Integer_16(RAM.Read_Word(Addr));
-               I16_Ac  := Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)));
+               I16_Ac  := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)));
                I16_Ac := I16_Ac * I16_Mem;
                I32 := Integer_32(I16_Ac) * Integer_32(I16_Mem);
                if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
@@ -719,7 +720,7 @@ package body CPU is
 
             when I_XNSTA =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
-               RAM.Write_Word (Addr, Lower_Word(CPU.AC(I.Ac)));
+               RAM.Write_Word (Addr, DG_Types.Lower_Word(CPU.AC(I.Ac)));
 
             when I_XSTB =>
                Addr := Resolve_15bit_Disp (false, I.Mode, I.Disp_15, I.Disp_Offset); -- TODO 'Long' resolve???
@@ -730,7 +731,7 @@ package body CPU is
             when I_XNSUB =>
                Addr := Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                I16_Mem := Word_To_Integer_16(RAM.Read_Word(Addr));
-               I16_Ac  := Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)));
+               I16_Ac  := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)));
                I16_Ac := I16_Ac - I16_Mem;
                I32 := Integer_32(I16_Ac) - Integer_32(I16_Mem);
                if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
@@ -784,7 +785,7 @@ package body CPU is
          case I.Instruction is
 
             when I_CIO =>
-               Word := Lower_Word (CPU.AC(I.Acs));
+               Word := DG_Types.Lower_Word (CPU.AC(I.Acs));
                declare
                   IO_Chan : Word_T := Get_W_Bits (Word, 1, 3);
                   Map_Reg_Addr : Integer := Integer(Word and 16#0fff#);
@@ -793,7 +794,7 @@ package body CPU is
                      raise Unsupported_IO_Channel with "Attempt to use CIO on channel " & IO_Chan'Image;
                   end if;
                   if Test_W_Bit (Word, 0) then -- write command
-                     BMC_DCH.Write_Reg (Map_Reg_Addr, Lower_Word(CPU.AC(I.Acd)));
+                     BMC_DCH.Write_Reg (Map_Reg_Addr, DG_Types.Lower_Word(CPU.AC(I.Acd)));
                   else  -- read command
                      CPU.AC(I.Acd) := Dword_T(BMC_DCH.Read_Reg(Map_Reg_Addr));
                   end if;
@@ -807,11 +808,11 @@ package body CPU is
                   if I.Acs = I.Acd then
                      Word := I.Word_2;
                   else
-                     Word := I.Word_2 or Lower_Word (CPU.AC(I.Acs));
+                     Word := I.Word_2 or DG_Types.Lower_Word (CPU.AC(I.Acs));
                   end if;
                   Map_Reg_Addr := Integer(Word and 16#0fff#);
                   if Test_W_Bit (Word, 0) then -- write command
-                     BMC_DCH.Write_Reg (Map_Reg_Addr, Lower_Word(CPU.AC(I.Acd)));
+                     BMC_DCH.Write_Reg (Map_Reg_Addr, DG_Types.Lower_Word(CPU.AC(I.Acd)));
                   else  -- read command
                      CPU.AC(I.Acd) := Dword_T(BMC_DCH.Read_Reg(Map_Reg_Addr));
                   end if;
@@ -830,7 +831,7 @@ package body CPU is
 
             when I_PRTSEL =>
                -- only handle the query mode, setting is a no-op on this 'single-channel' machine
-               if Lower_Word (CPU.AC(0)) = 16#ffff# then
+               if DG_Types.Lower_Word (CPU.AC(0)) = 16#ffff# then
                   -- return default I/O channel if -1 passed in
                   CPU.AC(0) := 0;
                end if;
@@ -886,14 +887,14 @@ package body CPU is
                end if;
             
             when I_NADD =>
-               S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acd)))) + 
-                      Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acs))));
+               S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acd)))) + 
+                      Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acs))));
                CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
                Set_OVR (CPU.Carry);
                CPU.AC(I.Acd) := Integer_32_To_Dword(S32);
 
             when I_NADI =>
-               S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)))) +
+               S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)))) +
                         Integer_32(I.Imm_U16);
                CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
                Set_OVR (CPU.Carry);
@@ -903,27 +904,27 @@ package body CPU is
                CPU.AC(I.Ac) := Sext_Word_To_Dword(I.Word_2);
 
             when I_NMUL =>
-               S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acd)))) * 
-                      Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acs))));
+               S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acd)))) * 
+                      Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acs))));
                CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
                Set_OVR (CPU.Carry);
                CPU.AC(I.Acd) := Integer_32_To_Dword(S32); 
 
             when I_NNEG =>
-               S32 := -Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acs))));
+               S32 := -Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acs))));
                Set_OVR (CPU.AC(I.Acs) = 8#100000#);
                CPU.AC(I.Acd) := Integer_32_To_Dword(S32); 
 
             when I_NSBI =>
-               S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)))) -
+               S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)))) -
                         Integer_32(I.Imm_U16);
                CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
                Set_OVR (CPU.Carry);
                CPU.AC(I.Acd) := Integer_32_To_Dword(S32); 
 
             when I_NSUB =>
-               S32 := Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acd)))) - 
-                      Integer_32(Word_To_Integer_16(Lower_Word(CPU.AC(I.Acs))));
+               S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acd)))) - 
+                      Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acs))));
                CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
                Set_OVR (CPU.Carry);
                CPU.AC(I.Acd) := Integer_32_To_Dword(S32);
@@ -1091,7 +1092,7 @@ package body CPU is
                end;
 
             when I_ZEX =>
-               CPU.AC(I.Acd) := 0 or Dword_T(Lower_Word(CPU.AC(I.Acs)));
+               CPU.AC(I.Acd) := 0 or Dword_T(DG_Types.Lower_Word(CPU.AC(I.Acs)));
 
             when others =>
                Put_Line ("ERROR: EAGLE_Op instruction " & To_String(I.Mnemonic) & 
@@ -1234,7 +1235,7 @@ package body CPU is
                end if;
 
             when I_NSALA =>
-               Word := not Lower_Word (CPU.AC(I.Ac));
+               Word := not DG_Types.Lower_Word (CPU.AC(I.Ac));
                if (Word and I.Word_2) = 0 then
                   CPU.PC := CPU.PC + 3;
                else
@@ -1242,7 +1243,7 @@ package body CPU is
                end if;
 
             when I_NSANA =>
-               Word := Lower_Word (CPU.AC(I.Ac));
+               Word := DG_Types.Lower_Word (CPU.AC(I.Ac));
                if (Word and I.Word_2) = 0 then
                   CPU.PC := CPU.PC + 3;
                else
@@ -1699,14 +1700,14 @@ package body CPU is
 
             when I_BLM => -- AC0 - unused, AC1 - no. wds to move, AC2 - src, AC3 - dest
                declare
-                  Num_Wds :  Word_T := Lower_Word(CPU.AC(1));
+                  Num_Wds :  Word_T := DG_Types.Lower_Word(CPU.AC(1));
                   Src, Dest : Phys_Addr_T;
                begin
                   if (Num_Wds = 0)  or (Num_Wds > 32768) then
                      Loggers.Debug_Print (Debug_Log, "WARNING: BLM called with AC1 out of bounds, No-Op");
                   else
-                     Src  := Ring or Phys_Addr_T(Lower_Word(CPU.AC(2)));
-                     Dest := Ring or Phys_Addr_T(Lower_Word(CPU.AC(3)));
+                     Src  := Ring or Phys_Addr_T(DG_Types.Lower_Word(CPU.AC(2)));
+                     Dest := Ring or Phys_Addr_T(DG_Types.Lower_Word(CPU.AC(3)));
                      if CPU.Debug_Logging then
                         Loggers.Debug_Print (Debug_Log, "BLM moving" & Num_Wds'Image & " words from" &
                            Src'Image & " to" & Dest'Image);
@@ -1739,14 +1740,14 @@ package body CPU is
                   Byte_1, Byte_2 : Byte_T;
                   Res            : Dword_T := 0;
                   Str_1_BP, Str_2_BP : Word_T;
-                  Str_1_Len : Integer_16 := Word_To_Integer_16(Lower_Word(CPU.AC(1)));
-                  Str_2_Len : Integer_16 := Word_To_Integer_16(Lower_Word(CPU.AC(0)));
+                  Str_1_Len : Integer_16 := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(1)));
+                  Str_2_Len : Integer_16 := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(0)));
                begin
                   if (Str_1_Len = 0) and (Str_2_Len = 0) then
                      CPU.AC(1) := 0;
                   else
-                     Str_1_BP := Lower_Word(CPU.AC(3));
-                     Str_2_BP := Lower_Word(CPU.AC(2));
+                     Str_1_BP := DG_Types.Lower_Word(CPU.AC(3));
+                     Str_2_BP := DG_Types.Lower_Word(CPU.AC(2));
                      loop
                         if Str_1_Len = 0 then 
                            Byte_1 := 32; 
@@ -1796,19 +1797,19 @@ package body CPU is
                   Dest_Ascend, Src_Ascend : Boolean;
                   Dest_Cnt, Src_Cnt : Integer_16;
                begin
-                  Dest_Cnt := Word_To_Integer_16(Lower_Word(CPU.AC(0)));
+                  Dest_Cnt := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(0)));
                   if Dest_Cnt = 0 then
                      Loggers.Debug_Print (Debug_Log, "WARNING: CMV called with AC0 = 0, not moving anything");
                      CPU.Carry := false;
                   else
                      Dest_Ascend := Dest_Cnt > 0;
-                     Src_Cnt := Word_To_Integer_16(Lower_Word(CPU.AC(1)));
+                     Src_Cnt := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(1)));
                      Src_Ascend := Src_Cnt > 0;
                      CPU.Carry := (Abs Src_Cnt) > (Abs Dest_Cnt);
                      -- move Src_Cnt bytes
                      loop
-                        RAM.Write_Byte_Eclipse_BA(Ring, Lower_Word(CPU.AC(2)), 
-                                                  RAM.Read_Byte_Eclipse_BA(Ring, Lower_Word(CPU.AC(3))));
+                        RAM.Write_Byte_Eclipse_BA(Ring, DG_Types.Lower_Word(CPU.AC(2)), 
+                                                  RAM.Read_Byte_Eclipse_BA(Ring, DG_Types.Lower_Word(CPU.AC(3))));
                         if Src_Ascend then
                            CPU.AC(3) := CPU.AC(3) + 1;
                            Src_Cnt := Src_Cnt - 1;
@@ -1827,7 +1828,7 @@ package body CPU is
                      end loop;
                      -- now fill any excess bytes with ASCII spaces
                      while Dest_Cnt /= 0 loop
-                        RAM.Write_Byte_Eclipse_BA(Ring, Lower_Word(CPU.AC(2)), 32);
+                        RAM.Write_Byte_Eclipse_BA(Ring, DG_Types.Lower_Word(CPU.AC(2)), 32);
                         if Dest_Ascend then
                            CPU.AC(2) := CPU.AC(2) + 1;
                            Dest_Cnt := Dest_Cnt - 1;
@@ -1850,10 +1851,10 @@ package body CPU is
 
             when I_ESTA =>
                Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
-               RAM.Write_Word (Addr, Lower_Word(CPU.AC(I.Ac)));
+               RAM.Write_Word (Addr, DG_Types.Lower_Word(CPU.AC(I.Ac)));
 
             when I_LDB =>
-               CPU.AC(I.Acd) := Dword_T (RAM.Read_Byte_Eclipse_BA (Ring, Lower_Word(CPU.AC(I.Acs))));
+               CPU.AC(I.Acd) := Dword_T (RAM.Read_Byte_Eclipse_BA (Ring, DG_Types.Lower_Word(CPU.AC(I.Acs))));
 
             when I_LEF =>
                Addr := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15);
@@ -1863,7 +1864,7 @@ package body CPU is
                declare
                   Low_Byte : Boolean := Test_DW_Bit(CPU.AC(I.Acs), 31);
                begin
-                  Addr := Shift_Right (Phys_Addr_T(Lower_Word(CPU.AC(I.Acs))), 1);
+                  Addr := Shift_Right (Phys_Addr_T(DG_Types.Lower_Word(CPU.AC(I.Acs))), 1);
                   Addr := (Addr and 16#7fff#) or Ring;
                   RAM.Write_Byte(Addr, Low_Byte, Byte_T(CPU.AC(I.Acd)));
                end;
@@ -1887,18 +1888,18 @@ package body CPU is
          case I.Instruction is
 
             when I_ADDI =>
-               S16 := Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)));
+               S16 := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)));
                S16 := S16 + Word_To_Integer_16(I.Word_2);
-               CPU.AC(I.Ac) := Dword_T(Integer_16_To_Word(S16)) and 16#0000_ffff#;
+               CPU.AC(I.Ac) := Dword_T(DG_Types.Integer_16_To_Word(S16)) and 16#0000_ffff#;
 
             when I_ADI =>
-               Word := Lower_Word (CPU.AC(I.Ac));
+               Word := DG_Types.Lower_Word (CPU.AC(I.Ac));
                Word := Word + Word_T(I.Imm_U16);
                CPU.AC(I.Ac) := Dword_T(Word);
 
             when I_ANDI =>
-               Word := Lower_Word (CPU.AC(I.Ac));
-               CPU.AC(I.Ac) := Dword_T(Word and Integer_16_To_Word(I.Imm_S16)) and 16#0000_ffff#;
+               Word := DG_Types.Lower_Word (CPU.AC(I.Ac));
+               CPU.AC(I.Ac) := Dword_T(Word and DG_Types.Integer_16_To_Word(I.Imm_S16)) and 16#0000_ffff#;
 
             when I_DHXL =>
                declare
@@ -1909,10 +1910,10 @@ package body CPU is
                   else
                      D_Plus_1 := I.Acd + 1;
                   end if;
-                  Dword := Dword_From_Two_Words (Lower_Word(CPU.AC(I.Acd)), Lower_Word(CPU.AC(D_Plus_1)));
+                  Dword := Dword_From_Two_Words (DG_Types.Lower_Word(CPU.AC(I.Acd)), DG_Types.Lower_Word(CPU.AC(D_Plus_1)));
                   Dword := Shift_Left (Dword, Natural(I.Imm_U16) * 4);
-                  CPU.AC(I.Acd) := Dword_T(Upper_Word (Dword));
-                  CPU.AC(D_Plus_1) := Dword_T(Lower_Word (Dword));
+                  CPU.AC(I.Acd) := Dword_T(DG_Types.Upper_Word (Dword));
+                  CPU.AC(D_Plus_1) := Dword_T(DG_Types.Lower_Word (Dword));
                end;
 
             when I_DLSH =>
@@ -1924,8 +1925,8 @@ package body CPU is
                   else
                      D_Plus_1 := I.Acd + 1;
                   end if;
-                  Shift := Integer(Byte_To_Integer_8 (Get_Lower_Byte (Lower_Word (CPU.AC(I.Acs)))));
-                  Dword := Dword_From_Two_Words (Lower_Word(CPU.AC(I.Acd)), Lower_Word(CPU.AC(D_Plus_1)));
+                  Shift := Integer(Byte_To_Integer_8 (Get_Lower_Byte (DG_Types.Lower_Word (CPU.AC(I.Acs)))));
+                  Dword := Dword_From_Two_Words (DG_Types.Lower_Word(CPU.AC(I.Acd)), DG_Types.Lower_Word(CPU.AC(D_Plus_1)));
                   if Shift /= 0 then
                      if (Shift < -31) or (Shift > 31) then
                         Dword := 0;
@@ -1937,16 +1938,16 @@ package body CPU is
                         end if;
                      end if;
                   end if;
-                  CPU.AC(I.Acd) := Dword_T(Upper_Word (Dword));
-                  CPU.AC(D_Plus_1) := Dword_T(Lower_Word (Dword));
+                  CPU.AC(I.Acd) := Dword_T(DG_Types.Upper_Word (Dword));
+                  CPU.AC(D_Plus_1) := Dword_T(DG_Types.Lower_Word (Dword));
                end;
 
             when I_IOR =>
-               Word := Lower_Word (CPU.AC(I.Acd)) or Lower_Word (CPU.AC(I.Acs));
+               Word := DG_Types.Lower_Word (CPU.AC(I.Acd)) or DG_Types.Lower_Word (CPU.AC(I.Acs));
                CPU.AC(I.Acd) := Dword_T(Word);
 
             when I_IORI =>
-               Word := Lower_Word (CPU.AC(I.Ac)) or I.Word_2;
+               Word := DG_Types.Lower_Word (CPU.AC(I.Ac)) or I.Word_2;
                CPU.AC(I.Ac) := Dword_T(Word);
 
             when I_HXL =>
@@ -1958,8 +1959,8 @@ package body CPU is
                CPU.AC(I.Ac) := Dword and 16#0000_ffff#;
 
             when I_LSH =>
-               Word := Lower_Word (CPU.AC(I.Acd));
-               Shift := Integer(Byte_To_Integer_8 (Get_Lower_Byte (Lower_Word (CPU.AC(I.Acs)))));
+               Word := DG_Types.Lower_Word (CPU.AC(I.Acd));
+               Shift := Integer(Byte_To_Integer_8 (Get_Lower_Byte (DG_Types.Lower_Word (CPU.AC(I.Acs)))));
                if Shift /= 0 then
                   if (Shift < -15) or (Shift > 15) then
                      Word := 0;
@@ -1974,7 +1975,7 @@ package body CPU is
                CPU.AC(I.Acd) := Dword_T(Word);
 
             when I_SBI =>
-               Word := Lower_Word(CPU.AC(I.Ac));
+               Word := DG_Types.Lower_Word(CPU.AC(I.Ac));
                Word := Word - Word_T(I.Imm_U16);
                CPU.AC(I.Ac) := Dword_T(Word);
                    
@@ -1985,7 +1986,7 @@ package body CPU is
 
             when I_XCT=> -- funkiness ahead...
                CPU.XCT_Mode := true;
-               CPU.XCT_Opcode := Lower_Word (CPU.AC(I.Ac));
+               CPU.XCT_Opcode := DG_Types.Lower_Word (CPU.AC(I.Ac));
                return; -- PC NOT advanced
 
             when others =>
@@ -2010,7 +2011,7 @@ package body CPU is
                   Acs, L, H : Integer_16;
                   Incr : Phys_Addr_T;
                begin
-                  Acs := Word_To_Integer_16(Lower_Word(CPU.AC(I.Acs)));
+                  Acs := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acs)));
                   if I.Acs = I.Acd then
                      L := Word_To_Integer_16(RAM.Read_Word(CPU.PC + 1));
                      H := Word_To_Integer_16(RAM.Read_Word(CPU.PC + 2));
@@ -2020,8 +2021,8 @@ package body CPU is
                         Incr := 4;
                      end if;
                   else
-                     L := Word_To_Integer_16(RAM.Read_Word (Phys_Addr_T (Lower_Word (CPU.AC(I.Acd))) or Ring));
-                     H := Word_To_Integer_16(RAM.Read_Word (Phys_Addr_T (Lower_Word (CPU.AC(I.Acd)) + 1) or Ring));
+                     L := Word_To_Integer_16(RAM.Read_Word (Phys_Addr_T (DG_Types.Lower_Word (CPU.AC(I.Acd))) or Ring));
+                     H := Word_To_Integer_16(RAM.Read_Word (Phys_Addr_T (DG_Types.Lower_Word (CPU.AC(I.Acd)) + 1) or Ring));
                      if (Acs < L) or (Acs > H) then
                         Incr := 1;
                      else
@@ -2042,7 +2043,7 @@ package body CPU is
                   Low_Limit, High_Limit : Phys_Addr_T;
                begin
                   Table_Start := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
-                  Offset     := Phys_Addr_T(Lower_Word(CPU.AC(I.Ac)));
+                  Offset     := Phys_Addr_T(DG_Types.Lower_Word(CPU.AC(I.Ac)));
                   Low_Limit  := Phys_Addr_T(RAM.Read_Word(Table_Start - 2));
                   High_Limit := Phys_Addr_T(RAM.Read_Word(Table_Start - 1));
                   if CPU.Debug_Logging then
@@ -2124,11 +2125,11 @@ package body CPU is
                   if CPU.Debug_Logging then
                      Loggers.Debug_Print (Debug_Log, "PSH pushing AC" & This_AC'Image);
                   end if;
-                  Narrow_Stack.Push (Ring, Lower_Word(CPU.AC(AC_Circle(This_AC))));
+                  Narrow_Stack.Push (Ring, DG_Types.Lower_Word(CPU.AC(AC_Circle(This_AC))));
                end loop;
 
             when I_PSHJ =>
-               Narrow_Stack.Push (Ring, Lower_Word(DWord_T(CPU.PC)) + 2);
+               Narrow_Stack.Push (Ring, DG_Types.Lower_Word(DWord_T(CPU.PC)) + 2);
                Addr := (Resolve_15bit_Disp (I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
                CPU.PC := Addr;
                return; -- because PC has been set
@@ -2146,7 +2147,7 @@ package body CPU is
                   CPU.AC(2) := Dword_T(Narrow_Stack.Pop(Ring));     -- 3
                   CPU.AC(1) := Dword_T(Narrow_Stack.Pop(Ring));     -- 2
                   CPU.AC(0) := Dword_T(Narrow_Stack.Pop(Ring));     -- 1
-                  RAM.Write_Word (NFP_Loc or Ring, Lower_Word(CPU.AC(3)));
+                  RAM.Write_Word (NFP_Loc or Ring, DG_Types.Lower_Word(CPU.AC(3)));
                   return; -- because PC has been set
                end;
 
@@ -2156,11 +2157,11 @@ package body CPU is
                begin
                   NFP_Sav := RAM.Read_Word (NFP_Loc or Ring);
                   NSP_Sav := RAM.Read_Word (NSP_Loc or Ring);
-                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(0))); -- 1
-                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(1))); -- 2
-                  Narrow_Stack.Push(Ring, Lower_Word(CPU.AC(2))); -- 3 
+                  Narrow_Stack.Push(Ring, DG_Types.Lower_Word(CPU.AC(0))); -- 1
+                  Narrow_Stack.Push(Ring, DG_Types.Lower_Word(CPU.AC(1))); -- 2
+                  Narrow_Stack.Push(Ring, DG_Types.Lower_Word(CPU.AC(2))); -- 3 
                   Narrow_Stack.Push(Ring, NFP_Sav);               -- 4
-                  Word := Lower_Word(CPU.AC(3));
+                  Word := DG_Types.Lower_Word(CPU.AC(3));
                   if CPU.Carry then
                      Word := Word or 16#8000#;
                   else
@@ -2208,7 +2209,7 @@ package body CPU is
                            Devices.Bus.Actions.Data_In(I.IO_Dev, I.IO_Reg, I.IO_Flag, Datum);
                            CPU.AC(I.Ac) := Dword_T(Datum);
                         else
-                           Datum := Lower_Word (CPU.AC(I.Ac));
+                           Datum := DG_Types.Lower_Word (CPU.AC(I.Ac));
                            Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, I.IO_Reg, I.IO_Flag);
                      end if;
                   else
@@ -2278,10 +2279,10 @@ package body CPU is
                declare
                   UW, LW, Quot : Word_T;
                begin
-                  UW := Lower_Word (CPU.AC(0));
-                  LW := Lower_Word (CPU.AC(1));
+                  UW := DG_Types.Lower_Word (CPU.AC(0));
+                  LW := DG_Types.Lower_Word (CPU.AC(1));
                   DW := Dword_From_Two_Words (UW, LW);
-                  Quot := Lower_Word (CPU.AC(2));
+                  Quot := DG_Types.Lower_Word (CPU.AC(2));
                   if (UW >= Quot) or (Quot = 0) then
                      CPU.Carry := true;
                   else
@@ -2295,8 +2296,8 @@ package body CPU is
                DW := ((CPU.AC(1) and 16#0000_ffff#) *
                       (CPU.AC(2) and 16#0000_ffff#)) +
                       (CPU.AC(0) and 16#0000_ffff#);
-               CPU.AC(0) := Dword_T(Upper_Word (DW));
-               CPU.AC(1) := Dword_T(Lower_Word (DW));
+               CPU.AC(0) := Dword_T(DG_Types.Upper_Word (DW));
+               CPU.AC(1) := Dword_T(DG_Types.Lower_Word (DW));
 
             when others =>
                Put_Line ("ERROR: NOVA_MATH instruction " & To_String(I.Mnemonic) & 
@@ -2314,8 +2315,8 @@ package body CPU is
          Saved_Carry, Tmp_Carry : Boolean;
          PC_Inc                 : Phys_Addr_T;
       begin
-         Tmp_Acs := Lower_Word (CPU.AC(I.Acs));
-         Tmp_Acd := Lower_Word (CPU.AC(I.Acd));
+         Tmp_Acs := DG_Types.Lower_Word (CPU.AC(I.Acs));
+         Tmp_Acd := DG_Types.Lower_Word (CPU.AC(I.Acd));
          Saved_Carry := CPU.Carry;
 
          case I.Carry is
@@ -2328,13 +2329,13 @@ package body CPU is
          case I.Instruction is
             when I_ADC =>
                Wide_Shifter := Dword_T(Tmp_Acd) + Dword_T(not Tmp_Acs);
-               Narrow_Shifter := Lower_Word (Wide_Shifter);
+               Narrow_Shifter := DG_Types.Lower_Word (Wide_Shifter);
                if Wide_Shifter > 65535 then
                   CPU.Carry := not CPU.Carry;
                end if;
             when I_ADD => -- unsigned
                Wide_Shifter := Dword_T(Tmp_Acd) + Dword_T(Tmp_Acs);
-               Narrow_Shifter := Lower_Word (Wide_Shifter);
+               Narrow_Shifter := DG_Types.Lower_Word (Wide_Shifter);
                if Wide_Shifter > 65535 then
                   CPU.Carry := not CPU.Carry;
                end if;
@@ -2350,7 +2351,7 @@ package body CPU is
             when I_MOV =>
                Narrow_Shifter := Tmp_Acs;
             when I_NEG =>
-               Narrow_Shifter := Integer_16_To_Word(- Word_To_Integer_16(Tmp_Acs));
+               Narrow_Shifter := DG_Types.Integer_16_To_Word(- Word_To_Integer_16(Tmp_Acs));
                -- Narrow_Shifter := Word_T(-Integer_16(Tmp_Acs)); -- TODO Check this
                if Tmp_Acs = 0 then
                   CPU.Carry := not CPU.Carry;
@@ -2434,7 +2435,7 @@ package body CPU is
 
             when I_STA =>
                Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
-               Word := Lower_Word (CPU.AC(I.Ac));
+               Word := DG_Types.Lower_Word (CPU.AC(I.Ac));
                RAM.Write_Word (Addr, Word);
 
             when others =>

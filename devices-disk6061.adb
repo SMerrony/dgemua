@@ -391,6 +391,21 @@ package body Devices.Disk6061 is
            Handle_Flag (IO_Flag);
         end Data_Out;
 
+        procedure Load_DKBT is
+        -- Load_DKBT - This proc mimics a system ROM routine to boot from disk.
+        -- Rather than copying a ROM routine (!) we simply mimic its basic actions...
+        -- Load 1st block from disk into location 0
+        begin
+            Ada.Text_IO.Put_Line ("INFO: Load_DKBT called");
+            State.Command := Cmd_T'Pos(Recal);
+            Do_Command;
+            State.Mem_Addr := 0;
+            State.Sector_Cnt := -1;
+            State.Command := Cmd_T'Pos(Read);
+            Do_Command;
+            Ada.Text_IO.Put_Line ("INFO: Load_DKBT completed");
+        end Load_DKBT;
+
     end Drives;
 
     -- Create_Blank creates an empty disk file of the correct size for the disk6061 emulator to use

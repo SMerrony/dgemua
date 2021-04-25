@@ -26,6 +26,7 @@ with Ada.Text_IO;           use Ada.Text_IO;
 
 with CPU_Instructions; use CPU_Instructions;
 with Debug_Logs;       use Debug_Logs;
+with DG_Types;         use DG_Types;
 with Devices;
 with Devices.Bus;      
 with Memory;           use Memory;
@@ -173,7 +174,7 @@ package body Decoder is
       -- else
       --    return Integer_16 (D15 and 2#0011_1111_1111_1111#);
       -- end if;
-      return Memory.Word_To_Integer_16(Shift_Left(D15, 1)) / 2;
+      return Word_To_Integer_16(Shift_Left(D15, 1)) / 2;
    end Decode_15bit_Disp; -- TODO Test/verify this
 
    procedure Decode_16bit_Byte_Disp (D16 : in Word_T; Disp_16 : out Integer_16; Lo_Byte : out Boolean) is
@@ -193,7 +194,7 @@ package body Decoder is
             Dw_1 := Dw_1 or 16#8000_0000#;
          end if;
       end if;
-      Disp :=  Memory.Dword_To_Integer_32(Dw_1 or Dw_2);
+      Disp :=  Dword_To_Integer_32(Dw_1 or Dw_2);
       return Disp;
    end Decode_31bit_Disp;
 
@@ -629,9 +630,9 @@ package body Decoder is
             end if;
 
          when SPLIT_8BIT_DISP_FMT => -- eg. WBR, always a signed displacement
-            Tmp_8bit := Byte_T(Memory.Get_W_Bits(Opcode, 1, 4));
+            Tmp_8bit := Byte_T(Get_W_Bits(Opcode, 1, 4));
             Tmp_8bit := Shift_Left (Tmp_8bit, 4);
-            Tmp_8bit := Tmp_8bit or Byte_T(Memory.Get_W_Bits(Opcode, 6, 4));
+            Tmp_8bit := Tmp_8bit or Byte_T(Get_W_Bits(Opcode, 6, 4));
             Decoded.Disp_8 := Integer_8(Decode_8bit_Disp(Tmp_8bit, Decoder.PC));
             if Disassemble then
                Decoded.Disassembly :=
@@ -693,9 +694,9 @@ package body Decoder is
             end if;
 
          when WSKB_FMT => -- eg. WSKBO/Z
-            Tmp_8bit := Byte_T(Memory.Get_W_Bits(Opcode, 1, 3));
+            Tmp_8bit := Byte_T(Get_W_Bits(Opcode, 1, 3));
             Tmp_8bit := Shift_Left (Tmp_8bit, 2);
-            Tmp_8bit := Tmp_8bit or Byte_T(Memory.Get_W_Bits(Opcode, 10, 2));
+            Tmp_8bit := Tmp_8bit or Byte_T(Get_W_Bits(Opcode, 10, 2));
             Decoded.Bit_Number := Natural(Unsigned_8(Tmp_8bit));
             if Disassemble then
                Decoded.Disassembly :=

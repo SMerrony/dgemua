@@ -124,7 +124,7 @@ package Devices.Disk6061 is
 		procedure Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
         procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
 		function  Get_Status return Status_Rec;
-		-- procedure Load_DKBT;
+		procedure Load_DKBT;
 	private
 		State : State_Rec;
 	end Drives;

@@ -23,6 +23,7 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 
+with DG_Types;    use DG_Types;
 with Memory;
 
 package body Devices.Bus is
@@ -240,7 +241,7 @@ package body Devices.Bus is
 
        function Is_Dev_Masked (PMB : in Integer) return Boolean is
        begin
-          return Memory.Test_W_Bit (State.IRQ_Mask, PMB);
+          return Test_W_Bit (State.IRQ_Mask, PMB);
        end Is_Dev_Masked;
 
        procedure Send_Interrupt (Dev : in Dev_Num_T) is
