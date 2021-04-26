@@ -29,14 +29,19 @@ with Decoder;               use Decoder;
 with Devices;               use Devices;
 with Devices.Bus;           use Devices.Bus;
 with Devices.Console;
-with Debug_Logs;            use Debug_Logs;
 with DG_Floats;             use DG_Floats;
 with DG_Types;              use DG_Types;
 with Memory;                use Memory;
 with Resolver;              use Resolver;
 with Status_Monitor;
 
-package body CPU is
+with Processor.Nova_IO_P; 
+with Processor.Nova_Math_P; 
+with Processor.Nova_Mem_Ref_P; 
+with Processor.Nova_Op_P; 
+with Processor.Nova_PC_P; 
+
+package body Processor is
 
    procedure Init  is
    begin
@@ -83,50 +88,6 @@ package body CPU is
       begin
          CPU.Debug_Logging := OnOff;
       end Set_Debug_Logging;
-
-      function Resolve_8bit_Disp (Indirect    : in Boolean; 
-                                  Mode        : in Mode_T;
-                                  Disp15      : in Integer_16) return Phys_Addr_T is
-         Eff    : Phys_Addr_T;
-         Ring   : Phys_Addr_T := CPU.PC and 16#7000_0000#;
-         Ind_Addr : Word_T;
-         Indirection_Level : Integer := 0;
-      begin
-         if Mode /= Absolute then
-            -- relative mode, sign-extend to 32-bits
-            Eff := Integer_32_To_Phys(Integer_32(Disp15)); -- Disp15 is already sexted by decoder
-         end if;
-         case Mode is
-            when Absolute =>
-               Eff := Phys_Addr_T(Disp15) or Ring;
-            when PC =>
-               Eff := Eff + CPU.PC;
-            when AC2 =>
-               Eff := Eff + Phys_Addr_T(Integer_32(CPU.AC(2)));
-            when AC3 =>
-               Eff := Eff + Phys_Addr_T(Integer_32(CPU.AC(3)));
-         end case;
-
-         if Indirect then
-            Eff := Eff or Ring;
-            Ind_Addr := RAM.Read_Word (Eff);
-            while (Ind_Addr and 16#8000#) /= 0 loop
-               Indirection_Level := Indirection_Level + 1;
-               if Indirection_Level > 15 then
-                  raise Indirection_Failure with "Too many levels of indirection";
-               end if;
-               Ind_Addr := RAM.Read_Word (Phys_Addr_T(Ind_Addr) or Ring);
-            end loop;
-            Eff := Phys_Addr_T(Ind_Addr) or Ring;
-         end if;
-
-         if not CPU.ATU then
-            -- constrain to 1st 32MB
-            Eff := Eff and 16#01ff_ffff#;
-         end if;
-
-         return Eff;
-      end Resolve_8bit_Disp;
 
       function Resolve_15bit_Disp (Indirect    : in Boolean; 
                                    Mode        : in Mode_T;
@@ -1857,7 +1818,7 @@ package body CPU is
                CPU.AC(I.Acd) := Dword_T (RAM.Read_Byte_Eclipse_BA (Ring, DG_Types.Lower_Word(CPU.AC(I.Acs))));
 
             when I_LEF =>
-               Addr := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15);
+               Addr := Resolve_8bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15);
                Addr := (Addr and 16#0000_7fff#) or Ring;
 
             when I_STB =>
@@ -2182,294 +2143,6 @@ package body CPU is
          CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
       end Eclipse_Stack;
 
-      procedure Nova_IO (I : in Decoded_Instr_T) is
-         Seg_Num : Integer := Integer(Shift_Right(CPU.PC, 28) and 16#07#);
-         Datum : Word_T;
-         Busy, Done : Boolean;
-      begin
-         if CPU.ATU and CPU.SBR(Seg_Num).Lef then
-               raise Execution_Failure with "LEF not yet implemented";
-         end if;
-         case I.Instruction is
-            when I_DIA | I_DIB | I_DIC | I_DOA | I_DOB | I_DOC =>
-
-               -- catch CPU I/O instructions
-               if I.IO_Dev = Devices.CPU then
-                  case I.Instruction is
-                     when I_DIC =>
-                        Put_Line ("INFO: Reseting I/O Devices due to DIC CPU instruction");
-                        Devices.Bus.Actions.Reset_All_IO_Devices;
-
-                     when others =>
-                        raise Execution_Failure with "CPU I/O not yet implemented";
-                  end case;
-               else
-                  if Bus.Actions.Is_Connected(I.IO_Dev) and Bus.Actions.Is_IO_Dev(I.IO_Dev) then
-                     if I.IO_Dir = Data_In then
-                           Devices.Bus.Actions.Data_In(I.IO_Dev, I.IO_Reg, I.IO_Flag, Datum);
-                           CPU.AC(I.Ac) := Dword_T(Datum);
-                        else
-                           Datum := DG_Types.Lower_Word (CPU.AC(I.Ac));
-                           Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, I.IO_Reg, I.IO_Flag);
-                     end if;
-                  else
-                     if I.IO_Dev = 2 then
-                        Loggers.Debug_Print(Debug_Log, "WARNING: Ignoring I/O to device " & I.IO_Dev'Image);
-                     else
-                        Loggers.Debug_Print(Debug_Log, "WARNING: I/O Attempted to unattached or non-I/O capable device ");
-                        raise IO_Device_Error;
-                     end if;
-                  end if;
-               end if;
-
-            when I_NIO =>
-               -- catch CPU I/O instructions
-               if I.IO_Dev = Devices.CPU then
-                  raise Execution_Failure with "CPU I/O not yet implemented";
-               end if;
-               -- case I.IO_Flag is
-               --    when None => null;
-               --    when S => 
-               --       Devices.Bus.States.Set_Busy (I.IO_Dev, true);
-               --       Devices.Bus.States.Set_Done (I.IO_Dev, false);
-               --    when C => 
-               --       Devices.Bus.States.Set_Busy (I.IO_Dev, false);
-               --       Devices.Bus.States.Set_Done (I.IO_Dev, false);   
-               --    when P =>
-               --       raise Not_Yet_Implemented with "NIO Pulse";
-               -- end case;
-               Devices.Bus.Actions.Data_Out(I.IO_Dev, 0, N, I.IO_Flag);
-
-            when I_SKP =>
-               case I.IO_Dev is
-                  when Devices.CPU =>
-                     Busy := CPU.ION;
-                     Done := CPU.PF_Flag;
-                  when Dev_Num_T(8#12#) | Dev_Num_T(8#13#) => -- TODO ignore for now
-                     CPU.PC := CPU.PC + 2;
-                     return;
-                  when others =>
-                     Busy := Devices.Bus.States.Get_Busy(I.IO_Dev);
-                     Done := Devices.Bus.States.Get_Done(I.IO_Dev);
-               end case;
-               case I.IO_Test is
-                  when BN => if Busy then CPU.PC := CPU.PC + 1; end if;
-                  when BZ => if not Busy then CPU.PC := CPU.PC + 1; end if;
-                  when DN => 
-                     if Done then 
-                        CPU.PC := CPU.PC + 1; 
-                     end if;
-                  when DZ => if not Done then CPU.PC := CPU.PC + 1; end if;
-               end case;
-                          
-            when others =>
-               Put_Line ("ERROR: Nova_IO instruction " & To_String(I.Mnemonic) & 
-                         " not yet implemented");
-               raise Execution_Failure with "ERROR: Nova_IO instruction " & To_String(I.Mnemonic) & 
-                         " not yet implemented";
-         end case;
-         CPU.PC := CPU.PC + 1;
-      end Nova_IO;
-
-      procedure Nova_Math (I : in Decoded_Instr_T) is
-         DW : Dword_T;
-      begin
-         case I.Instruction is
-            when I_DIV =>
-               declare
-                  UW, LW, Quot : Word_T;
-               begin
-                  UW := DG_Types.Lower_Word (CPU.AC(0));
-                  LW := DG_Types.Lower_Word (CPU.AC(1));
-                  DW := Dword_From_Two_Words (UW, LW);
-                  Quot := DG_Types.Lower_Word (CPU.AC(2));
-                  if (UW >= Quot) or (Quot = 0) then
-                     CPU.Carry := true;
-                  else
-                     CPU.Carry := false;
-                     CPU.AC(0) := (Dw mod Dword_T(Quot)) and 16#0000_ffff#;
-                     CPU.AC(1) := (Dw / Dword_T(Quot)) and 16#0000_ffff#;
-                  end if;
-               end;     
-
-            when I_MUL =>      
-               DW := ((CPU.AC(1) and 16#0000_ffff#) *
-                      (CPU.AC(2) and 16#0000_ffff#)) +
-                      (CPU.AC(0) and 16#0000_ffff#);
-               CPU.AC(0) := Dword_T(DG_Types.Upper_Word (DW));
-               CPU.AC(1) := Dword_T(DG_Types.Lower_Word (DW));
-
-            when others =>
-               Put_Line ("ERROR: NOVA_MATH instruction " & To_String(I.Mnemonic) & 
-                         " not yet implemented");
-               raise Execution_Failure with "ERROR: NOVA_MATH instruction " & To_String(I.Mnemonic) & 
-                         " not yet implemented";
-         end case;
-         CPU.PC := CPU.PC + 1;
-      end Nova_Math;
-
-      procedure Nova_Op (I : in Decoded_Instr_T) is
-         Wide_Shifter           : Dword_T;
-         Narrow_Shifter         : Word_T;
-         Tmp_Acs, Tmp_Acd       : Word_T;
-         Saved_Carry, Tmp_Carry : Boolean;
-         PC_Inc                 : Phys_Addr_T;
-      begin
-         Tmp_Acs := DG_Types.Lower_Word (CPU.AC(I.Acs));
-         Tmp_Acd := DG_Types.Lower_Word (CPU.AC(I.Acd));
-         Saved_Carry := CPU.Carry;
-
-         case I.Carry is
-            when None => null;
-            when Z => CPU.Carry := false;
-            when O => CPU.Carry := true;
-            when C => CPU.Carry := not CPU.Carry;
-         end case;
-
-         case I.Instruction is
-            when I_ADC =>
-               Wide_Shifter := Dword_T(Tmp_Acd) + Dword_T(not Tmp_Acs);
-               Narrow_Shifter := DG_Types.Lower_Word (Wide_Shifter);
-               if Wide_Shifter > 65535 then
-                  CPU.Carry := not CPU.Carry;
-               end if;
-            when I_ADD => -- unsigned
-               Wide_Shifter := Dword_T(Tmp_Acd) + Dword_T(Tmp_Acs);
-               Narrow_Shifter := DG_Types.Lower_Word (Wide_Shifter);
-               if Wide_Shifter > 65535 then
-                  CPU.Carry := not CPU.Carry;
-               end if;
-            when I_AND =>
-               Narrow_Shifter := Tmp_Acd and Tmp_Acs;
-            when I_COM =>
-               Narrow_Shifter := not Tmp_Acs;
-            when I_INC =>
-               Narrow_Shifter := Tmp_Acs + 1;
-               if Tmp_Acs = 16#ffff# then
-                  CPU.Carry := not CPU.Carry;
-               end if;
-            when I_MOV =>
-               Narrow_Shifter := Tmp_Acs;
-            when I_NEG =>
-               Narrow_Shifter := DG_Types.Integer_16_To_Word(- Word_To_Integer_16(Tmp_Acs));
-               -- Narrow_Shifter := Word_T(-Integer_16(Tmp_Acs)); -- TODO Check this
-               if Tmp_Acs = 0 then
-                  CPU.Carry := not CPU.Carry;
-               end if;
-            when I_SUB =>
-               Narrow_Shifter := Tmp_Acd - Tmp_Acs;
-               if Tmp_Acs <= Tmp_Acd then
-                  CPU.Carry := not CPU.Carry;
-               end if;
-
-            when others =>
-               Put_Line ("ERROR: NOVA_OP instruction " & To_String(I.Mnemonic) & 
-                         " not yet implemented");
-               raise Execution_Failure with "ERROR: NOVA_OP instruction " & To_String(I.Mnemonic) & 
-                         " not yet implemented";
-         end case;
-
-         case I.Sh is
-            when None => null;
-            when L =>
-               Tmp_Carry := CPU.Carry;
-               CPU.Carry := Test_W_Bit (Narrow_Shifter, 0);
-               Narrow_Shifter := Shift_Left (Narrow_Shifter, 1);
-               if Tmp_Carry then
-                  Narrow_Shifter := Narrow_Shifter or 16#0001#;
-               end if;
-            when R =>
-               Tmp_Carry := CPU.Carry;
-               CPU.Carry := Test_W_Bit (Narrow_Shifter, 15);
-               Narrow_Shifter := Shift_Right (Narrow_Shifter, 1);
-               if Tmp_Carry then
-                  Narrow_Shifter := Narrow_Shifter or 16#8000#;
-               end if;
-            when S => 
-               Narrow_Shifter := Swap_Bytes (Narrow_Shifter);
-         end case;
-
-         case I.Skip is
-            when None => PC_Inc := 1;
-            when SKP => PC_Inc := 2;
-            when SZC => if not CPU.Carry then PC_Inc := 2; else PC_Inc := 1; end if;
-            when SNC => if CPU.Carry then PC_Inc := 2; else PC_Inc := 1; end if;
-            when SZR => if Narrow_Shifter = 0 then PC_Inc := 2; else PC_Inc := 1; end if;
-            when SNR => if Narrow_Shifter /= 0 then PC_Inc := 2; else PC_Inc := 1; end if;
-            when SEZ => if (not CPU.Carry) or (Narrow_Shifter = 0) then PC_Inc := 2; else PC_Inc := 1; end if;
-            when SBN => if CPU.Carry and (Narrow_Shifter /= 0) then PC_Inc := 2; else PC_Inc := 1; end if;
-         end case;
-
-         if I.No_Load then
-            -- don't load the result from the shifter, restore the Carry flag
-            CPU.Carry := Saved_Carry;
-         else
-            CPU.AC(I.Acd) := Dword_T(Narrow_Shifter) and 16#0000_ffff#;
-         end if;
-
-         CPU.PC := CPU.PC + PC_Inc;
-      end Nova_Op;
-
-      procedure Nova_Mem_Ref (I : in Decoded_Instr_T) is
-         Ring_Mask : Phys_Addr_T := CPU.PC and 16#7000_0000#;
-         Addr : Phys_Addr_T;
-         Word : Word_T;
-      begin
-         case I.Instruction is
-            when I_DSZ =>
-               Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
-               Word := RAM.Read_Word (Addr) - 1;
-               RAM.Write_Word (Addr, Word);
-               if Word = 0 then CPU.PC := CPU.PC + 1; end if;
-
-            when I_ISZ =>
-               Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
-               Word := RAM.Read_Word (Addr) + 1;
-               RAM.Write_Word (Addr, Word);
-               if Word = 0 then CPU.PC := CPU.PC + 1; end if;
-
-            when I_LDA =>
-               Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
-               Word := RAM.Read_Word (Addr);
-               CPU.AC(I.Ac) := Dword_T(Word);
-
-            when I_STA =>
-               Addr := (Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
-               Word := DG_Types.Lower_Word (CPU.AC(I.Ac));
-               RAM.Write_Word (Addr, Word);
-
-            when others =>
-               Put_Line ("ERROR: Nova_Mem_Ref instruction " & To_String(I.Mnemonic) & 
-                         " not yet implemented");
-               raise Execution_Failure with "ERROR: Nova_Mem_Ref instruction " & To_String(I.Mnemonic) & 
-                         " not yet implemented";
-         end case;
-         CPU.PC := CPU.PC + 1;
-      end Nova_Mem_Ref;
-
-      procedure Nova_PC (I : in Decoded_Instr_T) is
-         Ring_Mask : Phys_Addr_T := CPU.PC and 16#7000_0000#;
-      begin
-         case I.Instruction is
-            when I_JMP =>
-               CPU.PC := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) or Ring_Mask;
-
-            when I_JSR =>
-               declare
-                  Tmp_PC : Dword_T := Dword_T(CPU.PC) + 1;
-               begin
-                  CPU.PC := Resolve_8bit_Disp (I.Ind, I.Mode, I.Disp_15) or Ring_Mask;
-                  CPU.AC(3) := Tmp_PC;
-               end;
-
-            when others =>
-               Put_Line ("ERROR: Nova_PC instruction " & To_String(I.Mnemonic) & 
-                         " not yet implemented");
-               raise Execution_Failure with "ERROR: Nova_PC instruction " & To_String(I.Mnemonic) & 
-                         " not yet implemented";
-         end case;
-      end Nova_PC;
-      
       procedure Execute (Instr : in Decoded_Instr_T) is
       begin
          case Instr.Instr_Type is
@@ -2484,11 +2157,11 @@ package body CPU is
             when ECLIPSE_OP     => Eclipse_Op(Instr);
             when ECLIPSE_PC     => Eclipse_PC(Instr);
             when ECLIPSE_STACK  => Eclipse_Stack(Instr);
-            when NOVA_IO        => Nova_IO(Instr);  
-            when NOVA_MATH      => Nova_MATH(Instr);  
-            when NOVA_MEMREF    => Nova_Mem_Ref(Instr);
-            when NOVA_OP        => Nova_Op(Instr);
-            when NOVA_PC        => Nova_PC(Instr);
+            when NOVA_IO        => Processor.Nova_IO_P.Do_Nova_IO(Instr, CPU);  
+            when NOVA_MATH      => Processor.Nova_Math_P.Do_Nova_Math(Instr, CPU);  
+            when NOVA_MEMREF    => Processor.Nova_Mem_Ref_P.Do_Nova_Mem_Ref(Instr, CPU);
+            when NOVA_OP        => Processor.Nova_Op_P.Do_Nova_Op(Instr, CPU);
+            when NOVA_PC        => Processor.Nova_PC_P.Do_Nova_PC(Instr, CPU);
 
             when others =>
                Put_Line ("ERROR: Unimplemented instruction type in Execute function " & 
@@ -2728,4 +2401,4 @@ package body CPU is
       end loop;
    end Status_Sender;
 
-end CPU;
+end Processor;

@@ -32,7 +32,7 @@ with Devices;
 with DG_Types; use DG_Types;
 with Memory;   use Memory;
 
-package CPU is
+package Processor is
 
    Model_No : constant Word_T :=
      16#224C#; -- => MV/10000 according to p.2-19 of AOS/VS Internals
@@ -132,4 +132,4 @@ package CPU is
    Out_Of_Bounds       : exception;
    Not_Yet_Implemented : exception;
 
-end CPU;
+end Processor;

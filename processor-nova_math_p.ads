@@ -20,26 +20,8 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with GNAT.Sockets;
+package Processor.Nova_Math_P is
 
-with Processor;
-with Devices.Disk6061;
-with Devices.Magtape6026;
+    procedure Do_Nova_Math (I : in Decoded_Instr_T; CPU : in out CPU_T);
 
-package Status_Monitor is
-
-    task Monitor is
-        entry Start (Port : in GNAT.Sockets.Port_Type);
-        entry CPU_Update (Stats : in Processor.CPU_Monitor_Rec);
-        entry DPF_Update (Stats : in Devices.Disk6061.Status_Rec);
-        entry MTB_Update (Stats : in Devices.Magtape6026.Status_Rec);
-        entry Stop;
-    end Monitor;
-
-    CPU_Row_1 : constant Integer := 3;
-    CPU_Row_2 : constant Integer := 5;
-    DPF_Row_1 : constant Integer := 7;
-    MTB_Row_1 : constant Integer := 11;
-    MTB_Row_2 : constant Integer := 12;
-
-end Status_Monitor;
+end Processor.Nova_Math_P;

@@ -28,7 +28,6 @@ with Ada.Text_IO;
 
 with Interfaces; use Interfaces;
 
-with CPU;
 with DG_Types; use DG_Types;
 with Memory;   use Memory;
 
@@ -66,7 +65,7 @@ package body Status_Monitor is
       Client                : GNAT.Sockets.Sock_Addr_Type;
       Channel               : GNAT.Sockets.Stream_Access;
       Radix                 : Number_Base_T := Octal;
-      CPU_Stats             : CPU.CPU_Monitor_Rec;
+      CPU_Stats             : Processor.CPU_Monitor_Rec;
       DPF_Stats             : Devices.Disk6061.Status_Rec;
       MTB_Stats             : Devices.Magtape6026.Status_Rec;
       Now, 
@@ -108,7 +107,7 @@ package body Status_Monitor is
                Dasher_Underline & "MV/Emua Status" & Dasher_Normal &
                Dasher_NL);
          or
-            accept CPU_Update (Stats : in CPU.CPU_Monitor_Rec) do
+            accept CPU_Update (Stats : in Processor.CPU_Monitor_Rec) do
                CPU_Stats := Stats;
             end CPU_Update;
             Now := Clock;

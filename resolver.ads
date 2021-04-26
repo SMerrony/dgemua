@@ -20,10 +20,19 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with DG_Types;   use DG_Types;
+with Interfaces; use Interfaces;
+
+with Decoder;   use Decoder;
+with DG_Types;  use DG_Types;
+with Processor; use Processor;
 
 package Resolver is
 
-    function Resolve_32bit_Indirectable_Addr (ATU : in Boolean; I_Addr : in Dword_T) return Phys_Addr_T;
+    function Resolve_8bit_Disp
+       (CPU      : in CPU_T; 
+        Indirect : in Boolean; Mode : in Mode_T;
+        Disp15   : in Integer_16)  return Phys_Addr_T;
+    function Resolve_32bit_Indirectable_Addr
+       (ATU : in Boolean; I_Addr : in Dword_T) return Phys_Addr_T;
 
 end Resolver;

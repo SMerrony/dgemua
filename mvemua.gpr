@@ -17,6 +17,7 @@ project Mvemua is
 
          when "release" =>
             for Switches ("Ada") use ("-O2");
+            for Switches ("ada") use ("-O2");
       end case;
    end Compiler;
 
@@ -28,7 +29,7 @@ project Mvemua is
             for Switches ("ada") use ("-j4", "-g");
 
          when "release" =>
-
+            for Switches ("ada") use ("-j4");
       end case;
    end Builder;
 

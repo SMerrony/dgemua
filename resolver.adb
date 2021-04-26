@@ -20,20 +20,70 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Memory;    use Memory;
+with Memory; use Memory;
 
 package body Resolver is
 
-    function Resolve_32bit_Indirectable_Addr (ATU : in Boolean; I_Addr : in Dword_T) return Phys_Addr_T is
+    function Resolve_8bit_Disp
+       (CPU    : in CPU_T; Indirect : in Boolean; Mode : in Mode_T;
+        Disp15 : in Integer_16) return Phys_Addr_T
+    is
+        Eff               : Phys_Addr_T;
+        Ring              : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+        Ind_Addr          : Word_T;
+        Indirection_Level : Integer     := 0;
+    begin
+        if Mode /= Absolute then
+            -- relative mode, sign-extend to 32-bits
+            Eff :=
+               Integer_32_To_Phys
+                  (Integer_32 (Disp15)); -- Disp15 is already sexted by decoder
+        end if;
+        case Mode is
+            when Absolute =>
+                Eff := Phys_Addr_T (Disp15) or Ring;
+            when PC =>
+                Eff := Eff + CPU.PC;
+            when AC2 =>
+                Eff := Eff + Phys_Addr_T (Integer_32 (CPU.AC (2)));
+            when AC3 =>
+                Eff := Eff + Phys_Addr_T (Integer_32 (CPU.AC (3)));
+        end case;
+
+        if Indirect then
+            Eff      := Eff or Ring;
+            Ind_Addr := RAM.Read_Word (Eff);
+            while (Ind_Addr and 16#8000#) /= 0 loop
+                Indirection_Level := Indirection_Level + 1;
+                if Indirection_Level > 15 then
+                    raise Indirection_Failure
+                       with "Too many levels of indirection";
+                end if;
+                Ind_Addr := RAM.Read_Word (Phys_Addr_T (Ind_Addr) or Ring);
+            end loop;
+            Eff := Phys_Addr_T (Ind_Addr) or Ring;
+        end if;
+
+        if not CPU.ATU then
+            -- constrain to 1st 32MB
+            Eff := Eff and 16#01ff_ffff#;
+        end if;
+
+        return Eff;
+    end Resolve_8bit_Disp;
+
+    function Resolve_32bit_Indirectable_Addr
+       (ATU : in Boolean; I_Addr : in Dword_T) return Phys_Addr_T
+    is
         Eff : Dword_T := I_Addr;
     begin
-        while Test_DW_Bit(Eff, 0) loop
-           Eff := RAM.Read_Dword(Phys_Addr_T(Eff and 16#7fff_ffff#));
+        while Test_DW_Bit (Eff, 0) loop
+            Eff := RAM.Read_Dword (Phys_Addr_T (Eff and 16#7fff_ffff#));
         end loop;
         if not ATU then
             Eff := Eff and 16#01ff_ffff#;
         end if;
-        return Phys_Addr_T(Eff);
+        return Phys_Addr_T (Eff);
     end Resolve_32bit_Indirectable_Addr;
 
 end Resolver;

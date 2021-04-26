@@ -20,26 +20,31 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with GNAT.Sockets;
+with Ada.Text_IO; use Ada.Text_IO;
 
-with Processor;
-with Devices.Disk6061;
-with Devices.Magtape6026;
+with Resolver; use Resolver;
 
-package Status_Monitor is
+package body Processor.Nova_PC_P is 
+   procedure Do_Nova_PC (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+      Ring_Mask : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+   begin
+      case I.Instruction is
+         when I_JMP =>
+            CPU.PC := Resolve_8bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15) or Ring_Mask;
 
-    task Monitor is
-        entry Start (Port : in GNAT.Sockets.Port_Type);
-        entry CPU_Update (Stats : in Processor.CPU_Monitor_Rec);
-        entry DPF_Update (Stats : in Devices.Disk6061.Status_Rec);
-        entry MTB_Update (Stats : in Devices.Magtape6026.Status_Rec);
-        entry Stop;
-    end Monitor;
+         when I_JSR =>
+            declare
+               Tmp_PC : Dword_T := Dword_T(CPU.PC) + 1;
+            begin
+               CPU.PC := Resolve_8bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15) or Ring_Mask;
+               CPU.AC(3) := Tmp_PC;
+            end;
 
-    CPU_Row_1 : constant Integer := 3;
-    CPU_Row_2 : constant Integer := 5;
-    DPF_Row_1 : constant Integer := 7;
-    MTB_Row_1 : constant Integer := 11;
-    MTB_Row_2 : constant Integer := 12;
-
-end Status_Monitor;
+         when others =>
+            Put_Line ("ERROR: Nova_PC instruction " & To_String(I.Mnemonic) & 
+                        " not yet implemented");
+            raise Execution_Failure with "ERROR: Nova_PC instruction " & To_String(I.Mnemonic) & 
+                        " not yet implemented";
+      end case;
+   end Do_Nova_PC;
+end Processor.Nova_PC_P;

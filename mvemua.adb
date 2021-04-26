@@ -37,7 +37,6 @@ with GNAT.String_Split;     use GNAT.String_Split;
 
 with Interfaces;            use Interfaces;
 
-with CPU;
 with Decoder;
 with Debug_Logs;            use Debug_Logs;
 with Devices;
@@ -46,6 +45,7 @@ with Devices.Console;       use Devices.Console;
 with Devices.Disk6061;
 with Devices.Magtape6026;
 with DG_Types;              use DG_Types;
+with Processor;
 with Memory;                use Memory;
 with Simh_Tapes;
 with Status_Monitor;
@@ -70,7 +70,7 @@ procedure MVEmuA is
    Arg_Num       : Positive := 1;
    Do_Script_Arg : Natural := 0;
 
-   Breakpoints : CPU.BP_Sets.Set;
+   Breakpoints : Processor.BP_Sets.Set;
 
    Console_Radix  : Number_Base_T := Octal; -- default console I/O number base
 
@@ -159,10 +159,10 @@ procedure MVEmuA is
       case Dev is
          when Devices.MTB =>
             Devices.Magtape6026.Drives.Load_TBOOT;
-            CPU.Actions.Boot (Devices.MTB, 10);
+            Processor.Actions.Boot (Devices.MTB, 10);
          when Devices.DPF =>
             Devices.Disk6061.Drives.Load_DKBT;
-            CPU.Actions.Boot (Devices.DPF, 10);
+            Processor.Actions.Boot (Devices.DPF, 10);
          when others =>
             TTOut.Put_String (Dasher_NL & " *** Booting from that device is not yet implemented ***");
       end case;   
@@ -254,7 +254,7 @@ procedure MVEmuA is
       end if;
       Low_Addr  := Phys_Addr_T(String_To_Dword (Slice (Command, 2), Console_Radix));
       High_Addr := Phys_Addr_T(String_To_Dword (Slice (Command, 3), Console_Radix));
-      TTOut.Put_String (CPU.Actions.Disassemble_Range(Low_Addr, High_Addr, Console_Radix));
+      TTOut.Put_String (Processor.Actions.Disassemble_Range(Low_Addr, High_Addr, Console_Radix));
    end Disassemble;
 
    procedure Do_Script (Command : in Slice_Set) is
@@ -281,22 +281,22 @@ procedure MVEmuA is
    end Do_Script;
 
    procedure Run is
-      I_Counts : CPU.Instr_Count_T := (others => 0);
+      I_Counts : Processor.Instr_Count_T := (others => 0);
       I_Count  : Unsigned_64;
       Start_Time : Time;
       Elapsed : Time_Span;
    begin
-      CPU.Actions.Prepare_For_Running;
+      Processor.Actions.Prepare_For_Running;
       SCP_Handler.Set_SCP_IO(false);  
 
-      CPU.Actions.Set_Debug_Logging (true); -- TODO - not here!
+      Processor.Actions.Set_Debug_Logging (true); -- TODO - not here!
 
       Start_Time := Clock;
 
-      CPU.Run (Debug_Logging, Console_Radix, Breakpoints, I_Counts);
+      Processor.Run (Debug_Logging, Console_Radix, Breakpoints, I_Counts);
 
       Elapsed := Clock - Start_Time;
-      I_Count := CPU.Actions.Get_Instruction_Count;
+      I_Count := Processor.Actions.Get_Instruction_Count;
       SCP_Handler.Set_SCP_IO(true);   
       TTOut.Put_String (Dasher_NL & " *** MV/Emua executed " & Unsigned_64'Image(I_Count) & 
                         " instructions in" & Duration'Image(To_Duration(Elapsed)) & " seconds ***");
@@ -312,7 +312,7 @@ procedure MVEmuA is
    exception
       when others =>
          Elapsed := Clock - Start_Time;
-         I_Count := CPU.Actions.Get_Instruction_Count;
+         I_Count := Processor.Actions.Get_Instruction_Count;
          SCP_Handler.Set_SCP_IO(true);   
          TTOut.Put_String (Dasher_NL & " *** MV/Emua executed " & Unsigned_64'Image(I_Count) & 
                            " instructions in" & Duration'Image(To_Duration(Elapsed)) & " seconds ***");
@@ -355,10 +355,10 @@ procedure MVEmuA is
    procedure Single_Step is
       Disass : Unbounded_String;
    begin
-      TTOut.Put_String (Dasher_NL & CPU.Actions.Get_Compact_Status(Console_Radix));
-      CPU.Actions.Single_Step(Console_Radix, Disass);
+      TTOut.Put_String (Dasher_NL & Processor.Actions.Get_Compact_Status(Console_Radix));
+      Processor.Actions.Single_Step(Console_Radix, Disass);
       TTOut.Put_String (Dasher_NL & To_String(Disass));
-      TTOut.Put_String (Dasher_NL & CPU.Actions.Get_Compact_Status(Console_Radix));
+      TTOut.Put_String (Dasher_NL & Processor.Actions.Get_Compact_Status(Console_Radix));
    exception   
       when Error: others =>
          TTOut.Put_String (Dasher_NL & Ada.Exceptions.Exception_Message(Error));
@@ -371,7 +371,7 @@ procedure MVEmuA is
       Command := To_Unbounded_String(Slice (Words, 1));
       -- SCP-like commands...
       if Command = "." then
-         TTOut.Put_String (Dasher_NL & CPU.Actions.Get_Compact_Status(Console_Radix));
+         TTOut.Put_String (Dasher_NL & Processor.Actions.Get_Compact_Status(Console_Radix));
       elsif Command = "B" then
          Boot (Words);
       elsif Command = "CO" then
@@ -453,7 +453,7 @@ begin
       Devices.Bus.Actions.Set_Reset_Proc (Devices.BMC, BMC_DCH.Reset'Access);
       Devices.Bus.Actions.Connect (Devices.SCP);
       Devices.Bus.Actions.Connect (Devices.CPU);
-      CPU.Init;
+      Processor.Init;
 
       Devices.Bus.Actions.Connect (Devices.TTO);
       Devices.Console.TTOut.Init (Connection);
