@@ -97,6 +97,10 @@ package Processor is
       procedure Prepare_For_Running;
       procedure Set_Debug_Logging (OnOff : in Boolean);
       procedure Single_Step (Radix : in Number_Base_T; Disass : out Unbounded_String);
+      procedure WS_Push (Datum : in Dword_T);
+      procedure WSP_Check_Bounds (Delta_Words : in Integer; Is_Save : in Boolean;
+                                  OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T);
+      procedure WSP_Handle_Fault (Ring : in Phys_Addr_T; I_Len : in Positive; Primary_Fault, Secondary_Fault : in Dword_T);                   
       procedure Execute (Instr : in Decoded_Instr_T);
       function  Disassemble_Range (Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) 
          return String;

@@ -72,6 +72,97 @@ package body Resolver is
         return Eff;
     end Resolve_8bit_Disp;
 
+    function Resolve_15bit_Disp (CPU        : in CPU_T;
+                                Indirect    : in Boolean; 
+                                Mode        : in Mode_T;
+                                Disp15      : in Integer_16;
+                                Disp_Offset : in Natural) return Phys_Addr_T is
+        Eff    : Phys_Addr_T;
+        Ring   : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+        Disp32 : Integer_32;
+        Ind_Addr : Dword_T;
+        Indirection_Level : Integer := 0;
+    begin
+        if Mode /= Absolute then
+            -- relative mode, sign-extend to 32-bits
+            Disp32 := Integer_32(Disp15); -- Disp15 is already sexted by decoder
+        end if;
+        case Mode is
+        when Absolute =>
+            -- Zero-extend to 28 bits, force to current ring
+            Eff := (Phys_Addr_T(Disp15) and 16#0000_7fff#) or Ring;
+        when PC =>
+            Eff := Integer_32_To_Phys(Integer_32(CPU.PC) + Disp32 + Integer_32(Disp_Offset));
+        when AC2 =>
+            Eff := Phys_Addr_T(Integer_32(CPU.AC(2)) + Disp32) or Ring;
+        when AC3 =>
+            Eff := Phys_Addr_T(Integer_32(CPU.AC(3)) + Disp32) or Ring;   
+        end case;
+
+        if Indirect then
+            Eff := Eff or Ring;
+            Ind_Addr := RAM.Read_Dword (Eff);
+            while (Ind_Addr and 16#8000_0000#) /= 0 loop
+                Indirection_Level := Indirection_Level + 1;
+                if Indirection_Level > 15 then
+                    raise Indirection_Failure with "Too many levels of indirection";
+                end if;
+                Ind_Addr := RAM.Read_Dword (Phys_Addr_T(Ind_Addr) and 16#7fff_ffff#);
+            end loop;
+            Eff := Phys_Addr_T(Ind_Addr) or Ring;
+        end if;
+
+        if not CPU.ATU then
+            -- constrain to 1st 32MB
+            Eff := Eff and 16#01ff_ffff#;
+        end if;
+
+        return Eff;
+    end Resolve_15bit_Disp;
+
+    function Resolve_31bit_Disp (CPU         : in CPU_T;
+                                 Indirect    : in Boolean; 
+                                 Mode        : in Mode_T;
+                                 Disp        : in Integer_32;
+                                 Disp_Offset : in Natural) return Phys_Addr_T is
+         Eff    : Phys_Addr_T;
+         Ring   : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+         Ind_Addr : Dword_T;
+         Indirection_Level : Integer := 0;
+      begin
+         case Mode is
+            when Absolute =>
+               -- Zero-extend to 28 bits
+               Eff := Phys_Addr_T(Disp); --  or Ring;
+            when PC =>
+               Eff := Phys_Addr_T(Integer_32(CPU.PC) + Disp + Integer_32(Disp_Offset));
+            when AC2 =>
+               Eff := Phys_Addr_T(Integer_32(CPU.AC(2)) + Disp);
+            when AC3 =>
+               Eff := Phys_Addr_T(Integer_32(CPU.AC(3)) + Disp);
+         end case;
+
+         if Indirect then
+            Eff := Eff or Ring;
+            Ind_Addr := RAM.Read_Dword (Eff);
+            while (Ind_Addr and 16#8000_0000#) /= 0 loop
+               Indirection_Level := Indirection_Level + 1;
+               if Indirection_Level > 15 then
+                  raise Indirection_Failure with "Too many levels of indirection";
+               end if;
+               Ind_Addr := RAM.Read_Dword (Phys_Addr_T(Ind_Addr) and 16#7fff_ffff#);
+            end loop;
+            Eff := Phys_Addr_T(Ind_Addr) or Ring;
+         end if;
+
+         if not CPU.ATU then
+            -- constrain to 1st 32MB
+            Eff := Eff and 16#01ff_ffff#;
+         end if;
+
+         return Eff and 16#7fff_ffff#;
+    end Resolve_31bit_Disp;
+
     function Resolve_32bit_Indirectable_Addr
        (ATU : in Boolean; I_Addr : in Dword_T) return Phys_Addr_T
     is
@@ -85,5 +176,24 @@ package body Resolver is
         end if;
         return Phys_Addr_T (Eff);
     end Resolve_32bit_Indirectable_Addr;
+
+
+    procedure Resolve_Eclipse_Bit_Addr (CPU       : in CPU_T; 
+                                        Acd, Acs  : in AC_ID; 
+                                        Word_Addr : out Phys_Addr_T; 
+                                        Bit_Num   : out Natural) is
+    begin
+        -- TODO handle segments and indirection
+        if Acd = Acs then 
+        Word_Addr := 0;
+        else
+        if Test_DW_Bit (CPU.AC(Acd), 0) then
+            raise Not_Yet_Implemented with "Indirect 16-bit BIT pointers";
+        end if;
+        Word_Addr := Phys_Addr_T(CPU.AC(Acs)) and 16#0000_7fff#;
+        end if;
+        Word_Addr := Word_Addr + Phys_Addr_T (Shift_Right (CPU.AC(Acd), 4));
+        Bit_Num := Natural(CPU.AC(Acd) and 16#000f#);
+    end Resolve_Eclipse_Bit_Addr;
 
 end Resolver;

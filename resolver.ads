@@ -28,11 +28,30 @@ with Processor; use Processor;
 
 package Resolver is
 
-    function Resolve_8bit_Disp
-       (CPU      : in CPU_T; 
-        Indirect : in Boolean; Mode : in Mode_T;
-        Disp15   : in Integer_16)  return Phys_Addr_T;
-    function Resolve_32bit_Indirectable_Addr
-       (ATU : in Boolean; I_Addr : in Dword_T) return Phys_Addr_T;
+    function Resolve_8bit_Disp (CPU      : in CPU_T; 
+                                Indirect : in Boolean; Mode : in Mode_T;
+                                Disp15   : in Integer_16)  return Phys_Addr_T;
+
+    function Resolve_15bit_Disp (CPU         : in CPU_T;
+                                 Indirect    : in Boolean; 
+                                 Mode        : in Mode_T;
+                                 Disp15      : in Integer_16;
+                                 Disp_Offset : in Natural) return Phys_Addr_T; 
+
+    function Resolve_31bit_Disp (CPU         : in CPU_T;
+                                 Indirect    : in Boolean; 
+                                 Mode        : in Mode_T;
+                                 Disp        : in Integer_32;
+                                 Disp_Offset : in Natural) return Phys_Addr_T;
+
+    function Resolve_32bit_Indirectable_Addr (ATU : in Boolean; 
+                                              I_Addr : in Dword_T) return Phys_Addr_T;
+
+    procedure Resolve_Eclipse_Bit_Addr (CPU       : in CPU_T; 
+                                        Acd, Acs  : in AC_ID; 
+                                        Word_Addr : out Phys_Addr_T; 
+                                        Bit_Num   : out Natural);
+
+    Not_Yet_Implemented : exception;  
 
 end Resolver;
