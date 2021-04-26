@@ -490,6 +490,11 @@ begin
    end loop;
 
    exception
+      when Error: Processor.CPU_Halt =>
+         TTOut.Put_String (Dasher_NL & " *** MV/Emulator stopping due to CPU HALT instruction ***" );
+         Loggers.Debug_Logs_Dump (Log_Dir);
+         GNAT.OS_Lib.OS_Exit (0);
+
       when Error: others =>
          TTOut.Put_String (Dasher_NL & " *** MV/Emulator stopping due to unhandled error ***" );
          -- TTOut.Put_String (Dasher_NL & Ada.Exceptions.Exception_Information(Error));

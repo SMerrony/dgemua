@@ -28,11 +28,27 @@ with Resolver;    use Resolver;
 package body Processor.Eagle_PC_P is 
 
    procedure Do_Eagle_PC (I : in Decoded_Instr_T; CPU : in out CPU_T) is
-            Addr : Phys_Addr_T;
+         Addr : Phys_Addr_T;
          Word : Word_T;
          DW   : Dword_T;
          Skip : Boolean;
          S32_S, S32_D : Integer_32;
+         
+         procedure WS_Push (Datum : in Dword_T) is
+         begin
+            CPU.WSP := CPU.WSP + 2;
+            RAM.Write_Dword (CPU.WSP, Datum);
+         end WS_Push;
+
+         procedure Set_OVR (New_OVR : in Boolean) is
+         begin
+         if New_OVR then
+               Set_W_Bit(CPU.PSR, 1);
+         else
+               Clear_W_Bit(CPU.PSR, 1);
+         end if;
+         end Set_OVR;
+
    begin
       case I.Instruction is
 
@@ -44,40 +60,12 @@ package body Processor.Eagle_PC_P is
                DW := RAM.Read_Dword (Addr) + 1;
             end if;
             RAM.Write_Dword (Addr, DW);
-            Processor.Actions.Set_OVR (false);
+            Set_OVR (false);
             if DW = 0 then
                CPU.PC := CPU.PC + 2;
             else
                CPU.PC := CPU.PC + 1;
             end if;
-
-         when I_LCALL => -- FIXME - LCALL only handling trivial case
-            declare
-               OK : Boolean;
-               Primary_Fault, Secondary_Fault : Dword_T;
-               Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
-               PC_4 : Dword_T := Dword_T(CPU.PC) + 4;
-            begin
-               if I.Arg_Count >= 0 then
-                  DW := Dword_T(I.Arg_Count);
-               else
-                  DW := RAM.Read_Dword (CPU.WSP) and 16#0000_ffff#;
-               end if;
-               DW := DW or Shift_Left(Dword_T(CPU.PSR), 16);
-               Processor.Actions.WSP_Check_Bounds (Delta_Words => 2, 
-                                 Is_Save => false, 
-                                 OK => OK, 
-                                 Primary_Fault => Primary_Fault, 
-                                 Secondary_Fault => Secondary_Fault);
-               if not OK then
-                  Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WSAVR/S");
-                  Processor.Actions.WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
-                  -- return;
-               end if;
-               Processor.Actions.WS_Push (DW);
-               CPU.PC := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset); 
-               CPU.AC(3) := PC_4;
-            end;
 
          when I_LDSP =>
             declare
@@ -135,7 +123,7 @@ package body Processor.Eagle_PC_P is
             end if;  
 
          when I_LPSHJ =>
-            Processor.Actions.WS_Push (Dword_T(CPU.PC) + 3);
+            WS_Push (Dword_T(CPU.PC) + 3);
             CPU.PC := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
 
          when I_LWDSZ =>
@@ -274,7 +262,7 @@ package body Processor.Eagle_PC_P is
             else
                DW := Dword_T(I.Arg_Count) and 16#0000_7fff#;
             end if;
-            Processor.Actions.WS_Push (DW);
+            WS_Push (DW);
             CPU.PC := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
 
          when I_XJMP =>

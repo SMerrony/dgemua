@@ -41,9 +41,17 @@ package body Processor.Nova_IO_P is
             -- catch CPU I/O instructions
             if I.IO_Dev = Devices.CPU then
                case I.Instruction is
+               
                   when I_DIC =>
                      Put_Line ("INFO: Reseting I/O Devices due to DIC CPU instruction");
                      Devices.Bus.Actions.Reset_All_IO_Devices;
+                  
+                  when I_DOC =>
+                     if I.Ac = 0 then
+                        raise CPU_Halt;
+                     else
+                        raise Execution_Failure with "CPU I/O not yet implemented";
+                     end if;
 
                   when others =>
                      raise Execution_Failure with "CPU I/O not yet implemented";

@@ -97,15 +97,9 @@ package Processor is
       procedure Prepare_For_Running;
       procedure Set_Debug_Logging (OnOff : in Boolean);
       procedure Single_Step (Radix : in Number_Base_T; Disass : out Unbounded_String);
-      procedure WS_Push (Datum : in Dword_T);
-      procedure WSP_Check_Bounds (Delta_Words : in Integer; Is_Save : in Boolean;
-                                  OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T);
-      procedure WSP_Handle_Fault (Ring : in Phys_Addr_T; I_Len : in Positive; Primary_Fault, Secondary_Fault : in Dword_T);                   
       procedure Execute (Instr : in Decoded_Instr_T);
       function  Disassemble_Range (Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) 
          return String;
-      procedure Set_OVK (New_OVK : in Boolean);
-      procedure Set_OVR (New_OVR : in Boolean);
       function  Get_Compact_Status (Radix : Number_Base_T) return string;
       function  Get_Instruction_Count return Unsigned_64;
       function  Get_ATU return Boolean;
@@ -130,7 +124,8 @@ package Processor is
         entry Start;
    end Status_Sender;
 
-   Execution_Failure : exception;
+   CPU_Halt            : exception;
+   Execution_Failure   : exception;
    Indirection_Failure : exception;
    IO_Device_Error     : exception;
    Out_Of_Bounds       : exception;

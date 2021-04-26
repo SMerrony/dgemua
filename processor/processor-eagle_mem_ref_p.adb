@@ -34,6 +34,15 @@ package body Processor.Eagle_Mem_Ref_P is
       I32  : Integer_32;
       I16_Ac, I16_Mem : Integer_16;
       DW   : Dword_T;
+
+      procedure Set_OVR (New_OVR : in Boolean) is
+      begin
+         if New_OVR then
+               Set_W_Bit(CPU.PSR, 1);
+         else
+               Clear_W_Bit(CPU.PSR, 1);
+         end if;
+      end Set_OVR;
    begin
       case I.Instruction is
 
@@ -340,7 +349,7 @@ package body Processor.Eagle_Mem_Ref_P is
             I32 := Integer_32(I16_Ac) + Integer_32(I16_Mem);
             if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
                CPU.Carry := true;
-               Processor.Actions.Set_OVR (true);
+               Set_OVR (true);
             end if;
             CPU.AC(I.Ac) := Integer_32_To_Dword(Integer_32(I16_Ac));
 
@@ -349,7 +358,7 @@ package body Processor.Eagle_Mem_Ref_P is
             I32 := Integer_32(Word_To_Integer_16(RAM.Read_Word(Addr))) + Integer_32(I.Imm_U16);
             if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
                CPU.Carry := true;
-               Processor.Actions.Set_OVR (true);
+               Set_OVR (true);
             end if;
             RAM.Write_Word (Addr, Word_T(I32));
 
@@ -369,7 +378,7 @@ package body Processor.Eagle_Mem_Ref_P is
             I32 := Integer_32(I16_Ac) * Integer_32(I16_Mem);
             if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
                CPU.Carry := true;
-               Processor.Actions.Set_OVR (true);
+               Set_OVR (true);
             end if;
             CPU.AC(I.Ac) := Integer_32_To_Dword(Integer_32(I16_Ac));
 
@@ -378,7 +387,7 @@ package body Processor.Eagle_Mem_Ref_P is
             I32 := Integer_32(Word_To_Integer_16(RAM.Read_Word(Addr))) - Integer_32(I.Imm_U16);
             if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
                CPU.Carry := true;
-               Processor.Actions.Set_OVR (true);
+               Set_OVR (true);
             end if;
             RAM.Write_Word (Addr, Word_T(I32));
 
@@ -400,7 +409,7 @@ package body Processor.Eagle_Mem_Ref_P is
             I32 := Integer_32(I16_Ac) - Integer_32(I16_Mem);
             if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
                CPU.Carry := true;
-               Processor.Actions.Set_OVR (true);
+               Set_OVR (true);
             end if;
             CPU.AC(I.Ac) := Integer_32_To_Dword(Integer_32(I16_Ac));
 
@@ -409,7 +418,7 @@ package body Processor.Eagle_Mem_Ref_P is
             S64 := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr))) + Integer_64(I.Imm_U16);
             if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
                CPU.Carry := true;
-               Processor.Actions.Set_OVR (true);
+               Set_OVR (true);
             end if;
             S64 := Integer_64(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
             RAM.Write_Dword (Addr, Dword_T(S64));
@@ -423,7 +432,7 @@ package body Processor.Eagle_Mem_Ref_P is
             S64 := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr))) - Integer_64(I.Imm_U16);
             if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
                CPU.Carry := true;
-               Processor.Actions.Set_OVR (true);
+               Set_OVR (true);
             end if;
             S64 := Integer_64(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
             RAM.Write_Dword (Addr, Dword_T(S64));

@@ -55,6 +55,24 @@ package body Processor is
    end Init;
 
    protected body Actions is
+   
+     procedure Set_OVK (New_OVK : in Boolean) is
+      begin
+        if New_OVK then
+            Set_W_Bit(CPU.PSR, 0);
+        else
+            Clear_W_Bit(CPU.PSR, 0);
+        end if;
+      end Set_OVK;
+
+      procedure Set_OVR (New_OVR : in Boolean) is
+      begin
+        if New_OVR then
+            Set_W_Bit(CPU.PSR, 1);
+        else
+            Clear_W_Bit(CPU.PSR, 1);
+        end if;
+      end Set_OVR;
 
       procedure Reset  is
       begin
@@ -558,6 +576,35 @@ package body Processor is
          Addr : Phys_Addr_T;
       begin
          case I.Instruction is
+
+            when I_LCALL => -- FIXME - LCALL only handling trivial case
+               declare
+                  OK : Boolean;
+                  Primary_Fault, Secondary_Fault : Dword_T;
+                  Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+                  PC_4 : Dword_T := Dword_T(CPU.PC) + 4;
+               begin
+                  if I.Arg_Count >= 0 then
+                     DW := Dword_T(I.Arg_Count);
+                  else
+                     DW := RAM.Read_Dword (CPU.WSP) and 16#0000_ffff#;
+                  end if;
+                  DW := DW or Shift_Left(Dword_T(CPU.PSR), 16);
+                  WSP_Check_Bounds (Delta_Words => 2, 
+                                    Is_Save => false, 
+                                    OK => OK, 
+                                    Primary_Fault => Primary_Fault, 
+                                    Secondary_Fault => Secondary_Fault);
+                  if not OK then
+                     Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WSAVR/S");
+                     WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+                     -- return;
+                  end if;
+                  WS_Push (DW);
+                  CPU.PC := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset); 
+                  CPU.AC(3) := PC_4;
+                  return; -- we have set the PC
+               end;
 
            when I_LDAFP =>
                CPU.AC(I.Ac) := Dword_T(CPU.WFP);
@@ -1087,24 +1134,7 @@ package body Processor is
          return To_String (Tmp_Dis);
       end Disassemble_Range;
 
-      procedure Set_OVK (New_OVK : in Boolean) is
-      begin
-        if New_OVK then
-            Set_W_Bit(CPU.PSR, 0);
-        else
-            Clear_W_Bit(CPU.PSR, 0);
-        end if;
-      end Set_OVK;
-
-      procedure Set_OVR (New_OVR : in Boolean) is
-      begin
-        if New_OVR then
-            Set_W_Bit(CPU.PSR, 1);
-        else
-            Clear_W_Bit(CPU.PSR, 1);
-        end if;
-      end Set_OVR;
-
+ 
       function Get_Compact_Status (Radix : Number_Base_T) return String is
       begin
          return "AC0=" & Dword_To_String (CPU.AC(0), Radix, 11, true) &
