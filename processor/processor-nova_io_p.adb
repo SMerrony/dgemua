@@ -68,6 +68,7 @@ package body Processor.Nova_IO_P is
                else
                   if I.IO_Dev = 2 then
                      Loggers.Debug_Print(Debug_Log, "WARNING: Ignoring I/O to device " & I.IO_Dev'Image);
+                     Put_Line("WARNING: Ignoring I/O to device " & I.IO_Dev'Image & ".");
                   else
                      Loggers.Debug_Print(Debug_Log, "WARNING: I/O Attempted to unattached or non-I/O capable device ");
                      raise IO_Device_Error;
@@ -99,6 +100,7 @@ package body Processor.Nova_IO_P is
                   Busy := CPU.ION;
                   Done := CPU.PF_Flag;
                when Dev_Num_T(8#12#) | Dev_Num_T(8#13#) => -- TODO ignore for now
+                  Put_Line ("WARNING: Ignoring SKP instruction to device " & I.IO_Dev'Image & ".");
                   CPU.PC := CPU.PC + 2;
                   return;
                when others =>
