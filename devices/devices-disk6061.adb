@@ -105,10 +105,11 @@ package body Devices.Disk6061 is
         function Printable_Addr return String is
         begin
             return "DRV: " & State.Drive'Image &
-                   ", CYL: " & State.Cylinder'Image &
-                   ", SURF: " & State.Surface'Image &
-                   ", SECT: " & State.Sector'Image &
-                   ", SECCNT: " & State.Sector_Cnt'Image;
+                   ", CYL:" & State.Cylinder'Image &
+                   ", SURF:" & State.Surface'Image &
+                   ", SECT:" & State.Sector'Image &
+                   ", SECCNT:" & State.Sector_Cnt'Image & 
+                   ", Mem Addr: " & Dword_To_String (Dword_T(State.Mem_Addr), Octal, 9, true);
         end Printable_Addr;
 
 
