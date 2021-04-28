@@ -136,6 +136,7 @@ package Memory is
     protected BMC_DCH is
         procedure Init (Debug_Logging : in Boolean);
         procedure Reset;
+        procedure Set_Logging (Debug_Logging : in Boolean);
         function  Read_Reg (Reg : in Integer) return Word_T;
         procedure Write_Reg (Reg : in Integer; Datum : in Word_T); 
         procedure Write_Slot (Slot : in Integer; Datum : in Dword_T);

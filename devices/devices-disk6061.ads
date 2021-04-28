@@ -123,6 +123,7 @@ package Devices.Disk6061 is
 		procedure Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean);
 		procedure Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
         procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
+		procedure Set_Logging (Log : in Boolean);
 		function  Get_Status return Status_Rec;
 		procedure Load_DKBT;
 	private

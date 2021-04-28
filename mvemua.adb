@@ -54,7 +54,7 @@ procedure MVEmuA is
 
    Sem_Ver : constant String := "v0.0.0";
 
-   Debug_Logging : constant Boolean := true;
+   Debug_Logging : Boolean := false;
    Log_Dir       : constant String  := "logs/";
     
 
@@ -325,6 +325,37 @@ procedure MVEmuA is
          raise;
    end run;
 
+   procedure Set (Command : in Slice_Set) is
+   begin
+      if Slice_Count (Command) < 2 then
+         TTOut.Put_String (Dasher_NL & " *** SET command requires 2 arguments ***");
+         return;
+      end if;
+      declare
+         use Ada.Containers;
+         What   : String := Slice (Command, 2);
+         Set_To : String := Slice (Command, 3);
+      begin
+         if What = "LOGGING" then
+            if Set_To = "ON" then
+               Debug_Logging := true;
+               TTOut.Put_String (Dasher_NL & " *** Logging turned on, CPU will run slow ***");
+            elsif Set_To = "OFF" then
+               Debug_Logging := false;
+               TTOut.Put_String (Dasher_NL & " *** Logging turned off ***");
+            else
+               TTOut.Put_String (Dasher_NL & " *** Value must be 'ON' or 'OFF' ***");
+            end if;
+            -- TODO Add calls here when new devices are added...
+            Processor.Actions.Set_Debug_Logging(Debug_Logging);
+            Memory.BMC_DCH.Set_Logging(Debug_Logging);
+            Devices.Disk6061.Drives.Set_Logging (Debug_Logging);
+         else
+           TTOut.Put_String (Dasher_NL & " *** Unknown or Unimplemented SET command");
+         end if;
+      end; 
+   end Set;
+
    procedure Show (Command : in Slice_Set) is
    begin
       if Slice_Count (Command) < 2 then
@@ -345,6 +376,13 @@ procedure MVEmuA is
                for BP of Breakpoints loop
                   TTOut.Put_String (Dword_To_String(Dword_T(BP), Console_Radix, 12, false));
                end loop;
+            end if;
+         elsif What = "LOGGING" then  
+            TTOut.Put_String (Dasher_NL & " *** Logging is turned ");
+            if Debug_Logging then
+               TTOut.Put_String ("ON ***");
+            else
+               TTOut.Put_String ("OFF ***");
             end if;
          else
             TTOut.Put_String (Dasher_NL & " *** Unknown or Unimplemented SHOW command");
@@ -398,6 +436,8 @@ procedure MVEmuA is
          Clean_Exit;
       elsif Command = "NOBREAK" then
          Break_Clear (Words);   
+      elsif Command = "SET" then
+         Set (Words);   
       elsif Command = "SHOW" or Command = "SHO" or Command = "SH" then
          Show (Words);
       else

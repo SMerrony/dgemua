@@ -6,7 +6,7 @@
 # or unimplemented features occur.
 #
 # Logging slows down the eumlator by approx. 9x
-# SET LOGGING ON
+SET LOGGING ON
 #
 # Trap JMP to location zeros - again, slows down the emulator a little
 # BREAK 0

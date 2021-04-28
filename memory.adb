@@ -174,6 +174,11 @@ package body Memory is
          Put_Line ("INFO: BMC_DCH Registers Reset");
       end Reset;
 
+      procedure Set_Logging (Debug_Logging : in Boolean) is
+      begin
+         Is_Logging := Debug_Logging;
+      end Set_Logging;
+
       function Read_Reg (Reg : in Integer) return Word_T is
       begin
          return Registers (Reg);

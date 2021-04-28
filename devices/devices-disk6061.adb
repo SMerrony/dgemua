@@ -45,6 +45,11 @@ package body Devices.Disk6061 is
             Status_Sender.Start;
         end Init;
 
+        procedure Set_Logging (Log : in Boolean) is
+        begin
+            State.Debug_Logging := Log;
+        end Set_Logging;
+        
         procedure Reset is
         begin
             State.RW_Status        := 0;
