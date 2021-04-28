@@ -83,7 +83,7 @@ package Devices.Bus is
         function  Get_Done (Dev : in Dev_Num_T) return Boolean;
         procedure Set_Busy (Dev : in Dev_Num_T; Busy_State : in Boolean);
         procedure Set_Done (Dev : in Dev_Num_T; Done_State : in Boolean);
-        
+        function  Get_IRQ return Boolean;
         function  Is_Dev_Masked (PMB : in Integer) return Boolean;
         procedure Send_Interrupt (Dev : in Dev_Num_T);
         procedure Clear_Interrupt (Dev : in Dev_Num_T); 

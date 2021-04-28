@@ -203,7 +203,6 @@ package body Devices.Bus is
          return Bus.Devices(Dev).PMB;
        end Get_PMB;
 
-
     end Actions;
 
     protected body States is
@@ -237,7 +236,10 @@ package body Devices.Bus is
           State.Statuses(Dev).Done := Done_State;
        end Set_Done;
 
-
+       function Get_IRQ return Boolean is
+       begin
+         return State.IRQ;
+       end Get_IRQ;
 
        function Is_Dev_Masked (PMB : in Integer) return Boolean is
        begin

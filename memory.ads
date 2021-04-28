@@ -29,7 +29,7 @@ package Memory is
     Mem_Size_Words : constant Integer     := 8_388_608;
     Max_Phys_Addr  : constant Phys_Addr_T := Phys_Addr_T(Mem_Size_Words - 1);
     -- MemSizeLCPID is the code returned by the LCPID to indicate the size of RAM in half megabytes
-	Mem_Size_LCPID : constant Dword_T := Dword_T(((Mem_Size_Words * 2) / (256 * 1024)) - 1); -- 0x3F
+	Mem_Size_LCPID : constant Dword_T := 63;
 	-- MemSizeNCLID is the code returned by NCLID to indicate size of RAM in 32Kb increments
 	Mem_Size_NCLID : constant Word_T := Word_T(((Mem_Size_Words * 2) / (32 * 1024)) - 1);
 

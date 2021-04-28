@@ -71,7 +71,7 @@ package body Processor.Eagle_IO_P is
          when I_ECLID | I_LCPID => -- these appear to be identical...
             Dwd := Shift_Left (Dword_T(Model_No), 16);
             Dwd := Dwd or Shift_Left(Dword_T(Microcode_Rev), 8);
-            Dwd := Dwd or (Mem_Size_LCPID and 16#0f#);
+            Dwd := Dwd or Mem_Size_LCPID;
             CPU.AC(0) := Dwd;
 
          when I_NCLID =>

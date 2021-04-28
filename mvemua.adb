@@ -281,7 +281,7 @@ procedure MVEmuA is
    end Do_Script;
 
    procedure Run is
-      I_Counts : Processor.Instr_Count_T := (others => 0);
+      I_Counts : Processor.Instr_Count_T;
       I_Count  : Unsigned_64;
       Start_Time : Time;
       Elapsed : Time_Span;

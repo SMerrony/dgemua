@@ -55,6 +55,7 @@ package body Devices.Disk6061 is
             State.Sector           := 0;
             State.Sector_Cnt       := 0;
             State.Drive_Status     := Drive_Stat_Ready;
+            Ada.Text_IO.Put_Line("INFO: DPF Reset");
         end Reset;
 
         procedure Attach

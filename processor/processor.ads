@@ -105,6 +105,7 @@ package Processor is
       function  Get_ATU return Boolean;
       function  Get_LEF (Seg : in Natural) return Boolean;
       function  Get_IO (Seg : in Natural) return Boolean;
+      function  Get_ION return Boolean;
       function  Get_PC return Phys_Addr_T;
       function  Get_Status return CPU_Monitor_Rec;
       function  Get_XCT_Mode return Boolean;
