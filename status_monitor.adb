@@ -25,6 +25,7 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Integer_Text_IO;   use Ada.Integer_Text_IO;
 with Ada.Text_IO;
+with Ada.Text_IO.Editing;
 
 with Interfaces; use Interfaces;
 
@@ -41,6 +42,12 @@ with Memory;   use Memory;
 -- on the monitor page.  It is therefore the responsibility of the sender to update the
 -- status as often as it sees fit.
 package body Status_Monitor is
+
+   type MIPS_T is delta 0.01 digits 5;
+
+   package MIPS_IO is new Ada.Text_IO.Editing.Decimal_Output ( MIPS_T );
+
+   MIPS_Format : constant Ada.Text_IO.Editing.Picture := Ada.Text_IO.Editing.To_Picture ("ZZ9.99");
 
    function To_Float(TS : Time_Span) return Float is
       SC1, SC2, SC3 : Seconds_Count;
@@ -70,12 +77,12 @@ package body Status_Monitor is
       MTB_Stats             : Devices.Magtape6026.Status_Rec;
       Now, 
       Last_CPU_Time,
-      Last_DPF_Time         : Time;
+      Last_DPF_Time         : Time := Clock;
       CPU_Elapsed,
       DPF_Elapsed           : Time_Span;
       I_Count, Last_I_Count : Unsigned_64 := 0;
       MIPS                  : Float;
-      MIPS_I                : Natural;
+      MIPS_Fixed            : MIPS_T;
       DPF_IO_Count, Last_DPF_IO_Count : Unsigned_64 := 0;
       DPF_IOPS              : Float;
       DPF_IOPS_I            : Natural;
@@ -115,7 +122,7 @@ package body Status_Monitor is
             Last_I_Count := CPU_Stats.Instruction_Count;
             CPU_Elapsed := Now - Last_CPU_Time;
             MIPS := Float (I_Count) / To_Float(CPU_Elapsed);
-            MIPS_I := Natural(MIPS) / 1000;
+            MIPS_Fixed := MIPS_T(MIPS / 1_000_000.0);
             Last_CPU_Time := Now;
             String'Write
                (Channel,
@@ -124,7 +131,7 @@ package body Status_Monitor is
             String'Write (Channel, "PC:  " & Dword_To_String (Dword_T(CPU_Stats.PC), Radix, 11, true) & 
                                     "  Interrupts: " & Boolean_To_YN (CPU_Stats.ION) &
                                     "     ATU: " & Boolean_To_YN (CPU_Stats.ATU) &
-                                    "            KIPS: " & MIPS_I'Image );
+                                    "            MIPS: " & MIPS_Fixed'Image );
             String'Write
                (Channel,
                Dasher_Write_Window_Addr & Character'Val (0) &
@@ -179,6 +186,7 @@ package body Status_Monitor is
          or
             accept Stop do
                GNAT.Sockets.Close_Socket (Connection);
+               Ada.Text_IO.Put_Line ("INFO: Status Monitor stoppped");
             end Stop;
          or
             terminate;
