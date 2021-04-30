@@ -385,7 +385,8 @@ package body Decoder is
                  Decoded.Disassembly & " " & 
                  Int_To_String (Integer(Decoded.Imm_U16), Radix, 8, false, true) & " " &
                  Char_Indirect(Decoded.Ind) &
-                 Int_To_String (Integer(Decoded.Disp_31), Radix, 12, false, true) & String_Mode(Decoded.Mode);
+                 Int_To_String (Integer(Decoded.Disp_31), Radix, 12, false, true) & 
+                 String_Mode(Decoded.Mode) & " [3-Word Instruction]";
             end if;
 
          when NOACC_MODE_IND_2_WORD_E_FMT => -- eg. EJSR, PSHJ

@@ -171,9 +171,9 @@ package body Resolver is
         while Test_DW_Bit (Eff, 0) loop
             Eff := RAM.Read_Dword (Phys_Addr_T (Eff and 16#7fff_ffff#));
         end loop;
-        if not ATU then
-            Eff := Eff and 16#01ff_ffff#;
-        end if;
+        -- if not ATU then
+        --     Eff := Eff and 16#01ff_ffff#;
+        -- end if;
         return Phys_Addr_T (Eff);
     end Resolve_32bit_Indirectable_Addr;
 

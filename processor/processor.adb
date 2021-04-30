@@ -131,10 +131,10 @@ package body Processor is
 
             when others =>
                Put_Line ("ERROR: Unimplemented instruction type in Execute function " & 
-                         Instr.Instr_Type'Image & " for instuction " &
+                         Instr.Instr_Type'Image & " for instruction " &
                          To_String(Instr.Mnemonic));
                raise Execution_Failure with "ERROR: Unimplemented instruction type in Execute function " & 
-                         Instr.Instr_Type'Image & " for instuction " &
+                         Instr.Instr_Type'Image & " for instruction " &
                          To_String(Instr.Mnemonic);      
          end case;
          CPU.Instruction_Count := CPU.Instruction_Count + 1;
