@@ -537,7 +537,7 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & 
-                 Int_To_String (Integer(Decoded.Word_3), Radix, 11, false, true) & "," &
+                 Dword_To_String(Decoded.Imm_DW, Radix, 11, false ) & "," &
                  Decoded.Ac'Image & " [3-Word Instruction]";
             end if;
 
@@ -546,7 +546,7 @@ package body Decoder is
             Decoded.Imm_DW := Memory.RAM.Read_Dword (PC + 1);
             if Disassemble then
                Decoded.Disassembly :=
-                 Decoded.Disassembly & " " & Dword_To_String(Decoded.Imm_DW, Radix, 12, false ) & "," & 
+                 Decoded.Disassembly & " " & Dword_To_String(Decoded.Imm_DW, Radix, 11, false ) & "," & 
                  Decoded.Ac'Image & " [3-Word Instruction]";
             end if;
 

@@ -124,22 +124,10 @@ package body DG_Types is
       (Shift_Left (Qword_T(Dword_1), 32) or Qword_T(Dword_2));
 
    function Boolean_To_YN (B : Boolean) return Character is
-   begin
-      if B then
-         return 'Y';
-      else
-         return 'N';
-      end if;
-   end Boolean_To_YN;
+      (if B then 'Y' else 'N');
 
    function Low_Byte_To_Char (LB : in Boolean) return Character is
-   begin
-      if LB then
-         return 'L';
-      else
-         return 'H';
-      end if;
-   end Low_Byte_To_Char;
+      (if LB then 'L' else 'H');
 
    function String_To_Integer
      (Str : in String; Base : in Number_Base_T) return Integer

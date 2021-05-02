@@ -106,11 +106,7 @@ package body Memory is
       end Write_Byte_Eclipse_BA;
 
       function Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T is
-      begin
-         return
-           Dword_From_Two_Words
-             (RAM (Word_Addr), RAM (Word_Addr + 1));
-      end Read_Dword;
+         (Dword_From_Two_Words(RAM (Word_Addr), RAM (Word_Addr + 1))); -- *** Direct RAM Access ***
 
       procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T) is
       begin
@@ -124,13 +120,13 @@ package body Memory is
       procedure Write_Word (Word_Addr : in Phys_Addr_T; Datum : Word_T) is
       -- FOR THE MOMENT _ALL_ MEMORY WRITES ARE VIA THIS PROC
       begin
-         -- DEBUGGING
-         if Word_Addr = 2 then
-            Put_Line ("Writing to Location 2, VALUE: " & Datum'Image);
-         end if;
-         if Word_Addr = 0 then
-            Put_Line ("Writing to Location 0, VALUE: " & Datum'Image);
-         end if;
+         -- -- DEBUGGING
+         -- if Word_Addr = 2 then
+         --    Put_Line ("Writing to Location 2, VALUE: " & Datum'Image);
+         -- end if;
+         -- if Word_Addr = 0 then
+         --    Put_Line ("Writing to Location 0, VALUE: " & Datum'Image);
+         -- end if;
          RAM (Word_Addr) := Datum;
       end Write_Word;
 
@@ -179,10 +175,7 @@ package body Memory is
          Is_Logging := Debug_Logging;
       end Set_Logging;
 
-      function Read_Reg (Reg : in Integer) return Word_T is
-      begin
-         return Registers (Reg);
-      end Read_Reg;
+      function Read_Reg (Reg : in Integer) return Word_T is (Registers (Reg));
 
       -- Write_Reg populates a given 16-bit register with the supplied data
       -- N.B. Addressed by REGISTER not slot
@@ -230,9 +223,7 @@ package body Memory is
       end Write_Slot;
 
       function Get_DCH_Mode return Boolean is
-      begin
-         return Test_W_Bit (Registers (IO_Chan_Def_Reg), 14);
-      end Get_DCH_Mode;
+         (Test_W_Bit (Registers (IO_Chan_Def_Reg), 14));
 
       function Resolve_BMC_Mapped_Addr (M_Addr : in Phys_Addr_T) return Phys_Addr_T is
          Slot           : Integer := Integer(Shift_Right(M_Addr, 10));
