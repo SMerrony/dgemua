@@ -471,7 +471,7 @@ package body Decoder is
                when others => null;
             end case; 
             Decoded.IO_Flag := Decode_IO_Flag (Get_W_Bits (Opcode, 8, 2));
-            Decoded.IO_Dev  := Dev_Num_T(Integer_16(Get_W_Bits (Opcode, 10, 6)));
+            Decoded.IO_Dev  := Dev_Num_T(Word_To_Unsigned_16(Get_W_Bits (Opcode, 10, 6)));
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & Char_IO_Flag (Decoded.IO_Flag) & " " &

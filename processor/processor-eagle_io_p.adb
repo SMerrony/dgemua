@@ -81,10 +81,11 @@ package body Processor.Eagle_IO_P is
 
          when I_PRTSEL =>
             -- only handle the query mode, setting is a no-op on this 'single-channel' machine
-            if DG_Types.Lower_Word (CPU.AC(0)) = 16#ffff# then
-               -- return default I/O channel if -1 passed in
-               CPU.AC(0) := 0;
-            end if;
+            -- if DG_Types.Lower_Word (CPU.AC(0)) = 16#ffff# then
+            --    -- return default I/O channel if -1 passed in
+            --    CPU.AC(0) := 0;
+            -- end if;
+            NULL;
 
          when I_WLMP =>
             if CPU.AC(0) = 0 then
