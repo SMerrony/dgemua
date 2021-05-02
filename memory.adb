@@ -119,18 +119,18 @@ package body Memory is
       end Write_Dword;
 
       function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
-      begin
-         -- return RAM (Integer (Word_Addr));
-         return RAM (Word_Addr);
-      end Read_Word;
+         (RAM (Word_Addr));
 
       procedure Write_Word (Word_Addr : in Phys_Addr_T; Datum : Word_T) is
+      -- FOR THE MOMENT _ALL_ MEMORY WRITES ARE VIA THIS PROC
       begin
-         -- -- DEBUGGING
-         -- if Word_Addr = 50 then
-         --    Put_Line ("Writing to Location ")
-         -- end if;
-         -- RAM (Integer (Word_Addr)) := Datum;
+         -- DEBUGGING
+         if Word_Addr = 2 then
+            Put_Line ("Writing to Location 2, VALUE: " & Datum'Image);
+         end if;
+         if Word_Addr = 0 then
+            Put_Line ("Writing to Location 0, VALUE: " & Datum'Image);
+         end if;
          RAM (Word_Addr) := Datum;
       end Write_Word;
 

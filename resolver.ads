@@ -46,7 +46,12 @@ package Resolver is
 
     function Resolve_32bit_Indirectable_Addr (ATU : in Boolean; 
                                               I_Addr : in Dword_T) return Phys_Addr_T;
-
+    
+    procedure Resolve_Eagle_Bit_Addr (CPU       : in CPU_T; 
+                                      Acd, Acs  : in AC_ID; 
+                                      Word_Addr : out Phys_Addr_T; 
+                                      Bit_Num   : out Natural);
+                                      
     procedure Resolve_Eclipse_Bit_Addr (CPU       : in CPU_T; 
                                         Acd, Acs  : in AC_ID; 
                                         Word_Addr : out Phys_Addr_T; 

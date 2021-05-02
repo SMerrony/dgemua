@@ -49,7 +49,17 @@ package body Devices.Disk6061 is
         begin
             State.Debug_Logging := Log;
         end Set_Logging;
-        
+
+        function Printable_Addr return String is
+        begin
+            return "DRV: " & State.Drive'Image &
+                   ", CYL:" & State.Cylinder'Image &
+                   ", SURF:" & State.Surface'Image &
+                   ", SECT:" & State.Sector'Image &
+                   ", SECCNT:" & State.Sector_Cnt'Image & 
+                   ", Mem Addr: " & Dword_To_String (Dword_T(State.Mem_Addr), Octal, 9, true);
+        end Printable_Addr;
+
         procedure Reset is
         begin
             State.RW_Status        := 0;
@@ -60,6 +70,7 @@ package body Devices.Disk6061 is
             State.Sector           := 0;
             State.Sector_Cnt       := 0;
             State.Drive_Status     := Drive_Stat_Ready;
+            Loggers.Debug_Print (Dpf_Log, "INFO: RESET (IORST) done " & Printable_Addr);
             Ada.Text_IO.Put_Line("INFO: DPF Reset");
         end Reset;
 
@@ -107,17 +118,6 @@ package body Devices.Disk6061 is
                         + 1;
             Sector_IO.Set_Index (State.Image_File, Sector_IO.Count(Offset));
         end Position_Image;
-
-        function Printable_Addr return String is
-        begin
-            return "DRV: " & State.Drive'Image &
-                   ", CYL:" & State.Cylinder'Image &
-                   ", SURF:" & State.Surface'Image &
-                   ", SECT:" & State.Sector'Image &
-                   ", SECCNT:" & State.Sector_Cnt'Image & 
-                   ", Mem Addr: " & Dword_To_String (Dword_T(State.Mem_Addr), Octal, 9, true);
-        end Printable_Addr;
-
 
         procedure Do_Command is
         begin
@@ -407,9 +407,10 @@ package body Devices.Disk6061 is
             State.Command := Cmd_T'Pos(Recal);
             Do_Command;
             State.Mem_Addr := 0;
-            State.Sector_Cnt := -2;
+            State.Sector_Cnt := -1;
             State.Command := Cmd_T'Pos(Read);
             Do_Command;
+            Loggers.Debug_Print (Dpf_Log, "INFO: Load_DKBT complete - " & Printable_Addr);
             Ada.Text_IO.Put_Line ("INFO: Load_DKBT completed");
         end Load_DKBT;
 

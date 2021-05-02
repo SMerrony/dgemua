@@ -388,6 +388,42 @@ package body Processor.Eagle_Stack_P is
                Set_OVK (true);
             end if;
 
+         when I_WSSVR | I_WSSVS =>
+            Req_Space := Integer(Word_To_Integer_16(I.Word_2));
+            WSP_Check_Bounds (Delta_Words => (Req_Space * 2) + 12, 
+                              Is_Save => true, 
+                              OK => OK, 
+                              Primary_Fault => Primary_Fault, 
+                              Secondary_Fault => Secondary_Fault);
+            if not OK then
+               Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WSSVR/S");
+               WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+               return; -- We have set the PC
+            end if;
+            -- push the special return block
+            DW := CPU.AC(3) and 16#7fff_ffff#;
+            if CPU.Carry then
+               DW := DW or 16#8000_0000#;
+            end if;
+            WS_Push (Dword_From_Two_Words(CPU.PSR, 0));
+            WS_Push (CPU.AC(0));
+            WS_Push (CPU.AC(1));
+            WS_Push (CPU.AC(2));
+            WS_Push (Dword_T(CPU.WFP));
+            WS_Push (DW);
+            CPU.WFP := CPU.WSP;
+            CPU.AC(3) := Dword_T(CPU.WSP);
+            if Req_Space > 0 then
+               CPU.WSP := CPU.WSP + Phys_Addr_T(Req_Space * 2);
+            end if;
+            if I.Instruction = I_WSSVR then
+               Set_OVK(false);
+               Set_OVR(false);
+            else
+               Set_OVK(true);
+               Set_OVR(false);
+            end if;
+
          when I_XPEF =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             WS_Push (Dword_T(Addr));
@@ -410,6 +446,23 @@ package body Processor.Eagle_Stack_P is
                WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
                return; -- We have set the PC
             end if;
+
+         when I_XPSHJ =>
+            WS_Push (Dword_T(CPU.PC) + 2);
+            WSP_Check_Bounds (Delta_Words => 0, 
+                              Is_Save => false, 
+                              OK => OK, 
+                              Primary_Fault => Primary_Fault, 
+                              Secondary_Fault => Secondary_Fault);
+            if not OK then
+               Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by XPSHJ");
+               WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+               return; -- We have set the PC
+            end if;
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            Addr := (Addr and 16#0fff_ffff#) or Ring;
+            CPU.PC := Addr;
+            return; -- We have set the PC
 
          when others =>
             Put_Line ("ERROR: EAGLE_STACK instruction " & To_String(I.Mnemonic) & 

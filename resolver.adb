@@ -177,6 +177,23 @@ package body Resolver is
         return Phys_Addr_T (Eff);
     end Resolve_32bit_Indirectable_Addr;
 
+    procedure Resolve_Eagle_Bit_Addr (CPU       : in CPU_T; 
+                                      Acd, Acs  : in AC_ID; 
+                                      Word_Addr : out Phys_Addr_T; 
+                                      Bit_Num   : out Natural) is
+    begin
+        -- TODO handle segments and indirection
+        if Acd = Acs then 
+            Word_Addr := 0;
+        else
+            if Test_DW_Bit (CPU.AC(Acs), 0) then
+                raise Not_Yet_Implemented with "Indirect 16-bit BIT pointers";
+            end if;
+            Word_Addr := Phys_Addr_T(CPU.AC(Acs));
+        end if;
+        Word_Addr := Word_Addr + Phys_Addr_T (Shift_Right (CPU.AC(Acd), 4));
+        Bit_Num := Natural(CPU.AC(Acd) and 16#000f#);
+    end Resolve_Eagle_Bit_Addr;
 
     procedure Resolve_Eclipse_Bit_Addr (CPU       : in CPU_T; 
                                         Acd, Acs  : in AC_ID; 
@@ -185,12 +202,12 @@ package body Resolver is
     begin
         -- TODO handle segments and indirection
         if Acd = Acs then 
-        Word_Addr := 0;
+            Word_Addr := 0;
         else
-        if Test_DW_Bit (CPU.AC(Acd), 0) then
-            raise Not_Yet_Implemented with "Indirect 16-bit BIT pointers";
-        end if;
-        Word_Addr := Phys_Addr_T(CPU.AC(Acs)) and 16#0000_7fff#;
+            if Test_DW_Bit (CPU.AC(Acs), 0) then
+                raise Not_Yet_Implemented with "Indirect 16-bit BIT pointers";
+            end if;
+            Word_Addr := Phys_Addr_T(CPU.AC(Acs)) and 16#0000_7fff#;
         end if;
         Word_Addr := Word_Addr + Phys_Addr_T (Shift_Right (CPU.AC(Acd), 4));
         Bit_Num := Natural(CPU.AC(Acd) and 16#000f#);

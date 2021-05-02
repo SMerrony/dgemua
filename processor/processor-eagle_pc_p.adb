@@ -33,6 +33,7 @@ package body Processor.Eagle_PC_P is
          DW   : Dword_T;
          Skip : Boolean;
          S32_S, S32_D : Integer_32;
+         Bit_Num : Natural;
          
          procedure WS_Push (Datum : in Dword_T) is
          begin
@@ -206,9 +207,9 @@ package body Processor.Eagle_PC_P is
             if I.Instruction = I_WSEQI then
                Skip := CPU.AC(I.Ac) = Sext_Word_To_Dword (I.Word_2);
             elsif I.Instruction = I_WSGTI then
-               Skip := Integer_32(CPU.AC(I.Ac)) >= Integer_32(Sext_Word_To_Dword (I.Word_2));
+               Skip := Dword_To_Integer_32(CPU.AC(I.Ac)) >= Dword_To_Integer_32(Sext_Word_To_Dword (I.Word_2));
             elsif I.Instruction = I_WSLEI then
-               Skip := Integer_32(CPU.AC(I.Ac)) <= Integer_32(Sext_Word_To_Dword (I.Word_2));
+               Skip := Dword_To_Integer_32(CPU.AC(I.Ac)) <= Dword_To_Integer_32(Sext_Word_To_Dword (I.Word_2));
             else
                Skip := CPU.AC(I.Ac) /= Sext_Word_To_Dword (I.Word_2);
             end if;
@@ -254,6 +255,52 @@ package body Processor.Eagle_PC_P is
                CPU.PC := CPU.PC + 1;
          end if;
 
+         when I_WSNB =>
+            Resolve_Eagle_Bit_Addr (CPU, I.Acd , I.Acs, Addr, Bit_Num);
+            if Test_W_Bit (RAM.Read_Word(Addr), Bit_Num) then
+               CPU.PC := CPU.PC + 2;
+            else
+               CPU.PC := CPU.PC + 1;
+            end if;
+
+         when I_WSZB =>
+            Resolve_Eagle_Bit_Addr (CPU, I.Acd , I.Acs, Addr, Bit_Num);
+            if not Test_W_Bit (RAM.Read_Word(Addr), Bit_Num) then
+               CPU.PC := CPU.PC + 2;
+            else
+               CPU.PC := CPU.PC + 1;
+            end if;
+
+         -- when I_WUSGE =>
+         --    if I.Acs = I.Acd then
+         --       if CPU.AC(I.Acs) >= 0 then
+         --          CPU.PC := CPU.PC + 2;
+         --       else
+         --          CPU.PC := CPU.PC + 1;
+         --       end if;
+         --    else
+         --       if CPU.AC(I.Acs) >= CPU.AC(I.Acd) then
+         --          CPU.PC := CPU.PC + 2;
+         --       else
+         --          CPU.PC := CPU.PC + 1;
+         --       end if;
+         --    end if;
+
+         when I_WUSGT =>
+            if I.Acs = I.Acd then
+               if CPU.AC(I.Acs) > 0 then
+                  CPU.PC := CPU.PC + 2;
+               else
+                  CPU.PC := CPU.PC + 1;
+               end if;
+            else
+               if CPU.AC(I.Acs) > CPU.AC(I.Acd) then
+                  CPU.PC := CPU.PC + 2;
+               else
+                  CPU.PC := CPU.PC + 1;
+               end if;
+            end if;
+
          when I_XCALL => -- FIXME - XCALL only handling trivial case
             CPU.AC(3) := Dword_T(CPU.PC) + 3;
             if I.Arg_Count >= 0 then
@@ -290,7 +337,6 @@ package body Processor.Eagle_PC_P is
                   CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
                end if;
             end;
-
 
          when I_XNDSZ =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);

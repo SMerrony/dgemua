@@ -271,6 +271,11 @@ package body Processor is
          return CPU.XCT_Opcode;
       end Get_XCT_Opcode;
 
+      procedure Set_Ac (AC : in AC_ID; Datum : in Dword_T) is
+      begin
+         CPU.AC(AC) := Datum;
+      end Set_Ac;
+
    end Actions;
 
    procedure Run (Disassemble : in Boolean; 

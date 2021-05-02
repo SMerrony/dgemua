@@ -70,7 +70,7 @@ package DG_Types is
     procedure Flip_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
     procedure Set_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
     function Test_W_Bit
-       (Word : in Word_T; Bit_Num : in Integer) return Boolean;
+       (Word : in Word_T; Bit_Num : in Integer) return Boolean with Inline;
     function Get_W_Bits (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T;
     function Get_DW_Bits (Dword : in Dword_T; First_Bit, Num_Bits : Natural) return Dword_T;
     function Test_DW_Bit (DW: in Dword_T; Bit_Num : in Integer) return Boolean;
@@ -92,7 +92,7 @@ package DG_Types is
     function Low_Byte_To_Char (LB : in Boolean) return Character;
 
     -- Dword routines
-    function Lower_Word( DW : in Dword_T) return Word_T;
+    function Lower_Word( DW : in Dword_T) return Word_T with Inline;
     function Upper_Word( DW : in Dword_T) return Word_T;
     function Dword_From_Two_Words (Word_1, Word_2 : in Word_T) return Dword_T;
     function Dword_To_String
@@ -105,6 +105,8 @@ package DG_Types is
     function Sext_Word_To_Dword(Wd : in Word_T) return Dword_T;
 
     -- Qword routines
+    function Lower_Dword ( QW : in Qword_T) return Dword_T;
+    function Upper_Dword ( QW : in Qword_T) return Dword_T;
     function Qword_From_Two_Dwords (Dword_1, Dword_2 : in Dword_T) return Qword_T;
 
 

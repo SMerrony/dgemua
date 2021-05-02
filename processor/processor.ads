@@ -111,6 +111,7 @@ package Processor is
       function  Get_XCT_Mode return Boolean;
       procedure Set_XCT_Mode (YN : in Boolean);
       function  Get_XCT_Opcode return Word_T;
+      procedure Set_Ac (AC : in AC_ID; Datum : in Dword_T);
    private
       CPU : CPU_T;
    end Actions;

@@ -102,6 +102,9 @@ package body Processor.Eclipse_PC_P is
             Addr := (Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
             CPU.PC := Addr;
 
+         when I_FNS =>
+            CPU.PC := CPU.PC + 1;
+
          when I_SNB =>
             Resolve_Eclipse_Bit_Addr (CPU, I.Acd , I.Acs, Addr, Bit_Num);
             Addr := Addr or Ring;

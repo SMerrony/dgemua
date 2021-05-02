@@ -30,13 +30,13 @@ package body Processor.Nova_PC_P is
    begin
       case I.Instruction is
          when I_JMP =>
-            CPU.PC := Resolve_8bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15) or Ring_Mask;
+            CPU.PC := (Resolve_8bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
 
          when I_JSR =>
             declare
                Tmp_PC : Dword_T := Dword_T(CPU.PC) + 1;
             begin
-               CPU.PC := Resolve_8bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15) or Ring_Mask;
+               CPU.PC := (Resolve_8bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
                CPU.AC(3) := Tmp_PC;
             end;
 

@@ -209,6 +209,14 @@ package body Processor.Eagle_Op_P is
          when I_WLDAI =>
             CPU.AC(I.Ac) := I.Imm_DW;
 
+         when I_WLSH =>
+            Shift := Integer(Byte_To_Integer_8(Byte_T(CPU.AC(I.Acs) and 16#00ff#)));
+            if Shift < 0 then -- shift right
+               CPU.AC(I.Acd) := Shift_Right (CPU.AC(I.Acd), -Shift);
+            elsif Shift > 0 then -- shift left
+               CPU.AC(I.Acd) := Shift_Left (CPU.AC(I.Acd), Shift);
+            end if;
+
          when I_WLSHI =>
             Shift := Integer(Byte_To_Integer_8(Byte_T(I.Word_2 and 16#00ff#)));
             if Shift < 0 then -- shift right
@@ -233,6 +241,13 @@ package body Processor.Eagle_Op_P is
             CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
             Set_OVR (CPU.Carry);
             CPU.AC(I.Acd) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+
+         when I_WMULS =>
+            Acd_S32 := Dword_To_Integer_32(CPU.AC(1));
+            Acs_S32 := Dword_To_Integer_32(CPU.AC(2));
+            S64 := Integer_64(Acd_S32) * Integer_64(Acs_S32) + Integer_64(Dword_To_Integer_32(CPU.AC(0)));
+            CPU.AC(0) := Upper_Dword(Qword_T(Integer_64_To_Unsigned_64(S64)));
+            CPU.AC(1) := Lower_Dword(Qword_T(Integer_64_To_Unsigned_64(S64)));
 
          when I_WNADI =>
             Acd_S32 := Dword_To_Integer_32(CPU.AC(I.Ac));

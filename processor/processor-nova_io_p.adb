@@ -66,7 +66,7 @@ package body Processor.Nova_IO_P is
                         Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, I.IO_Reg, I.IO_Flag);
                   end if;
                else
-                  if I.IO_Dev = 2 then
+                  if (I.IO_Dev = 2) OR (I.IO_Dev = 10) OR (I.IO_Dev = 11) then
                      Loggers.Debug_Print(Debug_Log, "WARNING: Ignoring I/O to device " & I.IO_Dev'Image);
                      Put_Line("WARNING: Ignoring I/O to device " & I.IO_Dev'Image & ".");
                   else

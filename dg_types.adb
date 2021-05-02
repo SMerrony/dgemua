@@ -54,17 +54,11 @@ package body DG_Types is
 
    -- Does Word have bit <n> set?
    function Test_W_Bit (Word : in Word_T; Bit_Num : in Integer) return Boolean
-   is
-   begin
-      return (Word and Shift_Left (1, 15 - Bit_Num)) /= 0;
-   end Test_W_Bit;
+   is ((Word and Shift_Left (1, 15 - Bit_Num)) /= 0);
 
    -- Does Dword have bit <n> set?
    function Test_DW_Bit (DW : in Dword_T; Bit_Num : in Integer) return Boolean
-   is
-   begin
-      return (DW and Shift_Left (1, 31 - Bit_Num)) /= 0;
-   end Test_DW_Bit;
+   is ((DW and Shift_Left (1, 31 - Bit_Num)) /= 0);
 
    -- Get_W_Bits - in the DG world, the first (leftmost) bit is numbered zero...
    -- extract nbits from value starting at leftBit
@@ -90,34 +84,27 @@ package body DG_Types is
 
    -- return DG lower (RH) byte of a Word
    function Get_Lower_Byte (Word : in Word_T) return Byte_T is
-   begin
-      return Byte_T (Word and 16#00ff#);
-   end Get_Lower_Byte;
+      (Byte_T (Word and 16#00ff#));
 
    -- return DG Upper (LH) byte of a Word
    function Get_Upper_Byte (Word : in Word_T) return Byte_T is
-   begin
-      return Byte_T (Shift_Right (Word and 16#ff00#, 8));
-   end Get_Upper_Byte;
+      (Byte_T (Shift_Right (Word and 16#ff00#, 8)));
 
    function Swap_Bytes (Word : in Word_T) return Word_T is
-   begin
-      return
-        Shift_Right (Word and 16#ff00#, 8) or
-        Shift_Left (Word and 16#00ff#, 8);
-   end Swap_Bytes;
+      (Shift_Right (Word and 16#ff00#, 8) or
+       Shift_Left (Word and 16#00ff#, 8));
 
    function Lower_Word (DW : in Dword_T) return Word_T is
-   begin
-      return Word_T (DW and 16#0000_ffff#);
-   end Lower_Word;
+      (Word_T (DW and 16#0000_ffff#));
 
-   pragma Inline (DG_Types.Lower_Word);
+   function Lower_Dword ( QW : in Qword_T) return Dword_T is
+      (Dword_T(QW and 16#ffff_ffff#));
 
    function Upper_Word (DW : in Dword_T) return Word_T is
-   begin
-      return Word_T (Shift_Right (DW and 16#ffff_0000#, 16));
-   end Upper_Word;
+      (Word_T (Shift_Right (DW and 16#ffff_0000#, 16)));
+
+   function Upper_Dword (QW : in Qword_T) return Dword_T is
+      (Dword_T (Shift_Right (QW, 32)));
 
    procedure Get_Bytes_From_Word
      (Word : in Word_T; Low_Byte, High_Byte : out Byte_T)
@@ -128,19 +115,13 @@ package body DG_Types is
    end Get_Bytes_From_Word;
 
    function Word_From_Bytes (Lo, Hi : in Byte_T) return Word_T is
-   begin
-      return Shift_Left (Word_T (Lo), 8) or Word_T (Hi);
-   end Word_From_Bytes;
+      (Shift_Left (Word_T (Lo), 8) or Word_T (Hi));
 
    function Dword_From_Two_Words (Word_1, Word_2 : in Word_T) return Dword_T is
-   begin
-      return Shift_Left (Dword_T (Word_1), 16) or Dword_T (Word_2);
-   end Dword_From_Two_Words;
+      (Shift_Left (Dword_T (Word_1), 16) or Dword_T (Word_2));
 
    function Qword_From_Two_Dwords (Dword_1, Dword_2 : in Dword_T) return Qword_T is
-   begin
-      return Shift_Left (Qword_T(Dword_1), 32) or Qword_T(Dword_2);
-   end Qword_From_Two_Dwords;
+      (Shift_Left (Qword_T(Dword_1), 32) or Qword_T(Dword_2));
 
    function Boolean_To_YN (B : Boolean) return Character is
    begin
