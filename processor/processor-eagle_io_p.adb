@@ -22,8 +22,9 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
-with Debug_Logs;  use Debug_Logs;
-with Resolver;    use Resolver;
+with Debug_Logs;      use Debug_Logs;
+with Memory_Channels; use Memory_Channels;
+with Resolver;        use Resolver;
 
 package body Processor.Eagle_IO_P is 
 

@@ -20,13 +20,14 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Ada.Exceptions; use Ada.Exceptions;
+with Ada.Exceptions;  use Ada.Exceptions;
 with Ada.Text_IO;
 
-with Debug_Logs;     use Debug_Logs;
+with Debug_Logs;      use Debug_Logs;
 with Devices;
 with Devices.Bus;
-with Memory;         use Memory;
+with Memory;          use Memory;
+with Memory_Channels; use Memory_Channels;
 with Status_Monitor;
 
 package body Devices.Disk6061 is

@@ -51,63 +51,8 @@ package Memory is
     WSF_Underflow       : constant Dword_T := 3;
     WSF_Return_Overflow : constant Dword_T := 4;
 
-    type AC_Circle_T is array (0..7) of AC_ID;
-    AC_Circle : constant AC_Circle_T := (0,1,2,3,0,1,2,3);
-
-    -- BMC/DCH Stuff...
-    Num_BMC_Regs        : constant Integer := 2_048;
-    First_DCH_Slot_Reg  : constant Integer := Num_BMC_Regs;
-    First_DCH_Slot      : constant Integer := Num_BMC_Regs / 2;
-    Num_DCH_Regs        : constant Integer := 1_024;
-    Num_DCH_Slots       : constant Integer := Num_DCH_Regs / 2;
-    Last_Reg            : constant Integer := 4_095;
-    IO_Chan_Def_Reg     : constant Integer := 8#6000#; -- 3072.
-    IO_Chan_Status_Reg  : constant Integer := 8#7700#; -- 4032.
-    IO_Chan_Mask_Reg    : constant Integer := 8#7701#; -- 4033.
-    CPU_Dedication_Ctrl : constant Integer := 8#7702#; -- 4034.
-
-    IOC_CDR_ICE : constant Word_T := 2#1000_0000_0000_0000#;
-    IOC_CDR_BVE : constant Word_T := 2#0001_0000_0000_0000#;
-    IOC_CDR_DVE : constant Word_T := 2#0000_1000_0000_0000#;
-    IOC_CDR_DCH : constant Word_T := 2#0000_0100_0000_0000#;
-    IOC_CDR_BMC : constant Word_T := 2#0000_0010_0000_0000#;
-    IOC_CDR_BAP : constant Word_T := 2#0000_0001_0000_0000#;
-    IOC_CDR_BDP : constant Word_T := 2#0000_0000_1000_0000#;
-    IOC_CDR_DME : constant Word_T := 2#0000_0000_0000_0010#;
-    IOC_CDR_1   : constant Word_T := 2#0000_0000_0000_0001#;
-
-    IOC_SR_ERR : constant Word_T := 2#1000_0000_0000_0000#;
-    IOC_SR_DTO : constant Word_T := 2#0000_0000_0010_0000#;
-    IOC_SR_MPE : constant Word_T := 2#0000_0000_0001_0000#;
-    IOC_SR_1A  : constant Word_T := 2#0000_0000_0000_1000#;
-    IOC_SR_1B  : constant Word_T := 2#0000_0000_0000_0100#;
-    IOC_SR_CMB : constant Word_T := 2#0000_0000_0000_0010#;
-    IOC_SR_INT : constant Word_T := 2#0000_0000_0000_0001#;
-
-    IOC_MR_MK0 : constant Word_T := 2#0000_0000_1000_0000#;
-    IOC_MR_MK1 : constant Word_T := 2#0000_0000_0100_0000#;
-    IOC_MR_MK2 : constant Word_T := 2#0000_0000_0010_0000#;
-    IOC_MR_MK3 : constant Word_T := 2#0000_0000_0001_0000#;
-    IOC_MR_MK4 : constant Word_T := 2#0000_0000_0000_1000#;
-    IOC_MR_MK5 : constant Word_T := 2#0000_0000_0000_0100#;
-    IOC_MR_MK6 : constant Word_T := 2#0000_0000_0000_0010#;
-
-    type BMC_DCH_Regs_Array is array (0 .. Last_Reg) of Word_T;
-
     subtype Legal_Addrs is Phys_Addr_T range 0 .. Max_Phys_Addr;
     type RAM_Array is array (Legal_Addrs) of Word_T;
-
-    type BMC_Addr_T is record
-        Is_Logical : Boolean;
-        -- Physical...
-        Bk  : Natural;      -- Bank Selector
-        XCA : Natural;      -- eXtended Channel Addr
-        CA  : Phys_Addr_T;  -- Channel Addr
-        -- Logical...
-        TT  : Natural;      -- Translation Table
-        TTR : Natural;      -- TT Register
-        P_Low : Phys_Addr_T; -- Page Low Order
-    end record;
 
     protected RAM is
         procedure Init (Debug_Logging : in Boolean);
@@ -132,23 +77,5 @@ package Memory is
         procedure Push (Segment : in Phys_Addr_T; Datum : in Word_T);
         function  Pop  (Segment : in Phys_Addr_T) return Word_T;
     end Narrow_Stack;
-
-    protected BMC_DCH is
-        procedure Init (Debug_Logging : in Boolean);
-        procedure Reset;
-        procedure Set_Logging (Debug_Logging : in Boolean);
-        function  Read_Reg (Reg : in Integer) return Word_T;
-        procedure Write_Reg (Reg : in Integer; Datum : in Word_T); 
-        procedure Write_Slot (Slot : in Integer; Datum : in Dword_T);
-        procedure Write_Word_DCH_Chan (Unmapped : in out Phys_Addr_T; Datum : in Word_T);
-        procedure Write_Word_BMC_16 (Unmapped : in out Word_T; Datum : in Word_T);
-        procedure Read_Word_BMC_16 (Unmapped : in out Word_T; Datum : out Word_T);
-    private
-        Registers  : BMC_DCH_Regs_Array;
-        Is_Logging : Boolean;
-    end BMC_DCH;
-
-    Invalid_DCH_Slot       : exception;
-    Unsupported_IO_Channel : exception;
 
 end Memory;

@@ -42,6 +42,9 @@ package DG_Types is
     type IO_Flag_T is (None, S, C, P);
     type IO_Test_T is (BN, BZ, DN, DZ);  
 
+    type AC_Circle_T is array (0..7) of AC_ID;
+    AC_Circle : constant AC_Circle_T := (0,1,2,3,0,1,2,3);
+
     type Number_Base_T is (Binary, Octal, Decimal, Hex);
 
     Dasher_NL          : constant Character := Character'Val(8#12#);

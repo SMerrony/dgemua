@@ -47,6 +47,7 @@ with Devices.Magtape6026;
 with DG_Types;              use DG_Types;
 with Processor;
 with Memory;                use Memory;
+with Memory_Channels;       use Memory_Channels;
 with Simh_Tapes;
 with Status_Monitor;
 
@@ -346,7 +347,7 @@ procedure MVEmuA is
             end if;
             -- TODO Add calls here when new devices are added...
             Processor.Actions.Set_Debug_Logging(Debug_Logging);
-            Memory.BMC_DCH.Set_Logging(Debug_Logging);
+            BMC_DCH.Set_Logging(Debug_Logging);
             Devices.Disk6061.Drives.Set_Logging (Debug_Logging);
          else
            TTOut.Put_String (Dasher_NL & " *** Unknown or Unimplemented SET command");

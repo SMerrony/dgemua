@@ -27,6 +27,7 @@ with Debug_Logs;       use Debug_Logs;
 with Devices;
 with Devices.Bus;
 with Memory;
+with Memory_Channels; use Memory_Channels;
 with Status_Monitor;
 
 package body Devices.Magtape6026 is
@@ -118,7 +119,7 @@ package body Devices.Magtape6026 is
                            while W < Natural(Hdr) loop
                               Wd := Word_From_Bytes(Tape_Rec(W), Tape_Rec(W+1));
                               W := W + 2;
-                              Memory.BMC_DCH.Write_Word_DCH_Chan(State.Mem_Addr_Reg, Wd);
+                              BMC_DCH.Write_Word_DCH_Chan(State.Mem_Addr_Reg, Wd);
                               State.Neg_Word_Count := State.Neg_Word_Count + 1;
                               exit when State.Neg_Word_Count = 0;
                            end loop;

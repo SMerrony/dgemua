@@ -1,21 +1,18 @@
-project Mvemua is
+project vsemua is
 
    type Mode_Type is
       ("debug", "release"); -- all possible values
    Mode : Mode_Type := external ("mode", "debug");
-   for Source_Dirs use (".", "./devices", "./processor", "./physical_memory");
+   for Source_Dirs use (".", "./devices", "./processor", "./virtual_memory", "./aosvs");
    for Ignore_Source_Sub_Dirs use (".git");
    for Object_Dir use "./obj";
    for Exec_Dir use ".";
-   for Main use ("mvemua.adb");
+   for Main use ("vsemua.adb");
 
    package Compiler is
-
       case Mode is
-
          when "debug" =>
             for Switches ("Ada") use ("-g");
-
          when "release" =>
             for Switches ("Ada") use ("-O2");
             for Switches ("ada") use ("-O2");
@@ -23,40 +20,31 @@ project Mvemua is
    end Compiler;
 
    package Builder is
-
       case Mode is
-
          when "debug" =>
             for Switches ("ada") use ("-j4", "-g");
-
          when "release" =>
             for Switches ("ada") use ("-j4");
       end case;
    end Builder;
 
    package Binder is
-
       case Mode is
-
          when "debug" =>
             for Switches ("ada") use ("-Es");
-
          when "release" =>
 
       end case;
    end Binder;
 
    package Linker is
-
       case Mode is
-
          when "debug" =>
             for Switches ("ada") use ("-g");
-
          when "release" =>
 
       end case;
    end Linker;
 
-end Mvemua;
+end vsemua;
 
