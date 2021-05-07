@@ -38,6 +38,7 @@ package Memory is
 	-- MemSizeNCLID is the code returned by NCLID to indicate size of RAM in 32Kb increments
 	Mem_Size_NCLID : constant Word_T := Word_T(((Mem_Size_Words * 2) / (32 * 1024)) - 1);
 
+    type Memory_Region is array (Natural range <>) of Word_T;
     type Page_T is array (0 .. Words_Per_Page - 1) of Word_T;
 
     -- Page 0 special locations for stacks
@@ -70,10 +71,14 @@ package Memory is
         procedure Init (Debug_Logging : in Boolean);
         procedure Map_Page (Page : in Natural; Is_Shared : in Boolean);
         function  Page_Mapped (Page : in Natural) return Boolean;
-
-        function  Read_Word (Word_Addr : in Phys_Addr_T) return Word_T with Inline;
-        function  Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T;
-        procedure Write_Word (Word_Addr : in Phys_Addr_T; Datum : Word_T);
+        
+        procedure Map_Range (Start_Addr : in Phys_Addr_T;
+                             Region     : in Memory_Region;
+                             Is_Shared  : in Boolean);
+        -- function Address_Mapped (Addr : in Phys_Addr_T) return Boolean;
+        function  Read_Word   (Word_Addr : in Phys_Addr_T) return Word_T with Inline;
+        function  Read_Dword  (Word_Addr : in Phys_Addr_T) return Dword_T;
+        procedure Write_Word  (Word_Addr : in Phys_Addr_T; Datum : Word_T);
         procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T);
 
         function  Read_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T;

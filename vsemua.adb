@@ -28,6 +28,8 @@ with GNAT.Ctrl_C;
 with GNAT.OS_Lib;
 with GNAT.Sockets;
 
+with AOSVS.Agent;
+
 with Debug_Logs;   use Debug_Logs;
 with Memory;       use Memory;
 with Processor;
@@ -43,7 +45,10 @@ procedure VSEmua is
    Command_Line  : Unbounded_String;
    Command       : Unbounded_String;
    Arg_Num       : Positive := 1;
-   PR_Arg_Num    : Natural := 0;
+   PR_Arg_Num, Root_Arg_Num    : Natural := 0;
+   VS_Args_Arr   : AOSVS.Args_Arr;
+   VS_Num_Args   : Positive;
+   
 
    Receiver   : GNAT.Sockets.Socket_Type;
    Connection : GNAT.Sockets.Socket_Type;
@@ -70,6 +75,9 @@ begin
       if Ada.Command_Line.Argument (Arg_num) = "-pr" then
          Arg_Num := Arg_Num + 1;
          PR_Arg_Num := Arg_Num;
+      elsif Ada.Command_Line.Argument (Arg_num) = "-root" then
+         Arg_Num := Arg_Num + 1;
+         Root_Arg_Num := Arg_Num;  
       elsif Ada.Command_Line.Argument (Arg_num) = "-version" then
          Ada.Text_IO.Put_Line ("VS/Emua version " & Sem_Ver);
          GNAT.OS_Lib.OS_Exit (0);
@@ -77,10 +85,13 @@ begin
       Arg_Num := Arg_Num + 1;
    end loop;
 
-   if PR_Arg_Num = 0 then
-      Ada.Text_IO.Put_Line ("ERROR: Please supply a PR file to run");
+   if (PR_Arg_Num = 0) or (Root_Arg_Num = 0) then
+      Ada.Text_IO.Put_Line ("ERROR: Please supply a PR file to run and a root directory");
       GNAT.OS_Lib.OS_Exit (0);
    end if;
+
+   VS_Args_Arr(0) := To_Unbounded_String(Ada.Command_Line.Argument (PR_Arg_num));
+   VS_Num_Args := 1;
 
    GNAT.Ctrl_C.Install_Handler(Clean_Exit'Unrestricted_Access);
 
@@ -102,6 +113,15 @@ begin
    Ada.Text_IO.Put_Line ("INFO: Console connected from " & GNAT.Sockets.Image (Client));
 
    RAM.Init (Debug_Logging);
+
+   AOSVS.Agent.Actions.Init(Con_Stream);
+
+   AOSVS.Start (PR_Name   => Ada.Command_Line.Argument (PR_Arg_num),
+                Virt_Root => Ada.Command_Line.Argument (Root_Arg_num),
+                Segment   => 7,
+                Arg_Count => VS_Num_Args,
+                Args      => VS_Args_Arr,
+                Logging   => Debug_Logging);
 
    Clean_Exit;
 

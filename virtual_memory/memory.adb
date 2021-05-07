@@ -55,6 +55,26 @@ package body Memory is
         end Map_Page;
 
         function Page_Mapped (Page : in Natural) return Boolean is (VRAM.Contains(Page));
+        
+        function Address_Mapped (Addr : in Phys_Addr_T) return Boolean is
+            (VRAM.Contains(Natural(Shift_Right(Addr, 10))));
+
+        procedure Map_Range (Start_Addr : in Phys_Addr_T;
+                             Region     : in Memory_Region;
+                             Is_Shared  : in Boolean) is
+            Loc : Phys_Addr_T;
+        begin
+            for Offset in Region'Range loop
+                Loc := Start_Addr + Phys_Addr_T(Offset);
+                -- if we have hit a page boundary then check it's mapped
+                if (Loc and 16#03ff#) = 0 then
+                    if not Address_Mapped(Loc) then
+                        Map_Page(Natural(Shift_Right(Loc, 10)), Is_Shared);
+                    end if;
+                end if;
+                Write_Word(Loc, Region(Offset));
+            end loop;
+        end Map_Range;
 
         function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
             Page : Natural := Natural(Shift_Right(Word_Addr, 10));
