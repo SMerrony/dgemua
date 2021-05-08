@@ -1,0 +1,247 @@
+SOURCE: LOOPS3            MASM 07.70.00.00                                                           08-JUN-95 17:42:12  PAGE    1
+
+01                                              ; LOOPS3.SR
+02                                              
+03                                              	.TITLE 	LOOPS3
+04                                              	.ENT 	LOOPS3
+05                                              
+06                                              ; Assember constants
+07                   00000000144                	N=100.
+08                                              
+09                                              ; Data
+10                   00000000006                	.NREL	6
+11                                              	.ENABLE WORD
+12                                              	
+13 000000 UD         00000000030                CONSOLE: .BLK   ?IBLT
+14                   00000000001         UD             .LOC    CONSOLE+?ISTI
+15 000001 UD 040032                                             ?ICRF+?RTDS+?OFIO
+16                   00000000003         UD             .LOC    CONSOLE+?IMRS
+17 000003 UD 177777                                             -1              ; block size (def. 2048)
+18                   00000000004         UD             .LOC    CONSOLE+?IBAD
+19 000004 UD         00000000060         UD             .DWORD  BUF*2           ; double-word byte ptr to msg
+20                   00000000007         UD             .LOC    CONSOLE+?IRCL
+21 000007 UD 000170                                     .WORD   120.
+22                   00000000014         UD             .LOC    CONSOLE+?IFNP
+23 000014 UD         00000000142         UD             .DWORD  CON*2           ; double-word byte ptr to filename
+24                   00000000016         UD             .LOC    CONSOLE+?IDEL
+25 000016 UD         37777777777                        .DWORD  -1
+26                   00000000030         UD             .LOC    CONSOLE+?IBLT
+27                                              
+28 000030 UD 046117 047520 051463 020163        BUF:	.TXT	"LOOPS3 starting...<12>"
+29           072141 071164 064556 063456       
+30           027056 005000                     
+31 000042 UD 005000                             NLBUF:	.TXT	"<12>"
+32 000043 UD 020040 020040 020040 020040        NUMBUF: .TXT	"           "
+33           020040 020000                     
+34 000051 UD 027056 027114 047517 050123        DONEBUF:.TXT	"...LOOPS3 done"
+35           031440 062157 067145 000000       
+36 000061 UD 040103 047516 051517 046105        CON:    .TXT    "@CONSOLE"      ; generic name
+37           000000                            
+38 000066 UD         00000000044                FPUSAV:	.BLK	36.
+39 000132 UD         00000000000                INDEX:	.DWORD	0
+40                                              
+41                                              ; Code
+42                   00000000001                	.NREL	1
+43                                              
+44                                              LOOPS3: 
+45 000000 SC 121751  00000000066         UD     	LLEF	0,FPUSAV
+46 000003 SC 124531                             	WSUB	1,1
+47 000004 SC 150531                             	WSUB	2,2
+48                                              	?IFPU	
+49 000010 SC 120770                             	WBR	OOPS
+50                                              
+51 000011 SC 147031 000114                      	XJSR	OPEN 
+52 000013 SC 147031 000124                      	XJSR	WRITE
+53                                              	; set up for printing digits
+54 000015 SC 132351  00000000106         UD     	LLEFB	2,NUMBUF*2
+55 000020 SC 132371  00000000004         UD     	LWSTA	2,CONSOLE+?IBAD
+56 000023 SC 155571                             	WMOV	2,3
+57 000024 SC 100531                             	WSUB	0,0
+58                                              
+SOURCE: LOOPS3            MASM 07.70.00.00                                                           08-JUN-95 17:42:12  PAGE    2
+
+01                                              ; for AC1 = 0 to N...
+02 000025 SC 124531                             	WSUB	1,1		; AC1 = 0
+03                                              LOOP1: 
+04 000026 SC 147031 000136                      	XJSR	BIN2ASC
+05 000030 SC 147031 000107                      	XJSR	WRITE
+06 000032 SC 125131                             	WINC	1,1		; AC1 += 1
+07 000033 SC 167211 000144                      	WSGTI	N,1		; if AC1 > len then skip
+08 000035 SC 175170                             	WBR	LOOP1
+09                                              
+10                                              ; for INDEX = -50 to -1...
+11 000036 SC 147211  37777777716                	WLDAI	-50.,1		; AC1 = -50.
+12 000041 SC 126371  00000000132         UD     	LWSTA	1,INDEX
+13                                              LOOP2:
+14 000044 SC 125771  00000000132         UD     	LWLDA	1,INDEX
+15 000047 SC 147031 000115                      	XJSR	BIN2ASC
+16 000051 SC 147031 000066                      	XJSR	WRITE
+17 000053 SC 107351  00000000132         UD     	LWISZ	INDEX		; Increment and skip if zero
+18 000056 SC 174670                             	WBR	LOOP2
+19                                              
+20                                              ; for INDEX = -50 to N...
+21 000057 SC 147211  37777777715                	WLDAI	-51.,1
+22 000062 SC 126371  00000000132         UD     	LWSTA	1,INDEX
+23                                              LOOP3:
+24 000065 SC 147211  00000000144                	WLDAI	N,1
+25 000070 SC 127630  00000000132  000010 UD     	LWDO	1,END3,INDEX	; Do until INDEX > AC1
+26 000074 SC 147031 000070                      	XJSR	BIN2ASC
+27 000076 SC 147031 000041                      	XJSR	WRITE
+28 000100 SC 174570                             	WBR	LOOP3
+29                                              END3:
+30                                              
+31                                              FINISH:
+32 000101 SC 122351  00000000122         UD     	LLEFB	0,DONEBUF*2	; AC0 = &donebuf
+33 000104 SC 122371  00000000004         UD     	LWSTA	0,CONSOLE+?IBAD	; store AC0 @ ?IBAD in IO packet
+34 000107 SC 147031 000030                      	XJSR	WRITE		; write the closing message
+35 000111 SC 147031 000040                      	XJSR	CLOSE		; close the console
+36 000113 SC 150531                             	WSUB	2,2		; clear the error flag for ?RETURN
+37                                              	?RETURN			; return to caller (assume CLI)
+38                                              
+39                                              ; Error exit
+40 000117 SC 124531                             OOPS:	WSUB	1,1
+41 000120 SC 153211  00000150000                	WLDAI	?RFER+?RFCF+?RFEC,2
+42                                              	?RETURN
+43                                              
+44                                              ; I/O Subroutines
+45 000126 SC 103451 000000                      OPEN:	WSSVR	0
+46                                              	?OPEN	console
+47 000136 SC 174170                             	WBR	OOPS
+48 000137 SC 103651                             	WRTN
+49                                              
+50 000140 SC 103451 000000                      WRITE:	WSSVR	0
+51                                              	
+52                                              	?WRITE	console
+53 000150 SC 170770                             	WBR	OOPS
+54 000151 SC 103651                             	WRTN
+55                                              
+56 000152 SC 103451 000000                      CLOSE:	WSSVR	0
+57                                              	?CLOSE	console
+58 000162 SC 165570                             	WBR	OOPS
+SOURCE: LOOPS3            MASM 07.70.00.00                                                           08-JUN-95 17:42:12  PAGE    3
+
+01 000163 SC 150531                             	WSUB	2,2		; set good return flag
+02 000164 SC 103651                             	WRTN
+03                                              
+04                                              
+05                                              
+06                                              ; BIN2ASC subroutine converts 32-bit (signed) binary to ASCII decimal
+07                                              ; -------
+08                                              ; On entry AC1 contains the value to be converted
+09                                              ;          AC2 contains a byte pointer for the result
+10                                              ;
+11                                              ; The conversion is primarily achieved by putting the integer into
+12                                              ; a floating-point accumulator, then reading it out as a signed unpacked
+13                                              ; decimal - which is then lightly post-processed to remove leading + and 0s.
+14                                              
+15                                              BIN2ASC:
+16 000165 SC 103471 000000                      	WSSVS	0
+17 000167 SC 126571                             	WPSH	1,1
+18 000170 SC 155571                             	WMOV	2,3
+19 000171 SC 122251                             	WFLAD	1,0		; FPAC0 = AC1
+20 000172 SC 147211  00000000152                	WLDAI	3S26.+10.,1	; Datatype 3 into AC1 
+21                                              				; (signed unpacked dec. 10 places)
+22 000175 SC 163271                             	WSTI	0		; Store FPAC0 as decimal ASCII
+23                                              
+24 000176 SC 100531                             	WSUB	0,0		; AC0 = NULL
+25 000177 SC 162471                             	WSTB	3,0		; Store NULL at end of string
+26                                              
+27                                              	; now post-process the string:
+28 000200 SC 124211                             	WPOP	1,1
+29 000201 SC 141571                             	WMOV	2,0
+30                                              
+31                                              B2ANEG:	; special case if value is negative
+32 000202 SC 167251 177777                      	WSLEI	-1,1
+33 000204 SC 100270                             	WBR	B2A0
+34 000205 SC 101131                             	WINC	0,0		; move past -
+35                                              
+36                                              B2A0:
+37                                              	; special case if value is zero
+38 000206 SC 167311 000000                      	WSEQI	0,1
+39 000210 SC 100470                             	WBR	B2AR0
+40 000211 SC 147031 000011                      	XJSR	LCHOP		; remove sign 
+41 000213 SC 102271                             	WADI	1,0		; move past initial 0
+42                                              
+43 000214 SC 147031 000006                      B2AR0:	XJSR	LCHOP
+44 000216 SC 112451                             	WLDB	0,2
+45 000217 SC 173351 000060                      	WSNEI	48.,2	 
+46 000221 SC 175370                             	WBR	B2AR0
+47                                              
+48 000222 SC 103651                             B2AEND:	WRTN
+49                                              
+50                                              ; Chop the 1st character of a null-terminated string
+51                                              ; AC0 is a byte pointer to the string
+52                                              LCHOP:	
+53 000223 SC 103471 000000                      	WSSVS	0
+54 000225 SC 105571                             	WMOV	0,1
+55 000226 SC 125131                             LCHOPL:	WINC	1,1	
+56 000227 SC 132451                             	WLDB	1,2
+57 000230 SC 112471                             	WSTB	0,2
+58 000231 SC 101131                             	WINC	0,0
+SOURCE: LOOPS3            MASM 07.70.00.00                                                           08-JUN-95 17:42:12  PAGE    4
+
+01 000232 SC 173311 000000                      	WSEQI	0,2
+02 000234 SC 175270                             	WBR	LCHOPL
+03                                              LCHOPEND:
+04 000235 SC 103651                             	WRTN
+05                                              
+06                                              	.END 	LOOPS3
+XREF:   LOOPS3            MASM 07.70.00.00                                                           08-JUN-95 17:42:12  PAGE    5
+
+?CLOSE    00000000000 MA   2/57 
+?IBAD     00000000004      1/18    1/55    2/33 
+?IBLT     00000000030      1/13    1/26 
+?ICRF     00000040000      1/15 
+?IDEL     00000000016      1/24 
+?IFNP     00000000014      1/22 
+?IFPU     00000000000 MA   1/48 
+?IMRS     00000000003      1/16 
+?IRCL     00000000007      1/20 
+?ISTI     00000000001      1/14 
+?OFIO     00000000030      1/15 
+?OPEN     00000000000 MA   2/46 
+?RETURN   00000000000 MA   2/37    2/42 
+?RFCF     00000100000      2/41 
+?RFEC     00000010000      2/41 
+?RFER     00000040000      2/41 
+?RTDS     00000000002      1/15 
+?SYST     00000000000 MA   1/49    2/38    2/43    2/47    2/53    2/58 
+?WRITE    00000000000 MA   2/52 
+?XCALL    00000000001      1/49    1/49    2/38    2/38    2/43    2/43    2/47    2/47    2/53    2/53    2/58    2/58 
+B2A0      00000000206      3/33    3/36#
+B2AEND    00000000222      3/48#
+B2ANEG    00000000202      3/31#
+B2AR0     00000000214      3/39    3/43#   3/46 
+BIN2ASC   00000000165      2/04    2/15    2/26    3/15#
+BUF       00000000030      1/19    1/28#
+CLOSE     00000000152      2/35    2/56#
+CON       00000000061      1/23    1/36#
+CONSOLE   00000000000      1/13#   1/14    1/16    1/18    1/20    1/22    1/24    1/26    1/55    2/33    2/47    2/53    2/58 
+DONEBUF   00000000051      1/34#   2/32 
+END3      00000000101      2/25    2/29#
+FINISH    00000000101      2/31#
+FPUSAV    00000000066      1/38#   1/45 
+INDEX     00000000132      1/39#   2/12    2/14    2/17    2/22    2/25 
+LCHOP     00000000223      3/40    3/43    3/52#
+LCHOPEND  00000000235      4/03#
+LCHOPL    00000000226      3/55#   4/02 
+LOOP1     00000000026      2/03#   2/08 
+LOOP2     00000000044      2/13#   2/18 
+LOOP3     00000000065      2/23#   2/28 
+LOOPS3    00000000000 EN   1/04    1/44#   4/06 
+N         00000000144      1/07#   2/07    2/24 
+NLBUF     00000000042      1/31#
+NUMBUF    00000000043      1/32#   1/54 
+OOPS      00000000117      1/49    2/40#   2/47    2/53    2/58 
+OPEN      00000000126      1/51    2/45#
+WRITE     00000000140      1/52    2/05    2/16    2/27    2/34    2/50#
+STAT:   LOOPS3            MASM 07.70.00.00                                                           08-JUN-95 17:42:12  PAGE    6
+
+ELAPSED TIME:  00:00:04
+CPU TIME:      00:00:02
+TOTAL LINES:        175
+TOTAL SYMBOLS:       27
+LINES/MINUTE:      2625
+
+NO ASSEMBLY ERRORS
+

@@ -1,0 +1,143 @@
+SOURCE: LOOPS4            MASM 07.70.00.00                                                           10-JUN-95 15:02:36  PAGE    1
+
+01                                              ; LOOPS4.SR
+02                                              ; =========
+03                                              ;
+04                                              ; Uses CONIO & STRINGS routines
+05                                              ;
+06                                              ; S.Merrony - Public Domain
+07                                              
+08                                              	.TITLE 	LOOPS4
+09                                              	.ENT 	LOOPS4
+10                                              
+11                                              	.EXTL	BIN2ASC
+12                                              
+13                                              	.EXTL	CONSOLE
+14                                              	.EXTL	CONOPEN
+15                                              	.EXTL	CONWRITE
+16                                              	.EXTL	CONCLOSE
+17                                              
+18                                              ; Assember constants
+19                   00000000144                	N=100.
+20                                              
+21                                              ; Data
+22                   00000000006                	.NREL	6
+23                                              	.ENABLE WORD
+24                                              	
+25 000000 UD 046117 047520 051464 020163        STARTBUF: .TXT	"LOOPS4 starting...<12>"
+26           072141 071164 064556 063456       
+27           027056 005000                     
+28 000012 UD 005000                             NLBUF:	.TXT	"<12>"
+29 000013 UD 020040 020040 020040 020040        NUMBUF: .TXT	"           "
+30           020040 020000                     
+31 000021 UD 027056 027114 047517 050123        DONEBUF:.TXT	"...LOOPS4 done"
+32           032040 062157 067145 000000       
+33                                              
+34 000031 UD         00000000044                FPUSAV:	.BLK	36.
+35 000075 UD         00000000000                INDEX:	.DWORD	0
+36                                              
+37                                              ; Code
+38                   00000000001                	.NREL	1
+39                                              
+40                                              LOOPS4: 
+41 000000 SC 121751  00000000031         UD     	LLEF	0,FPUSAV
+42 000003 SC 124531                             	WSUB	1,1
+43 000004 SC 150531                             	WSUB	2,2
+44                                              	?IFPU	
+45 000010 SC 121570                             	WBR	OOPS
+46                                              
+47 000011 SC 147031 000000               CO     	XJSR	CONOPEN 
+48 000013 SC 132351  00000000000         UD     	LLEFB	2,STARTBUF*2
+49 000016 SC 132371  00000000004         CO     	LWSTA	2,CONSOLE+?IBAD
+50 000021 SC 147031 000000               CO     	XJSR	CONWRITE
+51                                              	; set up for printing digits
+52 000023 SC 132351  00000000026         UD     	LLEFB	2,NUMBUF*2
+53 000026 SC 132371  00000000004         CO     	LWSTA	2,CONSOLE+?IBAD
+54 000031 SC 155571                             	WMOV	2,3
+55 000032 SC 100531                             	WSUB	0,0
+56                                              
+57                                              ; for AC1 = 0 to N...
+58 000033 SC 124531                             	WSUB	1,1		; AC1 = 0
+SOURCE: LOOPS4            MASM 07.70.00.00                                                           10-JUN-95 15:02:36  PAGE    2
+
+01                                              LOOP1: 
+02 000034 SC 147031 000000               BI     	XJSR	BIN2ASC
+03 000036 SC 147031 000000               CO     	XJSR	CONWRITE
+04 000040 SC 125131                             	WINC	1,1		; AC1 += 1
+05 000041 SC 167211 000144                      	WSGTI	N,1		; if AC1 > len then skip
+06 000043 SC 175170                             	WBR	LOOP1
+07                                              
+08                                              ; for INDEX = -50 to -1...
+09 000044 SC 147211  37777777716                	WLDAI	-50.,1		; AC1 = -50.
+10 000047 SC 126371  00000000075         UD     	LWSTA	1,INDEX
+11                                              LOOP2:
+12 000052 SC 125771  00000000075         UD     	LWLDA	1,INDEX
+13 000055 SC 147031 000000               BI     	XJSR	BIN2ASC
+14 000057 SC 147031 000000               CO     	XJSR	CONWRITE
+15 000061 SC 107351  00000000075         UD     	LWISZ	INDEX		; Increment and skip if zero
+16 000064 SC 174670                             	WBR	LOOP2
+17                                              
+18                                              ; for INDEX = -50 to N...
+19 000065 SC 147211  37777777715                	WLDAI	-51.,1
+20 000070 SC 126371  00000000075         UD     	LWSTA	1,INDEX
+21                                              LOOP3:
+22 000073 SC 147211  00000000144                	WLDAI	N,1
+23 000076 SC 127630  00000000075  000010 UD     	LWDO	1,END3,INDEX	; Do until INDEX > AC1
+24 000102 SC 147031 000000               BI     	XJSR	BIN2ASC
+25 000104 SC 147031 000000               CO     	XJSR	CONWRITE
+26 000106 SC 174570                             	WBR	LOOP3
+27                                              END3:
+28                                              
+29                                              FINISH:
+30 000107 SC 122351  00000000042         UD     	LLEFB	0,DONEBUF*2	; AC0 = &donebuf
+31 000112 SC 122371  00000000004         CO     	LWSTA	0,CONSOLE+?IBAD	; store AC0 @ ?IBAD in IO packet
+32 000115 SC 147031 000000               CO     	XJSR	CONWRITE	; CONWRITE the closing message
+33 000117 SC 147031 000000               CO     	XJSR	CONCLOSE	; close the console
+34 000121 SC 150531                             	WSUB	2,2		; clear the error flag for ?RETURN
+35                                              	?RETURN			; return to caller (assume CLI)
+36                                              
+37                                              ; Error exit
+38 000125 SC 124531                             OOPS:	WSUB	1,1
+39 000126 SC 153211  00000150000                	WLDAI	?RFER+?RFCF+?RFEC,2
+40                                              	?RETURN
+41                                              
+42                                              	.END 	LOOPS4
+XREF:   LOOPS4            MASM 07.70.00.00                                                           10-JUN-95 15:02:36  PAGE    3
+
+?IBAD     00000000004      1/49    1/53    2/31 
+?IFPU     00000000000 MA   1/44 
+?RETURN   00000000000 MA   2/35    2/40 
+?RFCF     00000100000      2/39 
+?RFEC     00000010000      2/39 
+?RFER     00000040000      2/39 
+?SYST     00000000000 MA   1/45    2/36    2/41 
+?XCALL    00000000001      1/45    1/45    2/36    2/36    2/41    2/41 
+BIN2ASC   00000000000 XL   1/11    2/02    2/13    2/24 
+CONCLOSE  00000000000 XL   1/16    2/33 
+CONOPEN   00000000000 XL   1/14    1/47 
+CONSOLE   00000000000 XL   1/13    1/49    1/53    2/31 
+CONWRITE  00000000000 XL   1/15    1/50    2/03    2/14    2/25    2/32 
+DONEBUF   00000000021      1/31#   2/30 
+END3      00000000107      2/23    2/27#
+FINISH    00000000107      2/29#
+FPUSAV    00000000031      1/34#   1/41 
+INDEX     00000000075      1/35#   2/10    2/12    2/15    2/20    2/23 
+LOOP1     00000000034      2/01#   2/06 
+LOOP2     00000000052      2/11#   2/16 
+LOOP3     00000000073      2/21#   2/26 
+LOOPS4    00000000000 EN   1/09    1/40#   2/42 
+N         00000000144      1/19#   2/05    2/22 
+NLBUF     00000000012      1/28#
+NUMBUF    00000000013      1/29#   1/52 
+OOPS      00000000125      1/45    2/38#
+STARTBUF  00000000000      1/25#   1/48 
+STAT:   LOOPS4            MASM 07.70.00.00                                                           10-JUN-95 15:02:36  PAGE    4
+
+ELAPSED TIME:  00:00:03
+CPU TIME:      00:00:01
+TOTAL LINES:         96
+TOTAL SYMBOLS:       19
+LINES/MINUTE:      1920
+
+NO ASSEMBLY ERRORS
+

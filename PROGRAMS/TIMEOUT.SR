@@ -1,0 +1,56 @@
+; This program uses the CLI ?GTMES mechanism to get a number from
+;    the CLI command that executed the program. Then it delays itself
+;    for the given number of seconds. To run it, give the CLI command
+;
+;    X TIMEOUT secs
+;
+;    where    secs    is a decimal number from 0 through 20.
+
+        .TITLE  TIMEOUT
+        .ENT    TIMEOUT
+        .NREL            ; Unshared.
+
+; Use CLI ?GTMES to get number of secs. Puts
+; ASCII value in AC2, binary value in AC1.
+
+TIMEOUT: ?GTMES CLIMSG   ; Get number of seconds.
+        WBR     ERROR    ; Error, process it.
+
+; Check range of argument (returned in AC1).
+
+        WCLM    1, 1     ; If not between values ...
+        0                ;    ... lower limit of 0 ...
+        20.              ;    ... upper limit of 20..
+        WBR     BADVALUE ;    exit with "illegal" msg.
+
+        NLDAI   1000., 0 ; Put 1000. in AC0.
+        WMUL    1, 0     ; Get number of milliseconds in AC0.
+        ?WDELAY          ; Delay for specified number of seconds.
+        WBR     ERROR    ; Error, process it.
+        WSUB    2, 2     ; Set for good return.
+        WBR     BYE      ; Goodbye.
+
+ERROR:  NLDAI ?RFEC+?RFCF+?RFER, 2   ; Error flags.
+BYE:    ?RETURN                      ; To CLI.
+        WBR     ERROR                ; Return error.
+
+BADVALUE: XLEFB 1, BMSG*2            ; Byte pointer to message.
+        NLDAI (CLIMSG-BMSG)*2+?RFCF, 2 ; Length + flags.
+        WBR     BYE                  ; Bye.
+
+BMSG:   .TXT  "You gave an illegal delay."
+
+        ; ?GTMES packet to get number of seconds from the CLI command.
+
+        .ENABLE WORD     ; Most entries = 16 bits.
+CLIMSG: .BLK    ?GTLN    ; ?GTMES packet length.
+        .LOC    CLIMSG+?GREQ
+        ?GARG            ; Put argument only in ?GRES.
+        .LOC    CLIMSG+?GNUM
+        1                ; Argument 1 is number of seconds
+                         ;    (Argument 0 is programname).
+        .LOC    CLIMSG+?GRES
+        .DWORD  -1       ; No buffer needed.
+        .LOC    CLIMSG+?GTLN ; Default others; end packet.
+
+        .END    TIMEOUT

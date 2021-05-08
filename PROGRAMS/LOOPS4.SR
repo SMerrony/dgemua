@@ -1,0 +1,100 @@
+; LOOPS4.SR
+; =========
+;
+; Uses CONIO & STRINGS routines
+;
+; S.Merrony - Public Domain
+
+	.title 	LOOPS4
+	.ent 	LOOPS4
+
+	.extl	BIN2ASC
+
+	.extl	CONSOLE
+	.extl	CONOPEN
+	.extl	CONWRITE
+	.extl	CONCLOSE
+
+; Assember constants
+	N=100.
+
+; Data
+	.nrel	6
+	.enable word
+	
+startbuf: .txt	"LOOPS4 starting...<12>"
+nlbuf:	.txt	"<12>"
+numbuf: .txt	"           "
+donebuf:.txt	"...LOOPS4 done"
+
+fpusav:	.blk	36.
+INDEX:	.dword	0
+
+; Code
+	.nrel	1
+
+LOOPS4: 
+	llef	0,fpusav
+	wsub	1,1
+	wsub	2,2
+	?IFPU	
+	wbr	OOPS
+
+	xjsr	CONOPEN 
+	llefb	2,startbuf*2
+	lwsta	2,CONSOLE+?IBAD
+	xjsr	CONWRITE
+	; set up for printing digits
+	llefb	2,numbuf*2
+	lwsta	2,CONSOLE+?IBAD
+	wmov	2,3
+	wsub	0,0
+
+; for AC1 = 0 to N...
+	wsub	1,1		; AC1 = 0
+LOOP1: 
+	xjsr	BIN2ASC
+	xjsr	CONWRITE
+	winc	1,1		; AC1 += 1
+	wsgti	N,1		; if AC1 > len then skip
+	wbr	LOOP1
+
+; for INDEX = -50 to -1...
+	wldai	-50.,1		; AC1 = -50.
+	lwsta	1,INDEX
+LOOP2:
+	lwlda	1,INDEX
+	xjsr	BIN2ASC
+	xjsr	CONWRITE
+	lwisz	INDEX		; Increment and skip if zero
+	wbr	LOOP2
+
+; for INDEX = -50 to N...
+	wldai	-51.,1
+	lwsta	1,INDEX
+LOOP3:
+	wldai	N,1
+	lwdo	1,END3,INDEX	; Do until INDEX > AC1
+	xjsr	BIN2ASC
+	xjsr	CONWRITE
+	wbr	LOOP3
+END3:
+
+FINISH:
+	llefb	0,donebuf*2	; AC0 = &donebuf
+	lwsta	0,CONSOLE+?IBAD	; store AC0 @ ?IBAD in IO packet
+	xjsr	CONWRITE	; CONWRITE the closing message
+	xjsr	CONCLOSE	; close the console
+	wsub	2,2		; clear the error flag for ?RETURN
+	?RETURN			; return to caller (assume CLI)
+
+; Error exit
+OOPS:	wsub	1,1
+	wldai	?RFER+?RFCF+?RFEC,2
+	?RETURN
+
+	.end 	LOOPS4
+
+
+
+

@@ -31,6 +31,7 @@ with GNAT.Sockets;
 with AOSVS.Agent;
 
 with Debug_Logs;   use Debug_Logs;
+with DG_Types;     use DG_Types;
 with Memory;       use Memory;
 with Processor;
 
@@ -109,7 +110,7 @@ begin
    Loggers.Init;
    GNAT.Sockets.Accept_Socket (Server => Receiver, Socket => Connection, Address => Client);
    Con_Stream := GNAT.Sockets.Stream (Connection);
-   Put_String (Con_Stream, "Hello");
+   Put_String (Con_Stream, "Welcome to the VS/Emua AOS/VS Emulator" & Dasher_NL);
    Ada.Text_IO.Put_Line ("INFO: Console connected from " & GNAT.Sockets.Image (Client));
 
    RAM.Init (Debug_Logging);

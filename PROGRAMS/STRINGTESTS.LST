@@ -1,0 +1,78 @@
+SOURCE: STRINGTESTS       MASM 07.70.00.00                                                           10-JUN-95 16:01:42  PAGE    1
+
+01                                              	.TITLE STRINGTESTS
+02                                              
+03                                              	.ENT STRINGTESTS
+04                                              
+05                                              	.EXTL	CONSOLE
+06                                              	.EXTL	CONOPEN
+07                                              	.EXTL	CONWRITE
+08                                              	.EXTL	CONWRTLN
+09                                              	.EXTL	CONCLOSE
+10                                              
+11                                              	.EXTL	LCHOP
+12                                              	.EXTL	RCHOP
+13                                              
+14                   00000000001                	.NREL	1
+15                                              
+16                                              STRINGTESTS:
+17 000000 SC 147031 000000               CO     	XJSR	CONOPEN
+18 000002 SC 132351  00000000000         UD     	LLEFB	2,HW*2
+19 000005 SC 132371  00000000004         CO     	LWSTA	2,CONSOLE+?IBAD
+20 000010 SC 147031 000000               CO     	XJSR	CONWRITE
+21                                              
+22 000012 SC 132351  00000000022         UD     	LLEFB	2,FREDA*2
+23 000015 SC 132371  00000000004         CO     	LWSTA	2,CONSOLE+?IBAD
+24 000020 SC 147031 000000               CO     	XJSR	CONWRTLN
+25                                              
+26                                              
+27 000022 SC 122351  00000000022         UD     	LLEFB	0,FREDA*2
+28 000025 SC 122371  00000000004         CO     	LWSTA	0,CONSOLE+?IBAD
+29 000030 SC 147031 000000               LC     	XJSR	LCHOP
+30 000032 SC 147031 000000               CO     	XJSR 	CONWRTLN
+31                                              
+32 000034 SC 122351  00000000022         UD     	LLEFB	0,FREDA*2
+33 000037 SC 122371  00000000004         CO     	LWSTA	0,CONSOLE+?IBAD
+34 000042 SC 147031 000000               RC     	XJSR	RCHOP
+35 000044 SC 147031 000000               CO     	XJSR	CONWRTLN
+36                                              
+37 000046 SC 147031 000000               CO     	XJSR	CONCLOSE
+38 000050 SC 150531                             	WSUB	2,2
+39                                              	?RETURN
+40                                              
+41                   00000000006                	.NREL	6
+42                                              	.ENABLE WORD	
+43                                              
+44 000000 UD 044145 066154 067454 020127        HW:	.TXT	"Hello, World!<12>"
+45           067562 066144 020412 000000       
+46 000010 UD 005000                             NL:	.TXT	"<12>"
+47 000011 UD 043162 062544 060400               FREDA:	.TXT	"Freda"
+48                                              
+49                                              	.END STRINGTESTS
+XREF:   STRINGTESTS       MASM 07.70.00.00                                                           10-JUN-95 16:01:42  PAGE    2
+
+?IBAD     00000000004      1/19    1/23    1/28    1/33 
+?RETURN   00000000000 MA   1/39 
+?SYST     00000000000 MA   1/40 
+?XCALL    00000000001      1/40    1/40 
+CONCLOSE  00000000000 XL   1/09    1/37 
+CONOPEN   00000000000 XL   1/06    1/17 
+CONSOLE   00000000000 XL   1/05    1/19    1/23    1/28    1/33 
+CONWRITE  00000000000 XL   1/07    1/20 
+CONWRTLN  00000000000 XL   1/08    1/24    1/30    1/35 
+FREDA     00000000011      1/22    1/27    1/32    1/47#
+HW        00000000000      1/18    1/44#
+LCHOP     00000000000 XL   1/11    1/29 
+NL        00000000010      1/46#
+RCHOP     00000000000 XL   1/12    1/34 
+STRINGTE  00000000000 EN   1/03    1/16#   1/49 
+STAT:   STRINGTESTS       MASM 07.70.00.00                                                           10-JUN-95 16:01:42  PAGE    3
+
+ELAPSED TIME:  00:00:02
+CPU TIME:      00:00:00
+TOTAL LINES:         48
+TOTAL SYMBOLS:       11
+LINES/MINUTE:      1440
+
+NO ASSEMBLY ERRORS
+

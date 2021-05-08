@@ -1,0 +1,81 @@
+; CONIO.SR
+; ========
+;
+;
+; S.Merrony - Public Domain
+
+	.title 	CONIO
+
+	.ent	CONSOLE
+	.ent 	CONOPEN
+	.ent	CONWRITE
+	.ent	CONWRTLN
+	.ent	CONCLOSE
+
+; Data
+	.nrel	6
+	.enable word
+	
+CONSOLE: .blk   ?IBLT
+        .loc    CONSOLE+?ISTI
+                ?ICRF+?RTDS+?OFIO
+        .loc    CONSOLE+?IMRS
+                -1              ; block size (def. 2048)
+        .loc    CONSOLE+?IBAD
+        .dword  buf*2           ; double-word byte ptr to msg
+        .loc    CONSOLE+?IRCL
+        .word   120.
+        .loc    CONSOLE+?IFNP
+        .dword  con*2           ; double-word byte ptr to filename
+        .loc    CONSOLE+?IDEL
+        .dword  -1
+        .loc    CONSOLE+?IBLT
+
+con:    .txt    "@CONSOLE"      ; generic name
+buf:	.blk	120.		; buffer space for 240. chars
+NL:	.txt	"<12>"
+
+INDEX:	.dword	0
+
+; Code
+	.nrel	1
+
+
+; Error exit
+CONOOPS:
+	wsub	1,1
+	wldai	?RFER+?RFCF+?RFEC,2
+	?RETURN
+
+; I/O Subroutines
+CONOPEN:
+	wssvr	0
+	?OPEN	CONSOLE
+	wbr	CONOOPS
+	wrtn
+
+CONWRITE:
+	wssvr	0
+	?WRITE	CONSOLE
+	wbr	CONOOPS
+	wrtn
+
+CONWRTLN:
+	wssvr	0
+	?WRITE	CONSOLE
+	wbr	CONOOPS
+	llefb	2,NL*2
+	lwsta	2,CONSOLE+?IBAD
+	?WRITE	CONSOLE
+	wbr	CONOOPS
+	wrtn
+
+CONCLOSE:
+	wssvr	0
+	?CLOSE	CONSOLE
+	wbr	CONOOPS
+	wsub	2,2		; set good return flag
+	wrtn
+
+
+

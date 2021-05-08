@@ -1,0 +1,94 @@
+SOURCE: TIMEOUT           MASM 07.70.00.00                                                           24-MAY-95 12:32:31  PAGE    1
+
+01                                              ; This program uses the CLI ?GTMES mechanism to get a number from
+02                                              ;    the CLI command that executed the program. Then it delays itself
+03                                              ;    for the given number of seconds. To run it, give the CLI command
+04                                              ;
+05                                              ;    X TIMEOUT secs
+06                                              ;
+07                                              ;    where    secs    is a decimal number from 0 through 20.
+08                                              
+09                                                      .TITLE  TIMEOUT
+10                                                      .ENT    TIMEOUT
+11                                                      .NREL            ; Unshared.
+12                                              
+13                                              ; Use CLI ?GTMES to get number of secs. Puts
+14                                              ; ASCII value in AC2, binary value in AC1.
+15                                              
+16                                              TIMEOUT: ?GTMES CLIMSG   ; Get number of seconds.
+17 000006 UC 104070                                     WBR     ERROR    ; Error, process it.
+18                                              
+19                                              ; Check range of argument (returned in AC1).
+20                                              
+21 000007 UC 126551                                     WCLM    1, 1     ; If not between values ...
+22 000010 UC         00000000000                        0                ;    ... lower limit of 0 ...
+23 000012 UC         00000000024                        20.              ;    ... upper limit of 20..
+24 000014 UC 104070                                     WBR     BADVALUE ;    exit with "illegal" msg.
+25                                              
+26 000015 UC 143051 001750                              NLDAI   1000., 0 ; Put 1000. in AC0.
+27 000017 UC 120551                                     WMUL    1, 0     ; Get number of milliseconds in AC0.
+28                                                      ?WDELAY          ; Delay for specified number of seconds.
+29 000023 UC 100370                                     WBR     ERROR    ; Error, process it.
+30 000024 UC 150531                                     WSUB    2, 2     ; Set for good return.
+31 000025 UC 100370                                     WBR     BYE      ; Goodbye.
+32                                              
+33 000026 UC 153051 150000                      ERROR:  NLDAI ?RFEC+?RFCF+?RFER, 2   ; Error flags.
+34                                              BYE:    ?RETURN                      ; To CLI.
+35 000033 UC 175370                                     WBR     ERROR                ; Return error.
+36                                              
+37 000034 UC 126071 000010                      BADVALUE: XLEFB 1, BMSG*2            ; Byte pointer to message.
+38 000036 UC 153051 100034                              NLDAI (CLIMSG-BMSG)*2+?RFCF, 2 ; Length + flags.
+39 000040 UC 175070                                     WBR     BYE                  ; Bye.
+40                                              
+41 000041 UC 054557 072440 063541 073145        BMSG:   .TXT  "You gave an illegal delay."
+42           020141 067040 064554 066145       
+43           063541 066040 062145 066141       
+44           074456 000000                     
+45                                              
+46                                                      ; ?GTMES packet to get number of seconds from the CLI command.
+47                                              
+48                                                      .ENABLE WORD     ; Most entries = 16 bits.
+49 000057 UC         00000000006                CLIMSG: .BLK    ?GTLN    ; ?GTMES packet length.
+50                   00000000057         UC             .LOC    CLIMSG+?GREQ
+51 000057 UC 000003                                     ?GARG            ; Put argument only in ?GRES.
+52                   00000000060         UC             .LOC    CLIMSG+?GNUM
+53 000060 UC 000001                                     1                ; Argument 1 is number of seconds
+54                                                                       ;    (Argument 0 is programname).
+55                   00000000063         UC             .LOC    CLIMSG+?GRES
+56 000063 UC         37777777777                        .DWORD  -1       ; No buffer needed.
+57                   00000000065         UC             .LOC    CLIMSG+?GTLN ; Default others; end packet.
+58                                              
+SOURCE: TIMEOUT           MASM 07.70.00.00                                                           24-MAY-95 12:32:31  PAGE    2
+
+01                                                      .END    TIMEOUT
+XREF:   TIMEOUT           MASM 07.70.00.00                                                           24-MAY-95 12:32:31  PAGE    3
+
+?GARG     00000000003      1/51 
+?GNUM     00000000001      1/52 
+?GREQ     00000000000      1/50 
+?GRES     00000000004      1/55 
+?GTLN     00000000006      1/49    1/57 
+?GTMES    00000000000 MA   1/16 
+?RETURN   00000000000 MA   1/34 
+?RFCF     00000100000      1/33    1/38 
+?RFEC     00000010000      1/33 
+?RFER     00000040000      1/33 
+?SYST     00000000000 MA   1/17    1/29    1/35 
+?WDELAY   00000000000 MA   1/28 
+?XCALL    00000000001      1/17    1/17    1/29    1/29    1/35    1/35 
+BADVALUE  00000000034      1/24    1/37#
+BMSG      00000000041      1/37    1/38    1/41#
+BYE       00000000030      1/31    1/34#   1/39 
+CLIMSG    00000000057      1/17    1/38    1/49#   1/50    1/52    1/55    1/57 
+ERROR     00000000026      1/17    1/29    1/33#   1/35 
+TIMEOUT   00000000000 EN   1/10    1/16#   2/01 
+STAT:   TIMEOUT           MASM 07.70.00.00                                                           24-MAY-95 12:32:31  PAGE    4
+
+ELAPSED TIME:  00:00:03
+CPU TIME:      00:00:01
+TOTAL LINES:         56
+TOTAL SYMBOLS:        6
+LINES/MINUTE:      1120
+
+NO ASSEMBLY ERRORS
+

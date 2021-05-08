@@ -1,0 +1,49 @@
+	.title STRINGTESTS
+
+	.ent STRINGTESTS
+
+	.extl	CONSOLE
+	.extl	CONOPEN
+	.extl	CONWRITE
+	.extl	CONWRTLN
+	.extl	CONCLOSE
+
+	.extl	LCHOP
+	.extl	RCHOP
+
+	.nrel	1
+
+STRINGTESTS:
+	xjsr	CONOPEN
+	llefb	2,HW*2
+	lwsta	2,CONSOLE+?IBAD
+	xjsr	CONWRITE
+
+	llefb	2,FREDA*2
+	lwsta	2,CONSOLE+?IBAD
+	xjsr	CONWRTLN
+
+
+	llefb	0,FREDA*2
+	lwsta	0,CONSOLE+?IBAD
+	xjsr	LCHOP
+	xjsr 	CONWRTLN
+
+	llefb	0,FREDA*2
+	lwsta	0,CONSOLE+?IBAD
+	xjsr	RCHOP
+	xjsr	CONWRTLN
+
+	xjsr	CONCLOSE
+	wsub	2,2
+	?RETURN
+
+	.nrel	6
+	.enable word	
+
+HW:	.txt	"Hello, World!<12>"
+NL:	.txt	"<12>"
+FREDA:	.txt	"Freda"
+
+	.end STRINGTESTS
+

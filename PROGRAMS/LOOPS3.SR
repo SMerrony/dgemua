@@ -1,0 +1,178 @@
+; LOOPS3.SR
+
+	.title 	LOOPS3
+	.ent 	LOOPS3
+
+; Assember constants
+	N=100.
+
+; Data
+	.nrel	6
+	.enable word
+	
+console: .blk   ?IBLT
+        .loc    console+?ISTI
+                ?ICRF+?RTDS+?OFIO
+        .loc    console+?IMRS
+                -1              ; block size (def. 2048)
+        .loc    console+?IBAD
+        .dword  buf*2           ; double-word byte ptr to msg
+        .loc    console+?IRCL
+        .word   120.
+        .loc    console+?IFNP
+        .dword  con*2           ; double-word byte ptr to filename
+        .loc    console+?IDEL
+        .dword  -1
+        .loc    console+?IBLT
+
+buf:	.txt	"LOOPS3 starting...<12>"
+nlbuf:	.txt	"<12>"
+numbuf: .txt	"           "
+donebuf:.txt	"...LOOPS3 done"
+con:    .txt    "@CONSOLE"      ; generic name
+fpusav:	.blk	36.
+INDEX:	.dword	0
+
+; Code
+	.nrel	1
+
+LOOPS3: 
+	llef	0,fpusav
+	wsub	1,1
+	wsub	2,2
+	?IFPU	
+	wbr	OOPS
+
+	xjsr	OPEN 
+	xjsr	WRITE
+	; set up for printing digits
+	llefb	2,numbuf*2
+	lwsta	2,console+?IBAD
+	wmov	2,3
+	wsub	0,0
+
+; for AC1 = 0 to N...
+	wsub	1,1		; AC1 = 0
+LOOP1: 
+	xjsr	BIN2ASC
+	xjsr	WRITE
+	winc	1,1		; AC1 += 1
+	wsgti	N,1		; if AC1 > len then skip
+	wbr	LOOP1
+
+; for INDEX = -50 to -1...
+	wldai	-50.,1		; AC1 = -50.
+	lwsta	1,INDEX
+LOOP2:
+	lwlda	1,INDEX
+	xjsr	BIN2ASC
+	xjsr	WRITE
+	lwisz	INDEX		; Increment and skip if zero
+	wbr	LOOP2
+
+; for INDEX = -50 to N...
+	wldai	-51.,1
+	lwsta	1,INDEX
+LOOP3:
+	wldai	N,1
+	lwdo	1,END3,INDEX	; Do until INDEX > AC1
+	xjsr	BIN2ASC
+	xjsr	WRITE
+	wbr	LOOP3
+END3:
+
+FINISH:
+	llefb	0,donebuf*2	; AC0 = &donebuf
+	lwsta	0,console+?IBAD	; store AC0 @ ?IBAD in IO packet
+	xjsr	WRITE		; write the closing message
+	xjsr	CLOSE		; close the console
+	wsub	2,2		; clear the error flag for ?RETURN
+	?RETURN			; return to caller (assume CLI)
+
+; Error exit
+OOPS:	wsub	1,1
+	wldai	?RFER+?RFCF+?RFEC,2
+	?RETURN
+
+; I/O Subroutines
+OPEN:	wssvr	0
+	?OPEN	console
+	wbr	OOPS
+	wrtn
+
+WRITE:	wssvr	0
+	
+	?WRITE	console
+	wbr	OOPS
+	wrtn
+
+CLOSE:	wssvr	0
+	?CLOSE	console
+	wbr	OOPS
+	wsub	2,2		; set good return flag
+	wrtn
+
+
+
+; BIN2ASC subroutine converts 32-bit (signed) binary to ASCII decimal
+; -------
+; On entry AC1 contains the value to be converted
+;          AC2 contains a byte pointer for the result
+;
+; The conversion is primarily achieved by putting the integer into
+; a floating-point accumulator, then reading it out as a signed unpacked
+; decimal - which is then lightly post-processed to remove leading + and 0s.
+
+BIN2ASC:
+	wssvs	0
+	wpsh	1,1
+	wmov	2,3
+	wflad	1,0		; FPAC0 = AC1
+	wldai	3S26.+10.,1	; Datatype 3 into AC1 
+				; (signed unpacked dec. 10 places)
+	wsti	0		; Store FPAC0 as decimal ASCII
+
+	wsub	0,0		; AC0 = NULL
+	wstb	3,0		; Store NULL at end of string
+
+	; now post-process the string:
+	wpop	1,1
+	wmov	2,0
+
+B2ANEG:	; special case if value is negative
+	wslei	-1,1
+	wbr	B2A0
+	winc	0,0		; move past -
+
+B2A0:
+	; special case if value is zero
+	wseqi	0,1
+	wbr	B2AR0
+	xjsr	LCHOP		; remove sign 
+	wadi	1,0		; move past initial 0
+
+B2AR0:	xjsr	LCHOP
+	wldb	0,2
+	wsnei	48.,2	 
+	wbr	B2AR0
+
+B2AEND:	wrtn
+
+; Chop the 1st character of a null-terminated string
+; AC0 is a byte pointer to the string
+LCHOP:	
+	wssvs	0
+	wmov	0,1
+LCHOPL:	winc	1,1	
+	wldb	1,2
+	wstb	0,2
+	winc	0,0
+	wseqi	0,2
+	wbr	LCHOPL
+LCHOPEND:
+	wrtn
+
+	.end 	LOOPS3
+
+
+

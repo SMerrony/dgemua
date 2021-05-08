@@ -35,7 +35,7 @@ with Memory;        use Memory;
 
 package body AOSVS is
 
-    type Word_Arr_T is array (Positive range <>) of Word_T;
+    type Word_Arr_T is array (Natural range <>) of Word_T;
 
     function Read_Whole_File (Name : in String) return Word_Arr_T is
         File_ByteSize : Integer := Integer(Ada.Directories.Size (Name));
@@ -43,8 +43,9 @@ package body AOSVS is
         PR_File       : File_Type;
         PR_Stream     : Stream_Access;
         PR_Arr        : Word_Arr_T (0 .. File_WordSize - 1);
-        Word          : Word_T;
+        Low_Byte, High_Byte : Byte_T;
     begin
+        Ada.Text_IO.Put_Line("DEBUG: Read_Whole_File called for: " & Name);
         if (File_ByteSize mod 2) /= 0 then
             raise Invalid_PR_File with "Size must be even";
         end if;
@@ -52,37 +53,38 @@ package body AOSVS is
             Open (File => PR_File, Mode => In_File, Name => Name);
         exception
             when others =>
-            raise Invalid_PR_File with "Could not open file";
+            raise Invalid_PR_File with "Could not open file: " & Name;
         end;
         PR_Stream := Stream (PR_File);
         for W in 0 .. File_WordSize - 1 loop
-           Word_T'Read(PR_Stream, Word);
-           PR_Arr(W) := Word;
+           Byte_T'Read(PR_Stream, Low_Byte);
+           Byte_T'Read(PR_Stream, High_Byte);
+           PR_Arr(W) := Word_From_Bytes (Low_Byte, High_Byte);
         end loop;
 
         return PR_Arr;
 
-        exception
-           when others =>
-           raise Invalid_PR_File;
+        -- exception
+        --    when others =>
+        --    raise Invalid_PR_File;
     end Read_Whole_File;
 
     function Load_UST (PR_Arr : in Word_Arr_T) return UST_T is
         This_UST : UST_T;
     begin
-        This_UST.Ext_Var_Wd_Count := PR_Arr(Integer(UST + USTEZ));
-        This_UST.Ext_Var_P0_Start := PR_Arr(Integer(UST + USTES));
-        This_UST.Syms_Start       := Dword_From_Two_Words (PR_Arr(Integer(UST + USTSS)), PR_Arr(Integer(UST + USTSS+1)));
-        This_UST.Syms_End         := Dword_From_Two_Words (PR_Arr(Integer(UST + USTSE)), PR_Arr(Integer(UST + USTSE+1)));
-        This_UST.Debug_Addr       := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(Integer(UST + USTDA)), PR_Arr(Integer(UST + USTDA+1))));
-        This_UST.Revision         := Dword_From_Two_Words (PR_Arr(Integer(UST + USTRV)), PR_Arr(Integer(UST + USTRV+1)));
-        This_UST.Task_Count       := PR_Arr(Integer(UST + USTTC));
-        This_UST.Impure_Blocks    := PR_Arr(Integer(UST + USTBL + 1));
-        This_UST.Shared_Start_Block := Dword_From_Two_Words (PR_Arr(Integer(UST + USTST)), PR_Arr(Integer(UST + USTST+1)));
-        This_UST.Int_Addr         := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(Integer(UST + USTIT)), PR_Arr(Integer(UST + USTIT+1))));
-        This_UST.Shared_Block_Count := PR_Arr(Integer(UST + USTSZ));
-        This_UST.Shared_Start_Page_In_PR := Dword_From_Two_Words (PR_Arr(Integer(UST + USTSH)), PR_Arr(Integer(UST + USTSH+1)));
-        This_UST.PR_Type          := PR_Arr(Integer(UST + USTPR));
+        This_UST.Ext_Var_Wd_Count := PR_Arr(Natural(UST + USTEZ));
+        This_UST.Ext_Var_P0_Start := PR_Arr(Natural(UST + USTES));
+        This_UST.Syms_Start       := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSS)), PR_Arr(Natural(UST + USTSS+1)));
+        This_UST.Syms_End         := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSE)), PR_Arr(Natural(UST + USTSE+1)));
+        This_UST.Debug_Addr       := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(Natural(UST + USTDA)), PR_Arr(Natural(UST + USTDA+1))));
+        This_UST.Revision         := Dword_From_Two_Words (PR_Arr(Natural(UST + USTRV)), PR_Arr(Natural(UST + USTRV+1)));
+        This_UST.Task_Count       := PR_Arr(Natural(UST + USTTC));
+        This_UST.Impure_Blocks    := PR_Arr(Natural(UST + USTBL + 1));
+        This_UST.Shared_Start_Block := Dword_From_Two_Words (PR_Arr(Natural(UST + USTST)), PR_Arr(Natural(UST + USTST+1)));
+        This_UST.Int_Addr         := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(Natural(UST + USTIT)), PR_Arr(Natural(UST + USTIT+1))));
+        This_UST.Shared_Block_Count := PR_Arr(Natural(UST + USTSZ));
+        This_UST.Shared_Start_Page_In_PR := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSH)), PR_Arr(Natural(UST + USTSH+1)));
+        This_UST.PR_Type          := PR_Arr(Natural(UST + USTPR));
         return This_UST;
     end Load_UST;
 
@@ -98,10 +100,14 @@ package body AOSVS is
         PR_UST : UST_T;
         Segment_Base : Phys_Addr_T;
     begin
-        PR_Arr := Read_Whole_File (PR_Name);
+        Ada.Text_IO.Put_Line ("INFO: Loaded PR file: " & PR_Name);
         PR_UST := Load_UST (PR_Arr);
         Sixteen_Bit := Test_W_Bit (PR_UST.PR_Type, 0);
-        AOSVS.Agent.Actions.Allocate_PID(Args,Virt_Root,Sixteen_Bit,"DUMMY",PID);
+        AOSVS.Agent.Actions.Allocate_PID (Args,
+                                          To_Unbounded_String(Virt_Root),
+                                          Sixteen_Bit,
+                                          To_Unbounded_String("DUMMY"),
+                                          PID);
         Ada.Text_IO.Put_Line ("INFO: Obtained PID" & PID'Image & " for process");
         Ada.Text_IO.Put_Line ("INFO: Preparing Ring" & Segment'Image & " process with up to" &
                               PR_UST.Task_Count'Image & " tasks");

@@ -1,0 +1,188 @@
+LINK REVISION 07.70.00.00 ON 06/08/95 AT 17:42:18
+OPTIONS: LINK/L=LOOPS3.MAP/ALPHA/LOCAL/MAP/MODMAP/MODSYM/XREF
+
+  TYPE     NAME                           ADDRESS      LENGTH       END
+  ---------------------------------------------------------------------
+ LOOPS3
+  ENTRY    LOOPS3                         16001776000
+  LOCAL    ?ISTI                          00000000001
+  LOCAL    ?IMRS                          00000000003
+  LOCAL    ?IBAD                          00000000004
+  LOCAL    ?IRCL                          00000000007
+  LOCAL    ?IFNP                          00000000014
+  LOCAL    ?IDEL                          00000000016
+  LOCAL    ?IBLT                          00000000030
+  LOCAL    ?ICRF                          00000040000
+  LOCAL    ?OFIO                          00000000030
+  LOCAL    ?RTDS                          00000000002
+  LOCAL    ?RFCF                          00000100000
+  LOCAL    ?RFER                          00000040000
+  LOCAL    ?RFEC                          00000010000
+  LOCAL    ?XCALL                         00000000001
+  LOCAL    N                              00000000144
+  LOCAL    CONSOLE                        16000000470
+  LOCAL    BUF                            16000000520
+  LOCAL    CON                            16000000551
+  LOCAL    NLBUF                          16000000532
+  LOCAL    NUMBUF                         16000000533
+  LOCAL    DONEBUF                        16000000541
+  LOCAL    FPUSAV                         16000000556
+  LOCAL    INDEX                          16000000622
+  LOCAL    OOPS                           16001776117
+  LOCAL    OPEN                           16001776126
+  LOCAL    WRITE                          16001776140
+  LOCAL    LOOP1                          16001776026
+  LOCAL    BIN2ASC                        16001776165
+  LOCAL    LOOP2                          16001776044
+  LOCAL    LOOP3                          16001776065
+  LOCAL    END3                           16001776101
+  LOCAL    FINISH                         16001776101
+  LOCAL    CLOSE                          16001776152
+  LOCAL    B2ANEG                         16001776202
+  LOCAL    B2A0                           16001776206
+  LOCAL    B2AR0                          16001776214
+  LOCAL    LCHOP                          16001776223
+  LOCAL    B2AEND                         16001776222
+  LOCAL    LCHOPL                         16001776226
+  LOCAL    LCHOPEND                       16001776235
+  PART SC  SC                             16001776000  00000000236  16001776235
+  PART UD  UD                             16000000470  00000000134  16000000623
+ URTB
+  ENTRY    ?URTB                          16001776236
+  ENTRY    .BOMB                          16001776240
+  ENTRY    .KILL                          16001776243
+  ENTRY    .UTSK                          16001776251
+  ENTRY    .UKIL                          16001776265
+  ENTRY    SFALT                          16000000446
+  ENTRY    CFALT                          16000000451
+  ENTRY    IFALT                          16000000454
+  ENTRY    FFALT                          16000000457
+  PART AC  AB                             16000000000  00000000012  16000000011
+  PART LC  ?UDP000000                     16000000446  00000000022  16000000467
+  PART SC  SC                             16001776236  00000000067  16001776324
+ BOMB
+  ENTRY    ?BOMB                          16001776325
+  PART SC  SC                             16001776325  00000000041  16001776365
+ UKIL
+  ENTRY    ?UKIL                          16001776366
+  PART SC  SC                             16001776366  00000000003  16001776370
+ UTSK
+  ENTRY    ?UTSK                          16001776371
+  PART SC  SC                             16001776371  00000000003  16001776373
+ COPYRIGHT
+  ENTRY    COPYR                          16000000624
+  PART UC  UC                             16000000624  00000000201  16000001024
+ GATEDEF.32
+  ENTRY    ?G.SYSCA                       06000000000
+  ENTRY    ?G.UTSKB                       06000000001
+  ENTRY    ?G.UTSKG                       06000000002
+  ENTRY    ?G.UKILL                       06000000003
+  ENTRY    ?G.BKPT                        06000000004
+  ENTRY    ?G.IXMT                        06000000005
+  ENTRY    ?G.IXIT                        00000000003
+
+ZBOT:           16000000050
+ZMAX:           16000000050
+NBOT:           16000000400
+USTA:           16000000446
+NMAX:           16000001122
+SBOT:           16001776000
+NTOP:           16001777777
+START:          16001776000
+STACK SIZE:     00000000074
+
+  TYPE     NAME                           ADDRESS      LENGTH       END
+  ---------------------------------------------------------------------
+  PART AC  AB                             16000000000  00000000012  16000000011
+  PART ZC  ZR                             16000000050  00000000000
+  COMM LD  USER STATUS TABLE              16000000400  00000000046  16000000445
+  PART LD  LD                             16000000446  00000000000
+  PART LC  ?UDP000000                     16000000446  00000000022  16000000467
+  PART UD  UD                             16000000470  00000000134  16000000623
+  PART UC  UC                             16000000624  00000000201  16000001024
+  COMM UC  STACK                          16000001026  00000000074  16000001121
+  PART SD  SD                             16001776000  00000000000
+  PART SC  SC                             16001776000  00000000374  16001776373
+
+CROSS-REFERENCED ALPHABETIC SYMBOL LISTING
+
+  TYPE     NAME                           ADDRESS      LENGTH       END
+  ---------------------------------------------------------------------
+  ENTRY    .BOMB                          16001776240
+  ENTRY    .KILL                          16001776243
+  ENTRY    .UKIL                          16001776265
+  ENTRY    .UTSK                          16001776251
+  ENTRY    ?BOMB                          16001776325
+           URTB                           16001776241
+  ENTRY    ?G.BKPT                        06000000004
+           URTB                           16001776307
+  ENTRY    ?G.IXIT                        00000000003
+  ENTRY    ?G.IXMT                        06000000005
+  ENTRY    ?G.SYSCA                       06000000000
+           URTB                           16001776276
+  ENTRY    ?G.UKILL                       06000000003
+           URTB                           16001776271
+  ENTRY    ?G.UTSKB                       06000000001
+           URTB                           16001776262
+  ENTRY    ?G.UTSKG                       06000000002
+           URTB                           16001776256
+  LOCAL    ?IBAD                          00000000004
+  LOCAL    ?IBLT                          00000000030
+  LOCAL    ?ICRF                          00000040000
+  LOCAL    ?IDEL                          00000000016
+  LOCAL    ?IFNP                          00000000014
+  LOCAL    ?IMRS                          00000000003
+  LOCAL    ?IRCL                          00000000007
+  LOCAL    ?ISTI                          00000000001
+  ENTRY    ?NBOT                          16000000400
+  ENTRY    ?NMAX                          16000001122
+  ENTRY    ?NTOP                          16001777777
+  LOCAL    ?OFIO                          00000000030
+  LOCAL    ?RFCF                          00000100000
+  LOCAL    ?RFEC                          00000010000
+  LOCAL    ?RFER                          00000040000
+  LOCAL    ?RTDS                          00000000002
+  ENTRY    ?SBOT                          16001776000
+  PART LC  ?UDP000000                     16000000446  00000000022  16000000467
+  ENTRY    ?UKIL                          16001776366
+           URTB                           16001776266
+  ENTRY    ?URTB                          16001776236
+  ENTRY    ?UTSK                          16001776371
+           URTB                           16001776252
+  LOCAL    ?XCALL                         00000000001
+  ENTRY    ?ZBOT                          16000000050
+  ENTRY    ?ZMAX                          16000000050
+  LOCAL    B2A0                           16001776206
+  LOCAL    B2AEND                         16001776222
+  LOCAL    B2ANEG                         16001776202
+  LOCAL    B2AR0                          16001776214
+  LOCAL    BIN2ASC                        16001776165
+  LOCAL    BUF                            16000000520
+  ENTRY    CFALT                          16000000451
+  LOCAL    CLOSE                          16001776152
+  LOCAL    CON                            16000000551
+  LOCAL    CONSOLE                        16000000470
+  ENTRY    COPYR                          16000000624
+  LOCAL    DONEBUF                        16000000541
+  LOCAL    END3                           16001776101
+  ENTRY    FFALT                          16000000457
+  LOCAL    FINISH                         16001776101
+  LOCAL    FPUSAV                         16000000556
+  ENTRY    IFALT                          16000000454
+  LOCAL    INDEX                          16000000622
+  LOCAL    LCHOP                          16001776223
+  LOCAL    LCHOPEND                       16001776235
+  LOCAL    LCHOPL                         16001776226
+  LOCAL    LOOP1                          16001776026
+  LOCAL    LOOP2                          16001776044
+  LOCAL    LOOP3                          16001776065
+  TITLE    LOOPS3                         00000000000
+  ENTRY    LOOPS3                         16001776000
+  LOCAL    N                              00000000144
+  LOCAL    NLBUF                          16000000532
+  LOCAL    NUMBUF                         16000000533
+  LOCAL    OOPS                           16001776117
+  LOCAL    OPEN                           16001776126
+  ENTRY    SFALT                          16000000446
+  LOCAL    WRITE                          16001776140
+LOOPS3.PR CREATED

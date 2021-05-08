@@ -1,0 +1,135 @@
+LINK REVISION 07.70.00.00 ON 05/24/95 AT 12:32:49
+OPTIONS: LINK/L=TIMEOUT.MAP/ALPHA/LOCAL/MAP/MODMAP/MODSYM/XREF
+
+  TYPE     NAME                           ADDRESS      LENGTH       END
+  ---------------------------------------------------------------------
+ TIMEOUT
+  ENTRY    TIMEOUT                        16000000470
+  LOCAL    ?GREQ                          00000000000
+  LOCAL    ?GNUM                          00000000001
+  LOCAL    ?GRES                          00000000004
+  LOCAL    ?GTLN                          00000000006
+  LOCAL    ?GARG                          00000000003
+  LOCAL    ?RFCF                          00000100000
+  LOCAL    ?RFER                          00000040000
+  LOCAL    ?RFEC                          00000010000
+  LOCAL    ?XCALL                         00000000001
+  LOCAL    CLIMSG                         16000000547
+  LOCAL    ERROR                          16000000516
+  LOCAL    BADVALUE                       16000000524
+  LOCAL    BYE                            16000000520
+  LOCAL    BMSG                           16000000531
+  PART UC  UC                             16000000470  00000000065  16000000554
+ URTB
+  ENTRY    ?URTB                          16001776000
+  ENTRY    .BOMB                          16001776002
+  ENTRY    .KILL                          16001776005
+  ENTRY    .UTSK                          16001776013
+  ENTRY    .UKIL                          16001776027
+  ENTRY    SFALT                          16000000446
+  ENTRY    CFALT                          16000000451
+  ENTRY    IFALT                          16000000454
+  ENTRY    FFALT                          16000000457
+  PART AC  AB                             16000000000  00000000012  16000000011
+  PART LC  ?UDP000000                     16000000446  00000000022  16000000467
+  PART SC  SC                             16001776000  00000000067  16001776066
+ BOMB
+  ENTRY    ?BOMB                          16001776067
+  PART SC  SC                             16001776067  00000000041  16001776127
+ UKIL
+  ENTRY    ?UKIL                          16001776130
+  PART SC  SC                             16001776130  00000000003  16001776132
+ UTSK
+  ENTRY    ?UTSK                          16001776133
+  PART SC  SC                             16001776133  00000000003  16001776135
+ COPYRIGHT
+  ENTRY    COPYR                          16000000555
+  PART UC  UC                             16000000555  00000000201  16000000755
+ GATEDEF.32
+  ENTRY    ?G.SYSCA                       06000000000
+  ENTRY    ?G.UTSKB                       06000000001
+  ENTRY    ?G.UTSKG                       06000000002
+  ENTRY    ?G.UKILL                       06000000003
+  ENTRY    ?G.BKPT                        06000000004
+  ENTRY    ?G.IXMT                        06000000005
+  ENTRY    ?G.IXIT                        00000000003
+
+ZBOT:           16000000050
+ZMAX:           16000000050
+NBOT:           16000000400
+USTA:           16000000446
+NMAX:           16000001052
+SBOT:           16001776000
+NTOP:           16001777777
+START:          16000000470
+STACK SIZE:     00000000074
+
+  TYPE     NAME                           ADDRESS      LENGTH       END
+  ---------------------------------------------------------------------
+  PART AC  AB                             16000000000  00000000012  16000000011
+  PART ZC  ZR                             16000000050  00000000000
+  COMM LD  USER STATUS TABLE              16000000400  00000000046  16000000445
+  PART LD  LD                             16000000446  00000000000
+  PART LC  ?UDP000000                     16000000446  00000000022  16000000467
+  PART UD  UD                             16000000470  00000000000
+  PART UC  UC                             16000000470  00000000266  16000000755
+  COMM UC  STACK                          16000000756  00000000074  16000001051
+  PART SD  SD                             16001776000  00000000000
+  PART SC  SC                             16001776000  00000000136  16001776135
+
+CROSS-REFERENCED ALPHABETIC SYMBOL LISTING
+
+  TYPE     NAME                           ADDRESS      LENGTH       END
+  ---------------------------------------------------------------------
+  ENTRY    .BOMB                          16001776002
+  ENTRY    .KILL                          16001776005
+  ENTRY    .UKIL                          16001776027
+  ENTRY    .UTSK                          16001776013
+  ENTRY    ?BOMB                          16001776067
+           URTB                           16001776003
+  ENTRY    ?G.BKPT                        06000000004
+           URTB                           16001776051
+  ENTRY    ?G.IXIT                        00000000003
+  ENTRY    ?G.IXMT                        06000000005
+  ENTRY    ?G.SYSCA                       06000000000
+           URTB                           16001776040
+  ENTRY    ?G.UKILL                       06000000003
+           URTB                           16001776033
+  ENTRY    ?G.UTSKB                       06000000001
+           URTB                           16001776024
+  ENTRY    ?G.UTSKG                       06000000002
+           URTB                           16001776020
+  LOCAL    ?GARG                          00000000003
+  LOCAL    ?GNUM                          00000000001
+  LOCAL    ?GREQ                          00000000000
+  LOCAL    ?GRES                          00000000004
+  LOCAL    ?GTLN                          00000000006
+  ENTRY    ?NBOT                          16000000400
+  ENTRY    ?NMAX                          16000001052
+  ENTRY    ?NTOP                          16001777777
+  LOCAL    ?RFCF                          00000100000
+  LOCAL    ?RFEC                          00000010000
+  LOCAL    ?RFER                          00000040000
+  ENTRY    ?SBOT                          16001776000
+  PART LC  ?UDP000000                     16000000446  00000000022  16000000467
+  ENTRY    ?UKIL                          16001776130
+           URTB                           16001776030
+  ENTRY    ?URTB                          16001776000
+  ENTRY    ?UTSK                          16001776133
+           URTB                           16001776014
+  LOCAL    ?XCALL                         00000000001
+  ENTRY    ?ZBOT                          16000000050
+  ENTRY    ?ZMAX                          16000000050
+  LOCAL    BADVALUE                       16000000524
+  LOCAL    BMSG                           16000000531
+  LOCAL    BYE                            16000000520
+  ENTRY    CFALT                          16000000451
+  LOCAL    CLIMSG                         16000000547
+  ENTRY    COPYR                          16000000555
+  LOCAL    ERROR                          16000000516
+  ENTRY    FFALT                          16000000457
+  ENTRY    IFALT                          16000000454
+  ENTRY    SFALT                          16000000446
+  TITLE    TIMEOUT                        00000000000
+  ENTRY    TIMEOUT                        16000000470
+TIMEOUT.PR CREATED

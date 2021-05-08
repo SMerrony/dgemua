@@ -1,0 +1,328 @@
+SOURCE: SPIGOT            MASM 07.70.00.00                                                           08-JUN-95 17:43:45  PAGE    1
+
+01                                              ; SPIGOT.SR
+02                                              ; =========
+03                                              
+04                                              ; Hand compiled to DG AOS/VS MASM from the well-known Spigot program in C
+05                                              ; 2015 Stephen Merrony - Public Domain
+06                                              
+07                                              	.TITLE 	SPIGOT
+08                                              	.ENT 	SPIGOT
+09                                              
+10                                              ; Assember constants
+11                   00000001750                	N=1000.
+12                   00000006406                	LEN=3334.
+13                                              ; Data...
+14                   00000000006                	.NREL	6
+15                                              	.ENABLE WORD
+16                                              	
+17 000000 UD         00000015014                A:	.BLK	LEN*2
+18 015014 UD         00000000000                I:	.DWORD	0
+19 015016 UD         37777776030                J:	.DWORD	-N		; J is just a counter, value not used
+20 015020 UD         00000000000                Q:	.DWORD	0
+21 015022 UD         00000000000                X:	.DWORD	0
+22 015024 UD         00000000000                NINES:	.DWORD	0
+23 015026 UD         00000000000                PREDIG:	.DWORD	0
+24                                              
+25 015030 UD         00000000030                CONSOLE: .BLK   ?IBLT
+26                   00000015031         UD             .LOC    CONSOLE+?ISTI
+27 015031 UD 040032                                             ?ICRF+?RTDS+?OFIO
+28                   00000015033         UD             .LOC    CONSOLE+?IMRS
+29 015033 UD 177777                                             -1              ; block size (def. 2048)
+30                   00000015034         UD             .LOC    CONSOLE+?IBAD
+31 015034 UD         00000032140         UD             .DWORD  BUF*2           ; double-word byte ptr to msg
+32                   00000015037         UD             .LOC    CONSOLE+?IRCL
+33 015037 UD 000170                                     .WORD   120.
+34                   00000015044         UD             .LOC    CONSOLE+?IFNP
+35 015044 UD         00000032206         UD             .DWORD  CON*2           ; double-word byte ptr to filename
+36                   00000015046         UD             .LOC    CONSOLE+?IDEL
+37 015046 UD         37777777777                        .DWORD  -1
+38                   00000015060         UD             .LOC    CONSOLE+?IBLT
+39                                              
+40 015060 UD 051520 044507 047524 020163        BUF:	.TXT	"SPIGOT starting...<12>"
+41           072141 071164 064556 063456       
+42           027056 005000                     
+43 015072 UD 020000                             NUMBUF: .TXT    " "
+44 015073 UD 027056 027123 050111 043517        DONEBUF:.TXT	"...SPIGOT done<12>"
+45           052040 062157 067145 005000       
+46 015103 UD 040103 047516 051517 046105        CON:    .TXT    "@CONSOLE"      ; generic name
+47           000000                            
+48                                              
+49                                              ; Code...
+50                   00000000001                	.NREL	1
+51                                              	.ENABLE DWORD
+52                                              SPIGOT: 
+53 000000 SC 147031 000340                      	XJSR	OPEN 
+54 000002 SC 147031 000350                      	XJSR	WRITE
+55                                              	; set up for printing digits
+56 000004 SC 132351  00000032164         UD     	LLEFB	2,NUMBUF*2
+57 000007 SC 132371  00000015034         UD     	LWSTA	2,CONSOLE+?IBAD
+58                                              
+SOURCE: SPIGOT            MASM 07.70.00.00                                                           08-JUN-95 17:43:45  PAGE    2
+
+01 000012 SC 150531                             	WSUB	2,2		; AC2 = 0
+02                                              INITLOOP:
+03 000013 SC 147211  00000000002                	WLDAI	2,1		; AC1 = 2.
+04 000016 SC 146371  00000000000         UD     	LWSTA	1,A,2		; Put the 2 in *(A+AC2)
+05 000021 SC 113211  00000000002                	WADDI	2,2		; AC2 += 2 (dword)
+06 000024 SC 173211 015014                      	WSGTI	LEN*2,2		; if AC2 > LEN then skip
+07 000026 SC 174570                             	WBR	INITLOOP	; loop back
+08                                              
+09                                              JLOOP:
+10                                              	; q = 0
+11 000027 SC 100531                             	WSUB	0,0
+12 000030 SC 122371  00000015020         UD     	LWSTA	0,Q			
+13                                              
+14                                              	; i = len
+15 000033 SC 153211  00000006406                	WLDAI	LEN,2
+16 000036 SC 132371  00000015014         UD     	LWSTA	2,I
+17                                              ILOOP:
+18                                              	; get index for A[I-1] in AC3
+19 000041 SC 135771  00000015014         UD     	LWLDA	3,I		; AC3 = I
+20 000044 SC 116611                             	WSBI	1,3		; AC3--
+21 000045 SC 174511                             	WADD	3,3		; AC3 *= 2
+22                                              
+23                                              	; get 10 * A[I-1] into AC0
+24 000046 SC 161771  00000000000         UD     	LWLDA	0,A,3		; AC0 = A[AC3]
+25 000051 SC 147211  00000000012                	WLDAI	10.,1		; AC1 = 10.
+26 000054 SC 120551                             	WMUL	1,0		; AC0 = AC0 * AC1
+27                                              
+28                                              	; get Q * I into AC1
+29 000055 SC 125771  00000015020         UD     	LWLDA	1,Q		; AC1 = Q
+30 000060 SC 131771  00000015014         UD     	LWLDA	2,I		; AC2 = I
+31 000063 SC 144551                             	WMUL	2,1		; AC1 = AC1 * AC2
+32                                              
+33                                              	; add (Q*I) to (10*A[I-1]) and store in X
+34 000064 SC 104511                             	WADD	0,1		; AC1 = AC0 + AC1
+35 000065 SC 126371  00000015022         UD     	LWSTA	1,X		; X = AC1
+36                                              
+37                                              	; A[I-1] = x % (2*I - 1)
+38                                              	; AC2 still has I
+39 000070 SC 150511                             	WADD	2,2		; AC2 *= 2
+40 000071 SC 112611                             	WSBI	1,2		; AC2-- (AC2 now contains the divisor)
+41 000072 SC 100531                             	WSUB	0,0
+42 000073 SC 163551                             	WDIVS			; AC0 gets remainder
+43                                              	
+44                                              	; store in A[I-1]
+45 000074 SC 162371  00000000000         UD     	LWSTA	0,A,3		; A[I-1] = AC2
+46                                              
+47                                              	; Q = x / ((2 * I) - 1)
+48                                              	; AC1 still has the quotient :-)
+49 000077 SC 126371  00000015020         UD     	LWSTA	1,Q		; Q = AC1	
+50                                              ENDI:	
+51 000102 SC 121771  00000015014         UD     	LWLDA	0,I		; AC0 = I
+52 000105 SC 102611                             	WSBI	1,0		; AC0--
+53 000106 SC 122371  00000015014         UD     	LWSTA	0,I		; I = AC0
+54 000111 SC 163311 000000                      	WSEQI	0,0		; skip if AC0 == 0
+55 000113 SC 164670                             	WBR	ILOOP		; loop back for I
+56                                              
+57                                              ASSA0:	; A[0] = q%10
+58 000114 SC 100531                             	WSUB	0,0		; AC0 = 0
+SOURCE: SPIGOT            MASM 07.70.00.00                                                           08-JUN-95 17:43:45  PAGE    3
+
+01 000115 SC 125771  00000015020         UD     	LWLDA	1,Q		; AC1 = Q
+02 000120 SC 153211  00000000012                	WLDAI	10.,2		; AC2 = 10.
+03 000123 SC 163551                             	WDIVS
+04 000124 SC 122371  00000000000         UD     	LWSTA	0,A		; A = AC0 = Remainder
+05                                              
+06                                              	; Q = Q/10
+07 000127 SC 126371  00000015020         UD     	LWSTA	1,Q		; Q = AC1 = Quotient
+08                                              
+09                                              IFQ9:	; if Q == 9...
+10 000132 SC 167311 000011                      	WSEQI	9.,1		; skip if AC1 == 9.
+11 000134 SC 101170                             	WBR	NOT9		; Q != 9 so go to NOT9
+12                                              QIS9:	
+13                                              	; NINES++
+14 000135 SC 121771  00000015024         UD     	LWLDA	0,NINES		; AC0 = NINES
+15 000140 SC 101131                             	WINC	0,0		; AC0++
+16 000141 SC 122371  00000015024         UD     	LWSTA	0,NINES		; NINES = AC0
+17 000144 SC 124770                             	WBR	ENDJ		; Done for this iteration of J
+18                                              NOT9:	
+19                                              	; If Q == 10... 
+20 000145 SC 121771  00000015020         UD     	LWLDA	0,Q		; AC0 = Q
+21 000150 SC 163311 000012                      	WSEQI	10.,0		; skip if AC0 == 10.
+22 000152 SC 110570                             	WBR	NOT10		; Q != 10 so go to NOT10
+23                                              
+24                                              QIS10:	; print PREDIG + 1	
+25 000153 SC 125771  00000015026         UD     	LWLDA	1,PREDIG	; AC1 = PREDIG
+26 000156 SC 125131                             	WINC	1,1		; AC1++
+27 000157 SC 132351  00000032164         UD     	LLEFB	2,NUMBUF*2
+28 000162 SC 147031 000215                      	XJSR	CONVERT
+29 000164 SC 147031 000166                      	XJSR	WRITE
+30                                              
+31                                               	; for K = 0 to NINES-1
+32 000166 SC 100531                             	WSUB	0,0
+33 000167 SC 135771  00000015024         UD     KLOOP1:	LWLDA	3,NINES		; AC3 = NINES
+34 000172 SC 116611                             	WSBI	1,3		; AC3--
+35 000173 SC 114651                             	WSLE	0,3		; skip if AC0 (k) < AC3 (nines--)
+36 000174 SC 101370                             	WBR	ENDK1
+37 000175 SC 124531                             	WSUB	1,1		; AC1 = 0
+38 000176 SC 132351  00000032164         UD     	LLEFB	2,NUMBUF*2
+39 000201 SC 147031 000176                      	XJSR	CONVERT
+40 000203 SC 147031 000147                      	XJSR	WRITE
+41 000205 SC 101131                             	WINC	0,0		; AC0++
+42 000206 SC 174170                             	WBR	KLOOP1
+43                                              
+44 000207 SC 100531                             ENDK1:	WSUB	0,0
+45 000210 SC 122371  00000015026         UD     	LWSTA	0,PREDIG	; PREDIG = 0
+46 000213 SC 122371  00000015024         UD     	LWSTA	0,NINES		; NINES = 0
+47 000216 SC 111570                             	WBR	ENDJ		
+48                                              NOT10:
+49                                              	; printf predig
+50 000217 SC 125771  00000015026         UD     	LWLDA	1,PREDIG
+51 000222 SC 132351  00000032164         UD     	LLEFB	2,NUMBUF*2
+52 000225 SC 147031 000152                      	XJSR	CONVERT
+53 000227 SC 147031 000123                      	XJSR	WRITE
+54                                              
+55                                              	; PREDIG = Q
+56 000231 SC 121771  00000015020         UD     	LWLDA	0,Q
+57 000234 SC 122371  00000015026         UD     	LWSTA	0,PREDIG
+58                                              
+SOURCE: SPIGOT            MASM 07.70.00.00                                                           08-JUN-95 17:43:45  PAGE    4
+
+01                                              	; if NINES != 0...
+02 000237 SC 121771  00000015024         UD     	LWLDA	0,NINES
+03 000242 SC 163351 000000                      	WSNEI	0,0	
+04 000244 SC 104770                             	WBR	ENDJ
+05                                              
+06                                               	; for K = 0 to NINES-1
+07 000245 SC 100531                             	WSUB	0,0
+08 000246 SC 135771  00000015024         UD     KLOOP2:	LWLDA	3,NINES		; AC3 = NINES
+09 000251 SC 116611                             	WSBI	1,3		; AC3--
+10 000252 SC 114651                             	WSLE	0,3		; skip if AC0 (k) < AC3 (nines--)
+11 000253 SC 101470                             	WBR	ENDK2
+12 000254 SC 147051 000011                      	NLDAI	9.,1		; AC1 = 9. for display
+13 000256 SC 132351  00000032164         UD     	LLEFB	2,NUMBUF*2
+14 000261 SC 147031 000116                      	XJSR	CONVERT
+15 000263 SC 147031 000067                      	XJSR	WRITE
+16 000265 SC 101131                             	WINC	0,0		; AC0++
+17 000266 SC 174070                             	WBR	KLOOP2
+18                                              
+19                                              ENDK2:	; NINES = 0
+20 000267 SC 100531                             	WSUB	0,0
+21 000270 SC 122371  00000015024         UD     	LWSTA	0,NINES
+22                                              		
+23                                              ENDJ:
+24 000273 SC 107351  00000015016         UD     	LWISZ	J		; Increment J and skip if zero
+25 000276 SC 105170                             	WBR	DOJLOOP
+26                                              
+27                                              FINISH:
+28                                              	; printf predig
+29 000277 SC 125771  00000015026         UD     	LWLDA	1,PREDIG
+30 000302 SC 132351  00000032164         UD     	LLEFB	2,NUMBUF*2
+31 000305 SC 147031 000072                      	XJSR	CONVERT
+32 000307 SC 147031 000043                      	XJSR	WRITE
+33                                              
+34 000311 SC 122351  00000032166         UD     	LLEFB	0,DONEBUF*2	; AC0 = &donebuf
+35 000314 SC 122371  00000015034         UD     	LWSTA	0,CONSOLE+?IBAD	; store AC0 @ ?IBAD in IO packet
+36 000317 SC 147031 000033                      	XJSR	WRITE		; write the closing message
+37 000321 SC 147031 000043                      	XJSR	CLOSE		; close the console
+38 000323 SC 150531                             	WSUB	2,2		; clear the error flag for ?RETURN
+39                                              	?RETURN			; return to caller (assume CLI)
+40                                              
+41                                              DOJLOOP:
+42 000327 SC 127331  17777777477                	LJMP	JLOOP
+43                                              
+44                                              ; Error exit
+45 000332 SC 124531                             OOPS:	WSUB	1,1
+46 000333 SC 153211  00000150000                	WLDAI	?RFER+?RFCF+?RFEC,2
+47                                              	?RETURN
+48                                              
+49                                              ; I/O Subroutines
+50 000341 SC 103451 000000                      OPEN:	WSSVR	0
+51                                              	?OPEN	CONSOLE
+52 000351 SC 174170                             	WBR	OOPS
+53 000352 SC 103651                             	WRTN
+54                                              
+55 000353 SC 103451 000000                      WRITE:	WSSVR	0
+56                                              	?WRITE	CONSOLE
+57 000363 SC 170770                             	WBR	OOPS
+58 000364 SC 103651                             	WRTN
+SOURCE: SPIGOT            MASM 07.70.00.00                                                           08-JUN-95 17:43:45  PAGE    5
+
+01                                              
+02 000365 SC 103451 000000                      CLOSE:	WSSVR	0
+03                                              	?CLOSE	CONSOLE
+04 000375 SC 165570                             	WBR	OOPS
+05 000376 SC 150531                             	WSUB	2,2		; set good return flag
+06 000377 SC 103651                             	WRTN
+07                                              
+08                                              ; CONVERT subroutine converts binary digit to ASCII decimal
+09                                              ; AC1 contains binary value
+10                                              ; AC2 contains byte pointer to text message
+11                                              CONVERT:
+12 000400 SC 103451 000000                      	WSSVR	0
+13 000402 SC 107770 000060                      	IORI	60,1		; OR 60 for ASCII number
+14 000404 SC 146471                             	WSTB	2,1		; Store AC0 byte (bits 24-31) 
+15                                              				; in byte addr in AC2
+16 000405 SC 103651                             	WRTN			; Yes: return
+17                                              
+18                                              	.END 	SPIGOT
+XREF:   SPIGOT            MASM 07.70.00.00                                                           08-JUN-95 17:43:45  PAGE    6
+
+?CLOSE    00000000000 MA   5/03 
+?IBAD     00000000004      1/30    1/57    4/35 
+?IBLT     00000000030      1/25    1/38 
+?ICRF     00000040000      1/27 
+?IDEL     00000000016      1/36 
+?IFNP     00000000014      1/34 
+?IMRS     00000000003      1/28 
+?IRCL     00000000007      1/32 
+?ISTI     00000000001      1/26 
+?OFIO     00000000030      1/27 
+?OPEN     00000000000 MA   4/51 
+?RETURN   00000000000 MA   4/39    4/47 
+?RFCF     00000100000      4/46 
+?RFEC     00000010000      4/46 
+?RFER     00000040000      4/46 
+?RTDS     00000000002      1/27 
+?SYST     00000000000 MA   4/40    4/48    4/52    4/57    5/04 
+?WRITE    00000000000 MA   4/56 
+?XCALL    00000000001      4/40    4/40    4/48    4/48    4/52    4/52    4/57    4/57    5/04    5/04 
+A         00000000000      1/17#   2/04    2/24    2/45    3/04 
+ASSA0     00000000114      2/57#
+BUF       00000015060      1/31    1/40#
+CLOSE     00000000365      4/37    5/02#
+CON       00000015103      1/35    1/46#
+CONSOLE   00000015030      1/25#   1/26    1/28    1/30    1/32    1/34    1/36    1/38    1/57    4/35    4/52    4/57    5/04 
+CONVERT   00000000400      3/28    3/39    3/52    4/14    4/31    5/11#
+DOJLOOP   00000000327      4/25    4/41#
+DONEBUF   00000015073      1/44#   4/34 
+ENDI      00000000102      2/50#
+ENDJ      00000000273      3/17    3/47    4/04    4/23#
+ENDK1     00000000207      3/36    3/44#
+ENDK2     00000000267      4/11    4/19#
+FINISH    00000000277      4/27#
+I         00000015014      1/18#   2/16    2/19    2/30    2/51    2/53 
+IFQ9      00000000132      3/09#
+ILOOP     00000000041      2/17#   2/55 
+INITLOOP  00000000013      2/02#   2/07 
+J         00000015016      1/19#   4/24 
+JLOOP     00000000027      2/09#   4/42 
+KLOOP1    00000000167      3/33#   3/42 
+KLOOP2    00000000246      4/08#   4/17 
+LEN       00000006406      1/12#   1/17    2/06    2/15 
+N         00000001750      1/11#   1/19 
+NINES     00000015024      1/22#   3/14    3/16    3/33    3/46    4/02    4/08    4/21 
+NOT10     00000000217      3/22    3/48#
+NOT9      00000000145      3/11    3/18#
+NUMBUF    00000015072      1/43#   1/56    3/27    3/38    3/51    4/13    4/30 
+OOPS      00000000332      4/45#   4/52    4/57    5/04 
+OPEN      00000000341      1/53    4/50#
+PREDIG    00000015026      1/23#   3/25    3/45    3/50    3/57    4/29 
+Q         00000015020      1/20#   2/12    2/29    2/49    3/01    3/07    3/20    3/56 
+QIS10     00000000153      3/24#
+QIS9      00000000135      3/12#
+SPIGOT    00000000000 EN   1/08    1/52#   5/18 
+WRITE     00000000353      1/54    3/29    3/40    3/53    4/15    4/32    4/36    4/55#
+X         00000015022      1/21#   2/35 
+STAT:   SPIGOT            MASM 07.70.00.00                                                           08-JUN-95 17:43:45  PAGE    7
+
+ELAPSED TIME:  00:00:05
+CPU TIME:      00:00:02
+TOTAL LINES:        246
+TOTAL SYMBOLS:       37
+LINES/MINUTE:      2952
+
+NO ASSEMBLY ERRORS
+

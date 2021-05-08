@@ -1,0 +1,105 @@
+; LOOPS1.SR
+
+	.title 	LOOPS1
+	.ent 	LOOPS1
+	.ent	OPEN,WRITE,CLOSE,INITLOOP,OOPS,FINISH,CONVERT
+
+; Assember constants
+	N=100.
+
+; Data
+	.nrel	6
+	.enable word
+	
+console: .blk   ?IBLT
+        .loc    console+?ISTI
+                ?ICRF+?RTDS+?OFIO
+        .loc    console+?IMRS
+                -1              ; block size (def. 2048)
+        .loc    console+?IBAD
+        .dword  buf*2           ; double-word byte ptr to msg
+        .loc    console+?IRCL
+        .word   120.
+        .loc    console+?IFNP
+        .dword  con*2           ; double-word byte ptr to filename
+        .loc    console+?IDEL
+        .dword  -1
+        .loc    console+?IBLT
+
+buf:	.txt	"Loops1 starting "
+numbuf: .txt	"           "
+donebuf:.txt	"Loops1 done"
+con:    .txt    "@CONSOLE"      ; generic name
+
+; Code
+	.nrel	1
+
+LOOPS1: 
+	xjsr	OPEN 
+	xjsr	WRITE
+	; set up for printing digits
+	llefb	2,numbuf*2
+	lwsta	2,console+?IBAD
+
+	wsub	0,0
+	wsub	1,1		; AC1 = 0
+INITLOOP: 
+	xjsr	CONVERT
+	xjsr	WRITE
+	winc	1,1		; AC1 += 1
+	wsgti	N,1		; if AC1 > len then skip
+	wbr	INITLOOP
+
+FINISH:
+	xjsr	WRITE
+
+	llefb	0,donebuf*2	; AC0 = &donebuf
+	lwsta	0,console+?IBAD	; store AC0 @ ?IBAD in IO packet
+	xjsr	WRITE		; write the closing message
+	xjsr	CLOSE		; close the console
+	wsub	2,2		; clear the error flag for ?RETURN
+	?RETURN			; return to caller (assume CLI)
+
+; Error exit
+OOPS:	wsub	1,1
+	wldai	?RFER+?RFCF+?RFEC,2
+	?RETURN
+
+; I/O Subroutines
+OPEN:	wssvr	0
+	?OPEN	console
+	wbr	OOPS
+	wrtn
+
+WRITE:	wssvr	0
+	
+	?WRITE	console
+	wbr	OOPS
+	wrtn
+
+CLOSE:	wssvr	0
+	?CLOSE	console
+	wbr	OOPS
+	wsub	2,2		; set good return flag
+	wrtn
+
+; CONVERT subroutine converts binary to ASCII decimal
+; AC1 contains binary value
+; AC2 contains byte pointer to text message
+CONVERT:
+	wssvs	0
+	wmov	2,3		; Use AC3 for byte pointer shifting
+	wadi	3,3		; Add 3 to byte pointer
+	nldai	10.,2		; AC2 = 10.
+DLOOP:	wsub	0,0
+	wdivs	
+	iori	60,0		; OR 60 for ASCII number
+	wstb	3,0		; Store AC0 byte (bits 24-31) 
+				; in byte addr in AC3
+	wsbi	1,3		; Decrement the byte addr
+	mov	1,1,snr		; Did quotient get to 0?
+	wrtn			; Yes: return
+	wbr	DLOOP		; No: loop back for another digit
+
+
+	.end 	LOOPS1

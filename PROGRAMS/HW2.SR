@@ -1,0 +1,28 @@
+; Hello World!
+;
+; This version uses a CLI return message
+;
+	.title hello
+	.ent hello
+
+	.nrel	1 		; Shareable code
+
+hello:	llefb	1,msg*2		; load byte addr into AC1
+	nldai	len*2,2		; byte length into AC2
+bye:	wsub	0,0
+	?RETURN
+	wbr	badbye
+
+badbye:	wsub	1,1
+	wldai	?RFER+?RFCF+?RFEC,2	; error code in AC0
+	wbr 	bye
+
+; Be nice and put static data in shared data partition.
+; N.B. Must then use llefb above to address it
+
+	.nrel	5
+
+msg:	.txt	"Hello, World!"
+	len=.-msg
+
+	.end hello

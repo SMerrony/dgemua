@@ -1,0 +1,125 @@
+SOURCE: STRINGS           MASM 07.70.00.00                                                           10-JUN-95 15:49:17  PAGE    1
+
+01                                              ; STRINGS.SR
+02                                              ; ==========
+03                                              ;
+04                                              ; Routines for handling C-style null-terminated strings
+05                                              ;
+06                                              ; S.Merrony - Public Domain
+07                                              
+08                                              	.TITLE 	STRINGS
+09                                              
+10                                              	.ENT 	BIN2ASC
+11                                              	.ENT	LCHOP
+12                                              	.ENT	RCHOP
+13                                              
+14                                              ; Code
+15                   00000000001                	.NREL	1
+16                                              
+17                                              
+18                                              
+19                                              ; BIN2ASC subroutine converts 32-bit (signed) binary to ASCII decimal string
+20                                              ; -------
+21                                              ; On entry AC1 contains the value to be converted
+22                                              ;          AC2 contains a byte pointer for the result
+23                                              ;
+24                                              ; The conversion is primarily achieved by putting the integer into
+25                                              ; a floating-point accumulator, then reading it out as a signed unpacked
+26                                              ; decimal - which is then lightly post-processed to remove leading + and 0s.
+27                                              
+28                                              BIN2ASC:
+29 000000 SC 103471 000000                      	WSSVS	0
+30 000002 SC 126571                             	WPSH	1,1
+31 000003 SC 155571                             	WMOV	2,3
+32 000004 SC 122251                             	WFLAD	1,0		; FPAC0 = AC1
+33 000005 SC 147211  00000000152                	WLDAI	3S26.+10.,1	; Datatype 3 into AC1 
+34                                              				; (signed unpacked dec. 10 places)
+35 000010 SC 163271                             	WSTI	0		; Store FPAC0 as decimal ASCII
+36                                              
+37 000011 SC 100531                             	WSUB	0,0		; AC0 = NULL
+38 000012 SC 162471                             	WSTB	3,0		; Store NULL at end of string
+39                                              
+40                                              	; now post-process the string:
+41 000013 SC 124211                             	WPOP	1,1
+42 000014 SC 141571                             	WMOV	2,0
+43                                              
+44                                              B2ANEG:	; special case if value is negative
+45 000015 SC 167251 177777                      	WSLEI	-1,1
+46 000017 SC 100270                             	WBR	B2A0
+47 000020 SC 101131                             	WINC	0,0		; move past -
+48                                              
+49                                              B2A0:
+50                                              	; special case if value is zero
+51 000021 SC 167311 000000                      	WSEQI	0,1
+52 000023 SC 100470                             	WBR	B2AR0
+53 000024 SC 147031 000011                      	XJSR	LCHOP		; remove sign 
+54 000026 SC 102271                             	WADI	1,0		; move past initial 0
+55                                              
+56 000027 SC 147031 000006                      B2AR0:	XJSR	LCHOP
+57 000031 SC 112451                             	WLDB	0,2
+58 000032 SC 173351 000060                      	WSNEI	48.,2	 
+SOURCE: STRINGS           MASM 07.70.00.00                                                           10-JUN-95 15:49:17  PAGE    2
+
+01 000034 SC 175370                             	WBR	B2AR0
+02                                              
+03 000035 SC 103651                             B2AEND:	WRTN
+04                                              
+SOURCE: STRINGS           MASM 07.70.00.00                                                           10-JUN-95 15:49:17  PAGE    3
+
+01                                              
+02                                              ; Chop the 1st character off a null-terminated string (in-place)
+03                                              ; AC0 is a byte pointer to the string
+04                                              
+05                                              LCHOP:	
+06 000036 SC 103471 000000                      	WSSVS	0
+07 000040 SC 105571                             	WMOV	0,1		; copy sting pointer into AC1
+08 000041 SC 125131                             LCHOPL:	WINC	1,1		; increment the copied pointer
+09 000042 SC 132451                             	WLDB	1,2		; load the byte it points to into AC2
+10 000043 SC 112471                             	WSTB	0,2		; store that byte in add ptd to by AC0
+11 000044 SC 101131                             	WINC	0,0		; increment initial pointer
+12 000045 SC 173311 000000                      	WSEQI	0,2		; was the char a NULL?
+13 000047 SC 175270                             	WBR	LCHOPL		; no: so loop around
+14                                              LCHOPEND:			; yes: all done
+15 000050 SC 103651                             	WRTN
+16                                              
+17                                              ; Chop the last character off a null-terminated string (in-place)
+18                                              ; AC0 is a byte pointer to the string
+19                                              
+20                                              RCHOP:
+21 000051 SC 103471 000000                      	WSSVS	0
+22                                              RCHOPL:
+23 000053 SC 106451                             	WLDB	0,1		; load the byte AC0 points to into AC1
+24 000054 SC 167351 000000                      	WSNEI	0,1		; is the char a null?
+25 000056 SC 100370                             	WBR	RCHOPR		; yes: exit loop
+26 000057 SC 101131                             	WINC	0,0		; no: increment byte pointer
+27 000060 SC 175370                             	WBR	RCHOPL		; loop around
+28                                              
+29 000061 SC 102611                             RCHOPR:	WSBI	1,0		; AC0--
+30 000062 SC 106471                             	WSTB	0,1		; store a NULL byte
+31                                              RCHOPEND:
+32 000063 SC 103651                             	WRTN
+33                                              
+XREF:   STRINGS           MASM 07.70.00.00                                                           10-JUN-95 15:49:17  PAGE    4
+
+B2A0      00000000021      1/46    1/49#
+B2AEND    00000000035      2/03#
+B2ANEG    00000000015      1/44#
+B2AR0     00000000027      1/52    1/56#   2/01 
+BIN2ASC   00000000000 EN   1/10    1/28#
+LCHOP     00000000036 EN   1/11    1/53    1/56    3/05#
+LCHOPEND  00000000050      3/14#
+LCHOPL    00000000041      3/08#   3/13 
+RCHOP     00000000051 EN   1/12    3/20#
+RCHOPEND  00000000063      3/31#
+RCHOPL    00000000053      3/22#   3/27 
+RCHOPR    00000000061      3/25    3/29#
+STAT:   STRINGS           MASM 07.70.00.00                                                           10-JUN-95 15:49:17  PAGE    5
+
+ELAPSED TIME:  00:00:03
+CPU TIME:      00:00:00
+TOTAL LINES:         96
+TOTAL SYMBOLS:       12
+LINES/MINUTE:      1920
+
+NO ASSEMBLY ERRORS
+

@@ -1,0 +1,94 @@
+; STRINGS.SR
+; ==========
+;
+; Routines for handling C-style null-terminated strings
+;
+; S.Merrony - Public Domain
+
+	.title 	STRINGS
+
+	.ent 	BIN2ASC
+	.ent	LCHOP
+	.ent	RCHOP
+
+; Code
+	.nrel	1
+
+
+
+; BIN2ASC subroutine converts 32-bit (signed) binary to ASCII decimal string
+; -------
+; On entry AC1 contains the value to be converted
+;          AC2 contains a byte pointer for the result
+;
+; The conversion is primarily achieved by putting the integer into
+; a floating-point accumulator, then reading it out as a signed unpacked
+; decimal - which is then lightly post-processed to remove leading + and 0s.
+
+BIN2ASC:
+	wssvs	0
+	wpsh	1,1
+	wmov	2,3
+	wflad	1,0		; FPAC0 = AC1
+	wldai	3S26.+10.,1	; Datatype 3 into AC1 
+				; (signed unpacked dec. 10 places)
+	wsti	0		; Store FPAC0 as decimal ASCII
+
+	wsub	0,0		; AC0 = NULL
+	wstb	3,0		; Store NULL at end of string
+
+	; now post-process the string:
+	wpop	1,1
+	wmov	2,0
+
+B2ANEG:	; special case if value is negative
+	wslei	-1,1
+	wbr	B2A0
+	winc	0,0		; move past -
+
+B2A0:
+	; special case if value is zero
+	wseqi	0,1
+	wbr	B2AR0
+	xjsr	LCHOP		; remove sign 
+	wadi	1,0		; move past initial 0
+
+B2AR0:	xjsr	LCHOP
+	wldb	0,2
+	wsnei	48.,2	 
+	wbr	B2AR0
+
+B2AEND:	wrtn
+
+
+; Chop the 1st character off a null-terminated string (in-place)
+; AC0 is a byte pointer to the string
+
+LCHOP:	
+	wssvs	0
+	wmov	0,1		; copy sting pointer into AC1
+LCHOPL:	winc	1,1		; increment the copied pointer
+	wldb	1,2		; load the byte it points to into AC2
+	wstb	0,2		; store that byte in add ptd to by AC0
+	winc	0,0		; increment initial pointer
+	wseqi	0,2		; was the char a NULL?
+	wbr	LCHOPL		; no: so loop around
+LCHOPEND:			; yes: all done
+	wrtn
+
+; Chop the last character off a null-terminated string (in-place)
+; AC0 is a byte pointer to the string
+
+RCHOP:
+	wssvs	0
+RCHOPL:
+	wldb	0,1		; load the byte AC0 points to into AC1
+	wsnei	0,1		; is the char a null?
+	wbr	RCHOPR		; yes: exit loop
+	winc	0,0		; no: increment byte pointer
+	wbr	RCHOPL		; loop around
+
+RCHOPR:	wsbi	1,0		; AC0--
+	wstb	0,1		; store a NULL byte
+RCHOPEND:
+	wrtn

@@ -1,0 +1,49 @@
+; Hello World!
+;
+; This version uses normal file IO to the default user console
+;
+	.title hello
+	.ent hello
+
+	.nrel	 		; Unshared code
+
+hello:	?OPEN	console
+	wbr	badbye
+	
+	?WRITE	console
+	wbr	badbye
+
+close:	?CLOSE	console
+	wbr	badbye
+	wsub	2,2		; set good return flags
+	wbr	bye
+
+bye:	wsub	0,0
+	?RETURN
+	wbr	badbye
+
+badbye:	wsub	1,1
+	wldai	?RFER+?RFCF+?RFEC,2	; error code in AC0
+	wbr 	bye
+
+	.nrel	6		; Unshareable data
+	.enable	word
+
+console: .blk 	?IBLT
+	.loc	console+?ISTI
+		?ICRF+?RTDS+?OFIO
+	.loc	console+?IMRS
+		-1		; block size (def. 2048)
+	.loc	console+?IBAD
+	.dword	msg*2		; double-word byte ptr to msg
+	.loc	console+?IRCL
+	.word	120.
+	.loc	console+?IFNP
+	.dword	con*2		; double-word byte ptr to filename
+	.loc	console+?IDEL
+	.dword	-1
+	.loc 	console+?IBLT
+
+msg:	.txt	"Hello World"
+con:	.txt	"@CONSOLE"		; generic name
+	.end hello

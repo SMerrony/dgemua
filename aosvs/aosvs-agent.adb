@@ -36,9 +36,9 @@ package body AOSVS.Agent is
       end Init;
       		
       procedure Allocate_PID (Invocation_Args : in Args_Arr;
-								Virtual_Root    : in String;
+								Virtual_Root    : in Unbounded_String;
 								Sixteen_Bit     : in Boolean;
-								Proc_Name       : in String;
+								Proc_Name       : in Unbounded_String;
 								-- Console         : in GNAT.Sockets.Stream_Access;
 								PID             : out PID_T) is
       begin
@@ -56,7 +56,7 @@ package body AOSVS.Agent is
          Per_Process_Data(PID).Proc_Name       := Proc_Name;
          Per_Process_Data(PID).Console         := Console;
          Put_Line ("DEBUG: AGENT: Assigned PID " & PID'Image &
-                   " to Process Name: " & Proc_Name);
+                   " to Process Name: " & To_String(Proc_Name));
       end Allocate_PID;
 
    end Actions;

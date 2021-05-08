@@ -49,9 +49,9 @@ package AOSVS.Agent is
 	type Per_Process_Data_T is record
 	-- the data Agent holds for each process
 	   Invocation_Args : Args_Arr;
-	   Virtual_Root    : String(1..132);
+	   Virtual_Root    : Unbounded_String;
 	   Sixteen_Bit     : Boolean;
-	   Proc_Name       : String(1..32);
+	   Proc_Name       : Unbounded_String;
 	   Console         : GNAT.Sockets.Stream_Access;
 	   TIDs_In_Use	   : TIDs_Arr;
 
@@ -62,9 +62,9 @@ package AOSVS.Agent is
 	protected Actions is
 		procedure Init (Cons : in GNAT.Sockets.Stream_Access);
 		procedure Allocate_PID (Invocation_Args : in Args_Arr;
-								Virtual_Root    : in String;
+								Virtual_Root    : in Unbounded_String;
 								Sixteen_Bit     : in Boolean;
-								Proc_Name       : in String;
+								Proc_Name       : in Unbounded_String;
 								-- Console         : in GNAT.Sockets.Stream_Access;
 								PID             : out PID_T);
 

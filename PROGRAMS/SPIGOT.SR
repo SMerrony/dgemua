@@ -1,0 +1,247 @@
+; SPIGOT.SR
+; =========
+
+; Hand compiled to DG AOS/VS MASM from the well-known Spigot program in C
+; 2015 Stephen Merrony - Public Domain
+
+	.title 	SPIGOT
+	.ent 	SPIGOT
+
+; Assember constants
+	N=1000.
+	LEN=3334.
+; Data...
+	.nrel	6
+	.enable word
+	
+A:	.blk	LEN*2
+I:	.dword	0
+J:	.dword	-N		; J is just a counter, value not used
+Q:	.dword	0
+X:	.dword	0
+NINES:	.dword	0
+PREDIG:	.dword	0
+
+CONSOLE: .blk   ?IBLT
+        .loc    console+?ISTI
+                ?ICRF+?RTDS+?OFIO
+        .loc    console+?IMRS
+                -1              ; block size (def. 2048)
+        .loc    console+?IBAD
+        .dword  buf*2           ; double-word byte ptr to msg
+        .loc    console+?IRCL
+        .word   120.
+        .loc    console+?IFNP
+        .dword  con*2           ; double-word byte ptr to filename
+        .loc    console+?IDEL
+        .dword  -1
+        .loc    console+?IBLT
+
+BUF:	.txt	"SPIGOT starting...<12>"
+NUMBUF: .txt    " "
+DONEBUF:.txt	"...SPIGOT done<12>"
+CON:    .txt    "@CONSOLE"      ; generic name
+
+; Code...
+	.nrel	1
+	.enable dword
+SPIGOT: 
+	xjsr	OPEN 
+	xjsr	WRITE
+	; set up for printing digits
+	llefb	2,NUMBUF*2
+	lwsta	2,CONSOLE+?IBAD
+
+	wsub	2,2		; AC2 = 0
+INITLOOP:
+	wldai	2,1		; AC1 = 2.
+	lwsta	1,A,2		; Put the 2 in *(A+AC2)
+	waddi	2,2		; AC2 += 2 (dword)
+	wsgti	LEN*2,2		; if AC2 > LEN then skip
+	wbr	INITLOOP	; loop back
+
+JLOOP:
+	; q = 0
+	wsub	0,0
+	lwsta	0,Q			
+
+	; i = len
+	wldai	LEN,2
+	lwsta	2,I
+ILOOP:
+	; get index for A[I-1] in AC3
+	lwlda	3,I		; AC3 = I
+	wsbi	1,3		; AC3--
+	wadd	3,3		; AC3 *= 2
+
+	; get 10 * A[I-1] into AC0
+	lwlda	0,A,3		; AC0 = A[AC3]
+	wldai	10.,1		; AC1 = 10.
+	wmul	1,0		; AC0 = AC0 * AC1
+
+	; get Q * I into AC1
+	lwlda	1,Q		; AC1 = Q
+	lwlda	2,I		; AC2 = I
+	wmul	2,1		; AC1 = AC1 * AC2
+
+	; add (Q*I) to (10*A[I-1]) and store in X
+	wadd	0,1		; AC1 = AC0 + AC1
+	lwsta	1,X		; X = AC1
+
+	; A[I-1] = x % (2*I - 1)
+	; AC2 still has I
+	wadd	2,2		; AC2 *= 2
+	wsbi	1,2		; AC2-- (AC2 now contains the divisor)
+	wsub	0,0
+	wdivs			; AC0 gets remainder
+	
+	; store in A[I-1]
+	lwsta	0,A,3		; A[I-1] = AC2
+
+	; Q = x / ((2 * I) - 1)
+	; AC1 still has the quotient :-)
+	lwsta	1,Q		; Q = AC1	
+ENDI:	
+	lwlda	0,I		; AC0 = I
+	wsbi	1,0		; AC0--
+	lwsta	0,I		; I = AC0
+	wseqi	0,0		; skip if AC0 == 0
+	wbr	ILOOP		; loop back for I
+
+ASSA0:	; A[0] = q%10
+	wsub	0,0		; AC0 = 0
+	lwlda	1,Q		; AC1 = Q
+	wldai	10.,2		; AC2 = 10.
+	wdivs
+	lwsta	0,A		; A = AC0 = Remainder
+
+	; Q = Q/10
+	lwsta	1,Q		; Q = AC1 = Quotient
+
+IFQ9:	; if Q == 9...
+	wseqi	9.,1		; skip if AC1 == 9.
+	wbr	NOT9		; Q != 9 so go to NOT9
+QIS9:	
+	; NINES++
+	lwlda	0,NINES		; AC0 = NINES
+	winc	0,0		; AC0++
+	lwsta	0,NINES		; NINES = AC0
+	wbr	ENDJ		; Done for this iteration of J
+NOT9:	
+	; If Q == 10... 
+	lwlda	0,Q		; AC0 = Q
+	wseqi	10.,0		; skip if AC0 == 10.
+	wbr	NOT10		; Q != 10 so go to NOT10
+
+QIS10:	; print PREDIG + 1	
+	lwlda	1,PREDIG	; AC1 = PREDIG
+	winc	1,1		; AC1++
+	llefb	2,NUMBUF*2
+	xjsr	CONVERT
+	xjsr	WRITE
+
+ 	; for K = 0 to NINES-1
+	wsub	0,0
+KLOOP1:	lwlda	3,NINES		; AC3 = NINES
+	wsbi	1,3		; AC3--
+	wsle	0,3		; skip if AC0 (k) < AC3 (nines--)
+	wbr	ENDK1
+	wsub	1,1		; AC1 = 0
+	llefb	2,NUMBUF*2
+	xjsr	CONVERT
+	xjsr	WRITE
+	winc	0,0		; AC0++
+	wbr	KLOOP1
+
+ENDK1:	wsub	0,0
+	lwsta	0,PREDIG	; PREDIG = 0
+	lwsta	0,NINES		; NINES = 0
+	wbr	ENDJ		
+NOT10:
+	; printf predig
+	lwlda	1,PREDIG
+	llefb	2,NUMBUF*2
+	xjsr	CONVERT
+	xjsr	WRITE
+
+	; PREDIG = Q
+	lwlda	0,Q
+	lwsta	0,PREDIG
+
+	; if NINES != 0...
+	lwlda	0,NINES
+	wsnei	0,0	
+	wbr	ENDJ
+
+ 	; for K = 0 to NINES-1
+	wsub	0,0
+KLOOP2:	lwlda	3,NINES		; AC3 = NINES
+	wsbi	1,3		; AC3--
+	wsle	0,3		; skip if AC0 (k) < AC3 (nines--)
+	wbr	ENDK2
+	nldai	9.,1		; AC1 = 9. for display
+	llefb	2,NUMBUF*2
+	xjsr	CONVERT
+	xjsr	WRITE
+	winc	0,0		; AC0++
+	wbr	KLOOP2
+
+ENDK2:	; NINES = 0
+	wsub	0,0
+	lwsta	0,NINES
+		
+ENDJ:
+	lwisz	J		; Increment J and skip if zero
+	wbr	DOJLOOP
+
+FINISH:
+	; printf predig
+	lwlda	1,PREDIG
+	llefb	2,NUMBUF*2
+	xjsr	CONVERT
+	xjsr	WRITE
+
+	llefb	0,DONEBUF*2	; AC0 = &donebuf
+	lwsta	0,CONSOLE+?IBAD	; store AC0 @ ?IBAD in IO packet
+	xjsr	WRITE		; write the closing message
+	xjsr	CLOSE		; close the console
+	wsub	2,2		; clear the error flag for ?RETURN
+	?RETURN			; return to caller (assume CLI)
+
+DOJLOOP:
+	ljmp	JLOOP
+
+; Error exit
+OOPS:	wsub	1,1
+	wldai	?RFER+?RFCF+?RFEC,2
+	?RETURN
+
+; I/O Subroutines
+OPEN:	wssvr	0
+	?OPEN	CONSOLE
+	wbr	OOPS
+	wrtn
+
+WRITE:	wssvr	0
+	?WRITE	CONSOLE
+	wbr	OOPS
+	wrtn
+
+CLOSE:	wssvr	0
+	?CLOSE	CONSOLE
+	wbr	OOPS
+	wsub	2,2		; set good return flag
+	wrtn
+
+; CONVERT subroutine converts binary digit to ASCII decimal
+; AC1 contains binary value
+; AC2 contains byte pointer to text message
+CONVERT:
+	wssvr	0
+	iori	60,1		; OR 60 for ASCII number
+	wstb	2,1		; Store AC0 byte (bits 24-31) 
+				; in byte addr in AC2
+	wrtn			; Yes: return
+
+	.end 	SPIGOT
+
