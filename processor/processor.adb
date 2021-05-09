@@ -351,6 +351,65 @@ package body Processor is
 
    end Run;
 
+   procedure VRun (Disassemble : in Boolean; 
+                   Radix : in Number_Base_T;
+                   I_Counts : in out Instr_Count_T; 
+                   Syscall_Trap : out Boolean) is
+      use Ada.Containers;
+      This_Op : Word_T;
+      Instr   : Decoded_Instr_T;
+      Segment : Integer;
+      PC      : Phys_Addr_T := Actions.Get_PC;
+      XCT     : Boolean;
+   begin
+      loop
+         -- FETCH
+         XCT := Actions.Get_XCT_Mode;
+         if XCT then
+            This_Op := Actions.Get_XCT_Opcode;
+         else
+            This_Op := RAM.Read_Word(PC);
+         end if;
+
+         -- DECODE
+         Segment := Integer(Shift_Right(PC, 29));
+         Instr := Instruction_Decode (Opcode => This_Op, 
+                                    PC => PC, 
+                                    LEF_Mode => Actions.Get_LEF(Segment), 
+                                    IO_On => Actions.Get_IO(Segment), 
+                                    ATU_On => Actions.Get_ATU, 
+                                    Disassemble => Disassemble, 
+                                    Radix => Radix);
+
+         -- Instruction Counting
+         I_Counts(Instr.Instruction) := I_Counts(Instr.Instruction) + 1;
+
+         if Disassemble then
+            Loggers.Debug_Print (Debug_Log, Actions.Get_Compact_Status(Radix) & "  " & To_String(Instr.Disassembly));
+         end if;
+
+         -- EXECUTE
+         Actions.Execute (Instr);
+
+         -- XCT
+         if XCT then
+            Actions.Set_XCT_Mode(false);
+         end if;
+
+         -- System Call?
+         PC := Actions.Get_PC;
+
+         if PC = 16#3000_0000# then
+            Syscall_Trap := true;
+            exit;
+         else
+            Syscall_Trap := false;
+         end if;
+
+      end loop;
+   end VRun;
+
+
    task body Status_Sender is 
       Stats : CPU_Monitor_Rec;
    begin

@@ -30,7 +30,16 @@ package AOSVS is
 
 	type PID_T is new Integer range 0 .. 255;
 
+	PC_In_Pr          : constant Natural := 8#0574#;
+	Page8_Offset      : constant Natural := 8192;
+	WSFH_In_Pr        : constant Natural := Page8_Offset + 12;
+	WFP_In_Pr         : constant Natural := Page8_Offset + 16;
+	WSP_In_Pr         : constant Natural := Page8_Offset + 18;
+	WSL_In_Pr         : constant Natural := Page8_Offset + 20;
+	WSB_In_Pr         : constant Natural := Page8_Offset + 22;
+
     type UST_T is record
+        -- our representation of AOS/VS UST
         Ext_Var_Wd_Count        : Word_T;
         Ext_Var_P0_Start        : Word_T;
         Syms_Start              : Dword_T;
@@ -45,6 +54,13 @@ package AOSVS is
         PR_Type                 : Word_T;
         Shared_Start_Page_In_PR : Dword_T;
     end record;
+
+    type PR_Addrs_T is record
+        -- some key addresses from the PR file
+        PR_Start,
+        WFP, WSB, WSFH, WSL, WSP : Phys_Addr_T;
+    end record;
+
 
     procedure Start (PR_Name   : in String;
                      Virt_Root : in String;

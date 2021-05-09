@@ -67,11 +67,14 @@ package AOSVS.Agent is
 								Proc_Name       : in Unbounded_String;
 								-- Console         : in GNAT.Sockets.Stream_Access;
 								PID             : out PID_T);
+	    procedure Allocate_TID (PID : in PID_T; TID : out Word_T);
 
 	private
 		PIDs_In_Use      : PIDs_Arr;
 		Per_Process_Data : PPD_Arr;
 		Console          : GNAT.Sockets.Stream_Access;
 	end Actions;
+
+	NO_MORE_TIDS : exception;
 
 end AOSVS.Agent;

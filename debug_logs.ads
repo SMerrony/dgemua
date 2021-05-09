@@ -34,7 +34,7 @@ package Debug_Logs is
         Dpf_Log,          -- Dpf_Log, is for the type 6061 DPF disk module
         Dskp_Log,         -- Dskp_Log, is for the type 6239 DSKP disk module
         Map_Log,          -- Map_Log, is for BMC/DCH-related _log,ging
-        Sc_Log            -- Sc_Log, is for System Call _log,ging in the VS emulator
+        Sc_Log            -- Sc_Log, is for System Call logging in the VS emulator
     );
 
     type Log_Filenames_T is array (Logs'Range) of Unbounded_String;

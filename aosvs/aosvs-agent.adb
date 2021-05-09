@@ -59,6 +59,20 @@ package body AOSVS.Agent is
                    " to Process Name: " & To_String(Proc_Name));
       end Allocate_PID;
 
+      procedure Allocate_TID (PID : in PID_T; 
+                              TID : out Word_T) is
+      begin
+         for T in Per_Process_Data(PID).TIDs_In_Use loop
+            if not Per_Process_Data(PID).TIDs_In_Use(T) then
+               Per_Process_Data(PID).TIDs_In_Use(T) := true;
+               TID := Word_T(T);
+               exit;
+            end if;
+            -- exhausted, return 0 which is invalid
+            TID := 0;
+         end loop;
+      end Allocate_TID;
+
    end Actions;
 
 end AOSVS.Agent;

@@ -31,6 +31,7 @@ with DG_Types; use DG_Types;
 with PARU_32;  use PARU_32;
 
 with AOSVS.Agent;
+with AOSVS.Agent.Tasking;
 with Memory;        use Memory;
 
 package body AOSVS is
@@ -70,23 +71,35 @@ package body AOSVS is
     end Read_Whole_File;
 
     function Load_UST (PR_Arr : in Word_Arr_T) return UST_T is
-        This_UST : UST_T;
+        Tmp_UST : UST_T;
     begin
-        This_UST.Ext_Var_Wd_Count := PR_Arr(Natural(UST + USTEZ));
-        This_UST.Ext_Var_P0_Start := PR_Arr(Natural(UST + USTES));
-        This_UST.Syms_Start       := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSS)), PR_Arr(Natural(UST + USTSS+1)));
-        This_UST.Syms_End         := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSE)), PR_Arr(Natural(UST + USTSE+1)));
-        This_UST.Debug_Addr       := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(Natural(UST + USTDA)), PR_Arr(Natural(UST + USTDA+1))));
-        This_UST.Revision         := Dword_From_Two_Words (PR_Arr(Natural(UST + USTRV)), PR_Arr(Natural(UST + USTRV+1)));
-        This_UST.Task_Count       := PR_Arr(Natural(UST + USTTC));
-        This_UST.Impure_Blocks    := PR_Arr(Natural(UST + USTBL + 1));
-        This_UST.Shared_Start_Block := Dword_From_Two_Words (PR_Arr(Natural(UST + USTST)), PR_Arr(Natural(UST + USTST+1)));
-        This_UST.Int_Addr         := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(Natural(UST + USTIT)), PR_Arr(Natural(UST + USTIT+1))));
-        This_UST.Shared_Block_Count := PR_Arr(Natural(UST + USTSZ));
-        This_UST.Shared_Start_Page_In_PR := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSH)), PR_Arr(Natural(UST + USTSH+1)));
-        This_UST.PR_Type          := PR_Arr(Natural(UST + USTPR));
-        return This_UST;
+        Tmp_UST.Ext_Var_Wd_Count := PR_Arr(Natural(UST + USTEZ));
+        Tmp_UST.Ext_Var_P0_Start := PR_Arr(Natural(UST + USTES));
+        Tmp_UST.Syms_Start       := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSS)), PR_Arr(Natural(UST + USTSS+1)));
+        Tmp_UST.Syms_End         := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSE)), PR_Arr(Natural(UST + USTSE+1)));
+        Tmp_UST.Debug_Addr       := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(Natural(UST + USTDA)), PR_Arr(Natural(UST + USTDA+1))));
+        Tmp_UST.Revision         := Dword_From_Two_Words (PR_Arr(Natural(UST + USTRV)), PR_Arr(Natural(UST + USTRV+1)));
+        Tmp_UST.Task_Count       := PR_Arr(Natural(UST + USTTC));
+        Tmp_UST.Impure_Blocks    := PR_Arr(Natural(UST + USTBL + 1));
+        Tmp_UST.Shared_Start_Block := Dword_From_Two_Words (PR_Arr(Natural(UST + USTST)), PR_Arr(Natural(UST + USTST+1)));
+        Tmp_UST.Int_Addr         := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(Natural(UST + USTIT)), PR_Arr(Natural(UST + USTIT+1))));
+        Tmp_UST.Shared_Block_Count := PR_Arr(Natural(UST + USTSZ));
+        Tmp_UST.Shared_Start_Page_In_PR := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSH)), PR_Arr(Natural(UST + USTSH+1)));
+        Tmp_UST.PR_Type          := PR_Arr(Natural(UST + USTPR));
+        return Tmp_UST;
     end Load_UST;
+
+    function Load_PR_Addresses (PR_Arr : in Word_Arr_T) return PR_Addrs_T is
+        Addrs : PR_Addrs_T;
+    begin
+        Addrs.PR_Start := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(PC_In_Pr), PR_Arr(PC_In_Pr + 1)));
+        Addrs.WFP      := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(WFP_In_Pr), PR_Arr(WFP_In_Pr + 1)));
+        Addrs.WSB      := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(WSB_In_Pr), PR_Arr(WSB_In_Pr + 1)));
+        Addrs.WSFH     := Phys_Addr_T(PR_Arr(WSFH_In_Pr)); 
+        Addrs.WSL      := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(WSL_In_Pr), PR_Arr(WSL_In_Pr + 1)));
+        Addrs.WSP      := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(WSP_In_Pr), PR_Arr(WSP_In_Pr + 1)));
+        return Addrs;
+    end Load_PR_Addresses;
 
     procedure Start (PR_Name   : in String;
                     Virt_Root : in String;
@@ -97,7 +110,8 @@ package body AOSVS is
         PR_Arr : Word_Arr_T := Read_Whole_File (PR_Name);
         PID    : PID_T;
         Sixteen_Bit : Boolean;
-        PR_UST : UST_T;
+        PR_UST   : UST_T;
+        PR_Addrs : PR_Addrs_T;
         Segment_Base : Phys_Addr_T;
     begin
         Ada.Text_IO.Put_Line ("INFO: Loaded PR file: " & PR_Name);
@@ -120,7 +134,7 @@ package body AOSVS is
         RAM.Map_Range(Segment_Base + Phys_Addr_T(Shift_Left(PR_UST.Shared_Start_Block, 10)),
                       Memory_Region(PR_Arr(Integer(Shift_Left(PR_UST.Shared_Start_Page_In_PR, 10)) .. PR_Arr'Last)), 
                       true);
-
+        PR_Addrs := Load_PR_Addresses (PR_Arr);
 
     end Start;
 

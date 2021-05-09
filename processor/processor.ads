@@ -123,6 +123,11 @@ package Processor is
                   Breakpoints : in BP_Sets.Set;
                   I_Counts : out Instr_Count_T);
 
+   procedure VRun (Disassemble : in Boolean; 
+                   Radix : in Number_Base_T;
+                   I_Counts : in out Instr_Count_T; 
+                   Syscall_Trap : out Boolean);
+
    task Status_Sender is
         entry Start;
    end Status_Sender;
