@@ -51,7 +51,7 @@ package Processor is
    end record;
    type SBRs is array (0 .. 7) of SBR_T;
 
-   type CPU_T is record
+   type CPU_Rec is tagged record
       PC                       : Phys_Addr_T; -- 32-bit PC
       AC                       : Acc_T;       -- 4 x 32-bit Accumulators
       PSR                      : Word_T;      -- Processor Status Register - see PoP 2-11 & A-4
@@ -67,6 +67,8 @@ package Processor is
       Debug_Logging     : Boolean;
       Instruction_Count : Unsigned_64;
    end record;
+
+   type CPU_T is access CPU_Rec;
 
    -- FPU SR bits
    FPSR_Any : constant Integer := 0;
@@ -92,44 +94,42 @@ package Processor is
 
    type Instr_Count_T is array (Instr_Mnemonic_T range Instr_Mnemonic_T'Range) of Unsigned_64;
 
-   protected Actions is
-      procedure Reset;
-      procedure Boot (Dev : Dev_Num_T; PC : Phys_Addr_T);
-      procedure Prepare_For_Running;
-      procedure Set_Debug_Logging (OnOff : in Boolean);
-      procedure Single_Step (Radix : in Number_Base_T; Disass : out Unbounded_String);
-      procedure Execute (Instr : in Decoded_Instr_T);
-      function  Disassemble_Range (Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) 
-         return String;
-      function  Get_Compact_Status (Radix : Number_Base_T) return string;
-      function  Get_Instruction_Count return Unsigned_64;
-      function  Get_ATU return Boolean;
-      function  Get_LEF (Seg : in Natural) return Boolean;
-      function  Get_IO (Seg : in Natural) return Boolean;
-      function  Get_ION return Boolean;
-      function  Get_PC return Phys_Addr_T;
-      function  Get_Status return CPU_Monitor_Rec;
-      function  Get_XCT_Mode return Boolean;
-      procedure Set_XCT_Mode (YN : in Boolean);
-      function  Get_XCT_Opcode return Word_T;
-      procedure Set_Ac (AC : in AC_ID; Datum : in Dword_T);
-   private
-      CPU : CPU_T;
-   end Actions;
-
-   procedure Init;
-   procedure Run (Disassemble : in Boolean; 
+   function  Make return CPU_T;
+   procedure Run (CPU : in out CPU_T;
+                  Disassemble : in Boolean; 
                   Radix : in Number_Base_T; 
                   Breakpoints : in BP_Sets.Set;
                   I_Counts : out Instr_Count_T);
 
-   procedure VRun (Disassemble : in Boolean; 
+   procedure VRun (CPU : in out CPU_T;
+                   Disassemble : in Boolean; 
                    Radix : in Number_Base_T;
                    I_Counts : in out Instr_Count_T; 
                    Syscall_Trap : out Boolean);
 
+   function  Disassemble_Range (Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) return String;
+
+   procedure Reset (CPU : in out CPU_T);
+   procedure Boot  (CPU : in out CPU_T; Dev : Dev_Num_T; PC : Phys_Addr_T);
+   procedure Prepare_For_Running (CPU : in out CPU_T);
+   procedure Set_Debug_Logging   (CPU : in out CPU_T; OnOff : in Boolean);
+   procedure Single_Step (CPU : in out CPU_T; Radix : in Number_Base_T; Disass : out Unbounded_String);
+   procedure Execute     (CPU : in out CPU_T; Instr : in Decoded_Instr_T);
+   function  Get_Compact_Status    (CPU : in CPU_T; Radix : Number_Base_T) return string;
+   function  Get_Instruction_Count (CPU : in CPU_T) return Unsigned_64;
+   function  Get_ATU        (CPU : in CPU_T) return Boolean;
+   function  Get_LEF        (CPU : in CPU_T; Seg : in Natural) return Boolean;
+   function  Get_IO         (CPU : in CPU_T; Seg : in Natural) return Boolean;
+   function  Get_ION        (CPU : in CPU_T) return Boolean;
+   function  Get_PC         (CPU : in CPU_T) return Phys_Addr_T;
+   function  Get_Status     (CPU : in CPU_T) return CPU_Monitor_Rec;
+   function  Get_XCT_Mode   (CPU : in CPU_T) return Boolean;
+   procedure Set_XCT_Mode   (CPU : in out CPU_T; YN : in Boolean);
+   function  Get_XCT_Opcode (CPU : in CPU_T) return Word_T;
+   procedure Set_Ac         (CPU : in out CPU_T; AC : in AC_ID; Datum : in Dword_T);
+
    task Status_Sender is
-        entry Start;
+        entry Start (CPU : in CPU_T);
    end Status_Sender;
 
    CPU_Halt            : exception;

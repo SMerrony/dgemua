@@ -71,6 +71,8 @@ procedure MVEmuA is
    Arg_Num       : Positive := 1;
    Do_Script_Arg : Natural := 0;
 
+   CPU : Processor.CPU_T;
+
    Breakpoints : Processor.BP_Sets.Set;
 
    Console_Radix  : Number_Base_T := Octal; -- default console I/O number base
@@ -160,10 +162,10 @@ procedure MVEmuA is
       case Dev is
          when Devices.MTB =>
             Devices.Magtape6026.Drives.Load_TBOOT;
-            Processor.Actions.Boot (Devices.MTB, 10);
+            Processor.Boot (CPU, Devices.MTB, 10);
          when Devices.DPF =>
             Devices.Disk6061.Drives.Load_DKBT;
-            Processor.Actions.Boot (Devices.DPF, 10);
+            Processor.Boot (CPU, Devices.DPF, 10);
          when others =>
             TTOut.Put_String (Dasher_NL & " *** Booting from that device is not yet implemented ***");
       end case;   
@@ -255,7 +257,7 @@ procedure MVEmuA is
       end if;
       Low_Addr  := Phys_Addr_T(String_To_Dword (Slice (Command, 2), Console_Radix));
       High_Addr := Phys_Addr_T(String_To_Dword (Slice (Command, 3), Console_Radix));
-      TTOut.Put_String (Processor.Actions.Disassemble_Range(Low_Addr, High_Addr, Console_Radix));
+      TTOut.Put_String (Processor.Disassemble_Range(Low_Addr, High_Addr, Console_Radix));
    end Disassemble;
 
    procedure Do_Script (Command : in Slice_Set) is
@@ -287,15 +289,15 @@ procedure MVEmuA is
       Start_Time : Time;
       Elapsed : Time_Span;
    begin
-      Processor.Actions.Prepare_For_Running;
+      Processor.Prepare_For_Running (CPU);
       SCP_Handler.Set_SCP_IO(false);  
 
       Start_Time := Clock;
 
-      Processor.Run (Debug_Logging, Console_Radix, Breakpoints, I_Counts);
+      Processor.Run (CPU, Debug_Logging, Console_Radix, Breakpoints, I_Counts);
 
       Elapsed := Clock - Start_Time;
-      I_Count := Processor.Actions.Get_Instruction_Count;
+      I_Count := Processor.Get_Instruction_Count (CPU);
       SCP_Handler.Set_SCP_IO(true);   
       TTOut.Put_String (Dasher_NL & " *** MV/Emua executed " & Unsigned_64'Image(I_Count) & 
                         " instructions in" & Duration'Image(To_Duration(Elapsed)) & " seconds ***");
@@ -311,7 +313,7 @@ procedure MVEmuA is
    exception
       when others =>
          Elapsed := Clock - Start_Time;
-         I_Count := Processor.Actions.Get_Instruction_Count;
+         I_Count := Processor.Get_Instruction_Count (CPU);
          SCP_Handler.Set_SCP_IO(true);   
          TTOut.Put_String (Dasher_NL & " *** MV/Emua executed " & Unsigned_64'Image(I_Count) & 
                            " instructions in" & Duration'Image(To_Duration(Elapsed)) & " seconds ***");
@@ -346,7 +348,7 @@ procedure MVEmuA is
                TTOut.Put_String (Dasher_NL & " *** Value must be 'ON' or 'OFF' ***");
             end if;
             -- TODO Add calls here when new devices are added...
-            Processor.Actions.Set_Debug_Logging(Debug_Logging);
+            Processor.Set_Debug_Logging(CPU, Debug_Logging);
             BMC_DCH.Set_Logging(Debug_Logging);
             Devices.Disk6061.Drives.Set_Logging (Debug_Logging);
          else
@@ -392,10 +394,10 @@ procedure MVEmuA is
    procedure Single_Step is
       Disass : Unbounded_String;
    begin
-      TTOut.Put_String (Dasher_NL & Processor.Actions.Get_Compact_Status(Console_Radix));
-      Processor.Actions.Single_Step(Console_Radix, Disass);
+      TTOut.Put_String (Dasher_NL & Processor.Get_Compact_Status(CPU, Console_Radix));
+      Processor.Single_Step(CPU, Console_Radix, Disass);
       TTOut.Put_String (Dasher_NL & To_String(Disass));
-      TTOut.Put_String (Dasher_NL & Processor.Actions.Get_Compact_Status(Console_Radix));
+      TTOut.Put_String (Dasher_NL & Processor.Get_Compact_Status(CPU, Console_Radix));
    exception   
       when Error: others =>
          TTOut.Put_String (Dasher_NL & Ada.Exceptions.Exception_Message(Error));
@@ -408,7 +410,7 @@ procedure MVEmuA is
       Command := To_Unbounded_String(Slice (Words, 1));
       -- SCP-like commands...
       if Command = "." then
-         TTOut.Put_String (Dasher_NL & Processor.Actions.Get_Compact_Status(Console_Radix));
+         TTOut.Put_String (Dasher_NL & Processor.Get_Compact_Status(CPU, Console_Radix));
       elsif Command = "B" then
          Boot (Words);
       elsif Command = "CO" then
@@ -485,6 +487,10 @@ begin
 		--   One HDD
 		--   A generous(!) 16MB (8MW) RAM
 		--   NO IACs, LPT or ISC
+
+      Decoder.Generate_All_Possible_Opcodes;
+      CPU := Processor.Make;
+
       Status_Monitor.Monitor.Start (Monitor_Port);
       RAM.Init (Debug_Logging);
       Devices.Bus.Actions.Init;
@@ -492,7 +498,6 @@ begin
       Devices.Bus.Actions.Set_Reset_Proc (Devices.BMC, BMC_DCH.Reset'Access);
       Devices.Bus.Actions.Connect (Devices.SCP);
       Devices.Bus.Actions.Connect (Devices.CPU);
-      Processor.Init;
 
       Devices.Bus.Actions.Connect (Devices.TTO);
       Devices.Console.TTOut.Init (Connection);
@@ -515,7 +520,7 @@ begin
          Do_Command (To_Unbounded_String ("DO " &  Ada.Command_Line.Argument (Do_Script_Arg)));
       end if;
 
-
+      Processor.Status_Sender.Start (CPU);
 
       -- the main SCP/console interaction loop
       SCP_Handler.Set_SCP_IO (true);
@@ -535,9 +540,9 @@ begin
          GNAT.OS_Lib.OS_Exit (0);
 
       when Error: others =>
+         Ada.Text_IO.Put_Line("ERROR: " & Ada.Exceptions.Exception_Information(Error));
          TTOut.Put_String (Dasher_NL & " *** MV/Emulator stopping due to unhandled error ***" );
          -- TTOut.Put_String (Dasher_NL & Ada.Exceptions.Exception_Information(Error));
-         Ada.Text_IO.Put_Line("ERROR: " & Ada.Exceptions.Exception_Information(Error));
          Loggers.Debug_Print (Debug_Log, "ERROR: " & Ada.Exceptions.Exception_Information(Error));
          Loggers.Debug_Logs_Dump (Log_Dir);
          GNAT.OS_Lib.OS_Exit (0);
