@@ -70,25 +70,42 @@ package body Decoder is
       return;
    end Match_Instruction;
 
-   procedure Generate_All_Possible_Opcodes is
+   -- procedure Generate_All_Possible_Opcodes is
+   --    Mnem  : Instr_Mnemonic_T;
+   --    Found : Boolean;
+   -- begin
+   --    for N in Opcode_Lookup_T'Range loop
+   --       Match_Instruction (Word_T (N), Mnem, Found);
+   --       if Found then
+   --          Opcode_Lookup_Arr (N).Exists := True;
+   --          Opcode_Lookup_Arr (N).Mnem   := Mnem;
+   --       else
+   --          Opcode_Lookup_Arr (N).Exists := False;
+   --       end if;
+   --    end loop;
+   -- end Generate_All_Possible_Opcodes;
+
+   function  Generate_All_Possible_Opcodes return Opcode_Lookup_T is
+      Lookup : Opcode_Lookup_T;
       Mnem  : Instr_Mnemonic_T;
       Found : Boolean;
    begin
       for N in Opcode_Lookup_T'Range loop
          Match_Instruction (Word_T (N), Mnem, Found);
          if Found then
-            Opcode_Lookup_Arr (N).Exists := True;
-            Opcode_Lookup_Arr (N).Mnem   := Mnem;
+            Lookup(N).Exists := True;
+            Lookup(N).Mnem   := Mnem;
          else
-            Opcode_Lookup_Arr (N).Exists := False;
+            Lookup(N).Exists := False;
          end if;
       end loop;
+      return Lookup;
    end Generate_All_Possible_Opcodes;
 
 -- Instruction_Lookup looks up an opcode in the opcode lookup table and returns
 -- the corresponding mnemonic.  This needs to be as quick as possible
    function Instruction_Lookup
-     (Opcode : in Word_T; LEF_Mode : Boolean) return Instr_Mnemonic_T
+     (Opcode : in Word_T; LEF_Mode : in Boolean) return Instr_Mnemonic_T
    is
    begin
       -- special case, if LEF mode is enabled then ALL I/O instructions are interpreted as LEF
@@ -101,7 +118,10 @@ package body Decoder is
       return Opcode_Lookup_Arr (Integer (Opcode)).Mnem;
    end Instruction_Lookup;
 
-
+   procedure Init is
+   begin
+      Opcode_Lookup_Arr := Generate_All_Possible_Opcodes;
+   end;
 
    function Char_Carry (Cr : Carry_T) return Character is
    begin

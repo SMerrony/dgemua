@@ -488,7 +488,7 @@ begin
 		--   A generous(!) 16MB (8MW) RAM
 		--   NO IACs, LPT or ISC
 
-      Decoder.Generate_All_Possible_Opcodes;
+      Decoder.Init;
       CPU := Processor.Make;
 
       Status_Monitor.Monitor.Start (Monitor_Port);
