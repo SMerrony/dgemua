@@ -170,35 +170,22 @@ package body Processor is
                " PC=" & Dword_To_String (Dword_T(CPU.PC), Radix, 11, true);
    end Get_Compact_Status;
 
-   function Get_ATU (CPU : in CPU_T) return Boolean is
-   begin
-      return CPU.ATU;
-   end Get_ATU;
+   function Get_ATU (CPU : in CPU_T) return Boolean is (CPU.ATU);
 
-   function  Get_Instruction_Count (CPU : in CPU_T) return Unsigned_64 is
-   begin
-      return CPU.Instruction_Count;
-   end Get_Instruction_Count;
+   function  Get_Instruction_Count (CPU : in CPU_T) return Unsigned_64 is (CPU.Instruction_Count);
 
-   function Get_IO (CPU : in CPU_T; Seg : in Natural) return Boolean is
-   begin
-      return CPU.SBR(Seg).IO;
-   end Get_IO;
+   function Get_IO (CPU : in CPU_T; Seg : in Natural) return Boolean is (CPU.SBR(Seg).IO);
 
-   function Get_ION (CPU : in CPU_T) return Boolean is
-   begin 
-      return CPU.ION;
-   end Get_ION;
+   function Get_ION (CPU : in CPU_T) return Boolean is (CPU.ION);
+ 
+   function Get_LEF (CPU : in CPU_T; Seg : in Natural) return Boolean is (CPU.SBR(Seg).LEF);
 
-   function Get_LEF (CPU : in CPU_T; Seg : in Natural) return Boolean is
+   procedure Set_PC (CPU : in out CPU_T; PC : in Phys_Addr_T) is
    begin
-      return CPU.SBR(Seg).LEF;
-   end Get_LEF;
+      CPU.PC := PC;
+   end Set_PC;
 
-   function Get_PC (CPU : in CPU_T) return Phys_Addr_T is
-   begin
-      return CPU.PC;
-   end Get_PC;
+   function Get_PC (CPU : in CPU_T) return Phys_Addr_T is (CPU.PC);
 
    function Get_Status (CPU : in CPU_T) return CPU_Monitor_Rec is
       Stats : CPU_Monitor_Rec;
@@ -212,20 +199,14 @@ package body Processor is
       return Stats;
    end Get_Status;
 
-   function Get_XCT_Mode (CPU : in CPU_T) return Boolean is
-   begin
-      return CPU.XCT_Mode;
-   end Get_XCT_Mode;
+   function Get_XCT_Mode (CPU : in CPU_T) return Boolean is (CPU.XCT_Mode);
 
    procedure Set_XCT_Mode (CPU : in out CPU_T; YN : in Boolean) is
    begin
       CPU.XCT_Mode := YN;
    end Set_XCT_Mode;
 
-   function Get_XCT_Opcode (CPU : in CPU_T) return Word_T is
-   begin
-      return CPU.XCT_Opcode;
-   end Get_XCT_Opcode;
+   function Get_XCT_Opcode (CPU : in CPU_T) return Word_T is (CPU.XCT_Opcode);
 
    procedure Set_Ac (CPU : in out CPU_T; AC : in AC_ID; Datum : in Dword_T) is
    begin

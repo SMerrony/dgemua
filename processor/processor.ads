@@ -121,6 +121,7 @@ package Processor is
    function  Get_LEF        (CPU : in CPU_T; Seg : in Natural) return Boolean;
    function  Get_IO         (CPU : in CPU_T; Seg : in Natural) return Boolean;
    function  Get_ION        (CPU : in CPU_T) return Boolean;
+   procedure Set_PC         (CPU : in out CPU_T; PC : in Phys_Addr_T);
    function  Get_PC         (CPU : in CPU_T) return Phys_Addr_T;
    function  Get_Status     (CPU : in CPU_T) return CPU_Monitor_Rec;
    function  Get_XCT_Mode   (CPU : in CPU_T) return Boolean;
