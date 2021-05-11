@@ -129,6 +129,15 @@ package body DG_Types is
    function Low_Byte_To_Char (LB : in Boolean) return Character is
       (if LB then 'L' else 'H');
 
+   function Byte_Arr_To_Unbounded (B_Arr : in Byte_Arr_T) return Unbounded_String is
+      Res : Unbounded_String;
+   begin
+      for C in B_Arr'Range loop
+         Res := Res & Byte_To_Char(B_Arr(C));
+      end loop;
+      return Res;
+   end Byte_Arr_To_Unbounded;
+
    function String_To_Integer
      (Str : in String; Base : in Number_Base_T) return Integer
    is

@@ -20,9 +20,12 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Processor;
+
 package AOSVS.Agent.Tasking is
 
     type Task_Data_T is record
+        -- CPU                : Processor.CPU_T;
         PID, TID, Priority : Word_T;
         Sixteen_Bit        : Boolean;
         Dir                : Unbounded_String;
@@ -35,13 +38,16 @@ package AOSVS.Agent.Tasking is
         Debug_Logging      : Boolean;    
     end record;
 
-    task type VS_Task is
-        entry Start (TD : in Task_Data_T);
-    end VS_Task;
-
     procedure Create_Task (PID : in PID_T; 
                            -- TID : in Word_T;
                            Priority : in Word_T;
-                           PR_Addrs : in PR_Addrs_T);
+                           PR_Addrs : in PR_Addrs_T;
+                           Console : in GNAT.Sockets.Stream_Access);
+
+    task type VS_Task is
+        entry Start (TD : in Task_Data_T; Console : in GNAT.Sockets.Stream_Access);
+    end VS_Task;
+
+    System_Call_Not_Implemented : exception;
 
 end AOSVS.Agent.Tasking;

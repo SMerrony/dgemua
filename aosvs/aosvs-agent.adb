@@ -62,7 +62,7 @@ package body AOSVS.Agent is
       procedure Allocate_TID (PID : in PID_T; 
                               TID : out Word_T) is
       begin
-         for T in Per_Process_Data(PID).TIDs_In_Use loop
+         for T in Per_Process_Data(PID).TIDs_In_Use'Range loop
             if not Per_Process_Data(PID).TIDs_In_Use(T) then
                Per_Process_Data(PID).TIDs_In_Use(T) := true;
                TID := Word_T(T);

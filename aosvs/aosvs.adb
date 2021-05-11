@@ -106,6 +106,7 @@ package body AOSVS is
                     Segment   : in Natural;
                     Arg_Count : in Positive;
                     Args      : in Args_Arr;
+                    Console   : in GNAT.Sockets.Stream_Access;
                     Logging   : in Boolean) is
         PR_Arr : Word_Arr_T := Read_Whole_File (PR_Name);
         PID    : PID_T;
@@ -135,6 +136,8 @@ package body AOSVS is
                       Memory_Region(PR_Arr(Integer(Shift_Left(PR_UST.Shared_Start_Page_In_PR, 10)) .. PR_Arr'Last)), 
                       true);
         PR_Addrs := Load_PR_Addresses (PR_Arr);
+
+        Agent.Tasking.Create_Task (PID, 0, PR_Addrs, Console);
 
     end Start;
 

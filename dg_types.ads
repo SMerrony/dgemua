@@ -20,6 +20,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Unchecked_Conversion;
 
 with Interfaces; use Interfaces;
@@ -32,6 +33,8 @@ package DG_Types is
     type Qword_T  is new Unsigned_64;
 
     type Phys_Addr_T is new Unsigned_32;
+
+    type Byte_Arr_T is array (Natural range <>) of Byte_T;
 
     Devices_Max : constant Integer := 63;
 
@@ -93,6 +96,7 @@ package DG_Types is
         Zero_Pad : in Boolean := False) 
         return String;  
     function Low_Byte_To_Char (LB : in Boolean) return Character;
+    function Byte_Arr_To_Unbounded (B_Arr : in Byte_Arr_T) return Unbounded_String;
 
     -- Dword routines
     function Lower_Word( DW : in Dword_T) return Word_T with Inline;

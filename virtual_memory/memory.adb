@@ -125,6 +125,15 @@ package body Memory is
             return Read_Byte (Phys_Addr_T(Shift_Right(BA, 1)), LB);
         end Read_Byte_BA;
 
+        function  Read_Bytes_BA (BA : in Dword_T; Num : in Natural) return Byte_Arr_T is
+            Bytes : Byte_Arr_T (0 .. Num - 1);
+        begin
+            for B in Bytes'Range loop
+               Bytes(B) := Read_Byte_BA (BA + Dword_T(B));
+            end loop;
+            return Bytes;
+        end Read_Bytes_BA;
+
         function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T is
             Low_Byte : Boolean := Test_W_Bit(BA_16, 15);
             Addr : Phys_Addr_T;

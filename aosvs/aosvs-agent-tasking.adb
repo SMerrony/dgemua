@@ -20,37 +20,118 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Debug_Logs; use Debug_logs;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
+with Interfaces; use Interfaces;
+
+with Debug_Logs; use Debug_Logs;
+with Memory;     use Memory;
+with Processor;  use Processor;
 
 package body AOSVS.Agent.Tasking is
 
-    procedure Create_Task (PID : in PID_T; 
-                           -- TID : in Word_T;
-                           Priority : in Word_T;
-                           PR_Addrs : in PR_Addrs_T) is
-        VS_Task : Task_Data_T;
-        TID     : Word_T;
-    begin
-        VS_Task.PID := Word_T(PID);
-        Loggers.Debug_Print (Sc_Log, "Setting up task for PID:" & PID'Image);
-        VS_Task.Sixteen_Bit := false; -- TODO
-        VS_Task.Start_Addr := PR_Addrs.PR_Start;
-        VS_Task.Ring_Mask  := PR_Addrs.PR_Start and 16#7000_0000#;
-        VS_Task.WFP := (if PR_Addrs.WFP /= 0 then PR_Addrs.WFP else PR_Addrs.WSP);
-        VS_Task.WSP := PR_Addrs.WSP;
-        VS_Task.WSB := PR_Addrs.WSB;
-        VS_Task.WSL := PR_Addrs.WSL;
-        VS_Task.WSFH := PR_Addrs.WSFH;
+   procedure Create_Task
+     (PID : in PID_T;
+      -- TID : in Word_T;
+      Priority : in Word_T; PR_Addrs : in PR_Addrs_T;
+      Console  : in GNAT.Sockets.Stream_Access)
+   is
+      Task_Data    : Task_Data_T;
+      TID          : Word_T;
+      Initial_Task : VS_Task;
+   begin
+      Task_Data.PID := Word_T (PID);
+      Loggers.Debug_Print (Sc_Log, "Setting up task for PID:" & PID'Image);
+      Task_Data.Sixteen_Bit := False; -- TODO
+      Task_Data.Start_Addr  := PR_Addrs.PR_Start;
+      Task_Data.Ring_Mask   := PR_Addrs.PR_Start and 16#7000_0000#;
+      Task_Data.WFP         :=
+        (if PR_Addrs.WFP /= 0 then PR_Addrs.WFP else PR_Addrs.WSP);
+      Task_Data.WSP  := PR_Addrs.WSP;
+      Task_Data.WSB  := PR_Addrs.WSB;
+      Task_Data.WSL  := PR_Addrs.WSL;
+      Task_Data.WSFH := PR_Addrs.WSFH;
 
-        VS_Task.Debug_Logging := true; -- FIXME
+      Task_Data.Debug_Logging := True; -- FIXME
 
-        AOSVS.Agent.Actions.Allocate_TID (PID, TID);
-        if TID = 0 then
-            raise NO_MORE_TIDS with "PID: " & PID'Image;
-        end if;
-        VS_Task.TID := TID;
-        Loggers.Debug_Print (Sc_Log, "... got TID:" & TID'Image);
+      AOSVS.Agent.Actions.Allocate_TID (PID, TID);
+      if TID = 0 then
+         raise NO_MORE_TIDS with "PID: " & PID'Image;
+      end if;
+      Task_Data.TID := TID;
+      Loggers.Debug_Print (Sc_Log, "... got TID:" & TID'Image);
 
-    end Create_Task;
+      Initial_Task.Start (Task_Data, Console);
+
+   end Create_Task;
+
+   task body VS_Task is
+      CPU          : Processor.CPU_T;
+      Adj_WSFH     : Phys_Addr_T;
+      I_Counts     : Processor.Instr_Count_T;
+      Syscall_Trap : Boolean;
+      Return_Addr  : Phys_Addr_T;
+      Call_ID      : Word_T;
+      Task_Data    : Task_Data_T;
+      Error_Code   : Dword_T;
+      Flags        : Byte_T;
+      Msg_Len      : Integer;
+      Term_Msg     : Unbounded_String;
+      Cons         : GNAT.Sockets.Stream_Access;
+   begin
+      CPU := Processor.Make;
+      accept Start (TD : in Task_Data_T; Console : in GNAT.Sockets.Stream_Access) do
+         Set_PC (CPU, TD.Start_Addr);
+         CPU.WFP  := TD.WFP;
+         CPU.WSP  := TD.WSP;
+         CPU.WSB  := TD.WSB;
+         CPU.WSL  := TD.WSL;
+         Adj_WSFH := (CPU.PC and 16#7000_0000#) or Memory.WSFH_Loc;
+         RAM.Write_Word (Adj_WSFH, Word_T (TD.WSFH));
+         CPU.ATU := True;
+         Set_Debug_Logging (CPU, TD.Debug_Logging);
+         Task_Data := TD;
+         Cons := Console;
+      end Start;
+
+      loop
+         -- run the processor until a system call trap...
+         Processor.VRun (CPU, Task_Data.Debug_Logging, Octal, I_Counts, Syscall_Trap);
+
+         if Syscall_Trap then
+            Return_Addr := Phys_Addr_T (CPU.AC (3));
+            if Task_Data.Sixteen_Bit then
+               raise Processor.Not_Yet_Implemented with "16-bit task";
+            else
+               Call_ID := RAM.Read_Word (Phys_Addr_T (CPU.WSP - 2));
+            end if;
+            case Call_ID is
+               when 8#310# => -- ?RETURN - handled differently
+                  Loggers.Debug_Print (Sc_Log, "?RETURN");
+                  Error_Code  := CPU.AC(0);
+                  Flags       := Byte_T(Get_DW_Bits(CPU.AC(2), 16, 8));
+                  Msg_Len     := Integer(Unsigned_8(Get_DW_Bits(CPU.AC(2), 24, 8)));
+                  if Msg_Len > 0 then
+                     Term_Msg := Byte_Arr_To_Unbounded(RAM.Read_Bytes_BA(CPU.AC(1), Msg_Len));
+                  end if;
+                  exit;
+               when others =>
+                  raise System_Call_Not_Implemented with "Decimal call #:" & Call_ID'Image;
+            end case;
+
+         else
+            -- VRun has stopped, but we're not at a system call...
+            exit;
+         end if;
+      end loop;
+
+      if Length(Term_Msg) > 0 then
+         for C of To_String(Term_Msg) loop
+            Character'Output(Cons, C);
+         end loop;
+      end if;
+
+
+   end VS_Task;
 
 end AOSVS.Agent.Tasking;

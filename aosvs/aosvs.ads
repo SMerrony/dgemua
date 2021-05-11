@@ -22,6 +22,8 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
+with GNAT.Sockets;
+
 with DG_Types; use DG_Types;
 
 package AOSVS is
@@ -67,6 +69,7 @@ package AOSVS is
                      Segment   : in Natural;
                      Arg_Count : in Positive;
                      Args      : in Args_Arr;
+                     Console   : in GNAT.Sockets.Stream_Access;
                      Logging   : in Boolean);
                  
     Invalid_PR_File : exception;

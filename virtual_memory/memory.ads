@@ -89,6 +89,8 @@ package Memory is
         function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T;
         procedure Write_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T; Datum : in Byte_T);
        
+        function  Read_Bytes_BA (BA : in Dword_T; Num : in Natural) return Byte_Arr_T;
+
     private
         VRAM : VRAM_Map.Map;
         Logging : Boolean;
