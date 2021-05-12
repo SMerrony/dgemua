@@ -86,6 +86,9 @@ package body AOSVS is
         Tmp_UST.Shared_Block_Count := PR_Arr(Natural(UST + USTSZ));
         Tmp_UST.Shared_Start_Page_In_PR := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSH)), PR_Arr(Natural(UST + USTSH+1)));
         Tmp_UST.PR_Type          := PR_Arr(Natural(UST + USTPR));
+        Ada.Text_IO.Put_Line ("UST: Shared - start block: " & Dword_To_String(Tmp_UST.Shared_Start_Block, Hex, 8) &
+                              ", # blocks: " & Dword_To_String(Dword_T(Tmp_UST.Shared_Block_Count), Hex, 8) &
+                              ", start page in .PR: " & Dword_To_String(Tmp_UST.Shared_Start_Page_In_PR, Hex, 8));
         return Tmp_UST;
     end Load_UST;
 
@@ -130,7 +133,7 @@ package body AOSVS is
 
         -- map the program into memory, 1st the unshared, then the shared portion
         RAM.Map_Range(Segment_Base, 
-                      Memory_Region(PR_Arr(8192 .. Integer(Shift_Left(PR_UST.Shared_Start_Page_In_PR, 10)) - 8)), 
+                      Memory_Region(PR_Arr(8192 .. Integer(Shift_Left(PR_UST.Shared_Start_Page_In_PR, 10) - 8))), 
                       false);
         RAM.Map_Range(Segment_Base + Phys_Addr_T(Shift_Left(PR_UST.Shared_Start_Block, 10)),
                       Memory_Region(PR_Arr(Integer(Shift_Left(PR_UST.Shared_Start_Page_In_PR, 10)) .. PR_Arr'Last)), 

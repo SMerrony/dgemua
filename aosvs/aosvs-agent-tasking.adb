@@ -92,7 +92,7 @@ package body AOSVS.Agent.Tasking is
          Set_Debug_Logging (CPU, TD.Debug_Logging);
          Task_Data := TD;
          Cons := Console;
-      end Start;
+      -- end Start;
 
       loop
          -- run the processor until a system call trap...
@@ -103,7 +103,8 @@ package body AOSVS.Agent.Tasking is
             if Task_Data.Sixteen_Bit then
                raise Processor.Not_Yet_Implemented with "16-bit task";
             else
-               Call_ID := RAM.Read_Word (Phys_Addr_T (CPU.WSP - 2));
+               Call_ID := RAM.Read_Word(Phys_Addr_T(RAM.Read_Dword (Phys_Addr_T (CPU.WSP - 2))));
+               Loggers.Debug_Print (Sc_Log, "System Call # is: " & Dword_To_String (Dword_T(Call_ID), Octal, 6));
             end if;
             case Call_ID is
                when 8#310# => -- ?RETURN - handled differently
@@ -131,6 +132,7 @@ package body AOSVS.Agent.Tasking is
          end loop;
       end if;
 
+      end Start; -- just for testing
 
    end VS_Task;
 

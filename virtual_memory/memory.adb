@@ -20,6 +20,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Text_IO;
 with Debug_Logs; use Debug_Logs;
 
 package body Memory is
@@ -48,10 +49,10 @@ package body Memory is
                 else
                     Last_Unshared_Page := Page;
                 end if;
-                if Logging then
-                    Loggers.Debug_Print (Debug_Log, "Memory: Mapped page " & Page'Image);
-                end if;
             end if;
+            Ada.Text_IO.Put_Line ("Memory: Mapped " &
+                                  (if Is_Shared then "Shared" else "Unshared") &
+                                  " page " & Int_To_String(Page, Hex, 8));
         end Map_Page;
 
         function Page_Mapped (Page : in Natural) return Boolean is (VRAM.Contains(Page));
@@ -65,11 +66,15 @@ package body Memory is
             Loc : Phys_Addr_T;
         begin
             for Offset in Region'Range loop
-                Loc := Start_Addr + Phys_Addr_T(Offset);
+                Loc := Start_Addr + Phys_Addr_T(Offset - Region'First);
                 -- if we have hit a page boundary then check it's mapped
                 if (Loc and 16#03ff#) = 0 then
                     if not Address_Mapped(Loc) then
                         Map_Page(Natural(Shift_Right(Loc, 10)), Is_Shared);
+                        Ada.Text_IO.Put_Line ("Memory: Mapped " &
+                                         (if Is_Shared then "Shared" else "Unshared") &
+                                         " page " & Int_To_String(Natural(Shift_Right(Loc, 10)), Hex, 8) &
+                                         " for " & Dword_To_String(Dword_T(Loc), Hex, 8));
                     end if;
                 end if;
                 Write_Word(Loc, Region(Offset));
@@ -80,7 +85,8 @@ package body Memory is
             Page : Natural := Natural(Shift_Right(Word_Addr, 10));
         begin
             if not Page_Mapped(Page) then
-                raise Read_From_Unmapped_Page with Page'Image;
+                raise Read_From_Unmapped_Page with Int_To_String(Page, Hex, 8) &
+                    " for address: " & Dword_To_String(Dword_T(Word_Addr), Hex, 8);
             end if;
             return VRAM(Page)(Integer(Word_Addr and 16#03ff#));
         end Read_Word;
