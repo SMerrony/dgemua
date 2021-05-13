@@ -128,6 +128,9 @@ package Processor is
    procedure Set_XCT_Mode   (CPU : in out CPU_T; YN : in Boolean);
    function  Get_XCT_Opcode (CPU : in CPU_T) return Word_T;
    procedure Set_Ac         (CPU : in out CPU_T; AC : in AC_ID; Datum : in Dword_T);
+   procedure Set_N          (CPU : in out CPU_T; N : in Boolean);
+   procedure Set_Z          (CPU : in out CPU_T; Z : in Boolean);
+
 
    task Status_Sender is
         entry Start (CPU : in CPU_T);

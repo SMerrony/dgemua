@@ -36,6 +36,7 @@ with Resolver;              use Resolver;
 with Status_Monitor;
 
 with Processor.Eagle_Decimal_P;
+with Processor.Eagle_FPU_P;
 with Processor.Eagle_IO_P;
 with Processor.Eagle_Mem_Ref_P;
 with Processor.Eagle_Op_P;
@@ -113,6 +114,7 @@ package body Processor is
       case Instr.Instr_Type is
          when EAGLE_DECIMAL  => Processor.Eagle_Decimal_P.Do_Eagle_Decimal(Instr, CPU);
          when EAGLE_MEMREF   => Processor.Eagle_Mem_Ref_P.Do_Eagle_Mem_Ref(Instr, CPU);
+         when EAGLE_FPU      => Processor.Eagle_FPU_P.Do_Eagle_FPU(Instr, CPU);         
          when EAGLE_IO       => Processor.Eagle_IO_P.Do_Eagle_IO(Instr, CPU);
          when EAGLE_OP       => Processor.Eagle_Op_P.Do_Eagle_Op(Instr, CPU);
          when EAGLE_PC       => Processor.Eagle_PC_P.Do_Eagle_PC(Instr, CPU);
@@ -212,6 +214,24 @@ package body Processor is
    begin
       CPU.AC(AC) := Datum;
    end Set_Ac;
+
+   procedure Set_N (CPU : in out CPU_T; N : in Boolean) is
+   begin
+      if N then
+         Set_QW_Bit (CPU.FPSR, FPSR_N);
+      else
+         Clear_QW_Bit (CPU.FPSR, FPSR_N);
+      end if;
+   end Set_N;
+
+   procedure Set_Z (CPU : in out CPU_T; Z : in Boolean) is
+   begin
+      if Z then
+         Set_QW_Bit (CPU.FPSR, FPSR_Z);
+      else
+         Clear_QW_Bit (CPU.FPSR, FPSR_Z);
+      end if;
+   end Set_Z;
 
    procedure Run (CPU : in out CPU_T;
                   Disassemble : in Boolean; 

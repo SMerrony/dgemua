@@ -123,6 +123,7 @@ package body AOSVS.Agent.Tasking is
                      Term_Msg := Byte_Arr_To_Unbounded(RAM.Read_Bytes_BA(CPU.AC(1), Msg_Len));
                   end if;
                   exit;
+               when 8#542# => Syscall_OK := true; -- AOSVS.FPU.Sys_IFPU (CPU, Task_Data.PID, Task_Data.TID);
                when others =>
                   raise System_Call_Not_Implemented with "Decimal call #:" & Call_ID'Image;
             end case;

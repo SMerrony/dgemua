@@ -16,7 +16,7 @@ Initial milestones are to run from image of AOS/VS 7.73 system tape image...
 * ~~File 2 - DFMTR - Runs with surface analysis to completion on 6061 disk - 18th April 2021~~
 * ~~File 3 - INSTL - Runs to completion - 19th April 2021~~
 * File 1 - FIXUP - produces UNKNOWN ERROR CODE 2 - that's further than mvemg gets!- 24th April 2021
-*  File 1 - PCOPY - Loops with 'Fatal disk error' even though disk is not being accessed - same as mvemg - 2nd May 2021
+* File 1 - PCOPY - Loops with 'Fatal disk error' even though disk is not being accessed - same as mvemg - 2nd May 2021
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
@@ -26,3 +26,4 @@ The following 32-bit sample programs copied from a physical machine are working.
 * HW.PR - Hello, World! (13 May 2021)
 * HW2.PR - Hello, World! using CLI return message (13 May 2021)
 * LOOPS1.PR - Basic looping constructs (13 May 2021)
+* LOOPS2.PR - Further loops (13 May 2021)

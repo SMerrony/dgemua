@@ -393,4 +393,17 @@ package body DG_Types is
       return Res;
    end Byte_To_String;
 
+   procedure Decode_Dec_Data_Type (DTI          : in Dword_T; 
+                                   Scale_Factor : out Integer_8;
+                                   Dec_Type     : out Natural;
+                                   Size         : out Natural) is
+   begin
+      Scale_Factor := Integer_8(Get_DW_Bits(DTI, 0, 8));
+      Dec_Type     := Natural(Unsigned_8(Get_DW_Bits(DTI, 24, 3)));
+      Size         := Natural(Unsigned_8(Get_DW_Bits(DTI, 27, 5)));
+      if Dec_Type /= Packed_Dec then
+         Size := Size + 1;
+      end if;
+   end Decode_Dec_Data_Type;
+
 end DG_Types;

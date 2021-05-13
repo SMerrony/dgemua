@@ -66,6 +66,16 @@ package DG_Types is
     Max_Pos_S32 : constant Integer_64 :=  (2 ** 31) - 1;
     Min_Neg_S32 : constant Integer_64 := -(Max_Pos_S32 + 1);
 
+    -- Decimal ('Commercial') data types
+    Unpacked_Dec_TSC : constant Natural := 0;
+    Unpacked_Dec_LSC : constant Natural := 1;
+    Unpacked_Dec_TS  : constant Natural := 2;
+    Unpacked_Dec_LS  : constant Natural := 3; -- <sign><zeroes><int>
+    Unpacked_Dec_U   : constant Natural := 4; -- <zeroes><int>
+    Packed_Dec       : constant Natural := 5;
+    Twos_Comp_Dec    : constant Natural := 6;
+    FP_Dec           : constant Natural := 7;
+
     Not_Yet_Implemented : Exception;
 
     -- boolean routines
@@ -130,6 +140,12 @@ package DG_Types is
         Truncate : in Boolean := false) 
         return String;
     function String_To_Integer(Str : in String; Base : in Number_Base_T) return Integer;
+
+    -- decimal routines
+    procedure Decode_Dec_Data_Type (DTI          : in Dword_T; 
+                                    Scale_Factor : out Integer_8;
+                                    Dec_Type     : out Natural;
+                                    Size         : out Natural);
  
     -- unchecked conversions
     function Byte_To_Integer_8 is new Ada.Unchecked_Conversion(Byte_T, Integer_8);
