@@ -20,6 +20,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with GNAT.Sockets;
@@ -59,8 +60,25 @@ package AOSVS.Agent is
 
 	type PPD_Arr is array (PID_T) of Per_Process_Data_T;
 
+	type Agent_Channel_T is record
+	   Opener_PID  : PID_T;
+	   Path        : Unbounded_String;
+	   Is_Console  : Boolean;
+	   Read,
+	   Write,
+	   For_Shared  : Boolean;
+	   Rec_Len     : Natural;
+	   Con         : GNAT.Sockets.Stream_Access;
+	   File_Stream : Stream_Access;
+	end record;
+
+	type Agent_Channel_Arr is array (1 .. 128) of Agent_Channel_T;
+
 	protected Actions is
 		procedure Init (Cons : in GNAT.Sockets.Stream_Access);
+
+		-- Process and Task supporting subprograms...
+
 		procedure Allocate_PID (Invocation_Args : in Args_Arr;
 								Virtual_Root    : in Unbounded_String;
 								Sixteen_Bit     : in Boolean;
@@ -69,12 +87,36 @@ package AOSVS.Agent is
 								PID             : out PID_T);
 	    procedure Allocate_TID (PID : in PID_T; TID : out Word_T);
 
+		-- System Call supporting subprograms...
+
+		procedure File_Open (PID     : in Word_T; 
+							 Path    : in String;
+							 Mode    : in Word_T;
+							 Rec_Len : in Integer;
+							 Chan_No : out Word_T;
+							 Err     : out Word_T);
+		procedure File_Close (Chan_No : in Word_T; Err : out Word_T);
+		procedure File_Write (Chan_No : in Word_T;
+							  Is_Extended,
+							  Is_Absolute,
+							  Is_DataSens : in Boolean;
+							  Rec_Len     : in Integer;
+							  Bytes       : in Byte_Arr_T;
+							  Position    : in Integer;
+							  Transferred : out Word_T;
+							  Err         : out Word_T);
+
 	private
 		PIDs_In_Use      : PIDs_Arr;
 		Per_Process_Data : PPD_Arr;
 		Console          : GNAT.Sockets.Stream_Access;
+		Agent_Chans      : Agent_Channel_Arr;
 	end Actions;
 
-	NO_MORE_TIDS : exception;
+	Channel_Not_Open,
+	NO_MORE_CHANNELS,
+	NO_MORE_TIDS,
+	Not_Yet_Implemented    : exception;
+
 
 end AOSVS.Agent;

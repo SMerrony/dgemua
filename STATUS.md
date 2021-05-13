@@ -19,3 +19,10 @@ Initial milestones are to run from image of AOS/VS 7.73 system tape image...
 *  File 1 - PCOPY - Loops with 'Fatal disk error' even though disk is not being accessed - same as mvemg - 2nd May 2021
 
 ## Virtual (AOS/VS) Emulator - vsemua
+
+* Last status update: 13th May 2021
+  
+The following 32-bit sample programs copied from a physical machine are working...
+* HW.PR - Hello, World! (13 May 2021)
+* HW2.PR - Hello, World! using CLI return message (13 May 2021)
+* LOOPS1.PR - Basic looping constructs (13 May 2021)

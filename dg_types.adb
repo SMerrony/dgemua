@@ -138,6 +138,25 @@ package body DG_Types is
       return Res;
    end Byte_Arr_To_Unbounded;
 
+   procedure Get_Data_Sensitive_Portion (B_Arr     : in Byte_Arr_T;
+                                         Max_Len   : in Integer;
+                                         Last_Byte : out Integer;
+                                         Too_Long  : out Boolean) is
+   begin
+      Too_Long := true;
+      for B in B_Arr'Range loop
+         if (B_Arr(B) = 0) or (B_Arr(B) = 10) or(B_Arr(B) = 12) or(B_Arr(B) = 13) then
+            if B > Max_Len then
+               exit;
+            end if;
+            Last_Byte := B - 1;
+            Too_Long := false;
+            exit;
+         end if;
+      end loop;
+
+   end Get_Data_Sensitive_Portion;
+
    function String_To_Integer
      (Str : in String; Base : in Number_Base_T) return Integer
    is

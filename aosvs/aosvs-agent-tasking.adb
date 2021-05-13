@@ -24,9 +24,11 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with Interfaces; use Interfaces;
 
+with AOSVS.File_IO;
 with Debug_Logs; use Debug_Logs;
 with Memory;     use Memory;
 with Processor;  use Processor;
+with Processor.Eagle_Stack_P;
 
 package body AOSVS.Agent.Tasking is
 
@@ -70,6 +72,7 @@ package body AOSVS.Agent.Tasking is
       Adj_WSFH     : Phys_Addr_T;
       I_Counts     : Processor.Instr_Count_T;
       Syscall_Trap : Boolean;
+      Syscall_OK   : Boolean;
       Return_Addr  : Phys_Addr_T;
       Call_ID      : Word_T;
       Task_Data    : Task_Data_T;
@@ -78,6 +81,7 @@ package body AOSVS.Agent.Tasking is
       Msg_Len      : Integer;
       Term_Msg     : Unbounded_String;
       Cons         : GNAT.Sockets.Stream_Access;
+      Dummy        : Dword_T;
    begin
       CPU := Processor.Make;
       accept Start (TD : in Task_Data_T; Console : in GNAT.Sockets.Stream_Access) do
@@ -104,9 +108,12 @@ package body AOSVS.Agent.Tasking is
                raise Processor.Not_Yet_Implemented with "16-bit task";
             else
                Call_ID := RAM.Read_Word(Phys_Addr_T(RAM.Read_Dword (Phys_Addr_T (CPU.WSP - 2))));
-               Loggers.Debug_Print (Sc_Log, "System Call # is: " & Dword_To_String (Dword_T(Call_ID), Octal, 6));
+               -- Loggers.Debug_Print (Sc_Log, "System Call # is: " & Dword_To_String (Dword_T(Call_ID), Octal, 6));
             end if;
             case Call_ID is
+               when 8#300# => Syscall_OK := Aosvs.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#301# => Syscall_OK := Aosvs.File_IO.Sys_CLOSE (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#303# => Syscall_OK := Aosvs.File_IO.Sys_WRITE (CPU, Task_Data.PID, Task_Data.TID);
                when 8#310# => -- ?RETURN - handled differently
                   Loggers.Debug_Print (Sc_Log, "?RETURN");
                   Error_Code  := CPU.AC(0);
@@ -119,7 +126,12 @@ package body AOSVS.Agent.Tasking is
                when others =>
                   raise System_Call_Not_Implemented with "Decimal call #:" & Call_ID'Image;
             end case;
-
+            Processor.Eagle_Stack_P.WS_Pop(CPU, Dummy);
+            if Syscall_OK then
+               CPU.PC := Return_Addr + 1; -- normal return
+            else
+               CPU.PC := Return_Addr;     -- error return
+            end if;
          else
             -- VRun has stopped, but we're not at a system call...
             exit;

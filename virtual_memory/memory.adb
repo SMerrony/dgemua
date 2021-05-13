@@ -20,6 +20,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Debug_Logs; use Debug_Logs;
 
@@ -139,6 +140,22 @@ package body Memory is
             end loop;
             return Bytes;
         end Read_Bytes_BA;
+
+        function Read_String_BA (BA : in Dword_T) return String is
+            Is_Low_Byte    : Boolean := Test_DW_Bit (BA, 31);
+            Byte, Low_Byte : Byte_T;
+            Offset         : Dword_T := 0;
+            U_Str          : Unbounded_String;
+        begin
+            loop
+               Byte := Read_Byte_BA (BA + Offset);
+               exit when Byte = 0;
+               U_Str := U_Str & Byte_To_Char(Byte);
+               Offset := Offset + 1;               
+            end loop;
+            return To_String(U_Str);
+        end Read_String_BA;
+
 
         function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T is
             Low_Byte : Boolean := Test_W_Bit(BA_16, 15);

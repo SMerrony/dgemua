@@ -22,7 +22,9 @@
 
 -- Adapted from parts of AOS/VS 7.73 PARU.32.SR definitions file
 
-with DG_Types; use DG_Types;
+with Interfaces; use Interfaces;
+
+with DG_Types;   use DG_Types;
 
 package PARU_32 is
 
@@ -339,4 +341,85 @@ package PARU_32 is
 	USTEN : constant Word_T := USTPR + 8#021#; -- END OF USER UST
 	USTPL : constant Word_T := USTEN + 6;   -- PROGRAM LOCALITY
 
+	--  LOGICAL RECORD FORMAT TYPES
+	ORDY : constant Word_T := 1; -- DYNAMIC
+	ORDS : constant Word_T := 2; -- DATA SENSITIVE
+	ORFX : constant Word_T := 3; -- FIXED LENGTH
+	ORVR : constant Word_T := 4; -- VARIABLE LENGTH
+	ORUN : constant Word_T := 5; -- UNDEFINED
+	ORVB : constant Word_T := 6; -- IBM VARIABLE BLOCK - VARIABLE RECORD
+
+	-- Record Format Field definitions
+	RTDY : constant Word_T := 1; -- DYNAMIC
+	RTDS : constant Word_T := 2; -- DATA SENSITIVE
+	RTFX : constant Word_T := 3; -- FIXED LENGTH
+	RTVR : constant Word_T := 4; -- VARIABLE LENGTH
+	RTUN : constant Word_T := 5; -- UNDEFINED
+	RTVB : constant Word_T := 6; -- IBM VARIABLE BLOCK - VARIABLE RECORD
+
+	-- GENERAL USER I/O PACKET USED FOR open/read/write/close
+	ICH   : constant Phys_Addr_T := 0;        -- CHANNEL NUMBER
+	ISTI  : constant Phys_Addr_T := ICH + 1;  -- STATUS WORD (IN)
+	ISTO  : constant Phys_Addr_T := ISTI + 1; -- RIGHT=FILE TYPE, LEFT=RESERVED
+	IMRS  : constant Phys_Addr_T := ISTO + 1; -- PHYSICAL RECORD SIZE - 1 (BYTES)
+	IBAD  : constant Phys_Addr_T := IMRS + 1; -- BYTE POINTER TO BUFFER
+	IBAL  : constant Phys_Addr_T := IBAD + 1; -- LOW ORDER BITS OF ibad
+	IRES  : constant Phys_Addr_T := IBAL + 1; -- RESERVED
+	IRCL  : constant Phys_Addr_T := IRES + 1; -- RECORD LENGTH
+	IRLR  : constant Phys_Addr_T := IRCL + 1; -- RECORD LENGTH (RETURNED)
+	IRNW  : constant Phys_Addr_T := IRLR + 1; -- RESERVED
+	IRNH  : constant Phys_Addr_T := IRNW + 1; -- RECORD NUMBER (HIGH)
+	IRNL  : constant Phys_Addr_T := IRNH + 1; -- RECORD NUMBER (LOW)
+	IFNP  : constant Phys_Addr_T := IRNL + 1; -- BYTE POINTER TO FILE NAME
+	IFNL  : constant Phys_Addr_T := IFNP + 1; -- LOW ORDER BITS OF ifnp
+	IDEL  : constant Phys_Addr_T := IFNL + 1; -- DELIMITER TABLE ADDRESS
+	IDLL  : constant Phys_Addr_T := IDEL + 1; -- LOWER BITS OF idel
+	IOSZ  : constant Phys_Addr_T := IDLL + 1; -- LENGTH OF STANDARD I/O PACKET
+
+	ETSP : constant Phys_Addr_T := IDLL + 1; -- SCREEN MANAGEMENT PACKET
+	ETSL : constant Phys_Addr_T := ETSP + 1; -- LOWER PORTION OF etsp
+	ETFT : constant Phys_Addr_T := ETSL + 1; -- SELECTED FIELD TRANSLATION PACKET
+	ETFL : constant Phys_Addr_T := ETFT + 1; -- LOWER PORTION OF etft
+	ETLT : constant Phys_Addr_T := ETFL + 1; -- LABELED TAPE PACKET
+	ETLL : constant Phys_Addr_T := ETLT + 1; -- LOWER PORTION OF etlt
+	ENET : constant Phys_Addr_T := ETLL + 1; -- RESERVED
+	ENEL : constant Phys_Addr_T := ENET + 1; -- RESERVED
+	IBLT : constant Phys_Addr_T := ENEL + 1; -- LENGTH OF EXTENDED PACKET
+
+	--  isti FLAGS: BIT DEFINITIONS
+	IPLB : constant Natural := 0; -- PACKET LENGTH BIT (0 : constant Natural :=> SHORT PACKET)
+	ICFB : constant Natural := 1; -- CHANGE FORMAT BIT (0 : constant Natural :=> DEFAULT)
+	ICDM : constant Natural := 1; -- DUMP MODE BIT (ON close ONLY)
+	IPTB : constant Natural := 2; -- POSITIONING TYPE (0 : constant Natural :=> RELATIVE)
+	IBIB : constant Natural := 3; -- BINARY I/O
+	IFOB : constant Natural := 4; -- FORCE OUTPUT
+	IOEX : constant Natural := 5; -- EXCLUSIVE OPEN
+	IIPS : constant Natural := 6; -- IPC NO WAIT BIT
+	PDLM : constant Natural := 7; -- PRIORITY REQUEST
+	APBT : constant Natural := 8; -- OPEN FILE FOR APPENDING
+	OF1B : constant Natural := 9; -- OPEN TYPE BIT 1
+	OF2B : constant Natural := 10; -- OPEN TYPE BIT 2
+	OPIB : constant Natural := 11; -- OPEN FOR INPUT
+	OPOB : constant Natural := 12; -- OPEN FOR OUTPUT
+	RF1B : constant Natural := 13; -- RECORD FORMAT BIT 1
+	RF2B : constant Natural := 14; -- RECORD FORMAT BIT 2
+	RF3B : constant Natural := 15; -- RECORD FORMAT BIT 3
+
+	--  isti FLAGS: MASK DEFINITIONS
+	IPKL : constant Phys_Addr_T := Shift_Right (16#8000#, IPLB); -- EXTENDED PACKET (IF SET)
+	ICRF : constant Phys_Addr_T := Shift_Right (16#8000#, ICFB); -- CHANGE RECORD FORMAT (IF SET)
+	CDMP : constant Phys_Addr_T := Shift_Right (16#8000#, ICDM); -- SET DUMP BIT (ONLY ON close)
+	IPST : constant Phys_Addr_T := Shift_Right (16#8000#, IPTB); -- RECORD POSITIONING TYPE (1 - ABSOLUTE)
+	IBIN : constant Phys_Addr_T := Shift_Right (16#8000#, IBIB); -- BINARY I/O
+	IFOP : constant Phys_Addr_T := Shift_Right (16#8000#, IFOB); -- FORCE OUTPUT
+	IEXO : constant Phys_Addr_T := Shift_Right (16#8000#, IOEX); -- EXCLUSIVE OPEN
+	IIPC : constant Phys_Addr_T := Shift_Right (16#8000#, IIPS); -- IPC NO WAIT BIT
+	PDEL : constant Phys_Addr_T := Shift_Right (16#8000#, PDLM); -- PRIORITY OPEN-I/O
+	APND : constant Phys_Addr_T := Shift_Right (16#8000#, APBT); -- OPEN FILE FOR APPENDING
+	OFCR : constant Phys_Addr_T := Shift_Right (16#8000#, OF1B); -- ATTEMPT CREATE BEFORE OPEN
+	OFCE : constant Phys_Addr_T := Shift_Right (16#8000#, OF2B); -- CORRECT ERROR ON CREATE OR OPEN
+	OFIN : constant Phys_Addr_T := Shift_Right (16#8000#, OPIB); -- OPEN FOR INPUT
+	OFOT : constant Phys_Addr_T := Shift_Right (16#8000#, OPOB); -- OPEN FOR OUTPUT
+	OFIO : constant Phys_Addr_T := OFIN + OFOT   ; -- OPEN FOR INPUT AND OUTPUT
+	
 end PARU_32;

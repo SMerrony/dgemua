@@ -97,6 +97,10 @@ package DG_Types is
         return String;  
     function Low_Byte_To_Char (LB : in Boolean) return Character;
     function Byte_Arr_To_Unbounded (B_Arr : in Byte_Arr_T) return Unbounded_String;
+    procedure Get_Data_Sensitive_Portion (B_Arr     : in Byte_Arr_T;
+                                          Max_Len   : in Integer;
+                                          Last_Byte : out Integer;
+                                          Too_Long  : out Boolean);
 
     -- Dword routines
     function Lower_Word( DW : in Dword_T) return Word_T with Inline;

@@ -22,6 +22,8 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
+with PARU_32;
+
 package body AOSVS.Agent is
 
    protected body Actions is
@@ -72,6 +74,113 @@ package body AOSVS.Agent is
             TID := 0;
          end loop;
       end Allocate_TID;
+
+		procedure File_Open (PID     : in Word_T; 
+                           Path    : in String;
+                           Mode    : in Word_T;
+                           Rec_Len : in Integer;
+                           Chan_No : out Word_T;
+                           Err     : out Word_T) is
+         Ag_Chan : Agent_Channel_T;
+      begin
+         Err := 0;
+         Ag_Chan.Path := To_Unbounded_String (Path);
+         -- parse creation options
+         -- parse R/W options
+
+         if Path(Path'First) = '@' then
+            if (Path = "@CONSOLE") or (Path = "@INPUT") or (Path = "@OUTPUT") then
+               Ag_Chan.Con := Console;
+               Ag_Chan.Is_Console := true;
+            else
+               raise Not_Yet_Implemented with "Cannot handle unknown generic files";
+            end if;
+         elsif (Path(Path'First) /= ':') and (Per_Process_Data(PID_T(PID)).Virtual_Root /= "") then
+             raise Not_Yet_Implemented with "Real (relative) file opening";
+         else 
+            raise Not_Yet_Implemented with "Real (abolute) file opening";
+         end if;
+
+         -- check for errors
+
+         if Rec_Len > 0 then
+            Ag_Chan.Rec_Len := Rec_Len;
+         end if;
+         Chan_No := 0;
+         for C in Agent_Chans'Range loop
+            if Agent_Chans(C).Opener_PID = 0 then
+               Agent_Chans(C) := Ag_Chan;
+               Chan_No := Word_T(C);
+               exit;
+            end if;
+         end loop;
+         if Chan_No = 0 then
+            raise NO_MORE_CHANNELS;
+         end if;
+      end File_Open;
+
+      procedure File_Close (Chan_No : in Word_T; Err : out Word_T) is
+      begin
+         Err := 0;
+         if Chan_No /= 0 then
+            if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
+               Err := PARU_32.ERACU;
+            else
+               if Agent_Chans(Integer(Chan_No)).Is_Console then
+                  null; -- ignore ?CLOSE on console device for now
+               else
+                  raise Not_Yet_Implemented with "Real file closing";
+               end if;
+            end if;
+         end if;
+      end File_Close;
+
+      procedure File_Write (Chan_No : in Word_T;
+                              Is_Extended,
+                              Is_Absolute,
+                              Is_DataSens : in Boolean;
+                              Rec_Len     : in Integer;
+                              Bytes       : in Byte_Arr_T;
+                              Position    : in Integer;
+                              Transferred : out Word_T;
+                              Err         : out Word_T) is
+         Max_Len  : Integer;
+         Too_Long : Boolean := false;
+         DS_Len   : Integer;
+      begin
+         Err := 0;
+         if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
+            raise Channel_Not_Open with "?WRITE";
+         end if;
+         if Is_DataSens then
+            Max_Len := Rec_Len;
+            if Rec_Len = -1 then
+               Max_Len := Agent_Chans(Integer(Chan_No)).Rec_Len;
+            end if;
+            Get_Data_Sensitive_Portion (Bytes, Max_Len, DS_Len, Too_Long);
+            if Too_Long then
+               Err := PARU_32.ERLTL;
+            end if;
+         end if;
+         if not Too_Long then
+            if Agent_Chans(Integer(Chan_No)).Is_Console then
+               if Is_DataSens then
+                  for B in 0 .. DS_Len loop
+                     Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Bytes(B));
+                  end loop;
+                  Transferred := Word_T(DS_Len);
+               else
+                  for B in Bytes'Range loop
+                     Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Bytes(B));
+                  end loop;
+                  Transferred := Word_T(Bytes'Length);
+               end if;
+            else
+               raise Not_Yet_Implemented with "?WRITE to real file";
+            end if;
+         end if;
+      end File_Write;
+
 
    end Actions;
 
