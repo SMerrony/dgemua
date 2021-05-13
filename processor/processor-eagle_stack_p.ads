@@ -22,6 +22,9 @@
 
 package Processor.Eagle_Stack_P is
 
+    procedure WS_Pop  (CPU : in out CPU_T; DW : out DWord_T);
+    procedure WS_Push (CPU : in out CPU_T; DW : in DWord_T);
+
     procedure Do_Eagle_Stack (I : in Decoded_Instr_T; CPU : in out CPU_T);
 
 end Processor.Eagle_Stack_P;

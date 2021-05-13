@@ -27,6 +27,24 @@ with Resolver;    use Resolver;
 
 package body Processor.Eagle_Stack_P is 
 
+   procedure WS_Pop (CPU : in out CPU_T; DW : out Dword_T) is
+   begin
+      DW := RAM.Read_Dword (CPU.WSP);
+      CPU.WSP := CPU.WSP - 2;
+      if CPU.Debug_Logging then
+         Loggers.Debug_Print (Debug_Log, "Popped " & Dword_To_String (DW, Octal, 11));
+      end if;
+   end WS_Pop;
+
+   procedure WS_Push (CPU : in out CPU_T; DW : in Dword_T) is
+   begin
+      CPU.WSP := CPU.WSP + 2;
+      RAM.Write_Dword (CPU.WSP, DW);
+      if CPU.Debug_Logging then
+         Loggers.Debug_Print (Debug_Log, "Pushed " & Dword_To_String (DW, Octal, 11));
+      end if;
+   end WS_Push;
+
    procedure Do_Eagle_Stack (I : in Decoded_Instr_T; CPU : in out CPU_T) is
       Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
       OK   : Boolean;
@@ -54,26 +72,14 @@ package body Processor.Eagle_Stack_P is
             Clear_W_Bit(CPU.PSR, 1);
         end if;
       end Set_OVR;
-      procedure WS_Pop (DW : out Dword_T) is
-      begin
-         DW := RAM.Read_Dword (CPU.WSP);
-         CPU.WSP := CPU.WSP - 2;
-      end WS_Pop;
 
       procedure WS_Pop_QW (QW : out Qword_T) is
          RHS, LHS : Dword_T;
       begin
-         WS_Pop(RHS);
-         WS_Pop(LHS);
+         WS_Pop(CPU,RHS);
+         WS_Pop(CPU,LHS);
          QW := Shift_Left(Qword_T(LHS), 32) or Qword_T(RHS);
       end WS_Pop_QW;
-
-
-      procedure WS_Push (Datum : in Dword_T) is
-      begin
-         CPU.WSP := CPU.WSP + 2;
-         RAM.Write_Dword (CPU.WSP, Datum);
-      end WS_Push;
 
       procedure WS_Push_QW (Datum : in Qword_T) is
       begin
@@ -129,12 +135,12 @@ package body Processor.Eagle_Stack_P is
          if CPU.Carry then
             DW := DW or 16#8000_0000#;
          end if;
-         WS_Push (Dword_From_Two_Words(CPU.PSR, 0));
-         WS_Push (CPU.AC(0));
-         WS_Push (CPU.AC(1));
-         WS_Push (CPU.AC(2));
-         WS_Push (Dword_T(CPU.WFP));
-         WS_Push (DW);
+         WS_Push (CPU, Dword_From_Two_Words(CPU.PSR, 0));
+         WS_Push (CPU, CPU.AC(0));
+         WS_Push (CPU, CPU.AC(1));
+         WS_Push (CPU, CPU.AC(2));
+         WS_Push (CPU, Dword_T(CPU.WFP));
+         WS_Push (CPU, DW);
          -- step 3
          Clear_W_Bit (CPU.PSR, 0); -- OVK
          Clear_W_Bit (CPU.PSR, 1); -- OVR
@@ -185,7 +191,7 @@ package body Processor.Eagle_Stack_P is
                   WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
                   -- return;
                end if;
-               WS_Push (DW);
+               WS_Push (CPU, DW);
                CPU.PC := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset); 
                CPU.AC(3) := PC_4;
                return; -- we have set the PC
@@ -209,7 +215,7 @@ package body Processor.Eagle_Stack_P is
 
          when I_LPEF =>
                Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
-               WS_Push (Dword_T(Addr));
+               WS_Push (CPU, Dword_T(Addr));
                Set_OVR (false);
 
          when I_LPEFB =>
@@ -229,7 +235,7 @@ package body Processor.Eagle_Stack_P is
             if I.Disp_32 mod 2 = 1 then
                Addr := Addr + 1;
             end if;
-            WS_Push (Dword_T(Addr));
+            WS_Push (CPU, Dword_T(Addr));
             Set_OVR (false);
 
          when I_STAFP =>
@@ -307,13 +313,13 @@ package body Processor.Eagle_Stack_P is
                if CPU.Debug_Logging then
                   Loggers.Debug_Print (Debug_Log, "POP popping AC" & This_AC'Image);
                end if;
-               WS_Pop(CPU.AC(AC_Circle(This_AC)));
+               WS_Pop(CPU,CPU.AC(AC_Circle(This_AC)));
                exit when This_Ac = Last;
                This_Ac := This_Ac -1;
             end loop;
 
          when I_WPOPJ =>
-            WS_Pop(DW);
+            WS_Pop(CPU,DW);
             DW := (DW and 16#0fff_ffff#) or Dword_T(Ring);
             CPU.PC := Phys_Addr_T(DW);
             WSP_Check_Bounds (Delta_Words => 0, 
@@ -337,21 +343,21 @@ package body Processor.Eagle_Stack_P is
                if CPU.Debug_Logging then
                   Loggers.Debug_Print (Debug_Log, "WPSH pushing AC" & This_AC'Image);
                end if;   
-               WS_Push (CPU.AC(AC_Circle(This_AC)));
+               WS_Push (CPU, CPU.AC(AC_Circle(This_AC)));
             end loop;
             Set_OVR (false);
 
          when I_WRTN => -- FIXME: WRTN incomplete, handle PSR and Rings
             CPU.WSP := CPU.WFP;
-            WS_Pop (DW);
+            WS_Pop (CPU, DW);
             CPU.Carry := Test_DW_Bit (DW, 0);
             CPU.PC := Phys_Addr_T(DW and 16#7fff_ffff#);
-            WS_Pop (CPU.AC(3));
+            WS_Pop (CPU, CPU.AC(3));
             CPU.WFP := Phys_Addr_T(CPU.AC(3));
-            WS_Pop (CPU.AC(2));
-            WS_Pop (CPU.AC(1));
-            WS_Pop (CPU.AC(0));
-            WS_Pop (DW);
+            WS_Pop (CPU, CPU.AC(2));
+            WS_Pop (CPU, CPU.AC(1));
+            WS_Pop (CPU, CPU.AC(0));
+            WS_Pop (CPU, DW);
             CPU.PSR := Upper_Word (DW);
             CPU.WSP := CPU.WSP - Phys_Addr_T (Shift_Left ((DW and 16#0000_7fff#), 1));
             return; -- We've set PC
@@ -372,11 +378,11 @@ package body Processor.Eagle_Stack_P is
             if CPU.Carry then
                DW := DW or 16#8000_0000#;
             end if;
-            WS_Push (CPU.AC(0));
-            WS_Push (CPU.AC(1));
-            WS_Push (CPU.AC(2));
-            WS_Push (Dword_T(CPU.WFP));
-            WS_Push (DW);
+            WS_Push (CPU, CPU.AC(0));
+            WS_Push (CPU, CPU.AC(1));
+            WS_Push (CPU, CPU.AC(2));
+            WS_Push (CPU, Dword_T(CPU.WFP));
+            WS_Push (CPU, DW);
             CPU.WFP := CPU.WSP;
             CPU.AC(3) := Dword_T(CPU.WSP);
             if Req_Space > 0 then
@@ -405,12 +411,12 @@ package body Processor.Eagle_Stack_P is
             if CPU.Carry then
                DW := DW or 16#8000_0000#;
             end if;
-            WS_Push (Dword_From_Two_Words(CPU.PSR, 0));
-            WS_Push (CPU.AC(0));
-            WS_Push (CPU.AC(1));
-            WS_Push (CPU.AC(2));
-            WS_Push (Dword_T(CPU.WFP));
-            WS_Push (DW);
+            WS_Push (CPU, Dword_From_Two_Words(CPU.PSR, 0));
+            WS_Push (CPU, CPU.AC(0));
+            WS_Push (CPU, CPU.AC(1));
+            WS_Push (CPU, CPU.AC(2));
+            WS_Push (CPU, Dword_T(CPU.WFP));
+            WS_Push (CPU, DW);
             CPU.WFP := CPU.WSP;
             CPU.AC(3) := Dword_T(CPU.WSP);
             if Req_Space > 0 then
@@ -426,7 +432,7 @@ package body Processor.Eagle_Stack_P is
 
          when I_XPEF =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
-            WS_Push (Dword_T(Addr));
+            WS_Push (CPU, Dword_T(Addr));
 
          when I_XPEFB =>
             Addr := Resolve_15bit_Disp (CPU, false, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -434,7 +440,7 @@ package body Processor.Eagle_Stack_P is
             if I.Low_Byte then
                Addr := Addr + 1;
             end if;
-            WS_Push (Dword_T(Addr));
+            WS_Push (CPU, Dword_T(Addr));
             Set_OVR (false);
             WSP_Check_Bounds (Delta_Words => 0, 
                               Is_Save => false, 
@@ -448,7 +454,7 @@ package body Processor.Eagle_Stack_P is
             end if;
 
          when I_XPSHJ =>
-            WS_Push (Dword_T(CPU.PC) + 2);
+            WS_Push (CPU, Dword_T(CPU.PC) + 2);
             WSP_Check_Bounds (Delta_Words => 0, 
                               Is_Save => false, 
                               OK => OK, 
