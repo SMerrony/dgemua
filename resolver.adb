@@ -135,11 +135,11 @@ package body Resolver is
                -- Zero-extend to 28 bits
                Eff := Phys_Addr_T(Disp); --  or Ring;
             when PC =>
-               Eff := Phys_Addr_T(Integer_32(CPU.PC) + Disp + Integer_32(Disp_Offset));
+               Eff := Phys_Addr_T(Integer_32_To_Dword(Dword_To_Integer_32(Dword_T(CPU.PC)) + Disp + Integer_32(Disp_Offset)));
             when AC2 =>
-               Eff := Phys_Addr_T(Integer_32(CPU.AC(2)) + Disp);
+               Eff := Phys_Addr_T(Integer_32_To_Dword(Dword_To_Integer_32(CPU.AC(2)) + Disp));
             when AC3 =>
-               Eff := Phys_Addr_T(Integer_32(CPU.AC(3)) + Disp);
+               Eff := Phys_Addr_T(Integer_32_To_Dword(Dword_To_Integer_32(CPU.AC(3)) + Disp));
          end case;
 
          if Indirect then

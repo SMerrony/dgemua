@@ -20,7 +20,7 @@ Initial milestones are to run from image of AOS/VS 7.73 system tape image...
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 13th May 2021
+* Last status update: 14 May 2021
   
 The following 32-bit sample programs copied from a physical machine are working...
 * HW.PR - Hello, World! (13 May 2021)
@@ -28,4 +28,7 @@ The following 32-bit sample programs copied from a physical machine are working.
 * LOOPS1.PR - Basic looping constructs (13 May 2021)
 * LOOPS2.PR - Further loops (13 May 2021)
 * LOOPS3.PR - Loops with LWDO and -ve values (14 May 2021)
-* 
+* LOOPS4.PR - As LOOPS3 with external subroutines (14 May 2021)
+* SPIGOT.PR - Calculate Pi to a thousand places using the spigot method (14 May 2021)
+* STRINGTESTS.PR - Various string-handling routines (14 May 2021)
+  
