@@ -127,6 +127,22 @@ package body Processor.Eagle_PC_P is
             WS_Push (Dword_T(CPU.PC) + 3);
             CPU.PC := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
 
+         when I_LWDO => 
+            declare
+               Count : Integer_32 := Integer_32(CPU.AC(I.Ac));
+               Mem_Var_Addr : Phys_Addr_T := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               Mem_Var : Integer_32 := Dword_To_Integer_32(RAM.Read_Dword (Mem_Var_Addr)) + 1;
+            begin
+               RAM.Write_Dword (Mem_Var_Addr, Integer_32_To_Dword(Mem_Var));
+               CPU.AC(I.Ac) := Integer_32_To_Dword(Mem_Var);
+               if Mem_Var > Count then
+                  -- loop ends
+                  CPU.PC := CPU.PC + Phys_Addr_T(I.Imm_U16) + 1;
+               else
+                  CPU.PC := CPU.PC + 4;
+               end if;
+            end;
+
          when I_LWDSZ =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             DW := RAM.Read_Dword(Addr) - 1;

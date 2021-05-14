@@ -370,6 +370,23 @@ package body Decoder is
                   Decoded.Disassembly & Decoded.IO_Test'Image & " " &
                   Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
             end if;
+
+         when LNDO_4_WORD_FMT => -- also LWDO
+            Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 1, 2));
+            Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
+            Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
+            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2, Decoded.Word_3, Decoded.Mode);
+            Decoded.Imm_U16 := Unsigned_16(Memory.RAM.Read_Word (PC + 3));
+            if Disassemble then
+               Decoded.Disassembly :=
+                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," & 
+                  Int_To_String (Integer(Decoded.Imm_U16), Radix, 8, false, true) & 
+                  Char_Indirect(Decoded.Ind) &
+                  Int_To_String (Integer(Decoded.Disp_31), Radix, 12, false, true) &
+                  String_Mode(Decoded.Mode) & " [4-Word Instruction]";
+            end if;
                   
          when NOACC_MODE_2_WORD_FMT => -- eg. XPEFB
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));

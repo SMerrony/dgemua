@@ -27,3 +27,5 @@ The following 32-bit sample programs copied from a physical machine are working.
 * HW2.PR - Hello, World! using CLI return message (13 May 2021)
 * LOOPS1.PR - Basic looping constructs (13 May 2021)
 * LOOPS2.PR - Further loops (13 May 2021)
+* LOOPS3.PR - Loops with LWDO and -ve values (14 May 2021)
+* 

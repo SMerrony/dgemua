@@ -145,7 +145,7 @@ package body DG_Types is
    begin
       Too_Long := true;
       for B in B_Arr'Range loop
-         if (B_Arr(B) = 0) or (B_Arr(B) = 10) or(B_Arr(B) = 12) or(B_Arr(B) = 13) then
+         if (B_Arr(B) = 0) then -- or (B_Arr(B) = 10) or(B_Arr(B) = 12) or(B_Arr(B) = 13) then
             if B > Max_Len then
                exit;
             end if;
