@@ -150,10 +150,10 @@ package body Processor.Eagle_Stack_P is
          -- step 5
          CPU.WSL := CPU.WSL or 16#8000_0000#;
          -- step 6
-         RAM.Write_Dword (Ring and WFP_Loc, Dword_T(CPU.WFP));
-         RAM.Write_Dword (Ring and WSP_Loc, Dword_T(CPU.WSP));
-         RAM.Write_Dword (Ring and WSL_Loc, Dword_T(CPU.WSL));
-         RAM.Write_Dword (Ring and WSB_Loc, Dword_T(CPU.WSB));
+         RAM.Write_Dword (Ring or WFP_Loc, Dword_T(CPU.WFP));
+         RAM.Write_Dword (Ring or WSP_Loc, Dword_T(CPU.WSP));
+         RAM.Write_Dword (Ring or WSL_Loc, Dword_T(CPU.WSL));
+         RAM.Write_Dword (Ring or WSB_Loc, Dword_T(CPU.WSB));
          -- step 7
          CPU.AC(0) := Dword_T(CPU.PC);
          -- step 8

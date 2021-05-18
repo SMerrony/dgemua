@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/vsemua",
-            "args": ["-pr", "PROGRAMS/TIMEOUT.PR", "-root", "."],
+            "args": ["-pr", "PROGRAMS/GAMES/WUMPUS/WUMPUS.PR", "-root", "."],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
