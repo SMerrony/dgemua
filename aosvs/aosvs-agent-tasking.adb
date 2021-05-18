@@ -25,6 +25,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Interfaces; use Interfaces;
 
 with AOSVS.File_IO;
+with AOSVS.Multitasking;
 with AOSVS.System;
 with Debug_Logs; use Debug_Logs;
 with Memory;     use Memory;
@@ -112,6 +113,7 @@ package body AOSVS.Agent.Tasking is
                -- Loggers.Debug_Print (Sc_Log, "System Call # is: " & Dword_To_String (Dword_T(Call_ID), Octal, 6));
             end if;
             case Call_ID is
+               when 8#263# => Syscall_OK := Aosvs.Multitasking.Sys_WDELAY (CPU, Task_Data.PID, Task_Data.TID);
                when 8#300# => Syscall_OK := Aosvs.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#301# => Syscall_OK := Aosvs.File_IO.Sys_CLOSE (CPU, Task_Data.PID, Task_Data.TID);
                when 8#303# => Syscall_OK := Aosvs.File_IO.Sys_WRITE (CPU, Task_Data.PID, Task_Data.TID);
