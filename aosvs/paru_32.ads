@@ -421,5 +421,36 @@ package PARU_32 is
 	OFIN : constant Phys_Addr_T := Shift_Right (16#8000#, OPIB); -- OPEN FOR INPUT
 	OFOT : constant Phys_Addr_T := Shift_Right (16#8000#, OPOB); -- OPEN FOR OUTPUT
 	OFIO : constant Phys_Addr_T := OFIN + OFOT   ; -- OPEN FOR INPUT AND OUTPUT
+
+	-- PACKET TO GET INITIAL MESSAGE (?GTMES)
+	GREQ : constant Phys_Addr_T := 0;        -- REQUEST TYPE (SEE BELOW)
+	GNUM : constant Phys_Addr_T := GREQ + 1; -- ARGUMENT NUMBER
+	GSW  : constant Phys_Addr_T := GNUM + 1; -- BYTE PTR TO POSSIBLE SWITCH
+	GSW1 : constant Phys_Addr_T := GSW + 1;  -- LOWER PORTION OF gsw
+	GRES : constant Phys_Addr_T := GSW1 + 1; -- BYTE PTR TO AREA TO RECEIVE
+	GREL : constant Phys_Addr_T := GRES + 1; -- LOWER PORTION OF gres
+	-- SWITCH
+	GTLN : constant Phys_Addr_T := GREL + 1; -- PACKET LENGTH
+
+	-- REQUEST TYPES (greq)
+	GMES : constant Word_T := 0;        -- GET ENTIRE MESSAGE
+	GCMD : constant Word_T := GMES + 1; -- GET CLI COMMAND
+	GCNT : constant Word_T := GCMD + 1; -- GET ARGUMENT COUNT
+	GARG : constant Word_T := GCNT + 1; -- GET ARGUMENT
+	GTSW : constant Word_T := GARG + 1; -- TEST SWITCH
+	GSWS : constant Word_T := GTSW + 1; -- TEST SWITCHES
+	GDLC : constant Word_T := 16#8000#;  --1B0 DISABLE LOWER TO UPPERCASE CONVERSION
+
+	-- FLAGS RETURNED ON gflg TYPE CALLS
+	GFCF : constant Word_T := 16#8000#; -- 1B0             -- CLI FORMAT
+
+	-- BY CONVENTION, PROGRAMS CALLABLE FROM EXEC USE BITS 1 & 2
+	-- IF gfcf IS 0.
+	GFEX : constant Word_T := 16#4000#; --1B1             -- FROM EXEC IF ON
+
+	--IF gfex IS ON, gfxb GIVES JOB'S BATCH/INTERACTIVE STATUS
+	GFXB : constant Word_T := 16#2000#; --1B2             -- ON=BATCH, OFF=INTERACTIVE
+	-- IN ADDITION, IF CLI IS INVOKED WITH gfcf 0, BOTH gfxb & gfex
+	-- EQUAL TO ZERO => EXECUTE COMMAND PASSED IN MESSAGE AND RETURN.	
 	
 end PARU_32;

@@ -105,6 +105,9 @@ package AOSVS.Agent is
 							  Position    : in Integer;
 							  Transferred : out Word_T;
 							  Err         : out Word_T);
+		function Get_Nth_Arg (PID : in Word_T; Arg_Num : in Word_T) return Unbounded_String;
+		function Get_Num_Args (PID : in Word_T) return Dword_T;
+							   
 
 	private
 		PIDs_In_Use      : PIDs_Arr;
@@ -116,6 +119,7 @@ package AOSVS.Agent is
 	Channel_Not_Open,
 	NO_MORE_CHANNELS,
 	NO_MORE_TIDS,
+	No_Such_Argument,
 	Not_Yet_Implemented    : exception;
 
 

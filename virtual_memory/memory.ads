@@ -92,6 +92,7 @@ package Memory is
         -- specific support for VS/Emua...
         function  Read_Bytes_BA (BA : in Dword_T; Num : in Natural) return Byte_Arr_T;
         function  Read_String_BA (BA : in Dword_T) return String;
+        procedure Write_String_BA (BA : in Dword_T; Str : in String);
     private
         VRAM : VRAM_Map.Map;
         Logging : Boolean;

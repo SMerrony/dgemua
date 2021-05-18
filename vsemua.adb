@@ -47,7 +47,9 @@ procedure VSEmua is
    Command_Line  : Unbounded_String;
    Command       : Unbounded_String;
    Arg_Num       : Positive := 1;
-   PR_Arg_Num, Root_Arg_Num    : Natural := 0;
+   PR_Arg_Num, 
+   Root_Arg_Num,
+   Args_Arg_Num  : Natural := 0;
    VS_Args_Arr   : AOSVS.Args_Arr;
    VS_Num_Args   : Positive;
    
@@ -80,6 +82,9 @@ begin
       elsif Ada.Command_Line.Argument (Arg_num) = "-root" then
          Arg_Num := Arg_Num + 1;
          Root_Arg_Num := Arg_Num;  
+      elsif Ada.Command_Line.Argument (Arg_num) = "-args" then
+         Arg_Num := Arg_Num + 1;
+         Args_Arg_Num := Arg_Num;     
       elsif Ada.Command_Line.Argument (Arg_num) = "-version" then
          Ada.Text_IO.Put_Line ("VS/Emua version " & Sem_Ver);
          GNAT.OS_Lib.OS_Exit (0);
@@ -94,6 +99,16 @@ begin
 
    VS_Args_Arr(0) := To_Unbounded_String(Ada.Command_Line.Argument (PR_Arg_num));
    VS_Num_Args := 1;
+
+   if Args_Arg_Num > 0 then
+      if Ada.Command_Line.Argument (Args_Arg_num)(1) = '"' then
+         raise Not_Yet_Implemented with "Multiple program arguments";
+      end if;
+      -- we have a single argument...
+      VS_Args_Arr(1) := To_Unbounded_String(Ada.Command_Line.Argument (Args_Arg_num));
+      VS_Num_Args := 2;
+      Ada.Text_IO.Put_Line ("INFO: Program argument: " & To_String(VS_Args_Arr(1)));
+   end if;
 
    GNAT.Ctrl_C.Install_Handler(Clean_Exit'Unrestricted_Access);
 

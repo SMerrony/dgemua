@@ -25,6 +25,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Interfaces; use Interfaces;
 
 with AOSVS.File_IO;
+with AOSVS.System;
 with Debug_Logs; use Debug_Logs;
 with Memory;     use Memory;
 with Processor;  use Processor;
@@ -54,7 +55,7 @@ package body AOSVS.Agent.Tasking is
       Task_Data.WSL  := PR_Addrs.WSL;
       Task_Data.WSFH := PR_Addrs.WSFH;
 
-      Task_Data.Debug_Logging := True; -- FIXME
+      Task_Data.Debug_Logging := TRUE; -- FIXME
 
       AOSVS.Agent.Actions.Allocate_TID (PID, TID);
       if TID = 0 then
@@ -114,6 +115,7 @@ package body AOSVS.Agent.Tasking is
                when 8#300# => Syscall_OK := Aosvs.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#301# => Syscall_OK := Aosvs.File_IO.Sys_CLOSE (CPU, Task_Data.PID, Task_Data.TID);
                when 8#303# => Syscall_OK := Aosvs.File_IO.Sys_WRITE (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#307# => Syscall_OK := Aosvs.System.Sys_GTMES  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#310# => -- ?RETURN - handled differently
                   Loggers.Debug_Print (Sc_Log, "?RETURN");
                   Error_Code  := CPU.AC(0);

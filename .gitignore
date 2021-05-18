@@ -2,6 +2,7 @@
 *.o
 
 mvemua
+vsemua
 
 # Ada Library Information
 *.ali

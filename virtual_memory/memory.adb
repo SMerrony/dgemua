@@ -156,6 +156,16 @@ package body Memory is
             return To_String(U_Str);
         end Read_String_BA;
 
+        procedure Write_String_BA (BA : in Dword_T; Str : in String) is
+            Offset         : Dword_T := 0;
+        begin
+            for C in Str'Range loop
+               Write_Byte_BA (BA + Offset, Byte_T(Character'Pos(Str(C))));
+               Offset := Offset + 1;
+            end loop;
+            Write_Byte_BA (BA + Offset, 0);
+        end Write_String_BA;
+
 
         function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T is
             Low_Byte : Boolean := Test_W_Bit(BA_16, 15);

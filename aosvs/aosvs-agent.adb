@@ -181,6 +181,17 @@ package body AOSVS.Agent is
          end if;
       end File_Write;
 
+		function Get_Nth_Arg (PID : in Word_T; Arg_Num : in Word_T) return Unbounded_String is
+         Nth : Integer := Integer(Arg_Num);
+      begin
+         if Nth > Per_Process_Data(PID_T(PID)).Invocation_Args'Last then
+            raise No_Such_Argument;
+         end if;
+         return Per_Process_Data(PID_T(PID)).Invocation_Args(Nth);
+      end Get_Nth_Arg;
+
+      function Get_Num_Args (PID : in Word_T) return Dword_T is
+         (Dword_T(Per_Process_Data(PID_T(PID_T(PID))).Invocation_Args'Length));
 
    end Actions;
 

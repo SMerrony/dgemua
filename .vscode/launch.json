@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/vsemua",
-            "args": ["-pr", "PROGRAMS/SPIGOT.PR", "-root", "."],
+            "args": ["-pr", "PROGRAMS/TIMEOUT.PR", "-root", "."],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

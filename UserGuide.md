@@ -20,11 +20,11 @@ The emulator will not initialise until there is a connection on that port.
 
 You should immediately be greeted with the welcome message...
 
-  `Welcome to the mvemuaulator - Type HE for help`
+  ` *** Welcome to the MV/Emulator - Type HE for help ***`
 
 	
 ### Internal Status Monitor ###
-You may optionally connect a DASHER emulator to port 9999 after the console has been connected.  This will display a frequently updated status view of the CPU and certain key devices while the CPU is running.
+You may optionally connect a DASHER emulator to port 10001 after the console has been connected.  This will display a frequently updated status view of the CPU and certain key devices while the CPU is running.
 
 ### Other Command-line Options
 For a full list of options type 
@@ -35,8 +35,7 @@ You may change the default console and status monitor addresses using the `-cons
 
 ## Emulator Commands ##
 mvemua commands are all entered at the console terminal which behaves rather like the SCP on a real MV/10000 but 
-with additional commands to control the emulation; so there are two groups of commands: SCP-CLI commands and Emulator 
-commands.
+with additional commands to control the emulation; so there are two groups of commands: SCP-CLI commands and Emulator commands.
 
 ### SCP-CLI Commands ###
 These commands are very similar to those provided at a real MV machine (some later additions have been added to 
@@ -90,7 +89,7 @@ mvemuaulator commands control the emulation environment rather than the virtual 
 > CHECK the validity of an attached tape image by attempting to read it all and displaying a summary of the virtual tape's contents on the console.
 
 #### CREATE `<type> <imageFileName>` ####
-> CREATE an empty disk image suitable for attaching to the emulator and initialising with DFMTR.  eg. CREATE DPJ BLANK.DPJ
+> CREATE an empty disk image suitable for attaching to the emulator and initialising with DFMTR.  eg. CREATE DPF BLANK.DPF
 
 #### DIS `<from> <to> | +<#>` ####
 > DISplay/disassemble memory between the given addresses or # locations from the PC.
