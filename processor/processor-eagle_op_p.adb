@@ -99,7 +99,7 @@ package body Processor.Eagle_Op_P is
                      Integer_32(I.Imm_U16);
             CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
             Set_OVR (CPU.Carry);
-            CPU.AC(I.Acd) := Integer_32_To_Dword(S32); 
+            CPU.AC(I.Ac) := Integer_32_To_Dword(S32); 
 
          when I_NSUB =>
             S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acd)))) - 
@@ -284,6 +284,9 @@ package body Processor.Eagle_Op_P is
                CPU.AC(I.Acs) := CPU.AC(I.Acd);
                CPU.AC(I.Acd) := DW;
             end;
+
+         when I_WXORI =>
+            CPU.AC(I.Ac) := CPU.AC(I.Ac) xor I.Imm_DW;
 
          when I_ZEX =>
             CPU.AC(I.Acd) := 0 or Dword_T(DG_Types.Lower_Word(CPU.AC(I.Acs)));
