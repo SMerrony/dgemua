@@ -33,6 +33,7 @@ package body Memory is
             Logging  := Debug_Logging;
             -- always need to map user page 0
             Map_Page (Ring_7_Page_0, false);
+            First_Shared_Page := (2 ** 31) - 1;
         end Init;
 
         procedure Map_Page (Page : in Natural; Is_Shared : in Boolean) is
@@ -81,6 +82,12 @@ package body Memory is
                 Write_Word(Loc, Region(Offset));
             end loop;
         end Map_Range;
+
+        function  Get_Last_Unshared_Page return Dword_T is
+            (Dword_T(Last_Unshared_Page));
+
+        function  Get_First_Shared_Page return Dword_T is
+            (Dword_T(First_Shared_Page));
 
         function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
             Page : Natural := Natural(Shift_Right(Word_Addr, 10));

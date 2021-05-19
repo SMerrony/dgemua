@@ -71,6 +71,8 @@ package Memory is
         procedure Init (Debug_Logging : in Boolean);
         procedure Map_Page (Page : in Natural; Is_Shared : in Boolean);
         function  Page_Mapped (Page : in Natural) return Boolean;
+        function  Get_Last_Unshared_Page return Dword_T;
+        function  Get_First_Shared_Page return Dword_T;
         
         procedure Map_Range (Start_Addr : in Phys_Addr_T;
                              Region     : in Memory_Region;
