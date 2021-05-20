@@ -133,7 +133,7 @@ package body Resolver is
          case Mode is
             when Absolute =>
                -- Zero-extend to 28 bits
-               Eff := Phys_Addr_T(Disp); --  or Ring;
+               Eff := Phys_Addr_T(Integer_32_To_Dword(Disp)); --  or Ring;
             when PC =>
                Eff := Phys_Addr_T(Integer_32_To_Dword(Dword_To_Integer_32(Dword_T(CPU.PC)) + Disp + Integer_32(Disp_Offset)));
             when AC2 =>

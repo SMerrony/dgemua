@@ -36,6 +36,7 @@ package body Processor.Eagle_Mem_Ref_P is
       I32  : Integer_32;
       I16_Ac, I16_Mem : Integer_16;
       DW   : Dword_T;
+      Low_Byte: Boolean;
 
       procedure Set_OVR (New_OVR : in Boolean) is
       begin
@@ -47,6 +48,12 @@ package body Processor.Eagle_Mem_Ref_P is
       end Set_OVR;
    begin
       case I.Instruction is
+
+         when I_LLDB =>
+            DW := Shift_Right(Dword_T(I.Disp_32), 1);
+            Addr := Resolve_31bit_Disp (CPU, false, I.Mode, Dword_To_Integer_32(DW), I.Disp_Offset);
+            Low_Byte := Test_DW_Bit (Dword_T(I.Disp_32), 31);
+            CPU.AC(I.Ac) := Dword_T(RAM.Read_Byte(Addr, Low_Byte));
 
          when I_LLEF =>
             CPU.AC(I.Ac) := Dword_T(Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset));
@@ -189,8 +196,16 @@ package body Processor.Eagle_Mem_Ref_P is
                      if CPU.AC(1) /= 0 then
                         CPU.AC(1) := Dword_T(Dword_To_Integer_32(CPU.AC(1)) + Str1_Dir);
                      end if;
-                     CPU.AC(2) := Dword_T(Dword_To_Integer_32(CPU.AC(2)) + Str2_Dir);
-                     CPU.AC(3) := Dword_T(Dword_To_Integer_32(CPU.AC(3)) + Str1_Dir);
+                     if Str2_Dir < 0 then
+                        CPU.AC(2) := CPU.AC(2) - 1;
+                     else
+                        CPU.AC(2) := CPU.AC(2) + 1;
+                     end if;
+                     if Str1_Dir < 0 then
+                        CPU.AC(3) := CPU.AC(3) - 1;
+                     else
+                        CPU.AC(3) := CPU.AC(3) + 1;
+                     end if;
                   end loop;
                end if;
             end;
