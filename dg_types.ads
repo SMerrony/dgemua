@@ -50,6 +50,32 @@ package DG_Types is
 
     type Number_Base_T is (Binary, Octal, Decimal, Hex);
 
+    type Double_Exp  is mod 2 ** 7;
+    type Double_Mant is mod 2 ** 56;
+    type Physical_Double is record
+       --- Physical_Double is the DG-internal representation of F.P. Doubles
+       --- It must be preprocessed before use, the exp and mant must be adjusted.
+       Sign     : Boolean;
+       Exponent : Double_Exp;
+       Mantissa : Double_Mant;       
+    end record;
+    for Physical_Double use record
+       Sign     at 0 range  0 .. 0;
+       Exponent at 0 range  1 .. 7;
+       Mantissa at 0 range  8 .. 63;
+    end record;
+
+    type Q_or_P is (QW, Phy);
+    type Double_Overlay(Rep : Q_or_P := QW) is record
+        case Rep is
+            when QW =>
+                Double_QW : Qword_T;
+            when Phy =>
+                Double_Phys : Physical_Double;
+        end case;
+    end record with Unchecked_Union;
+   
+
     Dasher_NL          : constant Character := Character'Val(8#12#);
     Dasher_Erase_EOL   : constant Character := Character'Val(8#13#);
     Dasher_Erase_Page  : constant Character := Character'Val(8#14#);
@@ -146,6 +172,10 @@ package DG_Types is
                                     Scale_Factor : out Integer_8;
                                     Dec_Type     : out Natural;
                                     Size         : out Natural);
+
+    -- floating point routines
+    function DG_Double_To_Long_Float (DG_Dbl : in Double_Overlay) return Long_Float;    
+    function Long_Float_To_DG_Double (LF : in Long_Float) return Qword_T;                          
  
     -- unchecked conversions
     function Byte_To_Integer_8 is new Ada.Unchecked_Conversion(Byte_T, Integer_8);

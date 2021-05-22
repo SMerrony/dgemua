@@ -430,6 +430,17 @@ package body Processor.Eagle_Mem_Ref_P is
             end if;
             CPU.AC(I.Ac) := Integer_32_To_Dword(Integer_32(I16_Ac));
 
+         when I_XWADD =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            S64_Mem := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr)));
+            S64_Ac  := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac)));
+            S64 := S64_Ac + S64_Mem;
+            if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
+               CPU.Carry := true;
+               Set_OVR (true);
+            end if;
+            CPU.Ac(I.Ac) := Dword_T(S64);
+
          when I_XWADI =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             S64 := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr))) + Integer_64(I.Imm_U16);
@@ -468,6 +479,17 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_XWSTA =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             RAM.Write_Dword (Addr, CPU.AC(I.Ac));
+
+         when I_XWSUB =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            S64_Mem := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr)));
+            S64_Ac  := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac)));
+            S64 := S64_Ac - S64_Mem;
+            if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
+               CPU.Carry := true;
+               Set_OVR (true);
+            end if;
+            CPU.Ac(I.Ac) := Dword_T(S64);
 
          when others =>
             Put_Line ("ERROR: EAGLE_MEMREF instruction " & To_String(I.Mnemonic) & 

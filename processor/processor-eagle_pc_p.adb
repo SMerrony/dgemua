@@ -373,7 +373,26 @@ package body Processor.Eagle_PC_P is
             else
                CPU.PC := CPU.PC + 2;
             end if;
-                        
+                             
+         when I_XWDO =>
+            declare
+               Loop_Var_Addr    : Phys_Addr_T;
+               Loop_Var, Ac_Var : Integer_32;
+            begin
+               Loop_Var_Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               DW := RAM.Read_Dword (Loop_Var_Addr) + 1 ;
+               Loop_Var := Dword_To_Integer_32(DW); 
+               RAM.Write_Dword(Loop_Var_Addr, DW);
+               Ac_Var := Dword_To_Integer_32(CPU.AC(I.Ac));
+               CPU.AC(I.Ac) := Integer_32_To_Dword(Loop_Var);
+               if Loop_Var > Ac_Var then 
+                  -- loop ends
+                  CPU.PC := CPU.PC + 1 + Phys_Addr_T(I.Word_3);
+               else
+                  CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+               end if;
+            end; 
+
          when I_XWDSZ =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             DW   := RAM.Read_Dword (Addr) - 1;

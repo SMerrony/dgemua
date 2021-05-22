@@ -406,4 +406,48 @@ package body DG_Types is
       end if;
    end Decode_Dec_Data_Type;
 
+   -- Floating-Point Conversions...
+
+   function DG_Double_To_Long_Float (DG_Dbl : in Double_Overlay) return Long_Float is
+      LF : Long_Float := 0.0;
+      Exp_I : Integer := Integer(DG_Dbl.Double_Phys.Exponent) - 64;
+      Mant_LF : Long_Float := Long_Float(DG_Dbl.Double_Phys.Mantissa);
+   begin
+      if DG_Dbl.Double_Phys.Mantissa /= 0 then
+         LF := Mant_LF * Long_Float(2 ** (-24 + (4 * Exp_I)));
+         if DG_Dbl.Double_Phys.Sign then
+            LF := LF * (-1.0);
+         end if;
+      end if;
+      return LF;
+   end DG_Double_To_Long_Float;
+
+   function Long_Float_To_DG_Double (LF : in Long_Float) return Qword_T is
+      Working_Float : Long_Float := LF;
+      DG_Dbl : Double_Overlay;
+      Shifts : Integer := 0;
+   begin
+      DG_Dbl.Double_QW := 0; -- zero everything, fine for zero-val return
+      if LF /= 0.0 then
+         if LF < 0.0 then
+            DG_Dbl.Double_Phys.Sign := true;
+            Working_Float := Working_Float * (-1.0);
+         end if;
+         if Working_Float > 0.0625 then
+            while Working_Float >= 1.0 loop
+               Working_Float := Working_Float / 16.0; -- lossy, should be a shift
+               Shifts := Shifts + 1;
+            end loop;
+         else
+            while Working_Float > 0.0625 loop
+               Shifts := Shifts - 1;
+               Working_Float := Working_Float * 16.0; -- see above
+            end loop;
+         end if;
+         DG_Dbl.Double_Phys.Exponent := Double_Exp(Shifts + 64);
+         DG_Dbl.Double_Phys.Mantissa := Double_Mant(Long_Float'Fraction(Working_Float));
+      end if;
+      return DG_Dbl.Double_QW;
+   end Long_Float_To_DG_Double;
+
 end DG_Types;

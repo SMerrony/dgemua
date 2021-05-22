@@ -32,7 +32,10 @@ package body Processor.Eagle_FPU_P is
       Unconverted  : Long_Float;
       Scale_Factor : Integer_8;
       Dec_Type     : Natural;
-      SSize         : Natural;
+      SSize        : Natural;
+      Addr         : Phys_Addr_T;
+      -- QW           : Qword_T;
+      DG_Dbl       : Double_Overlay;
    begin
       case I.Instruction is
 
@@ -77,6 +80,18 @@ package body Processor.Eagle_FPU_P is
                   raise Not_Yet_Implemented with "Decimal data type: " & Dec_Type'Image;
             end case;
 
+         when I_XFLDD =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            DG_Dbl.Double_QW := Shift_Left(Qword_T(RAM.Read_Dword(Addr)),32) or Qword_T(RAM.Read_Dword(Addr+2));
+            CPU.FPAC(I.Ac) := DG_Double_To_Long_Float(DG_Dbl);
+            Set_Z(CPU, (CPU.FPAC(I.Ac) = 0.0));
+            Set_N(CPU, (CPU.FPAC(I.Ac) < 0.0));
+
+         when I_XFSTD =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            DG_Dbl.Double_QW := Long_Float_To_DG_Double(CPU.FPAC(I.Ac));
+            RAM.Write_Dword (Addr, Dword_T(Shift_Right(DG_Dbl.Double_QW, 32)));
+            RAM.Write_Dword (Addr + 2, Dword_T(DG_Dbl.Double_QW));
 
          when others =>
             Put_Line ("ERROR: EAGLE_FPU instruction " & To_String(I.Mnemonic) & 
