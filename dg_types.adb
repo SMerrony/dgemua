@@ -408,44 +408,58 @@ package body DG_Types is
 
    -- Floating-Point Conversions...
 
+-- #define IBM32_SIGN ((npy_uint32)0x80000000U)
+-- #define IBM32_EXPT ((npy_uint32)0x7f000000U)
+-- #define IBM32_FRAC ((npy_uint32)0x00ffffffU)
+-- #define IBM32_TOP  ((npy_uint32)0x00f00000U)
+-- #define BITCOUNT_MAGIC ((npy_uint32)0x000055afU)
+-- #define TIES_TO_EVEN_RSHIFT3  ((npy_uint64)0x000000000000000bU)
+
    function DG_Double_To_Long_Float (DG_Dbl : in Double_Overlay) return Long_Float is
-      LF : Long_Float := 0.0;
-      Exp_I : Integer := Integer(DG_Dbl.Double_Phys.Exponent) - 64;
-      Mant_LF : Long_Float := Long_Float(DG_Dbl.Double_Phys.Mantissa);
+      IBM : Unsigned_64 := Unsigned_64(DG_Dbl.Double_QW);
+      IBM_Expt, IEEE_Expt, Leading_Zeros : Integer;
+      IBM_Frac, Top_Digit                : Unsigned_64;
+      IEEE_Sign, IEEE_Frac, Round_Up     : Unsigned_64;
+      U_64  : Unsigned_64;
+      IEEE  : IEEE_Float_64;
+      for IEEE'Address use U_64'Address;
    begin
-      if DG_Dbl.Double_Phys.Mantissa /= 0 then
-         LF := Mant_LF * Long_Float(2 ** (-24 + (4 * Exp_I)));
-         if DG_Dbl.Double_Phys.Sign then
-            LF := LF * (-1.0);
-         end if;
+      IEEE_Sign := IBM and 16#8000_0000_0000_0000#;
+      IBM_Frac  := IBM and 16#00ff_ffff_0000_0000#;
+
+      if IBM_Frac = 0 then
+         return 0.0;
       end if;
-      return LF;
+
+      -- reduce shift by 2 to get binary exp from hex
+      IBM_Expt := Integer(Shift_Right((IBM and 16#7f00_0000_0000_0000#), 54));
+
+      -- normalise mantissae, then count leading zeroes
+      Top_Digit := Unsigned_64(IBM and 16#00f0_0000_0000_0000#);
+      while Top_Digit = 0 loop
+         IBM_Frac := Shift_Left(IBM_Frac, 4);
+         IBM_Expt := IBM_Expt - 4;
+         Top_Digit := IBM_Frac and 16#00f0_0000_0000_0000#;
+      end loop;
+      Leading_Zeros := Integer(Shift_Right(Unsigned_64(16#0000_55af#), Integer(Shift_Right (Top_Digit, 51))) and 16#03#);
+
+      IBM_Frac := Shift_Left(IBM_Frac, Leading_Zeros);
+      IEEE_Expt := IBM_Expt + 765 - Leading_Zeros;
+
+      Round_Up := (if (IBM_Frac and 16#000000000000000b#) /= 0 then 1 else 0); 
+      IEEE_Frac := Shift_Right(Shift_Right(IBM_Frac,2) + Round_Up, 1);
+
+      U_64 := IEEE_Sign + Shift_Left(Unsigned_64(IEEE_Expt), 52) + IEEE_Frac;
+
+      return Long_Float(IEEE);
    end DG_Double_To_Long_Float;
 
    function Long_Float_To_DG_Double (LF : in Long_Float) return Qword_T is
-      Working_Float : Long_Float := LF;
-      DG_Dbl : Double_Overlay;
-      Shifts : Integer := 0;
+      DG_Dbl : Double_overlay;
    begin
       DG_Dbl.Double_QW := 0; -- zero everything, fine for zero-val return
       if LF /= 0.0 then
-         if LF < 0.0 then
-            DG_Dbl.Double_Phys.Sign := true;
-            Working_Float := Working_Float * (-1.0);
-         end if;
-         if Working_Float > 0.0625 then
-            while Working_Float >= 1.0 loop
-               Working_Float := Working_Float / 16.0; -- lossy, should be a shift
-               Shifts := Shifts + 1;
-            end loop;
-         else
-            while Working_Float > 0.0625 loop
-               Shifts := Shifts - 1;
-               Working_Float := Working_Float * 16.0; -- see above
-            end loop;
-         end if;
-         DG_Dbl.Double_Phys.Exponent := Double_Exp(Shifts + 64);
-         DG_Dbl.Double_Phys.Mantissa := Double_Mant(Long_Float'Fraction(Working_Float));
+         raise Not_Yet_Implemented with "Non-Zero Float to DG conversion";
       end if;
       return DG_Dbl.Double_QW;
    end Long_Float_To_DG_Double;

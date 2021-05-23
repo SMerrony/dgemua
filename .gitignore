@@ -6,7 +6,8 @@ vsemua
 
 # Ada Library Information
 *.ali
-/obj
+/obj/*
+!/obj/gnattest
 
 /disks
 /logs
