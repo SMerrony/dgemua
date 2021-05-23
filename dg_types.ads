@@ -175,8 +175,8 @@ package DG_Types is
 
     -- floating point routines
     function DG_Double_To_Long_Float (DG_Dbl : in Double_Overlay) return Long_Float;    
-    function Long_Float_To_DG_Double (LF : in Long_Float) return Qword_T;                          
- 
+    function Long_Float_To_DG_Double (LF : in Long_Float) return Qword_T;
+                  
     -- unchecked conversions
     function Byte_To_Integer_8 is new Ada.Unchecked_Conversion(Byte_T, Integer_8);
     function Char_To_Byte is new Ada.Unchecked_Conversion(Character, Byte_T);
@@ -189,5 +189,7 @@ package DG_Types is
     function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
     function Integer_64_To_Unsigned_64 is new Ada.Unchecked_Conversion(Integer_64, Unsigned_64);
     function Unsigned_32_To_Integer is new Ada.Unchecked_Conversion(Unsigned_32, Integer);
+
+    Not_Yet_Implemented :Exception;
 
 end DG_Types;
