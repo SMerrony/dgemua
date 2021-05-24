@@ -91,7 +91,7 @@ package body Processor.Eagle_FPU_P is
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             DG_Dbl.Double_QW := Long_Float_To_DG_Double(CPU.FPAC(I.Ac));
             RAM.Write_Dword (Addr, Dword_T(Shift_Right(DG_Dbl.Double_QW, 32)));
-            RAM.Write_Dword (Addr + 2, Dword_T(DG_Dbl.Double_QW));
+            RAM.Write_Dword (Addr + 2, Dword_T(DG_Dbl.Double_QW and 16#0000_0000_ffff_ffff#));
 
          when others =>
             Put_Line ("ERROR: EAGLE_FPU instruction " & To_String(I.Mnemonic) & 

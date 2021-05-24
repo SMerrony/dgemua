@@ -190,6 +190,4 @@ package DG_Types is
     function Integer_64_To_Unsigned_64 is new Ada.Unchecked_Conversion(Integer_64, Unsigned_64);
     function Unsigned_32_To_Integer is new Ada.Unchecked_Conversion(Unsigned_32, Integer);
 
-    Not_Yet_Implemented :Exception;
-
 end DG_Types;

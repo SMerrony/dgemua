@@ -416,6 +416,8 @@ package body DG_Types is
 -- #define TIES_TO_EVEN_RSHIFT3  ((npy_uint64)0x000000000000000bU)
 
    function DG_Double_To_Long_Float (DG_Dbl : in Double_Overlay) return Long_Float is
+   -- decode a DG Double (64-bit) float - which was the same as IBM's format
+   -- baSed on https://github.com/enthought/ibm2ieee/blob/main/ibm2ieee/_ibm2ieee.c
       IBM : Unsigned_64 := Unsigned_64(DG_Dbl.Double_QW);
       IBM_Expt, IEEE_Expt, Leading_Zeros : Integer;
       IBM_Frac, Top_Digit                : Unsigned_64;
@@ -425,7 +427,7 @@ package body DG_Types is
       for IEEE'Address use U_64'Address;
    begin
       IEEE_Sign := IBM and 16#8000_0000_0000_0000#;
-      IBM_Frac  := IBM and 16#00ff_ffff_0000_0000#;
+      IBM_Frac  := IBM and 16#00ff_ffff_ffff_ffff#;
 
       if IBM_Frac = 0 then
          return 0.0;
@@ -434,7 +436,7 @@ package body DG_Types is
       -- reduce shift by 2 to get binary exp from hex
       IBM_Expt := Integer(Shift_Right((IBM and 16#7f00_0000_0000_0000#), 54));
 
-      -- normalise mantissae, then count leading zeroes
+      -- normalise mantissa, then count leading zeroes
       Top_Digit := Unsigned_64(IBM and 16#00f0_0000_0000_0000#);
       while Top_Digit = 0 loop
          IBM_Frac := Shift_Left(IBM_Frac, 4);
@@ -455,13 +457,49 @@ package body DG_Types is
    end DG_Double_To_Long_Float;
 
    function Long_Float_To_DG_Double (LF : in Long_Float) return Qword_T is
-      DG_Dbl : Double_overlay;
+      IEEE : IEEE_Float_64 := IEEE_Float_64(LF);
+      U_64 : Unsigned_64;
+      for U_64'Address use IEEE'Address;
+      IBM  : Unsigned_64 := 0;
+      IBM_Sign, IBM_Expt, IBM_Frac : Unsigned_64;
+      IEEE_Expt_U16 : Unsigned_16;
+      IEEE_Expt_I : Integer;
+      IEEE_Frac : Unsigned_64;
+      Shift_Amt : Integer;
    begin
-      DG_Dbl.Double_QW := 0; -- zero everything, fine for zero-val return
-      if LF /= 0.0 then
-         raise Not_Yet_Implemented with "Non-Zero Float to DG conversion";
+      if LF = 0.0 then
+         return 0;
       end if;
-      return DG_Dbl.Double_QW;
+      IBM_Sign := U_64 and 16#8000_0000_0000_0000#;
+      IEEE_Expt_U16 := Unsigned_16(Shift_Right((U_64 and 16#7ff0_0000_0000_0000#), 52));
+      IEEE_Expt_I := Integer(IEEE_Expt_U16);
+      IEEE_Frac := Shift_Right((U_64 and 16#000f_ffff_ffff_ffff#), 1) or 16#0008_0000_0000_0000#;
+
+      -- IEEE_Expt_I := IEEE_Expt_I + 130;
+      -- Shift_Amt := Integer(Unsigned_32((- IEEE_Expt_I)) and Unsigned_32(3));
+      -- IEEE_Frac := Shift_Right(IEEE_Frac, Shift_Amt);
+      -- IEEE_Expt_I := Integer(Shift_Right(Unsigned_32(IEEE_Expt_I + 3), 2));
+
+      -- while IEEE_Frac < 16#1000_0000_0000_0000# loop
+      --    IEEE_Expt_I := IEEE_Expt_I - 1;
+      --    IEEE_Frac := Shift_Left(IEEE_Frac, 4);
+      -- end loop;
+
+      IEEE_Expt_I := IEEE_Expt_I - 1022; -- subtract excess 217 and add 1
+
+      if (IEEE_Expt_I mod 4) /= 0 then
+         IEEE_Frac := Shift_Right(IEEE_Frac, (4 - (IEEE_Expt_I mod 4)));
+         IEEE_Expt_I := IEEE_Expt_I + 4;
+      end if;
+
+      IEEE_Expt_I := IEEE_Expt_I / 4; -- convert to base 16
+      IEEE_Expt_I := IEEE_Expt_I + 64; -- excess 64
+
+      IBM_Expt := Unsigned_64(Unsigned_16(IEEE_Expt_I) and 16#007f#);
+      IBM_Frac := Shift_Left(IEEE_Frac, 4);
+      IBM := IBM_Sign or Shift_Left(IBM_Expt, 56) or IBM_Frac;
+
+      return Qword_T(IBM);
    end Long_Float_To_DG_Double;
 
 end DG_Types;
