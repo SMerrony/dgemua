@@ -81,7 +81,7 @@ package body Processor.Eagle_PC_P is
                if Val < Lo or Val > Hi then
                   CPU.PC := CPU.PC + 3;
                else
-                  Table_Ix := Table_Addr + (2 * Phys_Addr_T(Val)) - (2 * Phys_Addr_T(Lo));
+                  Table_Ix := Table_Addr + ((2 * Phys_Addr_T(Val)) - (2 * Phys_Addr_T(Lo)));
                   DW := RAM.Read_Dword (Table_Ix);
                   if Test_DW_Bit (DW, 4) then
                      -- sign-extend from 28-bits

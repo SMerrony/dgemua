@@ -439,7 +439,7 @@ package body Processor.Eagle_Mem_Ref_P is
                CPU.Carry := true;
                Set_OVR (true);
             end if;
-            CPU.Ac(I.Ac) := Dword_T(S64);
+            CPU.Ac(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64)and 16#0000_0000_ffff_ffff#);
 
          when I_XWADI =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -449,7 +449,7 @@ package body Processor.Eagle_Mem_Ref_P is
                Set_OVR (true);
             end if;
             S64 := Integer_64(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
-            RAM.Write_Dword (Addr, Dword_T(S64));
+            RAM.Write_Dword (Addr, Dword_T(Integer_64_To_Unsigned_64(S64)));
 
          when I_XWLDA =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -464,7 +464,7 @@ package body Processor.Eagle_Mem_Ref_P is
                CPU.Carry := true;
                Set_OVR (true);
             end if;
-            CPU.Ac(I.Ac) := Dword_T(S64);
+            CPU.Ac(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64));
             
          when I_XWSBI =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -474,7 +474,7 @@ package body Processor.Eagle_Mem_Ref_P is
                Set_OVR (true);
             end if;
             S64 := Integer_64(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
-            RAM.Write_Dword (Addr, Dword_T(S64));
+            RAM.Write_Dword (Addr, Dword_T(Integer_64_To_Unsigned_64(S64)));
 
          when I_XWSTA =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -489,7 +489,7 @@ package body Processor.Eagle_Mem_Ref_P is
                CPU.Carry := true;
                Set_OVR (true);
             end if;
-            CPU.Ac(I.Ac) := Dword_T(S64);
+            CPU.Ac(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64));
 
          when others =>
             Put_Line ("ERROR: EAGLE_MEMREF instruction " & To_String(I.Mnemonic) & 

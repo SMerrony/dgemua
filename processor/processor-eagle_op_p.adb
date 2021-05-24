@@ -108,6 +108,12 @@ package body Processor.Eagle_Op_P is
             Set_OVR (CPU.Carry);
             CPU.AC(I.Acd) := Integer_32_To_Dword(S32);
 
+         when I_SEX =>
+            CPU.AC(I.Acd) := CPU.AC(I.Acs) and 16#0000_ffff#;
+            if Test_DW_Bit (CPU.AC(I.Acd), 16) then
+                CPU.AC(I.Acd) := CPU.AC(I.Acd) or 16#ffff_0000#;
+            end if;
+
          when I_SSPT =>  -- NO-OP - see p.8-5 of MV/10000 Sys Func Chars 
             Loggers.Debug_Print(Debug_Log, "INFO: SSPT is a No-Op on this VM, continuing...");
 

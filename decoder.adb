@@ -406,7 +406,7 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                   Decoded.Disassembly & " " &
-                  Int_To_String (Integer(Decoded.Disp_32), Radix, 8, false, true) &
+                  Int_To_String (Unsigned_32_To_Integer(Decoded.Disp_32), Radix, 11, false, true) &
                   "," & String_Mode(Decoded.Mode) & " [3-Word Instruction]";
             end if;
 
