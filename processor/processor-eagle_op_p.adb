@@ -291,6 +291,9 @@ package body Processor.Eagle_Op_P is
                CPU.AC(I.Acd) := DW;
             end;
 
+         when I_WXOR =>
+            CPU.AC(I.Acd) :=  CPU.AC(I.Acd) xor CPU.AC(I.Acs);
+
          when I_WXORI =>
             CPU.AC(I.Ac) := CPU.AC(I.Ac) xor I.Imm_DW;
 

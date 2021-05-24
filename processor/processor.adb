@@ -343,6 +343,7 @@ package body Processor is
 
          if Disassemble then
             Loggers.Debug_Print (Debug_Log, Get_Compact_Status(CPU, Radix) & "  " & To_String(Instr.Disassembly));
+            -- Ada.Text_IO.Put_Line(Get_Compact_Status(CPU, Radix) & "  " & To_String(Instr.Disassembly));
          end if;
 
          -- EXECUTE

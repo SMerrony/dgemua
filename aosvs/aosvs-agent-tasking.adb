@@ -116,6 +116,7 @@ package body AOSVS.Agent.Tasking is
             case Call_ID is
                when 8#003# => Syscall_OK := Aosvs.Sys_Memory.Sys_MEM  (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
                when 8#014# => Syscall_OK := Aosvs.Sys_Memory.Sys_MEMI (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
+               when 8#036# => Syscall_OK := Aosvs.System.Sys_GTOD (CPU, Task_Data.PID, Task_Data.TID);
                when 8#263# => Syscall_OK := Aosvs.Multitasking.Sys_WDELAY (CPU, Task_Data.PID, Task_Data.TID);
                when 8#300# => Syscall_OK := Aosvs.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#301# => Syscall_OK := Aosvs.File_IO.Sys_CLOSE (CPU, Task_Data.PID, Task_Data.TID);

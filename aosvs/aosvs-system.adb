@@ -20,7 +20,10 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Calendar;
 with Ada.Characters.Handling;
+
+with GNAT.Calendar;
 
 with AOSVS.Agent;
 with Debug_Logs;  use Debug_Logs;
@@ -63,5 +66,14 @@ package body AOSVS.System is
         end if;
         return true;
     end Sys_GTMES;
+
+    function Sys_GTOD (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
+        Now : Ada.Calendar.Time := Ada.Calendar.Clock; 
+    begin
+        CPU.AC(0) := Dword_T(GNAT.Calendar.Second(Now));
+        CPU.AC(1) := Dword_T(GNAT.Calendar.Minute(Now));
+        CPU.AC(2) := Dword_T(GNAT.Calendar.Hour(Now));
+        return true;
+    end Sys_GTOD;
 
 end AOSVS.System;

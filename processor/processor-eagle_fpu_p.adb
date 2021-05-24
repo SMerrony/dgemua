@@ -34,10 +34,27 @@ package body Processor.Eagle_FPU_P is
       Dec_Type     : Natural;
       SSize        : Natural;
       Addr         : Phys_Addr_T;
-      -- QW           : Qword_T;
+      QW           : Qword_T;
       DG_Dbl       : Double_Overlay;
    begin
       case I.Instruction is
+
+         when I_LFDMD =>
+            Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            DG_Dbl.Double_QW := RAM.Read_Qword (Addr);
+            -- TODO handle zero divisor
+            CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) / DG_Double_To_Long_Float(DG_Dbl);
+            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
+
+         when I_LFSTD =>
+            Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            QW := Long_Float_To_DG_Double (CPU.FPAC(I.Ac));
+            RAM.Write_Qword(Addr, QW);
+
+         when I_WFFAD =>
+            -- Acs and Acd are the 'other way around' with this instruction
+            CPU.AC(I.Acs) := Dword_T(Integer_32(CPU.FPAC(I.Acd)));
 
          when I_WFLAD =>
             CPU.FPAC(I.Acd) := Long_Float(Dword_To_Integer_32(CPU.AC(I.Acs)));
@@ -80,18 +97,31 @@ package body Processor.Eagle_FPU_P is
                   raise Not_Yet_Implemented with "Decimal data type: " & Dec_Type'Image;
             end case;
 
+         when I_XFAMD =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            DG_Dbl.Double_QW := RAM.Read_Qword(Addr);
+            CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) + DG_Double_To_Long_Float(DG_Dbl);
+            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
+
          when I_XFLDD =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
-            DG_Dbl.Double_QW := Shift_Left(Qword_T(RAM.Read_Dword(Addr)),32) or Qword_T(RAM.Read_Dword(Addr+2));
+            DG_Dbl.Double_QW := RAM.Read_Qword(Addr);
             CPU.FPAC(I.Ac) := DG_Double_To_Long_Float(DG_Dbl);
             Set_Z(CPU, (CPU.FPAC(I.Ac) = 0.0));
             Set_N(CPU, (CPU.FPAC(I.Ac) < 0.0));
 
+         when I_XFMMD =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            DG_Dbl.Double_QW := RAM.Read_Qword(Addr);
+            CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) * DG_Double_To_Long_Float(DG_Dbl);
+            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
+
          when I_XFSTD =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             DG_Dbl.Double_QW := Long_Float_To_DG_Double(CPU.FPAC(I.Ac));
-            RAM.Write_Dword (Addr, Dword_T(Shift_Right(DG_Dbl.Double_QW, 32)));
-            RAM.Write_Dword (Addr + 2, Dword_T(DG_Dbl.Double_QW and 16#0000_0000_ffff_ffff#));
+            RAM.Write_Qword (Addr, DG_Dbl.Double_QW);
 
          when others =>
             Put_Line ("ERROR: EAGLE_FPU instruction " & To_String(I.Mnemonic) & 
