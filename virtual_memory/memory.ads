@@ -80,8 +80,10 @@ package Memory is
         -- function Address_Mapped (Addr : in Phys_Addr_T) return Boolean;
         function  Read_Word   (Word_Addr : in Phys_Addr_T) return Word_T with Inline;
         function  Read_Dword  (Word_Addr : in Phys_Addr_T) return Dword_T;
+        function  Read_Qword  (Word_Addr : in Phys_Addr_T) return Qword_T;
         procedure Write_Word  (Word_Addr : in Phys_Addr_T; Datum : Word_T);
         procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T);
+        procedure Write_Qword (Word_Addr : in Phys_Addr_T; Datum : Qword_T);
 
         function  Read_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T;
         function  Read_Byte_BA (BA : in Dword_T) return Byte_T;

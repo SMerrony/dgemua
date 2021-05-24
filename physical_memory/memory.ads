@@ -64,7 +64,9 @@ package Memory is
         function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T;
         procedure Write_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T; Datum : in Byte_T);
         function  Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T;
+        function  Read_Qword  (Word_Addr : in Phys_Addr_T) return Qword_T;
         procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T);
+        procedure Write_Qword (Word_Addr : in Phys_Addr_T; Datum : Qword_T);
         function  Read_Word (Word_Addr : in Phys_Addr_T) return Word_T with Inline;
         procedure Write_Word (Word_Addr : in Phys_Addr_T; Datum : Word_T);
     private

@@ -22,7 +22,9 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
+
 with Debug_Logs; use Debug_Logs;
+
 
 package body Memory is
 
@@ -107,6 +109,14 @@ package body Memory is
             return Dword_From_Two_Words(Hi_WD, Lo_WD);
         end Read_Dword;
 
+        function Read_Qword  (Word_Addr : in Phys_Addr_T) return Qword_T is
+            DW_L, DW_R : Dword_T;
+        begin
+            DW_L := Read_Dword (Word_Addr);
+            DW_R := Read_Dword (Word_Addr + 2);
+            return Shift_Left(Qword_T(DW_L), 32) or Qword_T(DW_R);
+        end Read_Qword;
+
         procedure Write_Word (Word_Addr : in Phys_Addr_T; Datum : Word_T) is
             Page : Natural := Natural(Shift_Right(Word_Addr, 10));
         begin
@@ -121,6 +131,12 @@ package body Memory is
             Write_Word(Word_Addr, Upper_Word(Datum));
             Write_Word(Word_Addr + 1, Lower_Word(Datum));
         end Write_Dword;
+
+        procedure Write_Qword (Word_Addr : in Phys_Addr_T; Datum : Qword_T) is
+        begin
+            Write_Dword(Word_Addr, Dword_T(Shift_Right(Datum, 32)));
+            Write_Dword(Word_Addr + 2, Dword_T(Datum and 16#0000_ffff#));
+        end Write_Qword;
 
         function Read_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T
         is

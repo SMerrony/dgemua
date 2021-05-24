@@ -117,6 +117,14 @@ package body Memory is
       function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
          (RAM (Word_Addr));
 
+      function Read_Qword  (Word_Addr : in Phys_Addr_T) return Qword_T is
+            DW_L, DW_R : Dword_T;
+        begin
+            DW_L := Read_Dword (Word_Addr);
+            DW_R := Read_Dword (Word_Addr + 2);
+            return Shift_Left(Qword_T(DW_L), 32) or Qword_T(DW_R);
+        end Read_Qword;   
+
       procedure Write_Word (Word_Addr : in Phys_Addr_T; Datum : Word_T) is
       -- FOR THE MOMENT _ALL_ MEMORY WRITES ARE VIA THIS PROC
       begin
@@ -130,6 +138,11 @@ package body Memory is
          RAM (Word_Addr) := Datum;
       end Write_Word;
 
+      procedure Write_Qword (Word_Addr : in Phys_Addr_T; Datum : Qword_T) is
+        begin
+            Write_Dword(Word_Addr, Dword_T(Shift_Right(Datum, 32)));
+            Write_Dword(Word_Addr + 2, Dword_T(Datum and 16#0000_ffff#));
+        end Write_Qword;
    end RAM;
 
    protected body Narrow_Stack is
