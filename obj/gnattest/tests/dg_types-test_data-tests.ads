@@ -105,41 +105,44 @@ package DG_Types.Test_Data.Tests is
    procedure Test_DG_Double_To_Long_Float_2d8c8f (Gnattest_T : in out Test);
    --  dg_types.ads:177:5:DG_Double_To_Long_Float
 
+   procedure Test_DG_Single_To_Long_Float_aba5b2 (Gnattest_T : in out Test);
+   --  dg_types.ads:178:5:DG_Single_To_Long_Float
+
    procedure Test_Long_Float_To_DG_Double_8175dc (Gnattest_T : in out Test);
-   --  dg_types.ads:178:5:Long_Float_To_DG_Double
+   --  dg_types.ads:179:5:Long_Float_To_DG_Double
 
    procedure Test_Byte_To_Integer_8_6ac9f0 (Gnattest_T : in out Test);
-   --  dg_types.ads:181:5:Byte_To_Integer_8
+   --  dg_types.ads:182:5:Byte_To_Integer_8
 
    procedure Test_Char_To_Byte_11390e (Gnattest_T : in out Test);
-   --  dg_types.ads:182:5:Char_To_Byte
+   --  dg_types.ads:183:5:Char_To_Byte
 
    procedure Test_Byte_To_Char_7742da (Gnattest_T : in out Test);
-   --  dg_types.ads:183:5:Byte_To_Char
+   --  dg_types.ads:184:5:Byte_To_Char
 
    procedure Test_Dword_To_Integer_32_e9169d (Gnattest_T : in out Test);
-   --  dg_types.ads:184:5:Dword_To_Integer_32
+   --  dg_types.ads:185:5:Dword_To_Integer_32
 
    procedure Test_Integer_32_To_Dword_67c35b (Gnattest_T : in out Test);
-   --  dg_types.ads:185:5:Integer_32_To_Dword
+   --  dg_types.ads:186:5:Integer_32_To_Dword
 
    procedure Test_Integer_32_To_Phys_0e179b (Gnattest_T : in out Test);
-   --  dg_types.ads:186:5:Integer_32_To_Phys
+   --  dg_types.ads:187:5:Integer_32_To_Phys
 
    procedure Test_Word_To_Integer_16_a3a65b (Gnattest_T : in out Test);
-   --  dg_types.ads:187:5:Word_To_Integer_16
+   --  dg_types.ads:188:5:Word_To_Integer_16
 
    procedure Test_Integer_16_To_Word_40bf8b (Gnattest_T : in out Test);
-   --  dg_types.ads:188:5:Integer_16_To_Word
+   --  dg_types.ads:189:5:Integer_16_To_Word
 
    procedure Test_Word_To_Unsigned_16_d3e005 (Gnattest_T : in out Test);
-   --  dg_types.ads:189:5:Word_To_Unsigned_16
+   --  dg_types.ads:190:5:Word_To_Unsigned_16
 
    procedure Test_Integer_64_To_Unsigned_64_f5c627 (Gnattest_T : in out Test);
-   --  dg_types.ads:190:5:Integer_64_To_Unsigned_64
+   --  dg_types.ads:191:5:Integer_64_To_Unsigned_64
 
    procedure Test_Unsigned_32_To_Integer_5e891f (Gnattest_T : in out Test);
-   --  dg_types.ads:191:5:Unsigned_32_To_Integer
+   --  dg_types.ads:192:5:Unsigned_32_To_Integer
 
 end DG_Types.Test_Data.Tests;
 --  end read only

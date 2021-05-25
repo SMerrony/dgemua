@@ -109,15 +109,15 @@ package DG_Types is
 
     -- bit routines
     procedure Clear_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
-    procedure Flip_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
-    procedure Set_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
-    function Test_W_Bit
-       (Word : in Word_T; Bit_Num : in Integer) return Boolean with Inline;
-    function Get_W_Bits (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T;
-    function Get_DW_Bits (Dword : in Dword_T; First_Bit, Num_Bits : Natural) return Dword_T;
-    function Test_DW_Bit (DW: in Dword_T; Bit_Num : in Integer) return Boolean;
+    procedure Flip_W_Bit  (Word : in out Word_T; Bit_Num : in Integer);
+    procedure Set_W_Bit   (Word : in out Word_T; Bit_Num : in Integer);
+    function  Test_W_Bit  (Word : in Word_T; Bit_Num : in Integer) return Boolean with Inline;
+    function  Get_W_Bits  (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T;
+    function  Get_DW_Bits (Dword : in Dword_T; First_Bit, Num_Bits : Natural) return Dword_T;
+    function  Test_DW_Bit (DW: in Dword_T; Bit_Num : in Integer) return Boolean;
     procedure Clear_QW_Bit (QW : in out Qword_T; Bit_Num : in Integer);
-    procedure Set_QW_Bit (QW : in out Qword_T; Bit_Num : in Integer);
+    procedure Set_QW_Bit  (QW : in out Qword_T; Bit_Num : in Integer);
+    function  Test_QW_Bit (QW: in Qword_T; Bit_Num : in Integer) return Boolean;
 
     -- byte routines
     function Get_Lower_Byte (Word : in Word_T) return Byte_T;
@@ -175,7 +175,9 @@ package DG_Types is
 
     -- floating point routines
     function DG_Double_To_Long_Float (DG_Dbl : in Double_Overlay) return Long_Float;    
+    function DG_Single_To_Long_Float (Single : in Dword_T) return Long_Float;
     function Long_Float_To_DG_Double (LF : in Long_Float) return Qword_T;
+    function Long_Float_To_DG_Single (LF : in Long_Float) return Dword_T;
                   
     -- unchecked conversions
     function Byte_To_Integer_8 is new Ada.Unchecked_Conversion(Byte_T, Integer_8);
@@ -189,5 +191,5 @@ package DG_Types is
     function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
     function Integer_64_To_Unsigned_64 is new Ada.Unchecked_Conversion(Integer_64, Unsigned_64);
     function Unsigned_32_To_Integer is new Ada.Unchecked_Conversion(Unsigned_32, Integer);
-
+    function Integer_To_Unsigned_64 is new Ada.Unchecked_Conversion(Integer, Unsigned_64);
 end DG_Types;

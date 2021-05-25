@@ -29,28 +29,45 @@ with Resolver;        use Resolver;
 package body Processor.Eagle_FPU_P is 
 
    procedure Do_Eagle_FPU (I : in Decoded_Instr_T; CPU : in out CPU_T) is
-      Unconverted  : Long_Float;
       Scale_Factor : Integer_8;
       Dec_Type     : Natural;
       SSize        : Natural;
       Addr         : Phys_Addr_T;
+      DW           : Dword_T;
       QW           : Qword_T;
       DG_Dbl       : Double_Overlay;
    begin
       case I.Instruction is
+
+         when I_LFLDS =>
+            Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            CPU.FPAC(I.Ac) := DG_Single_To_Long_Float(RAM.Read_Dword(Addr));
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
 
          when I_LFDMD =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             DG_Dbl.Double_QW := RAM.Read_Qword (Addr);
             -- TODO handle zero divisor
             CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) / DG_Double_To_Long_Float(DG_Dbl);
-            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
-            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
+
+         when I_LFMMS =>
+            Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) * DG_Single_To_Long_Float(RAM.Read_Dword(Addr));
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
 
          when I_LFSTD =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             QW := Long_Float_To_DG_Double (CPU.FPAC(I.Ac));
             RAM.Write_Qword(Addr, QW);
+
+          when I_LFSTS =>
+            Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            DW := Long_Float_To_DG_Single (CPU.FPAC(I.Ac));
+            RAM.Write_Dword(Addr, DW);    
 
          when I_WFFAD =>
             -- Acs and Acd are the 'other way around' with this instruction
@@ -63,7 +80,6 @@ package body Processor.Eagle_FPU_P is
 
          when I_WSTI =>
             CPU.AC(2) := CPU.AC(3);
-            Unconverted := CPU.FPAC(I.Ac);
             Decode_Dec_Data_Type (CPU.AC(1),Scale_Factor, Dec_Type, SSize);
             if Scale_Factor /= 0 then
                raise Not_Yet_Implemented with "Non-Zero Decimal Scale factors";
@@ -72,7 +88,7 @@ package body Processor.Eagle_FPU_P is
                when Unpacked_Dec_LS =>
                   declare
                      Converted : String(1 .. SSize);
-                     Int_Val   : Integer := Integer(Unconverted);
+                     Int_Val   : Integer := Integer(CPU.FPAC(I.Ac));
                      Str_Val   : String  := Int_Val'Image;
                      Src_Ix    : Integer := Str_Val'Last;
                      Dest_Ix   : Integer := SSize;
@@ -101,8 +117,8 @@ package body Processor.Eagle_FPU_P is
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             DG_Dbl.Double_QW := RAM.Read_Qword(Addr);
             CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) + DG_Double_To_Long_Float(DG_Dbl);
-            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
-            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
 
          when I_XFLDD =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -111,12 +127,26 @@ package body Processor.Eagle_FPU_P is
             Set_Z(CPU, (CPU.FPAC(I.Ac) = 0.0));
             Set_N(CPU, (CPU.FPAC(I.Ac) < 0.0));
 
+         when I_XFLDS =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            DW := RAM.Read_Dword(Addr);
+            CPU.FPAC(I.Ac) := DG_Single_To_Long_Float(DW);
+            Set_Z(CPU, (CPU.FPAC(I.Ac) = 0.0));
+            Set_N(CPU, (CPU.FPAC(I.Ac) < 0.0));
+
          when I_XFMMD =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             DG_Dbl.Double_QW := RAM.Read_Qword(Addr);
             CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) * DG_Double_To_Long_Float(DG_Dbl);
-            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
-            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
+
+         when I_XFMMS =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            DW := RAM.Read_Dword(Addr);
+            CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) * DG_Single_To_Long_Float(DW);
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));   
 
          when I_XFSTD =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);

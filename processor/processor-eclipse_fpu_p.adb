@@ -27,6 +27,9 @@ with Resolver;    use Resolver;
 package body Processor.Eclipse_FPU_P is 
 
    procedure Do_Eclipse_FPU (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+      QW : Qword_T;
+      LF : Long_Float;
+      DG_Dbl : Double_Overlay;
    begin
       case I.Instruction is
 
@@ -38,6 +41,19 @@ package body Processor.Eclipse_FPU_P is
 
          when I_FTE =>
             Set_QW_Bit (CPU.FPSR, FPSR_Te);
+
+         when I_FRDS =>
+            QW := Long_Float_To_DG_Double(CPU.FPAC(I.Acs));
+            if Test_QW_Bit (CPU.FPSR, FPSR_Rnd) then
+               -- FIXME - should round not truncate
+               DG_Dbl.Double_QW := QW and 16#ffff_ffff_0000_0000#;
+               CPU.FPAC(I.Acd) := DG_Double_To_Long_Float(DG_Dbl);
+            else
+               DG_Dbl.Double_QW := QW and 16#ffff_ffff_0000_0000#;
+               CPU.FPAC(I.Acd) := DG_Double_To_Long_Float(DG_Dbl);
+            end if;
+            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
                   
          when others =>
             Put_Line ("ERROR: ECLIPSE_FPU instruction " & To_String(I.Mnemonic) & 

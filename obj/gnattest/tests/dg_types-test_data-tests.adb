@@ -703,11 +703,32 @@ package body DG_Types.Test_Data.Tests is
 
 
 --  begin read only
+   procedure Test_DG_Single_To_Long_Float (Gnattest_T : in out Test);
+   procedure Test_DG_Single_To_Long_Float_aba5b2 (Gnattest_T : in out Test) renames Test_DG_Single_To_Long_Float;
+--  id:2.2/aba5b2674e990076/DG_Single_To_Long_Float/1/0/
+   procedure Test_DG_Single_To_Long_Float (Gnattest_T : in out Test) is
+   --  dg_types.ads:178:5:DG_Single_To_Long_Float
+--  end read only
+
+      pragma Unreferenced (Gnattest_T);
+      DW : Dword_T := 0;
+   begin
+      AUnit.Assertions.Assert (DG_Single_To_Long_Float(DW) = 0.0, "DG Single to LF - Zero conversion error.");
+      DW := 2#1_100_0010_0111_0110_1010_0000_0000_0000#;
+      AUnit.Assertions.Assert (DG_Single_To_Long_Float(DW) = (-118.625), 
+                              "DG Single to LF - Known value conversion error.");
+
+--  begin read only
+   end Test_DG_Single_To_Long_Float;
+--  end read only
+
+
+--  begin read only
    procedure Test_Long_Float_To_DG_Double (Gnattest_T : in out Test);
    procedure Test_Long_Float_To_DG_Double_8175dc (Gnattest_T : in out Test) renames Test_Long_Float_To_DG_Double;
 --  id:2.2/8175dc59a873cf72/Long_Float_To_DG_Double/1/0/
    procedure Test_Long_Float_To_DG_Double (Gnattest_T : in out Test) is
-   --  dg_types.ads:178:5:Long_Float_To_DG_Double
+   --  dg_types.ads:179:5:Long_Float_To_DG_Double
 --  end read only
 
       pragma Unreferenced (Gnattest_T);
@@ -734,7 +755,7 @@ package body DG_Types.Test_Data.Tests is
    procedure Test_Byte_To_Integer_8_6ac9f0 (Gnattest_T : in out Test) renames Test_Byte_To_Integer_8;
 --  id:2.2/6ac9f0ecd0d28fa6/Byte_To_Integer_8/1/0/
    procedure Test_Byte_To_Integer_8 (Gnattest_T : in out Test) is
-   --  dg_types.ads:181:5:Byte_To_Integer_8
+   --  dg_types.ads:182:5:Byte_To_Integer_8
 --  end read only
 
       pragma Unreferenced (Gnattest_T);
@@ -755,7 +776,7 @@ package body DG_Types.Test_Data.Tests is
    procedure Test_Char_To_Byte_11390e (Gnattest_T : in out Test) renames Test_Char_To_Byte;
 --  id:2.2/11390e3d9572d1a6/Char_To_Byte/1/0/
    procedure Test_Char_To_Byte (Gnattest_T : in out Test) is
-   --  dg_types.ads:182:5:Char_To_Byte
+   --  dg_types.ads:183:5:Char_To_Byte
 --  end read only
 
       pragma Unreferenced (Gnattest_T);
@@ -776,7 +797,7 @@ package body DG_Types.Test_Data.Tests is
    procedure Test_Byte_To_Char_7742da (Gnattest_T : in out Test) renames Test_Byte_To_Char;
 --  id:2.2/7742da8507778a8d/Byte_To_Char/1/0/
    procedure Test_Byte_To_Char (Gnattest_T : in out Test) is
-   --  dg_types.ads:183:5:Byte_To_Char
+   --  dg_types.ads:184:5:Byte_To_Char
 --  end read only
 
       pragma Unreferenced (Gnattest_T);
@@ -797,7 +818,7 @@ package body DG_Types.Test_Data.Tests is
    procedure Test_Dword_To_Integer_32_e9169d (Gnattest_T : in out Test) renames Test_Dword_To_Integer_32;
 --  id:2.2/e9169d27b9e53e9c/Dword_To_Integer_32/1/0/
    procedure Test_Dword_To_Integer_32 (Gnattest_T : in out Test) is
-   --  dg_types.ads:184:5:Dword_To_Integer_32
+   --  dg_types.ads:185:5:Dword_To_Integer_32
 --  end read only
 
       pragma Unreferenced (Gnattest_T);
@@ -818,7 +839,7 @@ package body DG_Types.Test_Data.Tests is
    procedure Test_Integer_32_To_Dword_67c35b (Gnattest_T : in out Test) renames Test_Integer_32_To_Dword;
 --  id:2.2/67c35b0907b09678/Integer_32_To_Dword/1/0/
    procedure Test_Integer_32_To_Dword (Gnattest_T : in out Test) is
-   --  dg_types.ads:185:5:Integer_32_To_Dword
+   --  dg_types.ads:186:5:Integer_32_To_Dword
 --  end read only
 
       pragma Unreferenced (Gnattest_T);
@@ -839,7 +860,7 @@ package body DG_Types.Test_Data.Tests is
    procedure Test_Integer_32_To_Phys_0e179b (Gnattest_T : in out Test) renames Test_Integer_32_To_Phys;
 --  id:2.2/0e179b57ce953892/Integer_32_To_Phys/1/0/
    procedure Test_Integer_32_To_Phys (Gnattest_T : in out Test) is
-   --  dg_types.ads:186:5:Integer_32_To_Phys
+   --  dg_types.ads:187:5:Integer_32_To_Phys
 --  end read only
 
       pragma Unreferenced (Gnattest_T);
@@ -860,7 +881,7 @@ package body DG_Types.Test_Data.Tests is
    procedure Test_Word_To_Integer_16_a3a65b (Gnattest_T : in out Test) renames Test_Word_To_Integer_16;
 --  id:2.2/a3a65b382bb1e065/Word_To_Integer_16/1/0/
    procedure Test_Word_To_Integer_16 (Gnattest_T : in out Test) is
-   --  dg_types.ads:187:5:Word_To_Integer_16
+   --  dg_types.ads:188:5:Word_To_Integer_16
 --  end read only
 
       pragma Unreferenced (Gnattest_T);
@@ -881,7 +902,7 @@ package body DG_Types.Test_Data.Tests is
    procedure Test_Integer_16_To_Word_40bf8b (Gnattest_T : in out Test) renames Test_Integer_16_To_Word;
 --  id:2.2/40bf8b3b3af6c36c/Integer_16_To_Word/1/0/
    procedure Test_Integer_16_To_Word (Gnattest_T : in out Test) is
-   --  dg_types.ads:188:5:Integer_16_To_Word
+   --  dg_types.ads:189:5:Integer_16_To_Word
 --  end read only
 
       pragma Unreferenced (Gnattest_T);
@@ -902,7 +923,7 @@ package body DG_Types.Test_Data.Tests is
    procedure Test_Word_To_Unsigned_16_d3e005 (Gnattest_T : in out Test) renames Test_Word_To_Unsigned_16;
 --  id:2.2/d3e00505fea693e8/Word_To_Unsigned_16/1/0/
    procedure Test_Word_To_Unsigned_16 (Gnattest_T : in out Test) is
-   --  dg_types.ads:189:5:Word_To_Unsigned_16
+   --  dg_types.ads:190:5:Word_To_Unsigned_16
 --  end read only
 
       pragma Unreferenced (Gnattest_T);
@@ -923,7 +944,7 @@ package body DG_Types.Test_Data.Tests is
    procedure Test_Integer_64_To_Unsigned_64_f5c627 (Gnattest_T : in out Test) renames Test_Integer_64_To_Unsigned_64;
 --  id:2.2/f5c627cc3d2eb8ab/Integer_64_To_Unsigned_64/1/0/
    procedure Test_Integer_64_To_Unsigned_64 (Gnattest_T : in out Test) is
-   --  dg_types.ads:190:5:Integer_64_To_Unsigned_64
+   --  dg_types.ads:191:5:Integer_64_To_Unsigned_64
 --  end read only
 
       pragma Unreferenced (Gnattest_T);
@@ -944,7 +965,7 @@ package body DG_Types.Test_Data.Tests is
    procedure Test_Unsigned_32_To_Integer_5e891f (Gnattest_T : in out Test) renames Test_Unsigned_32_To_Integer;
 --  id:2.2/5e891fba56f59941/Unsigned_32_To_Integer/1/0/
    procedure Test_Unsigned_32_To_Integer (Gnattest_T : in out Test) is
-   --  dg_types.ads:191:5:Unsigned_32_To_Integer
+   --  dg_types.ads:192:5:Unsigned_32_To_Integer
 --  end read only
 
       pragma Unreferenced (Gnattest_T);

@@ -98,7 +98,7 @@ package body AOSVS.File_IO is
         Get_Defaults : Boolean := Test_DW_Bit (CPU.AC(1), 1);
         WD_1, WD_2, WD_3 : Word_T;
     begin
-        Loggers.Debug_Print (Sc_Log, "?CGHR");
+        Loggers.Debug_Print (Sc_Log, "?GCHR");
         if Test_DW_Bit (CPU.AC(1), 0) then
            -- ACO should contain a channel number which should already be open
            Device_Name := AOSVS.Agent.Actions.Get_Device_For_Channel(Lower_Word(CPU.AC(0)));

@@ -60,6 +60,10 @@ package body DG_Types is
    function Test_DW_Bit (DW : in Dword_T; Bit_Num : in Integer) return Boolean
    is ((DW and Shift_Left (1, 31 - Bit_Num)) /= 0);
 
+    -- Does Qword have bit <n> set?
+   function Test_QW_Bit (QW : in Qword_T; Bit_Num : in Integer) return Boolean
+   is ((QW and Shift_Left (1, 63 - Bit_Num)) /= 0);
+
    -- Get_W_Bits - in the DG world, the first (leftmost) bit is numbered zero...
    -- extract nbits from value starting at leftBit
    function Get_W_Bits
@@ -456,6 +460,13 @@ package body DG_Types is
       return Long_Float(IEEE);
    end DG_Double_To_Long_Float;
 
+   function DG_Single_To_Long_Float (Single : in Dword_T) return Long_Float is
+      DG_Dbl : Double_Overlay;
+   begin
+      DG_Dbl.Double_QW := Shift_Left(Qword_T(Single), 32);
+      return DG_Double_To_Long_Float(DG_Dbl);
+   end DG_Single_To_Long_Float;
+
    function Long_Float_To_DG_Double (LF : in Long_Float) return Qword_T is
       IEEE : IEEE_Float_64 := IEEE_Float_64(LF);
       U_64 : Unsigned_64;
@@ -495,11 +506,18 @@ package body DG_Types is
       IEEE_Expt_I := IEEE_Expt_I / 4; -- convert to base 16
       IEEE_Expt_I := IEEE_Expt_I + 64; -- excess 64
 
-      IBM_Expt := Unsigned_64(Unsigned_16(IEEE_Expt_I) and 16#007f#);
+      --IBM_Expt := Unsigned_64(Unsigned_16(IEEE_Expt_I) and 16#007f#);
+      IBM_Expt := Integer_To_Unsigned_64(IEEE_Expt_I) and 16#007f#;
       IBM_Frac := Shift_Left(IEEE_Frac, 4);
       IBM := IBM_Sign or Shift_Left(IBM_Expt, 56) or IBM_Frac;
 
       return Qword_T(IBM);
    end Long_Float_To_DG_Double;
+
+   function Long_Float_To_DG_Single (LF : in Long_Float) return Dword_T is
+      QW : Qword_T := Long_Float_To_DG_Double (LF);
+   begin
+      return Upper_Dword (QW);
+   end Long_Float_To_DG_Single;
 
 end DG_Types;
