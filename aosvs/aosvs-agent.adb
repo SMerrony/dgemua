@@ -75,6 +75,10 @@ package body AOSVS.Agent is
          end loop;
       end Allocate_TID;
 
+      -- Sys Call Support below...
+
+      -- File I/O...
+
 		procedure File_Open (PID     : in Word_T; 
                            Path    : in String;
                            Mode    : in Word_T;
@@ -92,6 +96,9 @@ package body AOSVS.Agent is
             if (Path = "@CONSOLE") or (Path = "@INPUT") or (Path = "@OUTPUT") then
                Ag_Chan.Con := Console;
                Ag_Chan.Is_Console := true;
+               if not Device_Chars.Contains (Path) then
+                   Device_Chars.Include(Path, Default_Chars);
+               end if;
             else
                raise Not_Yet_Implemented with "Cannot handle unknown generic files";
             end if;
@@ -134,6 +141,17 @@ package body AOSVS.Agent is
             end if;
          end if;
       end File_Close;
+      
+      function Get_Device_For_Channel(Chan_No : in Word_T) return Unbounded_String is
+         Dev : Unbounded_String;
+      begin
+         if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
+            Dev := To_Unbounded_String ("***ERROR***");
+         else
+            Dev := Agent_Chans(Integer(Chan_No)).Path;
+         end if;
+         return Dev;
+      end Get_Device_For_Channel;
 
       procedure File_Write (Chan_No : in Word_T;
                               Is_Extended,
@@ -181,6 +199,9 @@ package body AOSVS.Agent is
          end if;
       end File_Write;
 
+
+      -- CLI environment...
+
 		function Get_Nth_Arg (PID : in Word_T; Arg_Num : in Word_T) return Unbounded_String is
          Nth : Integer := Integer(Arg_Num);
       begin
@@ -192,6 +213,25 @@ package body AOSVS.Agent is
 
       function Get_Num_Args (PID : in Word_T) return Dword_T is
          (Dword_T(Per_Process_Data(PID_T(PID_T(PID))).Invocation_Args'Length));
+
+      -- Terminal I/O...
+      procedure Get_Default_Chars (Device : in Unbounded_String;
+									        WD_1, WD_2, WD_3 : out Word_T) is
+      -- for the moment, we return the same basic defaults for any device...
+      begin
+         WD_1 := Default_Chars(1);
+         WD_2 := Default_Chars(2);
+         WD_3 := Default_Chars(3);
+      end Get_Default_Chars;
+
+      procedure Get_Current_Chars (Device : in Unbounded_String;
+									        WD_1, WD_2, WD_3 : out Word_T) is
+         Chars : Chars_Arr := Device_Chars(To_String(Device));
+      begin
+         WD_1 := Chars(1);
+         WD_2 := Chars(2);
+         WD_3 := Chars(3);
+      end Get_Current_Chars;
 
    end Actions;
 

@@ -5,7 +5,7 @@
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
 -- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-- to use, copy, modify, merge, publish, distribute, sublicense, and-or sell
 -- copies of the Software, and to permit persons to whom the Software is
 -- furnished to do so, subject to the following conditions:
 
@@ -20,7 +20,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
--- Adapted from parts of AOS/VS 7.73 PARU.32.SR definitions file
+-- Adapted from parts of AOS-VS 7.73 PARU.32.SR definitions file
 
 with Interfaces; use Interfaces;
 
@@ -32,7 +32,7 @@ package PARU_32 is
 	ERICM : constant Word_T := 8#01#;   -- ILLEGAL SYSTEM COMMAND
 	ERFNO : constant Word_T := 8#02#;   -- CHANNEL NOT OPEN
 	EROPR : constant Word_T := 8#03#;   -- CHANNEL ALREADY OPEN
-	ERSAL : constant Word_T := 8#04#;   -- SHARED I/O REQ NOT MAP SLOT ALIGNED
+	ERSAL : constant Word_T := 8#04#;   -- SHARED I-O REQ NOT MAP SLOT ALIGNED
 	ERMEM : constant Word_T := 8#05#;   -- INSUFFICIENT MEMORY AVAILABLE
 	ERADR : constant Word_T := 8#06#;   -- ILLEGAL STARTING ADDRESS
 	EROVN : constant Word_T := 8#07#;   -- ILLEGAL OVERLAY NUMBER
@@ -56,7 +56,7 @@ package PARU_32 is
 	ERDID : constant Word_T := 8#031#;  -- DIRECTORY DELETE ERROR
 	ERWAD : constant Word_T := 8#032#;  -- WRITE ACCESS DENIED
 	ERRAD : constant Word_T := 8#033#;  -- READ ACCESS DENIED
-	ERAWD : constant Word_T := 8#034#;  -- APPEND AND/OR WRITE ACCESS DENIED
+	ERAWD : constant Word_T := 8#034#;  -- APPEND AND-OR WRITE ACCESS DENIED
 	ERNMC : constant Word_T := 8#035#;  -- NO CHANNELS AVAILABLE
 	ERSRL : constant Word_T := 8#036#;  -- RELEASE OF NON-ACTIVE SHARED SLOT
 	ERPRP : constant Word_T := 8#037#;  -- ILLEGAL PRIORITY
@@ -81,17 +81,17 @@ package PARU_32 is
 	ERARC : constant Word_T := 8#062#;  -- ATTEMPT TO RELEASE CONSOLE DEVICE
 	ERDAI : constant Word_T := 8#063#;  -- DEVICE ALREADY IN USE
 	ERARU : constant Word_T := 8#064#;  -- ATTEMPT TO RELEASE UNASSIGNED DEVICE
-	ERACU : constant Word_T := 8#065#;  -- ATTEMPT TO CLOSE UNOPEN CHANNEL/DEVICE
-	ERITC : constant Word_T := 8#066#;  -- I/O TERMINATED BY CLOSE
+	ERACU : constant Word_T := 8#065#;  -- ATTEMPT TO CLOSE UNOPEN CHANNEL-DEVICE
+	ERITC : constant Word_T := 8#066#;  -- I-O TERMINATED BY CLOSE
 	ERLTL : constant Word_T := 8#067#;  -- LINE TOO LONG
 	ERPAR : constant Word_T := 8#070#;  -- PARITY ERROR
 	EREXC : constant Word_T := 8#071#;  -- RESDENT PROC TRIED TO PUSH (.EXEC)
 	ERNDR : constant Word_T := 8#072#;  -- NOT A DIRECTORY
-	ERNSA : constant Word_T := 8#073#;  -- SHARED I/O REQUEST NOT TO SHARED AREA
+	ERNSA : constant Word_T := 8#073#;  -- SHARED I-O REQUEST NOT TO SHARED AREA
 	ERSNM : constant Word_T := 8#074#;  -- ATTEMPT TO CREATE > MAX #; SONS
 	ERFIL : constant Word_T := 8#075#;  -- FILE READ ERROR
 	ERDTO : constant Word_T := 8#076#;  -- DEVICE TIMEOUT
-	ERIOT : constant Word_T := 8#077#;  -- WRONG TYPE I/O FOR OPEN TYPE
+	ERIOT : constant Word_T := 8#077#;  -- WRONG TYPE I-O FOR OPEN TYPE
 	ERFTL : constant Word_T := 8#0100#; -- FILENAME TOO LONG
 	ERBOF : constant Word_T := 8#0101#; -- POSITIONING BEFORE BEGINNING OF FILE
 	ERPRV : constant Word_T := 8#0102#; -- CALLER NOT PRIVILEGED FOR THIS ACTION
@@ -140,7 +140,7 @@ package PARU_32 is
 	ERDPE : constant Word_T := 8#0155#; -- DISK POSITIONING ERROR
 	ERTXT : constant Word_T := 8#0156#; -- MSG TEXT LONGER THAN SPEC'D.
 	ERSTR : constant Word_T := 8#0157#; -- SHORT TRANSMISSION
-	ERHIS : constant Word_T := 8#0160#; -- ERROR ON HISTOGRAM INIT/DELETE
+	ERHIS : constant Word_T := 8#0160#; -- ERROR ON HISTOGRAM INIT-DELETE
 	ERIRV : constant Word_T := 8#0161#; -- ILLEGAL RETRY VALUE
 	ERASS : constant Word_T := 8#0162#; -- ASSIGN ERROR - ALREADY YOUR DEVICE
 	ERPET : constant Word_T := 8#0163#; -- MAG TAPE REQ PAST LOGICAL END OF TAPE
@@ -198,20 +198,20 @@ package PARU_32 is
 	ERIAD : constant Word_T := 8#0246#; -- ATTEMPT TO DEFINE > 1 SPECIAL PROC
 	ERIND : constant Word_T := 8#0247#; -- NO SPECIAL PROCESS IS DEFINED
 	ERPRO : constant Word_T := 8#0250#; -- ATTEMPT TO ISSUE MCA REQUEST WITH
-	-- DIRECT I/O IN PROGRESS
-	ERDIO : constant Word_T := 8#0251#; -- ATTEMPT TO ISSUE MCA DIRECT I/O WITH
+	-- DIRECT I-O IN PROGRESS
+	ERDIO : constant Word_T := 8#0251#; -- ATTEMPT TO ISSUE MCA DIRECT I-O WITH
 	-- OUTSTANDING REQUESTS
 	ERLTK : constant Word_T := 8#0252#; -- LAST TASK WAS KILLED
 	ERLRF : constant Word_T := 8#0253#; -- RESOURCE LOAD OR RELEASE FAILURE
 	ERNNL : constant Word_T := 8#0254#; -- ZERO LENGTH FILENAME SPECIFIED
-	-- FOLLOWING ARE AOS/VS ONLY ERROR CODES
+	-- FOLLOWING ARE AOS-VS ONLY ERROR CODES
 	-- THEY ARE IN A SEPARATE GROUP FROM THE AOS ERROR CODES
 	-- THEY ARE IN GROUP 77, HENCE CODES ARE 77*1000+X
-	ERXXX : constant Word_T := 8#077# * 8#01000#; -- FIRST CODE FOR AOS/VS
+	ERXXX : constant Word_T := 8#077# * 8#01000#; -- FIRST CODE FOR AOS-VS
 	-- HARDWARE POINTER VALIDATION ERRORS
 	ERVWP : constant Word_T := ERXXX ;    -- INVALID ADDRESS PASSED AS SYSTEM CALL ARGUMENT
 	ERVBP : constant Word_T := ERVWP + 1; -- INVALID BYTE POINTER PASSED AS SYS CALL ARGUMENT
-	ERDPT : constant Word_T := ERVBP + 1; -- DIFFERENT TYPE PROCESS(32/16 BIT) WITHOUT PRIVILEGE
+	ERDPT : constant Word_T := ERVBP + 1; -- DIFFERENT TYPE PROCESS(32-16 BIT) WITHOUT PRIVILEGE
 	ERRAL : constant Word_T := ERDPT + 1; -- RING ALREADY LOADED
 	ERRNI : constant Word_T := ERRAL + 1; -- RING NUMBER INVALID
 	ERRTB : constant Word_T := ERRNI + 1; -- RING TOO BIG
@@ -231,7 +231,7 @@ package PARU_32 is
 	ERHWT : constant Word_T := ERMWT + 1; -- BOTH TRACE AND HISTOGRAM CALLED, OR > 1 TRACE
 	ERDTC : constant Word_T := ERHWT + 1; -- DIFFERENT TYPE CHAIN
 	ERWST : constant Word_T := ERDTC + 1; -- NO WS TRACE DEFINED ON THIS TARGET
-	ERWSS : constant Word_T := ERWST + 1; -- INVALID WKG SET MAX/MIN
+	ERWSS : constant Word_T := ERWST + 1; -- INVALID WKG SET MAX-MIN
 	ERWSB : constant Word_T := ERWSS + 1; -- INVALID WORKING SET TRACE BUFFER
 	ERWSF : constant Word_T := ERWSB + 1; -- WORKING SET NOT SWAPPABLE
 	ERAWM : constant Word_T := ERWSF + 1; -- TRYING TO WIRE MORE PAGES THAN WS MAX
@@ -279,7 +279,7 @@ package PARU_32 is
 	ERLP0 : constant Word_T := ERILV + 1; -- CANNOT DELETE LP 0
 	ERNMP : constant Word_T := ERLP0 + 1; -- NOT A MULTI-PROCESSOR SYSTEM
 	ERCNE : constant Word_T := ERNMP + 1; -- CLASS DOES NOT EXIST
-	ERHLP : constant Word_T := ERCNE + 1; -- ILLEGAL HIERARCHY LEVEL / PERCENTAGE PAIR
+	ERHLP : constant Word_T := ERCNE + 1; -- ILLEGAL HIERARCHY LEVEL - PERCENTAGE PAIR
 	ERICD : constant Word_T := ERHLP + 1; -- ILLEGAL FUNCTION CODE
 	ERJPS : constant Word_T := ERICD + 1; -- JP IS IN A BAD STATE
 	ERCMM : constant Word_T := ERJPS + 1; -- MICROCODE IS INCOMPATIBLE WITH CURRENT SYSTEM
@@ -316,7 +316,7 @@ package PARU_32 is
 	ERIWP : constant Word_T := ERIWO + 1; -- INVALID WINDOWING PARAMETER.
 	ERADE : constant Word_T := ERIWP + 1; -- ASSOCIATION DOES NOT EXIST.
 	ERUWE : constant Word_T := ERADE + 1; -- UNKNOWN WINDOWING SUBSYSTEM ERROR
-	ERNSP : constant Word_T := ERUWE + 1; -- HARDWARE/MICROCODE DOES NOT SUPPORT PIXEL MAPS
+	ERNSP : constant Word_T := ERUWE + 1; -- HARDWARE-MICROCODE DOES NOT SUPPORT PIXEL MAPS
 	ERIFL : constant Word_T := ERNSP + 1; -- IAC FAILURE
 	ERTMO : constant Word_T := ERIFL + 1; -- TOO MANY OPENS ON THIS DEVICE.
 
@@ -357,7 +357,7 @@ package PARU_32 is
 	RTUN : constant Word_T := 5; -- UNDEFINED
 	RTVB : constant Word_T := 6; -- IBM VARIABLE BLOCK - VARIABLE RECORD
 
-	-- GENERAL USER I/O PACKET USED FOR open/read/write/close
+	-- GENERAL USER I-O PACKET USED FOR open-read-write-close
 	ICH   : constant Phys_Addr_T := 0;        -- CHANNEL NUMBER
 	ISTI  : constant Phys_Addr_T := ICH + 1;  -- STATUS WORD (IN)
 	ISTO  : constant Phys_Addr_T := ISTI + 1; -- RIGHT=FILE TYPE, LEFT=RESERVED
@@ -374,7 +374,7 @@ package PARU_32 is
 	IFNL  : constant Phys_Addr_T := IFNP + 1; -- LOW ORDER BITS OF ifnp
 	IDEL  : constant Phys_Addr_T := IFNL + 1; -- DELIMITER TABLE ADDRESS
 	IDLL  : constant Phys_Addr_T := IDEL + 1; -- LOWER BITS OF idel
-	IOSZ  : constant Phys_Addr_T := IDLL + 1; -- LENGTH OF STANDARD I/O PACKET
+	IOSZ  : constant Phys_Addr_T := IDLL + 1; -- LENGTH OF STANDARD I-O PACKET
 
 	ETSP : constant Phys_Addr_T := IDLL + 1; -- SCREEN MANAGEMENT PACKET
 	ETSL : constant Phys_Addr_T := ETSP + 1; -- LOWER PORTION OF etsp
@@ -391,7 +391,7 @@ package PARU_32 is
 	ICFB : constant Natural := 1; -- CHANGE FORMAT BIT (0 : constant Natural :=> DEFAULT)
 	ICDM : constant Natural := 1; -- DUMP MODE BIT (ON close ONLY)
 	IPTB : constant Natural := 2; -- POSITIONING TYPE (0 : constant Natural :=> RELATIVE)
-	IBIB : constant Natural := 3; -- BINARY I/O
+	IBIB : constant Natural := 3; -- BINARY I-O
 	IFOB : constant Natural := 4; -- FORCE OUTPUT
 	IOEX : constant Natural := 5; -- EXCLUSIVE OPEN
 	IIPS : constant Natural := 6; -- IPC NO WAIT BIT
@@ -410,11 +410,11 @@ package PARU_32 is
 	ICRF : constant Phys_Addr_T := Shift_Right (16#8000#, ICFB); -- CHANGE RECORD FORMAT (IF SET)
 	CDMP : constant Phys_Addr_T := Shift_Right (16#8000#, ICDM); -- SET DUMP BIT (ONLY ON close)
 	IPST : constant Phys_Addr_T := Shift_Right (16#8000#, IPTB); -- RECORD POSITIONING TYPE (1 - ABSOLUTE)
-	IBIN : constant Phys_Addr_T := Shift_Right (16#8000#, IBIB); -- BINARY I/O
+	IBIN : constant Phys_Addr_T := Shift_Right (16#8000#, IBIB); -- BINARY I-O
 	IFOP : constant Phys_Addr_T := Shift_Right (16#8000#, IFOB); -- FORCE OUTPUT
 	IEXO : constant Phys_Addr_T := Shift_Right (16#8000#, IOEX); -- EXCLUSIVE OPEN
 	IIPC : constant Phys_Addr_T := Shift_Right (16#8000#, IIPS); -- IPC NO WAIT BIT
-	PDEL : constant Phys_Addr_T := Shift_Right (16#8000#, PDLM); -- PRIORITY OPEN-I/O
+	PDEL : constant Phys_Addr_T := Shift_Right (16#8000#, PDLM); -- PRIORITY OPEN-I-O
 	APND : constant Phys_Addr_T := Shift_Right (16#8000#, APBT); -- OPEN FILE FOR APPENDING
 	OFCR : constant Phys_Addr_T := Shift_Right (16#8000#, OF1B); -- ATTEMPT CREATE BEFORE OPEN
 	OFCE : constant Phys_Addr_T := Shift_Right (16#8000#, OF2B); -- CORRECT ERROR ON CREATE OR OPEN
@@ -448,9 +448,293 @@ package PARU_32 is
 	-- IF gfcf IS 0.
 	GFEX : constant Word_T := 16#4000#; --1B1             -- FROM EXEC IF ON
 
-	--IF gfex IS ON, gfxb GIVES JOB'S BATCH/INTERACTIVE STATUS
+	--IF gfex IS ON, gfxb GIVES JOB'S BATCH-INTERACTIVE STATUS
 	GFXB : constant Word_T := 16#2000#; --1B2             -- ON=BATCH, OFF=INTERACTIVE
 	-- IN ADDITION, IF CLI IS INVOKED WITH gfcf 0, BOTH gfxb & gfex
 	-- EQUAL TO ZERO => EXECUTE COMMAND PASSED IN MESSAGE AND RETURN.	
+
+
+--  PERIPHERAL DEVICE CHARACTERISTICS
+	-- The following parameters are for the characteristic packet offsets
+	ch1  : constant Word_T := 0 ; -- word 1 (offset 0)
+	ch2  : constant Word_T := 1 ; -- word 2 (offset 1)
+	ch3  : constant Word_T := 2 ; -- word 3 (offset 2)
+	ch4  : constant Word_T := 3 ; -- word 4 (offset 3)
+	ch5  : constant Word_T := 4 ; -- word 5 (offset 4)
+	ch6  : constant Word_T := 5 ; -- word 6 (offset 5)
+	ch7  : constant Word_T := 6 ; -- word 7 (offset 6)
+	ch8  : constant Word_T := 7 ; -- word 8 (offset 7)
+	ch9  : constant Word_T := 8 ; -- word 9 (offset 8)
+	ch10 : constant Word_T := 9 ; -- word 10 (offset 9)
+	ch11 : constant Word_T := 10; -- word 11 (offset 10)
+	ch12 : constant Word_T := 11; -- word 12 (offset 11)
+	ch13 : constant Word_T := 12; -- word 13 (offset 12)
+	ch14 : constant Word_T := 13; -- word 14 (offset 13)
+	ch15 : constant Word_T := 14; -- word 15 (offset 14)
+
+	--        Packet length parameters
+	clmin : constant Integer := 3 ; --  MIN LENGTH OF CHARACTERISTICS PACKET
+	clmax : constant Integer := 15; --  MAX LENGTH OF CHARACTERISTICS PACKET
+	bmlth : constant Integer := 20; --  LENGTH OF INQUIRE PACKET
+
+	--        ch1 - offset 0
+	cst  : constant Word_T := 2#10000000_00000000#; -- SIMULATE TABS
+	csff : constant Word_T := 2#01000000_00000000#; -- SIMULATE FORM FEEDS
+	cepi : constant Word_T := 2#00100000_00000000#; -- REQUIRE EVEN PARITY ON INPUT
+	c8bt : constant Word_T := 2#00010000_00000000#; -- ALLOW 8 DATA BITS-CHARACTER
+	cspo : constant Word_T := 2#00001000_00000000#; -- SET PARITY ON OUTPUT (EVEN ONLY)
+	craf : constant Word_T := 2#00000100_00000000#; -- SEND RUBOUTS AFTER FORM FEEDS
+	crat : constant Word_T := 2#00000010_00000000#; -- SEND RUBOUTS AFTER TABS
+	crac : constant Word_T := 2#00000001_00000000#; -- SEND RUBOUTS AFTER CR AND NL
+	cnas : constant Word_T := 2#00000000_10000000#; -- NON ANSI STANDARD DEVICE
+	cott : constant Word_T := 2#00000000_01000000#; -- CONVERT ESC CHARACTER (FOR OLD TTY'S)
+	ceol : constant Word_T := 2#00000000_00100000#; -- DO NOT AUTO CR-LF AT END OF LINE
+	cuco : constant Word_T := 2#00000000_00010000#; -- OUTPUT UPPER CASE ONLY DEVICE
+	cmri : constant Word_T := 2#00000000_00001000#; -- MONITOR RING INDICATOR ON MODEM CONTROL LINE
+	cff  : constant Word_T := 2#00000000_00000100#; -- FORM FEED ON OPEN
+	--        THE FOLLOWING TWO BITS MUST NOT BE MOVED :
+	ceb0 : constant Word_T := 2#00000000_00000010#; -- ECHO MODE BIT 0
+	ceb1 : constant Word_T := 2#00000000_00000001#; -- ECHO MODE BIT 1
+
+	--        ECHO MODES :
+	--        0=      NO ECHO
+	--        1=      STRAIGHT ECHO
+	--        2=      ECHO CONTROL CHARS AS ^B ^F (ETC.), ESC AS $
+	--        3=      (RESERVED FOR FUTURE USE)
+
+	ceos : constant Word_T := Shift_Right(16#8000#, 15);       -- STRAIGHT ECHO BIT MASK
+	ceoc : constant Word_T := Shift_Right(16#8000#, 14);       -- CNTRL SPECIAL ECHO BIT MASK
+
+	--        ch2 - offset 1
+	culc : constant Word_T := 2#10000000_00000000#; -- INPUT UPPER-LOWER CASE DEVICE
+	cpm  : constant Word_T := 2#01000000_00000000#; -- DEVICE IS IN PAGE MODE
+	cnrm : constant Word_T := 2#00100000_00000000#; -- DISABLE MESSAGE RECEPTION
+	cmod : constant Word_T := 2#00010000_00000000#; -- DEVICE ON MODEM INTERFACE
+
+	--        THE FOLLOWING FOUR BITS MUST NOT BE MOVED :
+	cdt0 : constant Integer := 4; -- DEVICE TYPE BIT 0
+	cdt1 : constant Integer := 5; -- DEVICE TYPE BIT 1
+	cdt2 : constant Integer := 6; -- DEVICE TYPE BIT 2
+	cdt3 : constant Integer := 7; -- DEVICE TYPE BIT 3
+
+	cto  : constant Integer := 8;  -- DEVICE TIME-OUTS ENABLED
+	ctsp : constant Integer := 9;  -- CRA- NO TRAILING BLANK SUPPRESSION
+	cpbn : constant Integer := 10; -- CRA- PACKED FORMATE ON BINARY READ
+	cesc : constant Integer := 11; -- ESC CHARACTER PRODUCES INTERRUPT
+	cwrp : constant Integer := 12; -- HARDWARE WRAPS AROUND ON LINE TOO LONG
+	cfkt : constant Integer := 13; -- FUNCTION KEYS ARE INPUT DELIMITERS
+	cnnl : constant Integer := 14; -- CRA- NO NEW-LINE CHARACTERS APPENDED
+	--                15    -- BIT 15 USED IN PARU.16.SR FOR TRA-TPA
+
+	--        DEFINE DEVICE TYPE MASK.
+	dtype : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt2) + Shift_Right(16#8000#, cdt3);
+	tty   : constant Word_T := 0;                                          -- 4010A CONSOLE DEVICE TYPE
+	crt1  : constant Word_T := Shift_Right(16#8000#, cdt3);                             -- 4010I CONSOLE DEVICE TYPE
+	crt2  : constant Word_T := Shift_Right(16#8000#, cdt2);                             -- 6012  CONSOLE DEVICE TYPE
+	crt3  : constant Word_T := Shift_Right(16#8000#, cdt2) + Shift_Right(16#8000#, cdt3);                -- 605X CONSOLE DEVICE TYPE
+	crt4  : constant Word_T := Shift_Right(16#8000#, cdt1);                             -- ANOTHER CONSOLE DEVICE TYPE
+	crt5  : constant Word_T := Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt3);                -- PSEUDO 6012 DEVICE
+	crt6  : constant Word_T := Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt2);                -- 6130 CONSOLE DEVICE TYPE
+	crt7  : constant Word_T := Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt2) + Shift_Right(16#8000#, cdt3); -- USER DEFINED DEVICE
+	crt8  : constant Word_T := Shift_Right(16#8000#, cdt0);                             -- USER DEFINED DEVICE
+	crt9  : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt3);                -- USER DEFINED DEVICE
+	crt10 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt2);                -- USER DEFINED DEVICE
+	crt11 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt2) + Shift_Right(16#8000#, cdt3); -- USER DEFINED DEVICE
+	crt12 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt1);                -- USER DEFINED DEVICE
+	crt13 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt3); -- USER DEFINED DEVICE
+	crt14 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt2); -- USER DEFINED DEVICE
+	crt15 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt2) + Shift_Right(16#8000#, cdt3);
+
+	--        ch3 - offset 2
+	--
+	--        HIGH BYTE IS LPP (LINES PER PAGE)
+	--        LOW  BYTE IS CPL (CHARACTERS PER LINE)
+	cpgsz : constant Word_T := ch3; -- Page size
+
+	--        ch4 - offset 3
+	cval : constant Integer := 0;   -- INDICATES THAT THE CONTENTS OF THIS
+									-- OFFSET ARE VALID(USED ON RETURN
+									-- FROM gechr.)  IN GENERAL, cval: constant Integer := 1
+									-- FOR AN IAC SYSTEM, AND cval OTHERWISE.
+	br0bit : constant Integer := 1;      -- BAUD RATE FIELD (BIT 0)
+	ctck   : constant Integer := 2;      -- INTERNAL TRANSMITER CLOCK
+	crck   : constant Integer := 3;      -- INTERNAL RECIEVER CLOCK
+	br1bit : constant Integer := 4;      -- BAUD RATE FIELD (BIT 1)
+	br2bit : constant Integer := 5;      -- BAUD RATE FIELD (BIT 2)
+	br3bit : constant Integer := 6;      -- BAUD RATE FIELD (BIT 3)
+	br4bit : constant Integer := 7;      -- BAUD RATE FIELD (BIT 4)
+	cst0   : constant Integer := 8;      -- STOP BIT 0
+	cst1   : constant Integer := 9;      -- STOP BIT 1
+	cpty   : constant Integer := 10;     -- ODD-EVEN PARITY
+	cpen   : constant Integer := 11;     -- PARITY DISABLED-ENABLED
+	clt0   : constant Integer := 12;     -- DATA LENGTH BITS
+	clt1   : constant Integer := 13;     -- DATA LENGTH BITS
+	brfct  : constant Integer := 14;     -- BAUD RATE FACTOR 16X
+	hrdflc : constant Integer := 15;     -- HARDWARE FLOW CONTROL (CTS)
+	chofc  : constant Integer := hrdflc; -- HARDWARE OUTPUT FLOW CONTROL
+
+	--        SPLIT BAUD RATE VALUES:
+	-- csben = 16#8000#>>ctck + 16#8000#>>brfct                -- ENABLE SPLIT BAUD
+	-- csbds = 16#8000#>>ctck + 16#8000#>>crck + 16#8000#>>brfct -- DISABLE SPLIT BAUD
+
+	--        STOP BIT FIELD VALUES ARE:
+	-- csmsk = 16#8000#>>cst0 + 16#8000#>>cst1 -- STOP BIT FIELD MASK
+
+	-- cs10=  0bcst0+16#8000# >> cst1         -- 1 STOP BIT
+	-- cs15=  16#8000# >> cst0+0bcst1         -- 1.5 STOP BITS
+	-- cs20=  16#8000# >> cst0+16#8000# >> cst1         -- 2 STOP BITS
+
+	--        PARITY BIT FIELD VALUES ARE:
+	-- cpmsk= 16#8000# >> cpen+16#8000# >> cpty         -- PARITY FIELD MASK
+
+	-- cpr0=  0bcpen                 -- DISABLE PARITY CHECKING
+	-- cpr1=  1bcpen+0bcpty         -- ENABLE ODD  PARITY
+	-- cpr2=  1bcpen+1bcpty         -- ENABLE EVEN PARITY
+
+	-- --        BAUD RATES ARE:
+	-- brmsk= 16#8000# >> br0bt)!17B(br4bit)        -- BAUD RATE MASK
+	-- cr50=  0B(br0bit)+0.B(br4bit)        -- 50
+	-- cr75=  0B(br0bit)+1.B(br4bit)        -- 75
+	-- cr110= 0B(br0bit)+2.B(br4bit)        -- 110
+	-- cr134= 0B(br0bit)+3.B(br4bit)        -- 134.5
+	-- cr150= 0B(br0bit)+4.B(br4bit)        -- 150
+	-- cr300= 0B(br0bit)+5.B(br4bit)        -- 300
+	-- cr600= 0B(br0bit)+6.B(br4bit)        -- 600
+	-- cr12h= 0B(br0bit)+7.B(br4bit)        -- 1200
+	-- cr18h= 0B(br0bit)+8.B(br4bit)        -- 1800
+	-- cr20h= 0B(br0bit)+9.B(br4bit)        -- 2000
+	-- cr24h= 0B(br0bit)+10.B(br4bit)       -- 2400
+	-- cr36h= 0B(br0bit)+11.B(br4bit)       -- 3600
+	-- cr48h= 0B(br0bit)+12.B(br4bit)       -- 4800
+	-- cr72h= 0B(br0bit)+13.B(br4bit)       -- 7200
+	-- cr96h= 0B(br0bit)+14.B(br4bit)       -- 9600
+	-- cr19k= 0B(br0bit)+15.B(br4bit)       -- 19200
+
+	-- cr45=  16#8000# >> br0bt)+0.B(br4bit)        -- 45.5
+	-- cr38k= 16#8000# >> br0bt)+1.B(br4bit)        -- 38400
+	--                            2- 15           --  - RESERVED
+
+	-- --        DATA LENGTH FIELD VALUES ARE:
+	-- clmsk= 1bclt0+1bclt1         -- DATA LENGTH FIELD MASK
+	-- cln5=  0bclt0+0bclt1         -- 5 BITS
+	-- cln6=  0bclt0+1bclt1         -- 6 BITS
+	-- cln7=  1bclt0+0bclt1         -- 7 BITS
+	-- cln8=  1bclt0+1bclt1         -- 8 BITS
+
+	--        ch5 - offset 4
+	-- shco    = 0  -- SHARED CONSOLE OWNERSHIP CHARACTERISTIC
+	-- xofc    = 1  -- XON XOFF OUTPUT FLOW CONTROL
+	-- xifc    = 2  -- XON XOFF INPUT  FLOW CONTROL
+	-- c16b    = 3  -- Enable double byte handling (16 bit characters)
+	-- bmdev   = 4  -- BITMAP DEVICE
+	-- trpe    = 5  -- TERMINATE READ ON POINTER EVENT
+	-- cwin    = 6  -- WINDOW CHARACTERISTIC
+	-- cacc    = 7  -- ENFORCE ACCESS CONTROL
+	-- cctd    = 8  -- PORT IS IN A CONTENDED ENVIRONMENT (PBX, TERMSERVER)
+	-- csrds   = 9  -- SUPRESS RECEIVER DISABLE
+	-- cxlt    = 10 -- TRANSLATE (ANSI TERMINAL)
+	-- cabd    = 11 -- [1] DO AUTOBAUD MATCH IF SET
+	-- callout = 12 -- CALL OUT (PBX SUPPORT)
+	-- cbk0    = 13 -- BREAK FUNCTION BIT 0
+	-- cbk1    = 14 -- BREAK FUNCTION BIT 1
+	-- cbk2    = 15 -- BREAK FUNCTION BIT 2
+
+	-- -- BREAK FUNCTION FIELD DEFINITION:
+
+	-- cbkm=  1bcbk0+1bcbk1+1bcbk2 -- MASK
+
+	-- cbbm=  0B(cbk2)               -- BREAK BINARY MODE
+	-- cbds=  16#8000# >> cbk2               -- FORCE DISCONNECT
+	-- cbca=  2B(cbk2)               -- SEND ^C^A SEQUENCE
+	-- cbcb=  3B(cbk2)               -- SEND ^C^B SEQUENCE
+	-- cbcf=  4B(cbk2)               -- SEND ^C^F SEQUENCE
+	--                5B(cbk2)               --  - RESERVED
+	--                6B(cbk2)               --  - RESERVED
+	--                7B(cbk2)               --  - RESERVED
+
+	--        ch6 - offset 5
+	-- --        (MODEM ENHANCEMENTS)
+
+	-- cmdop = ch6 -- Modem options
+
+	-- cdmc  = 0        -- RESERVED
+	-- cmdua = cdmc + 1 -- DIRECT USER ACCESS TO MODEM
+	-- -- (DON'T PEND FIRST WRITE)
+	-- chdpx = cmdua + 1 -- HALF DUPLEX
+	-- csmcd = chdpx + 1 -- SUPPRESS MONITORING CD
+	-- -- (FOR MODEM CONNECTION)
+	-- crtscd = csmcd + 1 -- ON HALF DUPLEX, DON'T RAISE
+	-- -- RTS UNTIL CD DROPS
+	-- chifc = crtscd + 1 -- HARDWARE INPUT FLOW CONTROL
+
+	-- --        ch7 - offset 6
+	-- ctcc = ch7 -- Time (in msec) to wait for CD on a modem
+	-- -- connect
+
+	-- --        ch8 - offset 7
+	-- ctcd = ch8 -- Time (in msec) to wait for CD if it drops
+
+	-- --        ch9 - offset 8
+	-- ctdw = ch9 -- Time (in msec) to wait after connection
+	-- -- before allowing I-O
+
+	-- --        ch10 - offset 9
+	-- cthc = ch10 -- Time (in msec) to wait after disconnect
+	-- -- for modem to settle
+
+	-- --        ch11 - offset 10
+	-- ctlt = ch11 -- Time (in msec) to wait before turning
+	-- -- the line around (from XMIT to REC) for
+	-- -- half duplex
+
+	-- --        ch12 - offset 11
+	-- --        (Console Type)
+	-- --
+	-- --        HIGH BYTE IS RESERVED (=0)
+	-- --        LOW  BYTE IS CONSOLE TYPE
+
+	-- cctype = ch12 -- Console type
+
+	-- --        Mask for accessing just console type
+
+	-- cctypmsk = 377 -- mask for just console type
+
+	-- --        These are the current values for console types
+
+	-- cdcc = 0        -- Direct Connect
+	-- clnc = cdcc + 1 -- Term Server
+	-- ctnc = clnc + 1 -- TELNET Consoles
+	-- cpdc = ctnc + 1 -- PAD Consoles
+	-- cvrc = cpdc + 1 -- Virtual (SVTA-like) Consoles
+	-- cpxc = cvrc + 1 -- PBX Consoles (PIM)
+	-- cpcc = cpxc + 1 -- PC-TS Consoles
+	-- cbmc = cpcc + 1 -- Bitmapped (Windowing) Console
+	-- ctpc = cbmc + 1 -- T1 Primary Rate Console(IIC)
+
+	-- --        ch13 - offset 12
+	-- --        (Language Front-end Processor)
+
+	-- clfp = ch13 -- LFP options
+
+	-- ckg0 = 0 -- G1-G0 double-byte handling
+	-- ckhw = 1 -- Kanji half-wide characters
+	-- cnlx = 2 -- Native language translation
+
+--        DEVICE TYPES : (FOR RUBOUT ECHO & CURSOR CONTROLS)
+--
+--        PIBC2   CHARACTERS TO :
+--        DEVICE  MODEL   MOVE    MOVE    ERASE   RUBOUT
+--        TYPE :  # :     LEFT:   RIGHT:  LINE:   ECHO:
+--
+--        0       4010A   (NONE)  (NONE)  (NONE)  SHIFT O
+--        0       6040    (NONE)  (NONE)  (NONE)  SHIFT O
+--        1       4010I   ^Z      ^Y      ^K      ^Z,SPACE,^Z
+--        2       6012    ^Y      ^X      ^K      ^Y,SPACE,^Y
+--        3       6052    ^Y      ^X      ^K      ^Y,SPACE,^Y
+--        4       ----    ESC,D   ESC,C   ESC,K   ESC,D,SPACE,ESC,D
+--        5       ----
+--        6       6130    ^Y      ^X      ^K      ^Z,SPACE,^Z
+--        7-15  (FOR FUTURE EXPANSION)
+
 	
 end PARU_32;

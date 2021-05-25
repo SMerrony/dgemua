@@ -114,14 +114,14 @@ package body AOSVS.Agent.Tasking is
                -- Loggers.Debug_Print (Sc_Log, "System Call # is: " & Dword_To_String (Dword_T(Call_ID), Octal, 6));
             end if;
             case Call_ID is
-               when 8#003# => Syscall_OK := Aosvs.Sys_Memory.Sys_MEM  (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
-               when 8#014# => Syscall_OK := Aosvs.Sys_Memory.Sys_MEMI (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
-               when 8#036# => Syscall_OK := Aosvs.System.Sys_GTOD (CPU, Task_Data.PID, Task_Data.TID);
-               when 8#263# => Syscall_OK := Aosvs.Multitasking.Sys_WDELAY (CPU, Task_Data.PID, Task_Data.TID);
-               when 8#300# => Syscall_OK := Aosvs.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
-               when 8#301# => Syscall_OK := Aosvs.File_IO.Sys_CLOSE (CPU, Task_Data.PID, Task_Data.TID);
-               when 8#303# => Syscall_OK := Aosvs.File_IO.Sys_WRITE (CPU, Task_Data.PID, Task_Data.TID);
-               when 8#307# => Syscall_OK := Aosvs.System.Sys_GTMES  (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#003# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEM  (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
+               when 8#014# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEMI (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
+               when 8#036# => Syscall_OK := AOSVS.System.Sys_GTOD (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#263# => Syscall_OK := AOSVS.Multitasking.Sys_WDELAY (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#300# => Syscall_OK := AOSVS.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#301# => Syscall_OK := AOSVS.File_IO.Sys_CLOSE (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#303# => Syscall_OK := AOSVS.File_IO.Sys_WRITE (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#307# => Syscall_OK := AOSVS.System.Sys_GTMES  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#310# => -- ?RETURN - handled differently
                   Loggers.Debug_Print (Sc_Log, "?RETURN");
                   Error_Code  := CPU.AC(0);
@@ -131,6 +131,8 @@ package body AOSVS.Agent.Tasking is
                      Term_Msg := Byte_Arr_To_Unbounded(RAM.Read_Bytes_BA(CPU.AC(1), Msg_Len));
                   end if;
                   exit;
+               when 8#312# => Syscall_OK := AOSVS.File_IO.Sys_GCHR (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#505# => AOSVS.Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr, Syscall_OK);
                when 8#542# => Syscall_OK := true; -- AOSVS.FPU.Sys_IFPU (CPU, Task_Data.PID, Task_Data.TID);
                when others =>
                   raise System_Call_Not_Implemented with "Decimal call #:" & Call_ID'Image;

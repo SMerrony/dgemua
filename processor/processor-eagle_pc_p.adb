@@ -219,6 +219,17 @@ package body Processor.Eagle_PC_P is
                end if;
             end;
 
+         when I_WMESS =>
+            DW := RAM.Read_Dword(Phys_Addr_T(CPU.AC(2)));
+            if ((DW xor CPU.AC(0)) and CPU.AC(3)) = 0 then
+               RAM.Write_Dword(Phys_Addr_T(CPU.AC(2)), CPU.AC(1));
+               CPU.PC := CPU.PC + 2;
+            else
+               CPU.PC := CPU.PC + 1;
+            end if;
+            CPU.AC(1) := DW;
+
+
          when I_WSEQI | I_WSGTI | I_WSLEI | I_WSNEI =>
             if I.Instruction = I_WSEQI then
                Skip := CPU.AC(I.Ac) = Sext_Word_To_Dword (I.Word_2);

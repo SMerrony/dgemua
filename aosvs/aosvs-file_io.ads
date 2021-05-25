@@ -29,4 +29,6 @@ package AOSVS.File_IO is
     function Sys_CLOSE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
     function Sys_WRITE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
 
+    function Sys_GCHR  (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
+
 end AOSVS.File_IO;

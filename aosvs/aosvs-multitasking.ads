@@ -25,6 +25,7 @@ with Processor;     use Processor;
 
 package AOSVS.Multitasking is
 
-    function Sys_WDELAY (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
+   procedure Sys_KILAD (CPU : in out CPU_T; PID : in Word_T; Kill_Addr : out Phys_Addr_T; OK : out Boolean);
+   function Sys_WDELAY (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
 
 end AOSVS.Multitasking;

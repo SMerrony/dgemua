@@ -93,4 +93,33 @@ package body AOSVS.File_IO is
         return true;
     end Sys_Write;
 
+    function Sys_GCHR (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
+        Device_Name  : Unbounded_String;
+        Get_Defaults : Boolean := Test_DW_Bit (CPU.AC(1), 1);
+        WD_1, WD_2, WD_3 : Word_T;
+    begin
+        Loggers.Debug_Print (Sc_Log, "?CGHR");
+        if Test_DW_Bit (CPU.AC(1), 0) then
+           -- ACO should contain a channel number which should already be open
+           Device_Name := AOSVS.Agent.Actions.Get_Device_For_Channel(Lower_Word(CPU.AC(0)));
+           if Device_Name = "***ERROR***" then
+              CPU.AC(0) := Dword_T(ERICN); -- Illegal Channel No.
+              return false;
+           end if;
+        else
+           -- AC0 should be a BP to the target device name
+           Device_Name := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0)));
+        end if;
+        Loggers.Debug_Print (Sc_Log, "----- for device: " & To_String(Device_Name));
+        if Get_Defaults then
+            AOSVS.Agent.Actions.Get_Default_Chars(Device_Name, WD_1, WD_2, WD_3);
+        else
+            AOSVS.Agent.Actions.Get_Current_Chars(Device_Name, WD_1, WD_2, WD_3);
+        end if;
+            RAM.Write_Word(Phys_Addr_T(CPU.AC(2)), WD_1);
+            RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+1, WD_2);
+            RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+2, WD_3);
+        return true;
+    end Sys_GCHR;
+
 end AOSVS.File_IO;

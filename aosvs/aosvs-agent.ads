@@ -20,10 +20,14 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Containers.Indefinite_Hashed_Maps;
+with Ada.Strings.Hash;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with GNAT.Sockets;
+
+with PARU_32;
 
 package AOSVS.Agent is
 
@@ -59,13 +63,13 @@ package AOSVS.Agent is
 	end record;
 
 	type PPD_Arr is array (PID_T) of Per_Process_Data_T;
+	type Chars_Arr is array (1..3) of Word_T;
 
 	type Agent_Channel_T is record
 	   Opener_PID  : PID_T;
 	   Path        : Unbounded_String;
 	   Is_Console  : Boolean;
-	   Read,
-	   Write,
+	   Read, Write,
 	   For_Shared  : Boolean;
 	   Rec_Len     : Natural;
 	   Con         : GNAT.Sockets.Stream_Access;
@@ -73,6 +77,20 @@ package AOSVS.Agent is
 	end record;
 
 	type Agent_Channel_Arr is array (1 .. 128) of Agent_Channel_T;
+
+	package Characteristics_Maps is new Ada.Containers.Indefinite_Hashed_Maps (
+		Key_Type => String, 
+		Element_Type => Chars_Arr,
+		Hash         => Ada.Strings.Hash,
+		Equivalent_Keys => "=");
+
+	use Characteristics_Maps;
+
+	Default_Chars : constant Chars_Arr := (
+		PARU_32.CST or PARU_32.CSFF, 				-- 8-col tabs, Form-feeds
+		PARU_32.CULC or PARU_32.CRT3, 				-- Upper and lower case, D200 style
+		Shift_Left(Word_T(24), 8) or Word_T(80) 	-- 24x80 chars
+	);
 
 	protected Actions is
 		procedure Init (Cons : in GNAT.Sockets.Stream_Access);
@@ -88,7 +106,7 @@ package AOSVS.Agent is
 	    procedure Allocate_TID (PID : in PID_T; TID : out Word_T);
 
 		-- System Call supporting subprograms...
-
+        -- file I/O...
 		procedure File_Open (PID     : in Word_T; 
 							 Path    : in String;
 							 Mode    : in Word_T;
@@ -96,6 +114,7 @@ package AOSVS.Agent is
 							 Chan_No : out Word_T;
 							 Err     : out Word_T);
 		procedure File_Close (Chan_No : in Word_T; Err : out Word_T);
+	    function  Get_Device_For_Channel(Chan_No : in Word_T) return Unbounded_String;
 		procedure File_Write (Chan_No : in Word_T;
 							  Is_Extended,
 							  Is_Absolute,
@@ -105,8 +124,15 @@ package AOSVS.Agent is
 							  Position    : in Integer;
 							  Transferred : out Word_T;
 							  Err         : out Word_T);
+		-- CLI environment...
 		function Get_Nth_Arg (PID : in Word_T; Arg_Num : in Word_T) return Unbounded_String;
 		function Get_Num_Args (PID : in Word_T) return Dword_T;
+		-- terminal I/O...
+		procedure Get_Default_Chars (Device : in Unbounded_String;
+									 WD_1, WD_2, WD_3 : out Word_T);
+		procedure Get_Current_Chars (Device : in Unbounded_String;
+									 WD_1, WD_2, WD_3 : out Word_T);
+
 							   
 
 	private
@@ -114,6 +140,7 @@ package AOSVS.Agent is
 		Per_Process_Data : PPD_Arr;
 		Console          : GNAT.Sockets.Stream_Access;
 		Agent_Chans      : Agent_Channel_Arr;
+		Device_Chars     : Map;
 	end Actions;
 
 	Channel_Not_Open,
