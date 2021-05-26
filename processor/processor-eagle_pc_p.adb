@@ -70,10 +70,10 @@ package body Processor.Eagle_PC_P is
 
          when I_LDSP =>
             declare
-               Hi, Lo : Integer_32;
-               Val    : Integer_32 := Dword_To_Integer_32(CPU.AC(I.Ac));
-               Table_Addr : Phys_Addr_T;
-               Table_Ix : Phys_Addr_T;
+               Hi, Lo, Offset : Integer_32;
+               Val            : Integer_32 := Dword_To_Integer_32(CPU.AC(I.Ac));
+               Table_Addr     : Phys_Addr_T;
+               Table_Ix       : Phys_Addr_T;
             begin
                Table_Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
                Hi := Dword_To_Integer_32(RAM.Read_Dword(Table_Addr - 2));
@@ -81,7 +81,8 @@ package body Processor.Eagle_PC_P is
                if Val < Lo or Val > Hi then
                   CPU.PC := CPU.PC + 3;
                else
-                  Table_Ix := Table_Addr + ((2 * Phys_Addr_T(Val)) - (2 * Phys_Addr_T(Lo)));
+                  Offset := 2 * (Val - Lo);
+                  Table_Ix := Table_Addr + Phys_Addr_T(Offset);
                   DW := RAM.Read_Dword (Table_Ix);
                   if Test_DW_Bit (DW, 4) then
                      -- sign-extend from 28-bits
