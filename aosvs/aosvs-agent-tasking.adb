@@ -70,6 +70,9 @@ package body AOSVS.Agent.Tasking is
 
    end Create_Task;
 
+   function Get_Unique_TID (PID : in PID_T; TID : in Word_T) return Word_T is
+      (Shift_Left(Word_T(PID), 8) or TID);
+
    task body VS_Task is
       CPU          : Processor.CPU_T;
       Adj_WSFH     : Phys_Addr_T;
@@ -117,6 +120,7 @@ package body AOSVS.Agent.Tasking is
                when 8#003# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEM  (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
                when 8#014# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEMI (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
                when 8#036# => Syscall_OK := AOSVS.System.Sys_GTOD (CPU, Task_Data.PID, Task_Data.TID);
+               --when 8#251# => 
                when 8#263# => Syscall_OK := AOSVS.Multitasking.Sys_WDELAY (CPU, Task_Data.PID, Task_Data.TID);
                when 8#300# => Syscall_OK := AOSVS.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#301# => Syscall_OK := AOSVS.File_IO.Sys_CLOSE (CPU, Task_Data.PID, Task_Data.TID);
@@ -132,6 +136,7 @@ package body AOSVS.Agent.Tasking is
                   end if;
                   exit;
                when 8#312# => Syscall_OK := AOSVS.File_IO.Sys_GCHR (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#333# => Syscall_OK := AOSVS.Multitasking.Sys_UIDSTAT (CPU, Task_Data.PID, Task_Data.TID);
                when 8#505# => AOSVS.Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr, Syscall_OK);
                when 8#542# => Syscall_OK := true; -- AOSVS.FPU.Sys_IFPU (CPU, Task_Data.PID, Task_Data.TID);
                when others =>

@@ -289,8 +289,8 @@ package body Processor.Eagle_Mem_Ref_P is
                         CPU.AC(1) := 0;
                         exit;
                      end if;
-                     CPU.AC(1) := Dword_T(Dword_To_Integer_32(CPU.AC(1)) + Inc_Dec);
-                     CPU.AC(3) := Dword_T(Dword_To_Integer_32(CPU.AC(3)) + Inc_Dec);
+                     CPU.AC(1) := (if Inc_Dec = 1 then CPU.AC(1) + 1 else CPU.AC(1) - 1);
+                     CPU.AC(3) := (if Inc_Dec = 1 then CPU.AC(3) + 1 else CPU.AC(3) - 1);
                   end loop;
                end if;
             end;

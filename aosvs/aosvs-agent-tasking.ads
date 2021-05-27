@@ -44,6 +44,8 @@ package AOSVS.Agent.Tasking is
                            PR_Addrs : in PR_Addrs_T;
                            Console : in GNAT.Sockets.Stream_Access);
 
+    function Get_Unique_TID (PID : in PID_T; TID : in Word_T) return Word_T;
+
     task type VS_Task is
         entry Start (TD : in Task_Data_T; Console : in GNAT.Sockets.Stream_Access);
     end VS_Task;

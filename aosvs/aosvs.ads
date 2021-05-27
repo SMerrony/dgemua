@@ -72,6 +72,7 @@ package AOSVS is
                      Console   : in GNAT.Sockets.Stream_Access;
                      Logging   : in Boolean);
                  
-    Invalid_PR_File : exception;
+    Invalid_PR_File,
+    Not_Yet_Implemented : exception;
 
 end AOSVS;

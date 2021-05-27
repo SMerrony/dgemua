@@ -180,14 +180,15 @@ package DG_Types is
     function Long_Float_To_DG_Single (LF : in Long_Float) return Dword_T;
                   
     -- unchecked conversions
-    function Byte_To_Integer_8 is new Ada.Unchecked_Conversion(Byte_T, Integer_8);
-    function Char_To_Byte is new Ada.Unchecked_Conversion(Character, Byte_T);
-    function Byte_To_Char is new Ada.Unchecked_Conversion(Byte_T, Character);
+    function Byte_To_Integer_8   is new Ada.Unchecked_Conversion(Byte_T, Integer_8);
+    function Char_To_Byte        is new Ada.Unchecked_Conversion(Character, Byte_T);
+    function Byte_To_Char        is new Ada.Unchecked_Conversion(Byte_T, Character);
     function Dword_To_Integer_32 is new Ada.Unchecked_Conversion(Dword_T, Integer_32);
+    function Dword_To_Integer    is new Ada.Unchecked_Conversion(Dword_T, Integer);
     function Integer_32_To_Dword is new Ada.Unchecked_Conversion(Integer_32, Dword_T);
-    function Integer_32_To_Phys is new Ada.Unchecked_Conversion(Integer_32, Phys_Addr_T);
-    function Word_To_Integer_16 is new Ada.Unchecked_Conversion(Word_T, Integer_16);
-    function Integer_16_To_Word is new Ada.Unchecked_Conversion(Integer_16, Word_T);
+    function Integer_32_To_Phys  is new Ada.Unchecked_Conversion(Integer_32, Phys_Addr_T);
+    function Word_To_Integer_16  is new Ada.Unchecked_Conversion(Word_T, Integer_16);
+    function Integer_16_To_Word  is new Ada.Unchecked_Conversion(Integer_16, Word_T);
     function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
     function Integer_64_To_Unsigned_64 is new Ada.Unchecked_Conversion(Integer_64, Unsigned_64);
     function Unsigned_32_To_Integer is new Ada.Unchecked_Conversion(Unsigned_32, Integer);

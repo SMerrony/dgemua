@@ -71,8 +71,8 @@ package body AOSVS.File_IO is
         Is_Abs      : Boolean     := ((File_Spec and Word_T(IPST)) /= 0);
         Is_DataSens : Boolean     := ((File_Spec and Word_T(RTDS)) /= 0);
         Rec_Len     : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
-        Bytes       : Byte_Arr_T(0 .. Rec_Len - 1) := RAM.Read_Bytes_BA (RAM.Read_Dword(Pkt_Addr + IBAD), Rec_Len);
-        Position    : Integer     := Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
+        Bytes       : Byte_Arr_T(0 .. Rec_Len) := RAM.Read_Bytes_BA (RAM.Read_Dword(Pkt_Addr + IBAD), Rec_Len);
+        Position    : Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
         Txfrd, Err  : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?WRITE");

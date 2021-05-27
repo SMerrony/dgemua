@@ -156,9 +156,9 @@ package body Memory is
         end Read_Byte_BA;
 
         function  Read_Bytes_BA (BA : in Dword_T; Num : in Natural) return Byte_Arr_T is
-            Bytes : Byte_Arr_T (0 .. Num - 1);
+            Bytes : Byte_Arr_T (0 .. Num);
         begin
-            for B in Bytes'Range loop
+            for B in 0 .. Num - 1 loop
                Bytes(B) := Read_Byte_BA (BA + Dword_T(B));
             end loop;
             return Bytes;
