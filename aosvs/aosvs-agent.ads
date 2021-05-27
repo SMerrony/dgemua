@@ -53,12 +53,14 @@ package AOSVS.Agent is
 
 	type Per_Process_Data_T is record
 	-- the data Agent holds for each process
-	   Invocation_Args : Args_Arr;
-	   Virtual_Root    : Unbounded_String;
-	   Sixteen_Bit     : Boolean;
-	   Proc_Name       : Unbounded_String;
-	   Console         : GNAT.Sockets.Stream_Access;
-	   TIDs_In_Use	   : TIDs_Arr;
+        PR_Name             : Unbounded_String;
+        Num_Invocation_Args : Natural;
+        Invocation_Args     : Args_Arr;
+        Virtual_Root        : Unbounded_String;
+        Sixteen_Bit         : Boolean;
+        Proc_Name           : Unbounded_String;
+        Console             : GNAT.Sockets.Stream_Access;
+        TIDs_In_Use         : TIDs_Arr;
 
 	end record;
 
@@ -97,7 +99,9 @@ package AOSVS.Agent is
 
 		-- Process and Task supporting subprograms...
 
-		procedure Allocate_PID (Invocation_Args : in Args_Arr;
+		procedure Allocate_PID (PR_Name         : in Unbounded_String;
+								Num_Invocation_Args : in Natural;
+								Invocation_Args : in Args_Arr;
 								Virtual_Root    : in Unbounded_String;
 								Sixteen_Bit     : in Boolean;
 								Proc_Name       : in Unbounded_String;
@@ -126,7 +130,8 @@ package AOSVS.Agent is
 							  Err         : out Word_T);
 		-- CLI environment...
 		function Get_Nth_Arg (PID : in Word_T; Arg_Num : in Word_T) return Unbounded_String;
-		function Get_Num_Args (PID : in Word_T) return Dword_T;
+		function Get_Num_Args (PID : in Word_T) return Natural;
+		function Get_PR_Name (PID : in WOrd_T) return Unbounded_String;
 		-- terminal I/O...
 		procedure Get_Default_Chars (Device : in Unbounded_String;
 									 WD_1, WD_2, WD_3 : out Word_T);

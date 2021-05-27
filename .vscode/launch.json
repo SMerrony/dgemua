@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/vsemua",
-            "args": ["-pr", "PROGRAMS/GAMES/MMM/MMM.PR", "-root", "."],
+            "args": ["-pr", "PROGRAMS/GAMES/IMSUTIL/HANGMAN.PR", "-root", "."],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

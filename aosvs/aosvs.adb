@@ -104,7 +104,7 @@ package body AOSVS is
         return Addrs;
     end Load_PR_Addresses;
 
-    procedure Start (PR_Name   : in String;
+    procedure Start (PR_Name  : in String;
                     Virt_Root : in String;
                     Segment   : in Natural;
                     Arg_Count : in Positive;
@@ -117,11 +117,21 @@ package body AOSVS is
         PR_UST   : UST_T;
         PR_Addrs : PR_Addrs_T;
         Segment_Base : Phys_Addr_T;
+        PR_Name_US : Unbounded_String;
     begin
         Ada.Text_IO.Put_Line ("INFO: Loaded PR file: " & PR_Name);
         PR_UST := Load_UST (PR_Arr);
         Sixteen_Bit := Test_W_Bit (PR_UST.PR_Type, 0);
-        AOSVS.Agent.Actions.Allocate_PID (Args,
+        for C in PR_Name'First .. PR_Name'Last loop
+            if PR_Name(C) = '/' then
+                PR_Name_US := PR_Name_US & ":";
+            else 
+                PR_Name_US := PR_Name_US & PR_Name(C);
+            end if;
+        end loop;
+        AOSVS.Agent.Actions.Allocate_PID (PR_Name_US,
+                                          Arg_Count,
+                                          Args,
                                           To_Unbounded_String(Virt_Root),
                                           Sixteen_Bit,
                                           To_Unbounded_String("DUMMY"),

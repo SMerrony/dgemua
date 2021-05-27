@@ -36,11 +36,31 @@ package body AOSVS.System is
         Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
         P_Greq      : Word_T      := RAM.Read_Word (Pkt_Addr + GREQ);
         P_Gnum      : Word_T      := RAM.Read_Word (Pkt_Addr + GNUM);
+        P_Gres      : Dword_T;
         Err         : Word_T;
+        Res_US      : Unbounded_String;
+        Num_Args    : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?GTMES");
         Err := 0;
         case P_Greq is
+        when GMES =>
+            Res_US := AOSVS.Agent.Actions.Get_PR_Name (PID);
+            Num_Args := Word_T(AOSVS.Agent.Actions.Get_Num_Args (PID));
+            if Num_Args > 0 then
+                for A in 1 .. Num_Args loop
+                   Res_US := Res_US & " " &  AOSVS.Agent.Actions.Get_Nth_Arg(PID, A);
+                end loop;
+            end if;
+            Res_US := Res_US & ASCII.NUL;
+            CPU.AC(0) := Dword_T((Length(Res_US)+1)/2); -- word length
+            CPU.AC(1) := Dword_T(GFCF);
+            P_Gres := RAM.Read_Dword (Pkt_Addr + PARU_32.GRES);
+            if P_Gres /= 16#ffff_ffff# then
+                RAM.Write_String_BA (P_Gres, To_String(Res_US));
+            end if;
+            Loggers.Debug_Print (Sc_Log, "----- Returning: " & To_String(Res_US));
+
         when GARG =>
             declare
                Arg_US  : Unbounded_String := AOSVS.Agent.Actions.Get_Nth_Arg(PID, P_Gnum);
@@ -57,6 +77,7 @@ package body AOSVS.System is
                   CPU.AC(0) := Dword_T(Length (Arg_US));
                   RAM.Write_String_BA (RAM.Read_Dword(Pkt_Addr + GRES), To_String (Arg_US));
             end;
+
         when others =>
             raise AOSVS.Agent.Not_Yet_Implemented with "?GTMES request type " & P_Greq'Image;
         end case;

@@ -37,12 +37,15 @@ package body AOSVS.Agent is
          Console := Cons;
       end Init;
       		
-      procedure Allocate_PID (Invocation_Args : in Args_Arr;
-								Virtual_Root    : in Unbounded_String;
-								Sixteen_Bit     : in Boolean;
-								Proc_Name       : in Unbounded_String;
-								-- Console         : in GNAT.Sockets.Stream_Access;
-								PID             : out PID_T) is
+      procedure Allocate_PID (
+         PR_Name         : in Unbounded_String;
+         Num_Invocation_Args : in Natural;
+         Invocation_Args : in Args_Arr;
+			Virtual_Root    : in Unbounded_String;
+			Sixteen_Bit     : in Boolean;
+			Proc_Name       : in Unbounded_String;
+			-- Console         : in GNAT.Sockets.Stream_Access;
+			PID             : out PID_T) is
       begin
          -- get 1st unused PID
          for P in PID_T'Range loop
@@ -52,6 +55,8 @@ package body AOSVS.Agent is
                exit;
             end if;
          end loop;
+         Per_Process_Data(PID).PR_Name         := PR_Name;
+         Per_Process_Data(PID).Num_Invocation_Args := Num_Invocation_Args;
          Per_Process_Data(PID).Invocation_Args := Invocation_Args;
          Per_Process_Data(PID).Virtual_Root    := Virtual_Root;
          Per_Process_Data(PID).Sixteen_Bit     := Sixteen_Bit;
@@ -206,13 +211,17 @@ package body AOSVS.Agent is
          Nth : Integer := Integer(Arg_Num);
       begin
          if Nth > Per_Process_Data(PID_T(PID)).Invocation_Args'Last then
-            raise No_Such_Argument;
+            raise No_Such_Argument with Arg_Num'Image;
          end if;
          return Per_Process_Data(PID_T(PID)).Invocation_Args(Nth);
       end Get_Nth_Arg;
 
-      function Get_Num_Args (PID : in Word_T) return Dword_T is
-         (Dword_T(Per_Process_Data(PID_T(PID_T(PID))).Invocation_Args'Length));
+      function Get_Num_Args (PID : in Word_T) return Natural is
+         (Per_Process_Data(PID_T(PID_T(PID))).Num_Invocation_Args);
+
+      function Get_PR_Name (PID : in WOrd_T) return Unbounded_String is
+         (Per_Process_Data(PID_T(PID)).PR_Name);
+	   
 
       -- Terminal I/O...
       procedure Get_Default_Chars (Device : in Unbounded_String;
