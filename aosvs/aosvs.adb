@@ -134,7 +134,8 @@ package body AOSVS is
                                           Args,
                                           To_Unbounded_String(Virt_Root),
                                           Sixteen_Bit,
-                                          To_Unbounded_String("DUMMY"),
+                                          To_Unbounded_String("DUMMY"), -- fake proc name
+                                          To_Unbounded_String("STEVE"), -- fake user name
                                           PID);
         Ada.Text_IO.Put_Line ("INFO: Obtained PID" & PID'Image & " for process");
         Ada.Text_IO.Put_Line ("INFO: Preparing Ring" & Segment'Image & " process with up to" &

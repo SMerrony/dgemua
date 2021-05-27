@@ -328,6 +328,13 @@ package body Processor.Eagle_PC_P is
                   CPU.PC := CPU.PC + 1;
                end if;
             end if;
+         
+         when I_WUGTI =>
+            if CPU.AC(I.Ac) > I.Imm_DW then
+               CPU.PC := CPU.PC + 4;
+            else
+               CPU.PC := CPU.PC + 3;
+            end if;
 
          when I_XCALL => -- FIXME - XCALL only handling trivial case
             CPU.AC(3) := Dword_T(CPU.PC) + 3;

@@ -23,11 +23,8 @@
 with DG_Types;      use DG_Types;
 with Processor;     use Processor;
 
-package AOSVS.System is
+package AOSVS.Process is
 
-    function Sys_EXEC   (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
-    function Sys_GDAY   (CPU : in out CPU_T) return Boolean;
-    function Sys_GTMES  (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
-    function Sys_GTOD   (CPU : in out CPU_T) return Boolean;
+    function Sys_GUNM (CPU : in out CPU_T; PID : in Word_T) return Boolean;
 
-end AOSVS.System;
+end AOSVS.Process;

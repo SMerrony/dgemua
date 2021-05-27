@@ -130,7 +130,8 @@ package Processor is
    procedure Set_Ac         (CPU : in out CPU_T; AC : in AC_ID; Datum : in Dword_T);
    procedure Set_N          (CPU : in out CPU_T; N : in Boolean);
    procedure Set_Z          (CPU : in out CPU_T; Z : in Boolean);
-
+   function  Get_N          (CPU : in CPU_T) return Boolean;
+   function  Get_Z          (CPU : in CPU_T) return Boolean;
 
    task Status_Sender is
         entry Start (CPU : in CPU_T);

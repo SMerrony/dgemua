@@ -59,6 +59,7 @@ package AOSVS.Agent is
         Virtual_Root        : Unbounded_String;
         Sixteen_Bit         : Boolean;
         Proc_Name           : Unbounded_String;
+		User_Name           : Unbounded_String;
         Console             : GNAT.Sockets.Stream_Access;
         TIDs_In_Use         : TIDs_Arr;
 
@@ -105,7 +106,7 @@ package AOSVS.Agent is
 								Virtual_Root    : in Unbounded_String;
 								Sixteen_Bit     : in Boolean;
 								Proc_Name       : in Unbounded_String;
-								-- Console         : in GNAT.Sockets.Stream_Access;
+								User_Name       : in Unbounded_String;
 								PID             : out PID_T);
 	    procedure Allocate_TID (PID : in PID_T; TID : out Word_T);
 
@@ -129,9 +130,10 @@ package AOSVS.Agent is
 							  Transferred : out Word_T;
 							  Err         : out Word_T);
 		-- CLI environment...
-		function Get_Nth_Arg (PID : in Word_T; Arg_Num : in Word_T) return Unbounded_String;
-		function Get_Num_Args (PID : in Word_T) return Natural;
-		function Get_PR_Name (PID : in WOrd_T) return Unbounded_String;
+		function Get_Nth_Arg   (PID : in Word_T; Arg_Num : in Word_T) return Unbounded_String;
+		function Get_Num_Args  (PID : in Word_T) return Natural;
+		function Get_PR_Name   (PID : in Word_T) return Unbounded_String;
+		function Get_User_Name (PID : in Word_T) return Unbounded_String;
 		-- terminal I/O...
 		procedure Get_Default_Chars (Device : in Unbounded_String;
 									 WD_1, WD_2, WD_3 : out Word_T);

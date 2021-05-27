@@ -172,6 +172,7 @@ package DG_Types is
                                     Scale_Factor : out Integer_8;
                                     Dec_Type     : out Natural;
                                     Size         : out Natural);
+    function Read_Decimal (BA : in Dword_T; Size : in Natural) return Unbounded_String;
 
     -- floating point routines
     function DG_Double_To_Long_Float (DG_Dbl : in Double_Overlay) return Long_Float;    

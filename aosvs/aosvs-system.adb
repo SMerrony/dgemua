@@ -32,6 +32,35 @@ with PARU_32;     use PARU_32;
 
 package body AOSVS.System is
 
+    function Sys_EXEC (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
+        Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        XRFNC       : Word_T      := RAM.Read_Word (Pkt_Addr);
+        BP          : DWord_T;
+    begin
+        Loggers.Debug_Print (Sc_Log, "?EXEC");
+        case XRFNC is
+            when XFSTS =>
+                RAM.Write_Word (Pkt_Addr + XFP1, PID);
+                BP := RAM.Read_Dword(Pkt_Addr + XFP2);
+                if BP /= 0 then
+                    RAM.Write_String_BA (BP, "CON10"); -- TODO always claims to be @CON10
+                end if;
+            when others =>
+                raise AOSVS.Agent.Not_Yet_Implemented with "Function code:" & XRFNC'Image;
+        end case;
+        return true;
+    end Sys_EXEC;
+
+    function Sys_GDAY (CPU : in out CPU_T) return Boolean is
+        Now : Ada.Calendar.Time := Ada.Calendar.Clock; 
+    begin
+        Loggers.Debug_Print (Sc_Log, "?GDAY");
+        CPU.AC(0) := Dword_T(Ada.Calendar.Day(Now));
+        CPU.AC(1) := Dword_T(Ada.Calendar.Month(Now));
+        CPU.AC(2) := Dword_T(Ada.Calendar.Year(Now) - 1900);
+        return true;
+    end Sys_GDAY;
+
     function Sys_GTMES (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
         Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
         P_Greq      : Word_T      := RAM.Read_Word (Pkt_Addr + GREQ);
@@ -88,9 +117,10 @@ package body AOSVS.System is
         return true;
     end Sys_GTMES;
 
-    function Sys_GTOD (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
+    function Sys_GTOD (CPU : in out CPU_T) return Boolean is
         Now : Ada.Calendar.Time := Ada.Calendar.Clock; 
     begin
+        Loggers.Debug_Print (Sc_Log, "?GTOD");
         CPU.AC(0) := Dword_T(GNAT.Calendar.Second(Now));
         CPU.AC(1) := Dword_T(GNAT.Calendar.Minute(Now));
         CPU.AC(2) := Dword_T(GNAT.Calendar.Hour(Now));

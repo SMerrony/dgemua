@@ -27,6 +27,7 @@ with Interfaces; use Interfaces;
 with AOSVS.File_IO;
 with AOSVS.Sys_Memory;
 with AOSVS.Multitasking;
+with AOSVS.Process;
 with AOSVS.System;
 with Debug_Logs; use Debug_Logs;
 with Memory;     use Memory;
@@ -119,7 +120,9 @@ package body AOSVS.Agent.Tasking is
             case Call_ID is
                when 8#003# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEM  (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
                when 8#014# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEMI (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
-               when 8#036# => Syscall_OK := AOSVS.System.Sys_GTOD (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#036# => Syscall_OK := AOSVS.System.Sys_GTOD (CPU);
+               when 8#041# => Syscall_OK := AOSVS.System.Sys_GDAY (CPU);
+               when 8#072# => Syscall_OK := AOSVS.Process.Sys_GUNM (CPU, Task_Data.PID);
                --when 8#251# => 
                when 8#263# => Syscall_OK := AOSVS.Multitasking.Sys_WDELAY (CPU, Task_Data.PID, Task_Data.TID);
                when 8#300# => Syscall_OK := AOSVS.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
@@ -136,6 +139,7 @@ package body AOSVS.Agent.Tasking is
                   end if;
                   exit;
                when 8#312# => Syscall_OK := AOSVS.File_IO.Sys_GCHR (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#330# => Syscall_OK := AOSVS.System.Sys_EXEC (CPU, Task_Data.PID, Task_Data.TID); -- !!!
                when 8#333# => Syscall_OK := AOSVS.Multitasking.Sys_UIDSTAT (CPU, Task_Data.PID, Task_Data.TID);
                when 8#505# => AOSVS.Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr, Syscall_OK);
                when 8#542# => Syscall_OK := true; -- AOSVS.FPU.Sys_IFPU (CPU, Task_Data.PID, Task_Data.TID);

@@ -736,5 +736,54 @@ package PARU_32 is
 --        6       6130    ^Y      ^X      ^K      ^Z,SPACE,^Z
 --        7-15  (FOR FUTURE EXPANSION)
 
+-- EXEC 
+
+	-- FUNCTION CODES
+	XFMLT : constant Word_T := 8#02#; -- MOUNT A LABELED TAPE
+	XFMUN : constant Word_T := 8#01#; -- MOUNT A UNIT
+	XFDUN : constant Word_T := 8#03#; -- DISMOUNT A UNIT OR LABELED TAPE
+	XFOTH : constant Word_T := 8#04#; -- SUBMIT A BATCH JOB FOR OTHER USER
+	XFSUB : constant Word_T := 8#05#; -- SUBMIT A BATCH JOB
+	XFLPT : constant Word_T := 8#06#; -- SUBMIT A PRINT FILE
+	XFPTP : constant Word_T := 8#07#; -- SUBMIT A PAPER TAPE PUNCH FILE
+	XFXTS : constant Word_T := 8#010#; -- Status report, Large PID
+	XFPLT : constant Word_T := 8#011#; -- SUBMIT A PLOT FILE
+	XFHAM : constant Word_T := 8#012#; -- SUBMIT A HAMLET FILE
+	XFSNA : constant Word_T := 8#013#; -- SUBMIT AN SNA/RJE FILE
+	XFFTA : constant Word_T := 8#014#; -- SUBMIT A FTA REQUEST
+	XFXUN : constant Word_T := 8#015#; -- EXTENDED MOUNT A UNIT
+	XFXML : constant Word_T := 8#016#; -- EXTENDED MOUNT A LABELED TAPE
+	XFHOL : constant Word_T := 8#017#; -- HOLD A QUEUE ENTRY
+	XFUNH : constant Word_T := 8#020#; -- UNHOLD A QUEUE ENTRY
+	XFCAN : constant Word_T := 8#021#; -- CANCEL A QUEUE ENTRY
+	XFSTS : constant Word_T := 8#022#; -- OBTAIN RELATIONSHIP TO EXEC
+	XFQST : constant Word_T := 8#023#; -- GET QUEUE TYPE FROM QUEUE NAME
+
+	-- THE FOLLOWING FUNCTIONS ARE RESERVED FOR INTERNAL USE
+	XFLO  : constant Word_T := 8#024#; -- LABELED TAPE OPEN
+	XFLC  : constant Word_T := 8#025#; -- LABELED TAPE CLOSE
+	XFME  : constant Word_T := 8#026#; -- MOUNT ERROR
+	XFNV  : constant Word_T := 8#027#; -- MOUNT NEXT VOLUME
+	XF30R : constant Word_T := 8#030#; -- Reserved
+	XFSV  : constant Word_T := 8#031#; -- MOUNT SPECIFIC VOLUME
+	XFMNT : constant Word_T := 8#032#; -- Submit a job to a MOUNT queue
+	XFBAT : constant Word_T := 8#033#; -- Submit a job to a BATCH queue
+	XFMOD : constant Word_T := 8#034#; -- Modify parameters of a queued job
+	XFSQT : constant Word_T := 8#035#; -- Get queue type by sequence number
+	XFNQN : constant Word_T := 8#036#; -- Get list of queue names
+	XFQDS : constant Word_T := 8#037#; -- Given a queuename,
+	--  Get info on all jobs in queue
+	XFXDU : constant Word_T := 8#040#; -- Extended Dismount
+
+	-- END OF INTERNAL FUNCTIONS
+
+	-- PACKET OFFSETS FOR xfxts
+
+	XFP1  : constant Phys_Addr_T := 2;         -- FIRST PARAMETER
+	XFP2  : constant Phys_Addr_T := 3;         -- SECOND PARAMETER
+	XFP2L : constant Phys_Addr_T := XFP2 + 1;  -- LOWER PORTION OF xfp2
+	XFP3  : constant Phys_Addr_T := XFP2L + 1; -- 3RD PARAMETER - RESERVED
+	XFP4  : constant Phys_Addr_T := XFP3 + 1;  -- 15-BIT PID
+
 	
 end PARU_32;

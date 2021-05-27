@@ -215,6 +215,9 @@ package body Processor is
       CPU.AC(AC) := Datum;
    end Set_Ac;
 
+   function Get_N (CPU : in CPU_T) return Boolean is
+      (Test_QW_Bit (CPU.FPSR, FPSR_N));
+
    procedure Set_N (CPU : in out CPU_T; N : in Boolean) is
    begin
       if N then
@@ -223,6 +226,9 @@ package body Processor is
          Clear_QW_Bit (CPU.FPSR, FPSR_N);
       end if;
    end Set_N;
+
+   function Get_Z (CPU : in CPU_T) return Boolean is
+      (Test_QW_Bit (CPU.FPSR, FPSR_Z));
 
    procedure Set_Z (CPU : in out CPU_T; Z : in Boolean) is
    begin

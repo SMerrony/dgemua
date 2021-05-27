@@ -80,7 +80,7 @@ package body Processor.Eagle_Mem_Ref_P is
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             CPU.AC(I.Ac) := Sext_Word_To_Dword (RAM.Read_Word(Addr));
 
-            when I_LNSBI =>
+         when I_LNSBI =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             Word := RAM.Read_Word (Addr);
             Word := Word - Word_T(I.Imm_U16);
@@ -89,7 +89,13 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_LNSTA =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             RAM.Write_Word (Addr, DG_Types.Lower_Word(CPU.AC(I.Ac)));
-         
+
+         when I_LSTB =>
+            DW := Shift_Right(Dword_T(I.Disp_32), 1);
+            Addr := Resolve_31bit_Disp (CPU, false, I.Mode, Dword_To_Integer_32(DW), I.Disp_Offset);
+            Low_Byte := Test_DW_Bit(Dword_T(I.Disp_32), 31);
+            RAM.Write_Byte(Addr, Low_Byte, Byte_T(CPU.AC(I.Ac)));
+
          when I_LWADD =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             I32 := Dword_To_Integer_32(RAM.Read_Dword(Addr)) + Dword_To_Integer_32(CPU.AC(I.Ac));

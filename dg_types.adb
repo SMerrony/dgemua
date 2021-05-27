@@ -24,6 +24,8 @@ with Ada.Strings;           use Ada.Strings;
 with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
+with Memory; use Memory;
+
 package body DG_Types is
 
    procedure Clear_W_Bit (Word : in out Word_T; Bit_Num : in Integer) is
@@ -397,6 +399,8 @@ package body DG_Types is
       return Res;
    end Byte_To_String;
 
+   -- Decimal (Commericial) routines...
+
    procedure Decode_Dec_Data_Type (DTI          : in Dword_T; 
                                    Scale_Factor : out Integer_8;
                                    Dec_Type     : out Natural;
@@ -409,6 +413,17 @@ package body DG_Types is
          Size := Size + 1;
       end if;
    end Decode_Dec_Data_Type;
+
+   function Read_Decimal (BA : in Dword_T; Size : in Natural) return Unbounded_String is
+      B_Arr : Byte_Arr_T := RAM.Read_Bytes_BA (BA, Size);
+      Res_US : Unbounded_String;
+   begin
+      for C in 0 .. Size - 1 loop
+         Res_US := Res_US & Byte_To_Char(B_Arr(C));
+      end loop;
+      Res_US := Trim(Res_US, Both);
+      return Res_US;
+   end Read_Decimal;
 
    -- Floating-Point Conversions...
 
@@ -476,8 +491,7 @@ package body DG_Types is
       IEEE_Expt_U16 : Unsigned_16;
       IEEE_Expt_I : Integer;
       IEEE_Frac : Unsigned_64;
-      Shift_Amt : Integer;
-   begin
+    begin
       if LF = 0.0 then
          return 0;
       end if;

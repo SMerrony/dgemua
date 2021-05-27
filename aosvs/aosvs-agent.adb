@@ -44,7 +44,7 @@ package body AOSVS.Agent is
 			Virtual_Root    : in Unbounded_String;
 			Sixteen_Bit     : in Boolean;
 			Proc_Name       : in Unbounded_String;
-			-- Console         : in GNAT.Sockets.Stream_Access;
+         User_Name       : in Unbounded_String;
 			PID             : out PID_T) is
       begin
          -- get 1st unused PID
@@ -61,6 +61,7 @@ package body AOSVS.Agent is
          Per_Process_Data(PID).Virtual_Root    := Virtual_Root;
          Per_Process_Data(PID).Sixteen_Bit     := Sixteen_Bit;
          Per_Process_Data(PID).Proc_Name       := Proc_Name;
+         Per_Process_Data(PID).User_Name       := User_Name;
          Per_Process_Data(PID).Console         := Console;
          Put_Line ("DEBUG: AGENT: Assigned PID " & PID'Image &
                    " to Process Name: " & To_String(Proc_Name));
@@ -219,9 +220,11 @@ package body AOSVS.Agent is
       function Get_Num_Args (PID : in Word_T) return Natural is
          (Per_Process_Data(PID_T(PID_T(PID))).Num_Invocation_Args);
 
-      function Get_PR_Name (PID : in WOrd_T) return Unbounded_String is
+      function Get_PR_Name (PID : in Word_T) return Unbounded_String is
          (Per_Process_Data(PID_T(PID)).PR_Name);
-	   
+
+	   function Get_User_Name (PID : in Word_T) return Unbounded_String is
+         (Per_Process_Data(PID_T(PID)).User_Name);
 
       -- Terminal I/O...
       procedure Get_Default_Chars (Device : in Unbounded_String;

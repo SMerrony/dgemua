@@ -39,6 +39,20 @@ package body Processor.Eagle_FPU_P is
    begin
       case I.Instruction is
 
+        when I_LFAMD =>
+            Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            DG_Dbl.Double_QW := RAM.Read_Qword (Addr);
+            CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) + DG_Double_To_Long_Float(DG_Dbl);
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
+
+         when I_LFLDD =>
+            Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            DG_Dbl.Double_QW := RAM.Read_Qword (Addr);
+            CPU.FPAC(I.Ac) := DG_Double_To_Long_Float(DG_Dbl);
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
+
          when I_LFLDS =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             CPU.FPAC(I.Ac) := DG_Single_To_Long_Float(RAM.Read_Dword(Addr));
@@ -56,6 +70,13 @@ package body Processor.Eagle_FPU_P is
          when I_LFMMS =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) * DG_Single_To_Long_Float(RAM.Read_Dword(Addr));
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
+
+        when I_LFSMD =>
+            Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            DG_Dbl.Double_QW := RAM.Read_Qword (Addr);
+            CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) - DG_Double_To_Long_Float(DG_Dbl);
             Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
             Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
 
@@ -78,11 +99,33 @@ package body Processor.Eagle_FPU_P is
             Set_Z (CPU, (CPU.AC(I.Acs) = 0));
             Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
 
+         when I_WLDI =>
+            declare
+               SF       : Integer_8;
+               Dec_Type : Natural;
+               Size     : Natural;
+               Dec_US   : Unbounded_String;
+               CI       : Integer;
+            begin
+               Decode_Dec_Data_Type(CPU.AC(1), SF, Dec_Type, Size);
+               CPU.AC(2) := CPU.AC(3);
+               Dec_US := Read_Decimal(CPU.AC(3), Size);
+               case Dec_Type is
+                  when Unpacked_Dec_U =>
+                     CI := Integer'Value(To_String(Dec_US));
+                     CPU.FPAC(I.Ac) := Long_Float(CI);
+                  when others =>
+                     raise Not_Yet_Implemented with "Packed Data-Types in WLDI";
+               end case;
+               Set_Z (CPU, (CPU.AC(I.Ac) = 0));
+               Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            end;
+
          when I_WSTI =>
             CPU.AC(2) := CPU.AC(3);
             Decode_Dec_Data_Type (CPU.AC(1),Scale_Factor, Dec_Type, SSize);
             if Scale_Factor /= 0 then
-               raise Not_Yet_Implemented with "Non-Zero Decimal Scale factors";
+               raise Not_Yet_Implemented with "Non-Zero Decimal Scale factors is WSTI";
             end if;
             case Dec_Type is
                when Unpacked_Dec_LS =>
@@ -107,7 +150,31 @@ package body Processor.Eagle_FPU_P is
                         RAM.Write_Byte_BA(CPU.AC(3), Char_To_Byte(Converted(C)));
                         CPU.AC(3) := CPU.AC(3) + 1;
                      end loop;
-                     
+                     Loggers.Debug_Print (Debug_Log, "... UDecLS stored: " & Converted);
+                  end;
+                                 
+               when Unpacked_Dec_U =>
+                  declare
+                     Converted : String(1 .. SSize);
+                     Int_Val   : Integer := Integer(CPU.FPAC(I.Ac));
+                     Str_Val   : String  := Int_Val'Image;
+                     Src_Ix    : Integer := Str_Val'Last;
+                     Dest_Ix   : Integer := SSize;
+                  begin
+                     for D in 1 .. SSize loop
+                        Converted(D) := '0';
+                     end loop;
+                     loop
+                        Converted(Dest_Ix) := Str_Val(Src_Ix);
+                        Dest_Ix := Dest_Ix - 1;
+                        Src_Ix := Src_Ix - 1;
+                        exit when (Src_Ix = 1) or (Dest_Ix = 0);
+                     end loop;
+                     for C in 1 .. SSize loop
+                        RAM.Write_Byte_BA(CPU.AC(3), Char_To_Byte(Converted(C)));
+                        CPU.AC(3) := CPU.AC(3) + 1;
+                     end loop;
+                     Loggers.Debug_Print (Debug_Log, "... UDecUS stored: " & Converted);
                   end;
                when others =>
                   raise Not_Yet_Implemented with "Decimal data type: " & Dec_Type'Image;
