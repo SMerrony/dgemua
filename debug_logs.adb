@@ -43,11 +43,11 @@ package body Debug_Logs is
         This_Line  : Positive;
     begin
         for L in Logs'Range loop
-           if First_Line(L) /= Last_Line(L) then -- ignore unused or empty logs
+           if First_Line(L) /= 1 then -- ignore unused or empty logs
               Write_Path := Directory & "/" & Log_Filenames(L);
               Create (Write_File, Out_File, To_String (Write_Path));
               This_Line := First_Line(L);
-              while This_Line /= Last_Line(L) + 1 loop
+              while This_Line /= Last_Line(L) loop
                  String'Write (Stream(Write_File), To_String(Log_Array(L, This_Line) & Dasher_NL));
                  This_Line := This_Line + 1;
                  if This_Line = Num_Lines then

@@ -55,7 +55,7 @@ procedure MVEmuA is
 
    Sem_Ver : constant String := "v0.0.0";
 
-   Debug_Logging : Boolean := false;
+   Debug_Logging : Boolean := TRUE;
    Log_Dir       : constant String  := "logs/";
     
 
@@ -536,6 +536,7 @@ begin
    exception
       when Error: Processor.CPU_Halt =>
          TTOut.Put_String (Dasher_NL & " *** MV/Emulator stopping due to CPU HALT instruction ***" );
+         Loggers.Debug_Print (Debug_Log," *** MV/Emulator stopping due to CPU HALT instruction ***" );
          Loggers.Debug_Logs_Dump (Log_Dir);
          GNAT.OS_Lib.OS_Exit (0);
 
