@@ -93,7 +93,7 @@ package body AOSVS.File_IO is
         return true;
     end Sys_Write;
 
-    function Sys_GCHR (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
+    function Sys_GCHR (CPU : in out CPU_T; PID : in Word_T) return Boolean is
         Device_Name  : Unbounded_String;
         Get_Defaults : Boolean := Test_DW_Bit (CPU.AC(1), 1);
         WD_1, WD_2, WD_3 : Word_T;
@@ -121,5 +121,39 @@ package body AOSVS.File_IO is
             RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+2, WD_3);
         return true;
     end Sys_GCHR;
+
+    function Sys_SCHR (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+        Device_Name  : Unbounded_String;
+        Set_Defaults : Boolean := Test_DW_Bit (CPU.AC(1), 1);
+        WD_1 : Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2)));
+        WD_2 : Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2))+1);
+        WD_3 : Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2))+2);
+        Old_WD_1, Old_Wd_2, Old_Wd_3 : Word_T;
+    begin
+        Loggers.Debug_Print (Sc_Log, "?SCHR");
+        if Test_DW_Bit (CPU.AC(1), 0) then
+           -- ACO should contain a channel number which should already be open
+           Device_Name := AOSVS.Agent.Actions.Get_Device_For_Channel(Lower_Word(CPU.AC(0)));
+           if Device_Name = "***ERROR***" then
+              CPU.AC(0) := Dword_T(ERICN); -- Illegal Channel No.
+              return false;
+           end if;
+        else
+           -- AC0 should be a BP to the target device name
+           Device_Name := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0)));
+        end if;
+        Loggers.Debug_Print (Sc_Log, "----- for device: " & To_String(Device_Name));
+        AOSVS.Agent.Actions.Get_Current_Chars(Device_Name, Old_WD_1, Old_WD_2, Old_WD_3);
+        Loggers.Debug_Print (Sc_Log, "----- Old Chars: " &
+                            Word_To_String(Old_WD_1, Binary, 16, true) & " " &
+                            Word_To_String(Old_WD_2, Binary, 16, true) & " " &
+                            Word_To_String(Old_WD_3, Binary, 16, true));
+        Loggers.Debug_Print (Sc_Log, "----- New Chars: " &
+                            Word_To_String(WD_1, Binary, 16, true) & " " &
+                            Word_To_String(WD_2, Binary, 16, true) & " " &
+                            Word_To_String(WD_3, Binary, 16, true));   
+        Loggers.Debug_Print (Sc_Log, "----- Not Yet Implemented!");                           
+        return true;
+    end Sys_SCHR;
 
 end AOSVS.File_IO;

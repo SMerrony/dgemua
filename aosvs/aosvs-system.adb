@@ -57,7 +57,7 @@ package body AOSVS.System is
         Loggers.Debug_Print (Sc_Log, "?GDAY");
         CPU.AC(0) := Dword_T(Ada.Calendar.Day(Now));
         CPU.AC(1) := Dword_T(Ada.Calendar.Month(Now));
-        CPU.AC(2) := Dword_T(Ada.Calendar.Year(Now) - 1900);
+        CPU.AC(2) := Dword_T(Ada.Calendar.Year(Now) - 1900); -- Should be -1900, but Y2K!
         return true;
     end Sys_GDAY;
 

@@ -37,6 +37,8 @@ The NADGUG library provides a good range of freely-available test targets...
   
 * 32-bit NADGUG Games compiled for AOS/VS
 
-  |    Game   |   Problem  |   Notes/Action   |
+  |    Game   |   Problem  |   Date   |
   |-----------|------------|------------------|
+  | HANGMAN (IMSUTIL) | Bad comparison in WDCMP after displaying start screen | 28 May 2021 |
   | WUMPUS    | Hang/loop after displaying start screen | 24 May 2021 |
+  

@@ -233,6 +233,61 @@ package body DG_Types is
       return Dw;
    end Sext_Word_To_Dword;
 
+   -- Convert an (unsigned) Word to a String
+   function Word_To_String
+     (WD       : in Word_T; Base : in Number_Base_T; Width : in Integer;
+      Zero_Pad : in Boolean := False) return String
+   is
+      Res       : String (1 .. Width);
+      Tmp_WD    : Word_T           := WD;
+      Bas_WD    : Word_T;
+      Remainder : Integer;
+      Binaries  : String (1 .. 2)  := "01";
+      Octals    : String (1 .. 8)  := "01234567";
+      Decimals  : String (1 .. 10) := "0123456789";
+      Hexes     : String (1 .. 16) := "0123456789ABCDEF";
+      Col       : Integer          := Width;
+   begin
+      if Zero_Pad then
+         for C in Res'Range loop
+            Res (C) := '0';
+         end loop;
+      else
+         for C in Res'Range loop
+            Res (C) := ' ';
+         end loop;
+      end if;
+      case Base is
+         when Binary =>
+            Bas_WD := 2;
+         when Octal =>
+            Bas_WD := 8;
+         when Decimal =>
+            Bas_WD := 10;
+         when Hex =>
+            Bas_WD := 16;
+      end case;
+      loop
+         Remainder := Integer (Tmp_WD mod Bas_WD);
+         Tmp_WD    := Tmp_WD / Bas_WD;
+         case Base is
+            when Binary =>
+               Res (Col) := Binaries (Remainder + 1);
+            when Octal =>
+               Res (Col) := Octals (Remainder + 1);
+            when Decimal =>
+               Res (Col) := Decimals (Remainder + 1);
+            when Hex =>
+               Res (Col) := Hexes (Remainder + 1);
+            when others =>
+               null;
+         end case;
+         Col := Col - 1;
+         exit when Tmp_WD = 0 or Col = 0;
+      end loop;
+      return Res;
+   end Word_To_String;
+
    -- Convert an (unsigned) Double-Word to a String
    function Dword_To_String
      (DW       : in Dword_T; Base : in Number_Base_T; Width : in Integer;

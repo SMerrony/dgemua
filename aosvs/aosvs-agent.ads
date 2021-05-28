@@ -147,7 +147,7 @@ package AOSVS.Agent is
 		Per_Process_Data : PPD_Arr;
 		Console          : GNAT.Sockets.Stream_Access;
 		Agent_Chans      : Agent_Channel_Arr;
-		Device_Chars     : Map;
+		Device_Chars     : Map; -- should probably be per-Process
 	end Actions;
 
 	Channel_Not_Open,

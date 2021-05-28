@@ -138,7 +138,8 @@ package body AOSVS.Agent.Tasking is
                      Term_Msg := Byte_Arr_To_Unbounded(RAM.Read_Bytes_BA(CPU.AC(1), Msg_Len));
                   end if;
                   exit;
-               when 8#312# => Syscall_OK := AOSVS.File_IO.Sys_GCHR (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#312# => Syscall_OK := AOSVS.File_IO.Sys_GCHR (CPU, Task_Data.PID);
+               when 8#313# => Syscall_OK := AOSVS.File_IO.Sys_SCHR (CPU, Task_Data.PID);
                when 8#330# => Syscall_OK := AOSVS.System.Sys_EXEC (CPU, Task_Data.PID, Task_Data.TID); -- !!!
                when 8#333# => Syscall_OK := AOSVS.Multitasking.Sys_UIDSTAT (CPU, Task_Data.PID, Task_Data.TID);
                when 8#505# => AOSVS.Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr, Syscall_OK);

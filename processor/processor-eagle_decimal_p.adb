@@ -22,6 +22,7 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
+with Debug_Logs;  use Debug_Logs;
 with Resolver;    use Resolver;
 
 package body Processor.Eagle_Decimal_P is 
@@ -35,7 +36,20 @@ package body Processor.Eagle_Decimal_P is
             if (CPU.AC(0) = CPU.AC(1) and (CPU.AC(2) = CPU.AC(3))) then
                CPU.AC(1) := 0;
             else
-               raise Execution_Failure with "ERROR: WDCMP not fully implemented";
+               declare
+                  SF_1, SF_2     : Integer_8;
+                  Type_1, Type_2 : Natural;
+                  Size_1, Size_2 : Natural;
+                  Dec_US_1, Dec_US_2 : Unbounded_String;
+               begin
+                  Decode_Dec_Data_Type (CPU.AC(0), SF_1, Type_1, Size_1);
+                  Decode_Dec_Data_Type (CPU.AC(1), SF_2, Type_2, Size_2);
+                  Dec_US_1 := Read_Decimal(CPU.AC(2), Size_1);
+                  Dec_US_2 := Read_Decimal(CPU.AC(3), Size_2);
+                  Loggers.Debug_Print (Debug_Log, "... Arg 1 Type: " & Type_1'Image & " String: " & To_String(Dec_US_1));
+                  Loggers.Debug_Print (Debug_Log, "... Arg 2 Type: " & Type_2'Image & " String: " & To_String(Dec_US_2));
+                  raise Execution_Failure with "ERROR: WDCMP not fully implemented";
+               end;
             end if;
          when 2 => raise Execution_Failure with "ERROR: WDINC Not Yet Implemented";
          when 3 => raise Execution_Failure with "ERROR: WDDEC Not Yet Implemented";

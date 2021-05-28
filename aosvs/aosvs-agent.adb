@@ -63,6 +63,9 @@ package body AOSVS.Agent is
          Per_Process_Data(PID).Proc_Name       := Proc_Name;
          Per_Process_Data(PID).User_Name       := User_Name;
          Per_Process_Data(PID).Console         := Console;
+         Device_Chars.Include("@CONSOLE", Default_Chars);
+         Device_Chars.Include("@INPUT", Default_Chars);
+         Device_Chars.Include("@OUTPUT", Default_Chars);
          Put_Line ("DEBUG: AGENT: Assigned PID " & PID'Image &
                    " to Process Name: " & To_String(Proc_Name));
       end Allocate_PID;
@@ -102,9 +105,6 @@ package body AOSVS.Agent is
             if (Path = "@CONSOLE") or (Path = "@INPUT") or (Path = "@OUTPUT") then
                Ag_Chan.Con := Console;
                Ag_Chan.Is_Console := true;
-               if not Device_Chars.Contains (Path) then
-                   Device_Chars.Include(Path, Default_Chars);
-               end if;
             else
                raise Not_Yet_Implemented with "Cannot handle unknown generic files";
             end if;

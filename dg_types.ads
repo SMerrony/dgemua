@@ -137,7 +137,12 @@ package DG_Types is
                                           Max_Len   : in Integer;
                                           Last_Byte : out Integer;
                                           Too_Long  : out Boolean);
-
+    function Word_To_String
+       (WD       : in Word_T; 
+        Base     : in Number_Base_T; 
+        Width    : in Integer;
+        Zero_Pad : in Boolean := False) 
+        return String;
     -- Dword routines
     function Lower_Word( DW : in Dword_T) return Word_T with Inline;
     function Upper_Word( DW : in Dword_T) return Word_T;

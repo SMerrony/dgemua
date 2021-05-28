@@ -92,9 +92,9 @@ package Memory is
         procedure Copy_Byte_BA (Src, Dest : in Dword_T);
         function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T;
         procedure Write_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T; Datum : in Byte_T);
-       
-        -- specific support for VS/Emua...
         function  Read_Bytes_BA (BA : in Dword_T; Num : in Natural) return Byte_Arr_T;
+
+        -- specific support for VS/Emua...
         function  Read_String_BA (BA : in Dword_T) return String;
         procedure Write_String_BA (BA : in Dword_T; Str : in String);
     private
