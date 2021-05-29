@@ -22,6 +22,7 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
+with Debug_Logs; use Debug_Logs;
 with PARU_32;
 
 package body AOSVS.Agent is
@@ -244,6 +245,24 @@ package body AOSVS.Agent is
          WD_2 := Chars(2);
          WD_3 := Chars(3);
       end Get_Current_Chars;
+
+      procedure I_Lookup (PID : in Word_T; Filename : in String;
+							Glob_Port : out Integer; 
+							F_Type : out Word_T;
+							Err    : out Word_T) is
+         IPC_Path : String := To_String(Per_Process_Data(PID_T(PID)).Virtual_Root) & "/" & Filename;
+      begin
+         Err := 0;
+         if IPCs.Contains (IPC_Path) then
+            Glob_Port := IPCs(IPC_Path).Global_Port;
+            F_Type    := IPCs(IPC_Path).File_Type;
+            Loggers.Debug_Print (Sc_Log,"----- IPC Lookup succeeded for: " & IPC_Path);
+         else
+            Err := PARU_32.ERFDE;
+            Loggers.Debug_Print (Sc_Log,"----- IPC Lookup failed for: " & IPC_Path);
+         end if;
+      end I_Lookup;
+
 
    end Actions;
 

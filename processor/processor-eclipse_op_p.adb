@@ -135,6 +135,9 @@ package body Processor.Eclipse_Op_P is
             CPU.XCT_Opcode := DG_Types.Lower_Word (CPU.AC(I.Ac));
             return; -- PC NOT advanced
 
+         when I_XORI =>
+            CPU.AC(I.Ac) := DWord_T(Lower_Word(CPU.AC(I.Ac)) xor I.Word_2);
+
          when others =>
             Put_Line ("ERROR: ECLIPSE_OP instruction " & To_String(I.Mnemonic) & 
                         " not yet implemented");

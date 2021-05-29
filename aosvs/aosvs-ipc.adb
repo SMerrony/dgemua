@@ -20,13 +20,29 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with DG_Types;      use DG_Types;
-with Processor;     use Processor;
+with Ada.Characters.Handling;   use Ada.Characters.Handling;
 
-package AOSVS.Process is
+with AOSVS.Agent;
+with Debug_Logs;  use Debug_Logs;
+with Memory;      use Memory;
 
-    function Sys_DADID  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_GUNM   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_SYSPRV (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+package body AOSVS.IPC is
 
-end AOSVS.Process;
+    function Sys_ILKUP  (CPU : in out CPU_T; PID, TID : in Word_T) return Boolean is
+        I_Path : String := To_Upper (RAM.Read_String_BA (CPU.AC(0)));
+        G_Port : Integer;
+        F_Type : Word_T;
+        Err    : Word_T;
+    begin
+        Loggers.Debug_Print (Sc_Log, "?ILKUP");
+        AOSVS.Agent.Actions.I_Lookup(PID, I_Path, G_Port, F_Type, Err);
+        if Err /= 0 then
+            CPU.AC(0) := Dword_T(Err);
+            return false;
+        end if;
+        CPU.AC(1) := Dword_T(G_Port);
+        CPU.AC(2) := Dword_T(F_Type);
+        return true;
+    end Sys_ILKUP;
+
+end AOSVS.IPC;

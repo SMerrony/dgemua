@@ -62,12 +62,24 @@ package AOSVS.Agent is
 		User_Name           : Unbounded_String;
         Console             : GNAT.Sockets.Stream_Access;
         TIDs_In_Use         : TIDs_Arr;
-
 	end record;
-
 	type PPD_Arr is array (PID_T) of Per_Process_Data_T;
-	type Chars_Arr is array (1..3) of Word_T;
 
+	-- Terminal Device characteristics
+	type Chars_Arr is array (1..3) of Word_T;
+	package Characteristics_Maps is new Ada.Containers.Indefinite_Hashed_Maps (
+		Key_Type => String, 
+		Element_Type => Chars_Arr,
+		Hash         => Ada.Strings.Hash,
+		Equivalent_Keys => "=");
+
+	Default_Chars : constant Chars_Arr := (
+		PARU_32.CST or PARU_32.CSFF, 				-- 8-col tabs, Form-feeds
+		PARU_32.CULC or PARU_32.CRT3, 				-- Upper and lower case, D200 style
+		Shift_Left(Word_T(24), 8) or Word_T(80) 	-- 24x80 chars
+	);
+
+	-- File channels
 	type Agent_Channel_T is record
 	   Opener_PID  : PID_T;
 	   Path        : Unbounded_String;
@@ -78,22 +90,22 @@ package AOSVS.Agent is
 	   Con         : GNAT.Sockets.Stream_Access;
 	   File_Stream : Stream_Access;
 	end record;
-
 	type Agent_Channel_Arr is array (1 .. 128) of Agent_Channel_T;
 
-	package Characteristics_Maps is new Ada.Containers.Indefinite_Hashed_Maps (
+	-- IPCs
+	type Agent_IPC_T is record
+		Owner_PID   : PID_T;
+		Name        : Unbounded_String;
+		Local_Port  : Integer;
+		Global_Port : Integer;
+		File_Type   : Word_T;
+		-- may need spool here...
+	end record;
+	package IPC_Maps is new Ada.Containers.Indefinite_Hashed_Maps (
 		Key_Type => String, 
-		Element_Type => Chars_Arr,
+		Element_Type => Agent_IPC_T,
 		Hash         => Ada.Strings.Hash,
 		Equivalent_Keys => "=");
-
-	use Characteristics_Maps;
-
-	Default_Chars : constant Chars_Arr := (
-		PARU_32.CST or PARU_32.CSFF, 				-- 8-col tabs, Form-feeds
-		PARU_32.CULC or PARU_32.CRT3, 				-- Upper and lower case, D200 style
-		Shift_Left(Word_T(24), 8) or Word_T(80) 	-- 24x80 chars
-	);
 
 	protected Actions is
 		procedure Init (Cons : in GNAT.Sockets.Stream_Access);
@@ -140,14 +152,20 @@ package AOSVS.Agent is
 		procedure Get_Current_Chars (Device : in Unbounded_String;
 									 WD_1, WD_2, WD_3 : out Word_T);
 
-							   
+		-- IPCs...
+		procedure I_Lookup (PID : in Word_T; Filename : in String;
+							Glob_Port : out Integer; 
+							F_Type : out Word_T;
+							Err    : out Word_T);
+
 
 	private
 		PIDs_In_Use      : PIDs_Arr;
 		Per_Process_Data : PPD_Arr;
 		Console          : GNAT.Sockets.Stream_Access;
 		Agent_Chans      : Agent_Channel_Arr;
-		Device_Chars     : Map; -- should probably be per-Process
+		Device_Chars     : Characteristics_Maps.Map; -- should probably be per-Process
+		IPCs			 : IPC_Maps.Map;
 	end Actions;
 
 	Channel_Not_Open,

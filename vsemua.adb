@@ -40,7 +40,7 @@ procedure VSEmua is
 
    Sem_Ver : constant String := "v0.0.0";
 
-   Debug_Logging : Boolean := FALSE;
+   Debug_Logging : Boolean := TRUE;
    Log_Dir       : constant String  := "logs/";
    Console_Port  : constant GNAT.Sockets.Port_Type := 10_000;
 
@@ -143,5 +143,9 @@ begin
                 Logging   => Debug_Logging);
 
    Clean_Exit;
+
+   -- exception
+   --    when others =>
+   --       Clean_Exit;
 
 end VSEmua;

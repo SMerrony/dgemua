@@ -23,10 +23,8 @@
 with DG_Types;      use DG_Types;
 with Processor;     use Processor;
 
-package AOSVS.Process is
+package AOSVS.IPC is
 
-    function Sys_DADID  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_GUNM   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_SYSPRV (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+    function Sys_ILKUP  (CPU : in out CPU_T; PID, TID : in Word_T) return Boolean;
 
-end AOSVS.Process;
+end AOSVS.IPC;

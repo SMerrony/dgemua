@@ -785,5 +785,23 @@ package PARU_32 is
 	XFP3  : constant Phys_Addr_T := XFP2L + 1; -- 3RD PARAMETER - RESERVED
 	XFP4  : constant Phys_Addr_T := XFP3 + 1;  -- 15-BIT PID
 
+	-- PACKET TO GET SYSTEM INFORMATION (sinfo)
+	SIRN : constant Phys_Addr_T := 0;        -- SYSTEM REV, LEFT BYTE=MAJOR, RIGHT BYTE=MINOR
+	SIRS : constant Phys_Addr_T := SIRN + 1; -- RESERVED
+	SIMM : constant Phys_Addr_T := SIRS + 1; -- LENGTH OF PHYSICAL MEMORY (HPAGE)
+	SIML : constant Phys_Addr_T := SIMM + 1; -- LOWER PORTION OF simm
+	SILN : constant Phys_Addr_T := SIML + 1; -- BYTE POINTER TO RECEIVE MASTER LDU NAME
+	SILL : constant Phys_Addr_T := SILN + 1; -- LOWER PORTION OF siln
+	SIID : constant Phys_Addr_T := SILL + 1; -- BYTE POINTER TO RECEIVE SYSTEM IDENTIFIER
+	SIIL : constant Phys_Addr_T := SIID + 1; -- LOWER PORTION OF siid
+	SIPL : constant Phys_Addr_T := SIIL + 1; -- UNEXTENDED PACKET LENGTH
+	SIOS : constant Phys_Addr_T := SIIL + 1; -- BYTE POINTER TO EXECUTING OP SYS PATHNAME
+	SIOL : constant Phys_Addr_T := SIOS + 1; -- LOWER PORTION OF sios
+	SSIN : constant Phys_Addr_T := SIOL + 1; -- SYSTEM IMPLEMENTATION NUMBER (savs FOR AOSVS)
+
+	SIEX : constant Phys_Addr_T := SSIN + 6; -- EXTENDED PACKET LENGTH (INCLUDE 3 DOUBLE
+					-- WORDS FOR FUTURE EXPANSIONS)
+
+	SAVS : constant Word_T := 2;	-- AOS/VS
 	
 end PARU_32;

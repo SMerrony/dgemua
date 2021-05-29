@@ -43,7 +43,7 @@ package body Debug_Logs is
         This_Line  : Positive;
     begin
         for L in Logs'Range loop
-           if First_Line(L) /= 1 then -- ignore unused or empty logs
+           if Last_Line(L) /= 1 then -- ignore unused or empty logs
               Write_Path := Directory & "/" & Log_Filenames(L);
               Create (Write_File, Out_File, To_String (Write_Path));
               This_Line := First_Line(L);

@@ -25,6 +25,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Interfaces; use Interfaces;
 
 with AOSVS.File_IO;
+with AOSVS.IPC;
 with AOSVS.Sys_Memory;
 with AOSVS.Multitasking;
 with AOSVS.Process;
@@ -107,7 +108,7 @@ package body AOSVS.Agent.Tasking is
 
       loop
          -- run the processor until a system call trap...
-         Processor.VRun (CPU, Task_Data.Debug_Logging, Octal, I_Counts, Syscall_Trap);
+         Processor.VRun (CPU, TD.Debug_Logging, Octal, I_Counts, Syscall_Trap);
 
          if Syscall_Trap then
             Return_Addr := Phys_Addr_T (CPU.AC (3));
@@ -120,9 +121,12 @@ package body AOSVS.Agent.Tasking is
             case Call_ID is
                when 8#003# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEM  (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
                when 8#014# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEMI (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
+               when 8#027# => Syscall_OK := AOSVS.IPC.Sys_ILKUP (CPU, Task_Data.PID, Task_Data.TID);
                when 8#036# => Syscall_OK := AOSVS.System.Sys_GTOD (CPU);
                when 8#041# => Syscall_OK := AOSVS.System.Sys_GDAY (CPU);
                when 8#072# => Syscall_OK := AOSVS.Process.Sys_GUNM (CPU, Task_Data.PID);
+               when 8#127# => Syscall_OK := AOSVS.Process.Sys_DADID (CPU, Task_Data.PID);
+               when 8#157# => Syscall_OK := AOSVS.System.Sys_SINFO  (CPU);
                --when 8#251# => 
                when 8#263# => Syscall_OK := AOSVS.Multitasking.Sys_WDELAY (CPU, Task_Data.PID, Task_Data.TID);
                when 8#300# => Syscall_OK := AOSVS.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
@@ -144,6 +148,7 @@ package body AOSVS.Agent.Tasking is
                when 8#333# => Syscall_OK := AOSVS.Multitasking.Sys_UIDSTAT (CPU, Task_Data.PID, Task_Data.TID);
                when 8#505# => AOSVS.Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr, Syscall_OK);
                when 8#542# => Syscall_OK := true; -- AOSVS.FPU.Sys_IFPU (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#573# => Syscall_OK := AOSVS.Process.Sys_SYSPRV (CPU, Task_Data.PID);
                when others =>
                   raise System_Call_Not_Implemented with "Decimal call #:" & Call_ID'Image;
             end case;
@@ -166,6 +171,10 @@ package body AOSVS.Agent.Tasking is
       end if;
 
       end Start; -- just for testing
+
+      exception
+         when others =>
+            Loggers.Debug_Logs_Dump ("logs/");
 
    end VS_Task;
 

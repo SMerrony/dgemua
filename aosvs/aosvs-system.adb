@@ -127,4 +127,24 @@ package body AOSVS.System is
         return true;
     end Sys_GTOD;
 
+    function Sys_SINFO  (CPU : in out CPU_T) return Boolean is
+        Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        P_SIRS      : Word_T := RAM.Read_Word (Pkt_Addr + SIRS);
+    begin
+        Loggers.Debug_Print (Sc_Log, "?SINFO");
+        RAM.Write_Word (Pkt_Addr + SIRN, 16#07_49#); -- AOS/VS Version faked to 7.73
+        RAM.Write_Dword (Pkt_Addr + SIMM, 255); -- max mem page - check this
+        if RAM.Read_Dword (Pkt_Addr + SILN) /= 0 then
+            RAM.Write_String_BA (RAM.Read_Dword (Pkt_Addr + SILN), "MASTERLDU");
+        end if;
+        if RAM.Read_Dword (Pkt_Addr + SIID) /= 0 then
+            RAM.Write_String_BA (RAM.Read_Dword (Pkt_Addr + SIID), "VSEMUA");
+        end if;
+        if RAM.Read_Dword (Pkt_Addr + SIOS) /= 0 then
+            RAM.Write_String_BA (RAM.Read_Dword (Pkt_Addr + SIOS), ":VSEMUA");
+        end if;
+        RAM.Write_Word(Pkt_Addr + SSIN, SAVS);
+        return true;
+    end Sys_SINFO;
+
 end AOSVS.System;

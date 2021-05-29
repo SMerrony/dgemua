@@ -29,5 +29,6 @@ package AOSVS.System is
     function Sys_GDAY   (CPU : in out CPU_T) return Boolean;
     function Sys_GTMES  (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
     function Sys_GTOD   (CPU : in out CPU_T) return Boolean;
+    function Sys_SINFO  (CPU : in out CPU_T) return Boolean;
 
 end AOSVS.System;
