@@ -57,6 +57,7 @@ package AOSVS.Agent is
         Num_Invocation_Args : Natural;
         Invocation_Args     : Args_Arr;
         Virtual_Root        : Unbounded_String;
+		Working_Directory   : Unbounded_String;
         Sixteen_Bit         : Boolean;
         Proc_Name           : Unbounded_String;
 		User_Name           : Unbounded_String;
@@ -146,6 +147,7 @@ package AOSVS.Agent is
 		function Get_Num_Args  (PID : in Word_T) return Natural;
 		function Get_PR_Name   (PID : in Word_T) return Unbounded_String;
 		function Get_User_Name (PID : in Word_T) return Unbounded_String;
+		function Get_Working_Directory (PID : in Word_T) return String;
 		-- terminal I/O...
 		procedure Get_Default_Chars (Device : in Unbounded_String;
 									 WD_1, WD_2, WD_3 : out Word_T);

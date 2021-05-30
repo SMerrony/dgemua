@@ -60,6 +60,7 @@ package body AOSVS.Agent is
          Per_Process_Data(PID).Num_Invocation_Args := Num_Invocation_Args;
          Per_Process_Data(PID).Invocation_Args := Invocation_Args;
          Per_Process_Data(PID).Virtual_Root    := Virtual_Root;
+         Per_Process_Data(PID).Working_Directory := Virtual_Root;
          Per_Process_Data(PID).Sixteen_Bit     := Sixteen_Bit;
          Per_Process_Data(PID).Proc_Name       := Proc_Name;
          Per_Process_Data(PID).User_Name       := User_Name;
@@ -69,6 +70,8 @@ package body AOSVS.Agent is
          Device_Chars.Include("@OUTPUT", Default_Chars);
          Put_Line ("DEBUG: AGENT: Assigned PID " & PID'Image &
                    " to Process Name: " & To_String(Proc_Name));
+         Loggers.Debug_Print (Sc_Log,"AGENT: Assigned PID:" & PID'Image & " for program: " & To_String(PR_Name)); 
+         Loggers.Debug_Print (Sc_Log,"-----  Working Dir : " & To_String (Virtual_Root));
       end Allocate_PID;
 
       procedure Allocate_TID (PID : in PID_T; 
@@ -227,6 +230,9 @@ package body AOSVS.Agent is
 	   function Get_User_Name (PID : in Word_T) return Unbounded_String is
          (Per_Process_Data(PID_T(PID)).User_Name);
 
+      function Get_Working_Directory (PID : in Word_T) return String is 
+         (To_String(Per_Process_Data(PID_T(PID)).Working_Directory));
+
       -- Terminal I/O...
       procedure Get_Default_Chars (Device : in Unbounded_String;
 									        WD_1, WD_2, WD_3 : out Word_T) is
@@ -250,7 +256,7 @@ package body AOSVS.Agent is
 							Glob_Port : out Integer; 
 							F_Type : out Word_T;
 							Err    : out Word_T) is
-         IPC_Path : String := To_String(Per_Process_Data(PID_T(PID)).Virtual_Root) & "/" & Filename;
+         IPC_Path : String := Agent.Actions.Get_Working_Directory(PID) & "/" & Filename;
       begin
          Err := 0;
          if IPCs.Contains (IPC_Path) then

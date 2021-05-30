@@ -27,11 +27,11 @@ with PARU_32;
 
 package body AOSVS.Multitasking is
 
-    procedure Sys_KILAD (CPU : in out CPU_T; PID : in Word_T; Kill_Addr : out Phys_Addr_T; OK : out Boolean) is
+    function Sys_KILAD (CPU : in out CPU_T; PID : in Word_T; Kill_Addr : out Phys_Addr_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?KILAD");
         Kill_Addr := Phys_Addr_T(RAM.Read_Dword(Phys_Addr_T(CPU.AC(0))));
-        OK := true;
+        return true;
     end Sys_KILAD;
 
     function Sys_UIDSTAT (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is

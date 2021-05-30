@@ -23,10 +23,10 @@
 with DG_Types;      use DG_Types;
 with Processor;     use Processor;
 
-package AOSVS.Multitasking is
+package AOSVS.File_Management is
+ 
+    function Sys_CREATE   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+    function Sys_DELETE   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+    function Sys_RECREATE (CPU : in out CPU_T; PID : in Word_T) return Boolean;
 
-   function Sys_KILAD (CPU : in out CPU_T; PID : in Word_T; Kill_Addr : out Phys_Addr_T) return Boolean;
-   function Sys_UIDSTAT (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
-   function Sys_WDELAY (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
-
-end AOSVS.Multitasking;
+end AOSVS.File_Management;

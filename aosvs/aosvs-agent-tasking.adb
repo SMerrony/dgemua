@@ -25,6 +25,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Interfaces; use Interfaces;
 
 with AOSVS.File_IO;
+with AOSVS.File_Management;
 with AOSVS.IPC;
 with AOSVS.Sys_Memory;
 with AOSVS.Multitasking;
@@ -119,6 +120,8 @@ package body AOSVS.Agent.Tasking is
                -- Loggers.Debug_Print (Sc_Log, "System Call # is: " & Dword_To_String (Dword_T(Call_ID), Octal, 6));
             end if;
             case Call_ID is
+               when 8#001# => Syscall_OK := AOSVS.File_Management.Sys_CREATE(CPU, Task_Data.PID);
+               when 8#002# => Syscall_OK := AOSVS.File_Management.Sys_DELETE(CPU, Task_Data.PID);
                when 8#003# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEM  (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
                when 8#014# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEMI (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
                when 8#027# => Syscall_OK := AOSVS.IPC.Sys_ILKUP (CPU, Task_Data.PID, Task_Data.TID);
@@ -146,7 +149,8 @@ package body AOSVS.Agent.Tasking is
                when 8#313# => Syscall_OK := AOSVS.File_IO.Sys_SCHR (CPU, Task_Data.PID);
                when 8#330# => Syscall_OK := AOSVS.System.Sys_EXEC (CPU, Task_Data.PID, Task_Data.TID); -- !!!
                when 8#333# => Syscall_OK := AOSVS.Multitasking.Sys_UIDSTAT (CPU, Task_Data.PID, Task_Data.TID);
-               when 8#505# => AOSVS.Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr, Syscall_OK);
+               when 8#336# => Syscall_OK := AOSVS.File_Management.Sys_RECREATE(CPU, Task_Data.PID);
+               when 8#505# => Syscall_OK := AOSVS.Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr);
                when 8#542# => Syscall_OK := true; -- AOSVS.FPU.Sys_IFPU (CPU, Task_Data.PID, Task_Data.TID);
                when 8#573# => Syscall_OK := AOSVS.Process.Sys_SYSPRV (CPU, Task_Data.PID);
                when others =>
