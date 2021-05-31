@@ -88,6 +88,14 @@ package body Processor.Eclipse_Op_P is
                CPU.AC(D_Plus_1) := Dword_T(DG_Types.Lower_Word (Dword));
             end;
 
+         when I_FXTD =>
+            Clear_W_Bit (CPU.PSR, PSR_OVK);
+            Clear_W_Bit (CPU.PSR, PSR_OVR);
+
+         when I_FXTE =>
+            Set_W_Bit (CPU.PSR, PSR_OVK);
+            Clear_W_Bit (CPU.PSR, PSR_OVR);
+
          when I_IOR =>
             Word := DG_Types.Lower_Word (CPU.AC(I.Acd)) or DG_Types.Lower_Word (CPU.AC(I.Acs));
             CPU.AC(I.Acd) := Dword_T(Word);
