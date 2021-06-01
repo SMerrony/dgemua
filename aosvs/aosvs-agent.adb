@@ -22,12 +22,29 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
+with Interfaces;  use Interfaces;
+
 with Debug_Logs; use Debug_Logs;
 with PARU_32;
 
 package body AOSVS.Agent is
 
    protected body Actions is
+
+      function Get_Free_Channel return Natural is
+         Chan_No : Integer := 0;
+      begin
+         for C in Agent_Chans'Range loop
+            if Agent_Chans(C).Opener_PID = 0 then
+               Chan_No := C;
+               exit;
+            end if;
+         end loop;
+         if Chan_No = 0 then
+            raise NO_MORE_CHANNELS;
+         end if;
+         return Natural(Chan_No);
+      end Get_Free_Channel;
 
       Procedure Init (Cons : in GNAT.Sockets.Stream_Access) is
       begin
@@ -98,17 +115,20 @@ package body AOSVS.Agent is
                            Rec_Len : in Integer;
                            Chan_No : out Word_T;
                            Err     : out Word_T) is
-         Ag_Chan : Agent_Channel_T;
+         Chan_Num : Natural;
       begin
          Err := 0;
-         Ag_Chan.Path := To_Unbounded_String (Path);
+         Chan_Num := Get_Free_Channel;
+         Agent_Chans(Chan_Num).Opener_PID := 0; -- ensure set to zero so can be resused if open fails
+         Agent_Chans(Chan_Num).Path := To_Unbounded_String (Path);
          -- parse creation options
          -- parse R/W options
+         Agent_Chans(Chan_Num).Data_Sens := ((Mode and 7) = PARU_32.RTDS); -- TODO add the rest
 
          if Path(Path'First) = '@' then
             if (Path = "@CONSOLE") or (Path = "@INPUT") or (Path = "@OUTPUT") then
-               Ag_Chan.Con := Console;
-               Ag_Chan.Is_Console := true;
+               Agent_Chans(Chan_Num).Con := Console;
+               Agent_Chans(Chan_Num).Is_Console := true;
             else
                raise Not_Yet_Implemented with "Cannot handle unknown generic files";
             end if;
@@ -121,19 +141,13 @@ package body AOSVS.Agent is
          -- check for errors
 
          if Rec_Len > 0 then
-            Ag_Chan.Rec_Len := Rec_Len;
+            Agent_Chans(Chan_Num).Rec_Len := Rec_Len;
          end if;
-         Chan_No := 0;
-         for C in Agent_Chans'Range loop
-            if Agent_Chans(C).Opener_PID = 0 then
-               Agent_Chans(C) := Ag_Chan;
-               Chan_No := Word_T(C);
-               exit;
-            end if;
-         end loop;
-         if Chan_No = 0 then
-            raise NO_MORE_CHANNELS;
-         end if;
+
+         Agent_Chans(Chan_Num).Opener_PID := PID_T(PID); 
+
+         Chan_No := Word_T(Chan_Num);
+
       end File_Open;
 
       procedure File_Close (Chan_No : in Word_T; Err : out Word_T) is
@@ -166,6 +180,7 @@ package body AOSVS.Agent is
       procedure File_Write (Chan_No : in Word_T;
                               Is_Extended,
                               Is_Absolute,
+                              Is_Dynamic,
                               Is_DataSens : in Boolean;
                               Rec_Len     : in Integer;
                               Bytes       : in Byte_Arr_T;
@@ -180,23 +195,25 @@ package body AOSVS.Agent is
          if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
             raise Channel_Not_Open with "?WRITE";
          end if;
-         if Is_DataSens then
+         if (not Is_Dynamic) and (Is_DataSens or Agent_Chans(Integer(Chan_No)).Data_Sens) then
             Max_Len := Rec_Len;
             if Rec_Len = -1 then
                Max_Len := Agent_Chans(Integer(Chan_No)).Rec_Len;
             end if;
             Get_Data_Sensitive_Portion (Bytes, Max_Len, DS_Len, Too_Long);
+            Loggers.Debug_Print (Sc_Log,"----- Found D/S bytes:" & DS_Len'Image);
             if Too_Long then
                Err := PARU_32.ERLTL;
             end if;
          end if;
          if not Too_Long then
             if Agent_Chans(Integer(Chan_No)).Is_Console then
-               if Is_DataSens then
-                  for B in 0 .. DS_Len loop
+               if (not Is_Dynamic) and (Is_DataSens or Agent_Chans(Integer(Chan_No)).Data_Sens) then
+                  for B in 0 .. DS_Len -1 loop
                      Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Bytes(B));
                   end loop;
-                  Transferred := Word_T(DS_Len);
+                  Transferred := Integer_16_To_Word(Integer_16(DS_Len));
+                  Loggers.Debug_Print (Sc_Log,"----- No of D/S bytes written:" & Transferred'Image);
                else
                   for B in Bytes'Range loop
                      Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Bytes(B));
@@ -269,7 +286,28 @@ package body AOSVS.Agent is
          end if;
       end I_Lookup;
 
-
+      procedure Shared_Open (PID : in PID_T; S_Path : in String; Read_Only : in Boolean;
+							        Chan_No : out Word_T; Err : out Word_T) is
+         C      : Natural;
+         SFile  : Page_IO.File_Type;
+      begin
+         Err := 0;
+         C := Get_Free_Channel;
+         Agent_Chans(C).Opener_PID := 0; -- ensure set to zero so it can be resused if this open fails
+         Page_IO.Open (Agent_Chans(C).File_Shared, (if Read_Only then Page_IO.In_File else Page_IO.Inout_File), S_Path);
+         Agent_Chans(C).Opener_PID := PID;
+         Agent_Chans(C).Path       := To_Unbounded_String(S_Path);
+         Agent_Chans(C).IS_Console := false;
+         Agent_Chans(C).Read       := true;
+         Agent_Chans(C).Write      := not Read_Only;
+         Agent_Chans(C).For_Shared := true;
+         Agent_Chans(C).Rec_Len    := 1204; -- not used
+         Chan_No := Word_T(C);
+      exception
+         when others =>
+            Err := PARU_32.ERFAD;
+      end Shared_Open;
+      
    end Actions;
 
 end AOSVS.Agent;

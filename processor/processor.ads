@@ -70,6 +70,13 @@ package Processor is
 
    type CPU_T is access CPU_Rec;
 
+   -- PSR bits
+   PSR_OVK  : constant Integer := 0;
+   PSR_OVR  : constant Integer := 1;
+   PSR_IRES : constant Integer := 2;
+   PSR_IXCT : constant Integer := 3;
+   PSR_FFP  : constant Integer := 4;
+
    -- FPU SR bits
    FPSR_Any : constant Integer := 0;
    FPSR_Ovr : constant Integer := 1;

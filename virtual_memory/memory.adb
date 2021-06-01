@@ -91,6 +91,9 @@ package body Memory is
         function  Get_First_Shared_Page return Dword_T is
             (Dword_T(First_Shared_Page));
 
+        function  Get_Num_Shared_Pages return Dword_T is
+            (Dword_T(Num_Shared_Pages));
+
         function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
             Page : Natural := Natural(Shift_Right(Word_Addr, 10));
         begin
@@ -156,7 +159,7 @@ package body Memory is
         end Read_Byte_BA;
 
         function  Read_Bytes_BA (BA : in Dword_T; Num : in Natural) return Byte_Arr_T is
-            Bytes : Byte_Arr_T (0 .. Num);
+            Bytes : Byte_Arr_T (0 .. Num-1);
         begin
             for B in 0 .. Num - 1 loop
                Bytes(B) := Read_Byte_BA (BA + Dword_T(B));

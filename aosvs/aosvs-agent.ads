@@ -21,6 +21,7 @@
 -- SOFTWARE.
 
 with Ada.Containers.Indefinite_Hashed_Maps;
+with Ada.Direct_IO;
 with Ada.Strings.Hash;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
@@ -30,22 +31,6 @@ with GNAT.Sockets;
 with PARU_32;
 
 package AOSVS.Agent is
-
-    -- type Pseudo_Agent_Call is
-    --    (Allocate_PID, 
-	--     Allocate_TID, 
-	-- 	Create_IPC, 
-	-- 	File_Close, 
-	-- 	File_Open,
-    --     File_Read, 
-	-- 	File_Recreate, 
-	-- 	File_Write, 
-	-- 	Get_Chars, 
-	-- 	Get_Message, 
-	-- 	Ilkup,
-    --     Shared_Open, 
-	-- 	Shared_Read, 
-	-- 	Create_Task);
 
 	-- type PID_T is new Integer range 0 .. 255;
 	type PIDS_Arr is array (PID_T) of Boolean;
@@ -80,6 +65,10 @@ package AOSVS.Agent is
 		Shift_Left(Word_T(24), 8) or Word_T(80) 	-- 24x80 chars
 	);
 
+	-- Shared Page I/O
+	type Page_T is array (0 .. 1023) of Word_T; -- 4 disk blocks, 2kB
+	package Page_IO is new Ada.Direct_IO (Page_T);
+
 	-- File channels
 	type Agent_Channel_T is record
 	   Opener_PID  : PID_T;
@@ -87,9 +76,12 @@ package AOSVS.Agent is
 	   Is_Console  : Boolean;
 	   Read, Write,
 	   For_Shared  : Boolean;
+	   Dynamic, Data_Sens, Fixed_Length, Var_Length, Undefined, IBM_VB
+	   			   : Boolean;
 	   Rec_Len     : Natural;
 	   Con         : GNAT.Sockets.Stream_Access;
 	   File_Stream : Stream_Access;
+	   File_Shared : Page_IO.File_Type;
 	end record;
 	type Agent_Channel_Arr is array (1 .. 128) of Agent_Channel_T;
 
@@ -136,6 +128,7 @@ package AOSVS.Agent is
 		procedure File_Write (Chan_No : in Word_T;
 							  Is_Extended,
 							  Is_Absolute,
+							  Is_Dynamic,
 							  Is_DataSens : in Boolean;
 							  Rec_Len     : in Integer;
 							  Bytes       : in Byte_Arr_T;
@@ -153,13 +146,15 @@ package AOSVS.Agent is
 									 WD_1, WD_2, WD_3 : out Word_T);
 		procedure Get_Current_Chars (Device : in Unbounded_String;
 									 WD_1, WD_2, WD_3 : out Word_T);
-
 		-- IPCs...
 		procedure I_Lookup (PID : in Word_T; Filename : in String;
 							Glob_Port : out Integer; 
 							F_Type : out Word_T;
 							Err    : out Word_T);
-
+		-- Shared Files...
+		procedure Shared_Open (PID : in PID_T; S_Path : in String; Read_Only : in Boolean;
+							   Chan_No : out Word_T;
+							   Err     : out Word_T);
 
 	private
 		PIDs_In_Use      : PIDs_Arr;

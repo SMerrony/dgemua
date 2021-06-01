@@ -135,7 +135,7 @@ package DG_Types is
     function Byte_Arr_To_Unbounded (B_Arr : in Byte_Arr_T) return Unbounded_String;
     procedure Get_Data_Sensitive_Portion (B_Arr     : in Byte_Arr_T;
                                           Max_Len   : in Integer;
-                                          Last_Byte : out Integer;
+                                          DS_Bytes  : out Integer;
                                           Too_Long  : out Boolean);
     function Word_To_String
        (WD       : in Word_T; 
