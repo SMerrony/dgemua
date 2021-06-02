@@ -79,6 +79,7 @@ package DG_Types is
     Dasher_NL          : constant Character := Character'Val(8#12#);
     Dasher_Erase_EOL   : constant Character := Character'Val(8#13#);
     Dasher_Erase_Page  : constant Character := Character'Val(8#14#);
+    Dasher_CR          : constant Character := Character'Val(8#15#);
     Dasher_Write_Window_Addr : constant Character := Character'Val(8#20#); -- followed by col, row
     Dasher_Underline   : constant Character := Character'Val(8#24#);
     Dasher_Normal      : constant Character := Character'Val(8#25#);

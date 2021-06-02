@@ -47,7 +47,7 @@ package body Debug_Logs is
               Write_Path := Directory & "/" & Log_Filenames(L);
               Create (Write_File, Out_File, To_String (Write_Path));
               This_Line := First_Line(L);
-              while This_Line /= Last_Line(L) loop
+              while This_Line /= Last_Line(L) + 1 loop
                  String'Write (Stream(Write_File), To_String(Log_Array(L, This_Line) & Dasher_NL));
                  This_Line := This_Line + 1;
                  if This_Line = Num_Lines then

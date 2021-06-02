@@ -125,6 +125,15 @@ package AOSVS.Agent is
 							 Err     : out Word_T);
 		procedure File_Close (Chan_No : in Word_T; Err : out Word_T);
 	    function  Get_Device_For_Channel(Chan_No : in Word_T) return Unbounded_String;
+		procedure File_Read (Chan_No : in Word_T;
+                              Is_Extended,
+                              Is_Absolute,
+                              Is_Dynamic,
+                              Is_DataSens : in Boolean;
+                              Rec_Len     : in Integer;
+                              Bytes       : in out Byte_Arr_T;
+                              Transferred : out Word_T;
+                              Err         : out Word_T); 
 		procedure File_Write (Chan_No : in Word_T;
 							  Is_Extended,
 							  Is_Absolute,

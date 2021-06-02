@@ -42,3 +42,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | HANGMAN (IMSUTIL) | Bad comparison in WDCMP after displaying start screen | 28 May 2021 |
   | WUMPUS    | Hang/loop after displaying start screen | 24 May 2021 |
   
+### Reminders
+* Check ?READ/WRITE/OPEN flag mode interpretation - it might be back-to-front
+* Is there an off-by-one in byte handling somewhere - could explain display glitches
+* 

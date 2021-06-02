@@ -20,13 +20,26 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with DG_Types;      use DG_Types;
-with Processor;     use Processor;
+with DG_Types;  use DG_Types;
+with Processor; use Processor;
 
 package AOSVS.Sys_Memory is
 
-    function Sys_MEM  (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T;
-                       Ring_Mask : in Phys_Addr_T) return Boolean;
-    function Sys_MEMI (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T;
-                       Ring_Mask : in Phys_Addr_T) return Boolean;
+    function Sys_GSHPT
+       (CPU : in out CPU_T; PID : in Word_T; Ring : in Phys_Addr_T)
+        return Boolean;
+    function Sys_MEM
+       (CPU       : in out CPU_T; PID : in Word_T; TID : in Word_T;
+        Ring_Mask : in     Phys_Addr_T) return Boolean;
+    function Sys_MEMI
+       (CPU       : in out CPU_T; PID : in Word_T; TID : in Word_T;
+        Ring_Mask : in     Phys_Addr_T) return Boolean;
+    function Sys_SOPEN
+       (CPU       : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;  
+    function Sys_SPAGE
+       (CPU       : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;      
+    function Sys_SSHPT
+       (CPU : in out CPU_T; PID : in Word_T; Ring : in Phys_Addr_T)
+        return Boolean;    
+
 end AOSVS.Sys_Memory;

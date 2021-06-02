@@ -63,6 +63,39 @@ package body AOSVS.File_IO is
         return true;
     end Sys_Close;
 
+    function Sys_READ (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
+        Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        Chan_No     : Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
+        File_Spec   : Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
+        Is_Extd     : Boolean     := ((File_Spec and Word_T(IPKL)) /= 0);
+        Is_Abs      : Boolean     := ((File_Spec and Word_T(IPST)) /= 0);
+        Is_DataSens : Boolean     := ((File_Spec and 7) = RTDS); -- ((File_Spec and Word_T(RTDS)) /= 0);
+        Is_Dynamic  : Boolean     := ((File_Spec and 7) = RTDY); -- overrides Data Sens
+        Rec_Len     : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
+        Dest        : Dword_T     := RAM.Read_Dword(Pkt_Addr + IBAD);
+        Read_Line   : Boolean     := (RAM.Read_Word(Pkt_Addr + IBIN) = 0);
+        Bytes       : Byte_Arr_T(0 .. Rec_Len-1);
+        Position    : Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
+        Txfrd, Err  : Word_T;
+    begin
+        Loggers.Debug_Print (Sc_Log, "?READ - Channel:" &Chan_No'Image);
+        AOSVS.Agent.Actions.File_Read (Chan_No,
+                                        Is_Extd,
+                                        Is_Abs,
+                                        Is_Dynamic,
+                                        Is_DataSens,
+                                        Rec_Len,
+                                        Bytes,
+                                        Txfrd,
+                                        Err);
+        if Err /= 0 then
+            CPU.AC(0) := Dword_T(Err);
+            return false;
+        end if;
+        RAM.Write_Word(Pkt_Addr + IRLR, Txfrd);
+        return true;
+    end Sys_READ;
+
     function Sys_WRITE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
         Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
         Chan_No     : Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
@@ -76,7 +109,7 @@ package body AOSVS.File_IO is
         Position    : Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
         Txfrd, Err  : Word_T;
     begin
-        Loggers.Debug_Print (Sc_Log, "?WRITE");
+        Loggers.Debug_Print (Sc_Log, "?WRITE - Channel:" & Chan_No'Image);
         AOSVS.Agent.Actions.File_Write (Chan_No,
                                         Is_Extd,
                                         Is_Abs,

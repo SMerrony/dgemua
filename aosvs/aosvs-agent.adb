@@ -177,6 +177,39 @@ package body AOSVS.Agent is
          return Dev;
       end Get_Device_For_Channel;
 
+      procedure File_Read (Chan_No : in Word_T;
+                              Is_Extended,
+                              Is_Absolute,
+                              Is_Dynamic,
+                              Is_DataSens : in Boolean;
+                              Rec_Len     : in Integer;
+                              Bytes       : in out Byte_Arr_T;
+                              Transferred : out Word_T;
+                              Err         : out Word_T) is
+         Byte_Ix : Integer := 0;
+         Byte    : Byte_T;
+      begin
+         Err := 0;
+         if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
+            raise Channel_Not_Open with "?READ";
+         end if;
+         if Agent_Chans(Integer(Chan_No)).Is_Console then
+            loop
+               Byte_T'Read (Agent_Chans(Integer(Chan_No)).Con, Byte);
+               exit when (Byte = Character'Pos(Dasher_NL)) or (Byte = Character'Pos(Dasher_CR));
+               -- TODO Handle Delete char
+               Bytes(Byte_Ix) := Byte;
+               Byte_Ix := Byte_Ix + 1;
+               -- exit when (Byte = Character'Pos(Dasher_NL)) or (Byte = Character'Pos(Dasher_CR));
+            end loop;
+            Transferred := Word_T(Byte_Ix);
+         else
+            raise Not_Yet_Implemented with "physical file reads";
+         end if;
+
+
+      end File_Read;
+
       procedure File_Write (Chan_No : in Word_T;
                               Is_Extended,
                               Is_Absolute,

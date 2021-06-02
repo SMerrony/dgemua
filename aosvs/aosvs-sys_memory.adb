@@ -20,53 +20,121 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Interfaces; use Interfaces;
+with Ada.Characters.Handling; use Ada.Characters.Handling;
 
+with Interfaces;  use Interfaces;
+
+with AOSVS.Agent;
 with Debug_Logs;  use Debug_Logs;
 with Memory;      use Memory;
 with PARU_32;
 
 package body AOSVS.Sys_Memory is
 
-    function Sys_MEM (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T; Ring_Mask : in Phys_Addr_T) return Boolean is
-    begin
-        Loggers.Debug_Print (Debug_Log, "?MEM"); Loggers.Debug_Print (Sc_Log, "?MEM");
-        -- No. Unshared Pages Available
-        CPU.AC(0) := RAM.Get_First_Shared_Page - RAM.Get_Last_Unshared_Page - 4; -- Not sure why we need th 4-page gap...
-        -- No. Unshared Pages currently in use
-        CPU.AC(1) := (RAM.Get_Last_Unshared_Page - 
-                      (Dword_T(Ring_Mask) / Dword_T(Memory.Words_Per_Page))) / 
-                     Dword_T(Memory.Words_Per_Page);
-        -- Hignest Unshared addr in logical addr space 
-        CPU.AC(2) := (RAM.Get_Last_Unshared_Page * Dword_T(Memory.Words_Per_Page)) or Dword_T(Ring_Mask); 
-        return true;
-    end Sys_MEM;
+   function Sys_GSHPT (CPU : in out CPU_T; PID : in Word_T; Ring : in Phys_Addr_T) return Boolean is
+   begin
+      Loggers.Debug_Print (Sc_Log, "?GSHPT");
+      CPU.AC(0) := RAM.Get_First_Shared_Page and 16#0003_ffff#;
+      CPU.AC(1) := RAM.Get_Num_Shared_Pages;
+      Loggers.Debug_Print (Sc_Log, "----- First: " & Dword_To_String (CPU.AC(0), Hex, 8) & 
+                           "(Hex), Number: " & Dword_To_String (CPU.AC(1), Decimal, 8) & "(Dec.)");
+      return true;
+   end Sys_GSHPT;
 
-    function Sys_MEMI (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T; Ring_Mask : in Phys_Addr_T) return Boolean is
-        Change : Integer_32 := Dword_To_Integer_32(CPU.AC(0));
-        Last_Unshared : Dword_T := RAM.Get_Last_Unshared_Page;
-    begin
-       Loggers.Debug_Print (Debug_Log, "?MEMI"); Loggers.Debug_Print (Sc_Log, "?MEMI");
-       if Change > 0 then
-          -- adding pages
-          if Dword_T(Change) > (RAM.Get_First_Shared_Page - RAM.Get_Last_Unshared_Page) then
-            CPU.AC(0) := Dword_T(PARU_32.ERMEM);
-            Loggers.Debug_Print (Sc_Log, "----- Requested more pages than available");
-            return false;
-          end if;
-          for P in 1 .. Integer(Change) loop
-             Last_Unshared := Last_Unshared + 1;
-             RAM.Map_Page (Natural(Last_Unshared), false);  
-             Loggers.Debug_Print (Sc_Log, "----- Mapped page : " & Dword_To_String (Last_Unshared, Hex, 8));
-          end loop;
-          CPU.AC(1) := (RAM.Get_Last_Unshared_Page * Dword_T(Memory.Words_Per_Page)) or Dword_T(Ring_Mask); 
-       elsif Change < 0 then
-          -- removing pages
-          raise Processor.Not_Yet_Implemented with "Removing unshared pages with ?MEMI";
-       else
-          Loggers.Debug_Print (Sc_Log, "----- AC0 was zero - doing nothing");
-       end if;
-       return true;
-    end Sys_MEMI;
+   function Sys_MEM (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T; Ring_Mask : in Phys_Addr_T) return Boolean is
+   begin
+      Loggers.Debug_Print (Debug_Log, "?MEM"); Loggers.Debug_Print (Sc_Log, "?MEM");
+      -- No. Unshared Pages Available
+      CPU.AC(0) := RAM.Get_First_Shared_Page - RAM.Get_Last_Unshared_Page - 4; -- Not sure why we need th 4-page gap...
+      -- No. Unshared Pages currently in use
+      CPU.AC(1) := (RAM.Get_Last_Unshared_Page - 
+                     (Dword_T(Ring_Mask) / Dword_T(Memory.Words_Per_Page))) / 
+                  Dword_T(Memory.Words_Per_Page);
+      -- Hignest Unshared addr in logical addr space 
+      CPU.AC(2) := (RAM.Get_Last_Unshared_Page * Dword_T(Memory.Words_Per_Page)) or Dword_T(Ring_Mask); 
+      return true;
+   end Sys_MEM;
 
+   function Sys_MEMI (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T; Ring_Mask : in Phys_Addr_T) return Boolean is
+      Change : Integer_32 := Dword_To_Integer_32(CPU.AC(0));
+      Last_Unshared : Dword_T := RAM.Get_Last_Unshared_Page;
+   begin
+      Loggers.Debug_Print (Debug_Log, "?MEMI"); Loggers.Debug_Print (Sc_Log, "?MEMI");
+      if Change > 0 then
+         -- adding pages
+         if Dword_T(Change) > (RAM.Get_First_Shared_Page - RAM.Get_Last_Unshared_Page) then
+         CPU.AC(0) := Dword_T(PARU_32.ERMEM);
+         Loggers.Debug_Print (Sc_Log, "----- Requested more pages than available");
+         return false;
+         end if;
+         for P in 1 .. Integer(Change) loop
+            Last_Unshared := Last_Unshared + 1;
+            RAM.Map_Page (Natural(Last_Unshared), false);  
+            Loggers.Debug_Print (Sc_Log, "----- Mapped page : " & Dword_To_String (Last_Unshared, Hex, 8));
+         end loop;
+         CPU.AC(1) := (RAM.Get_Last_Unshared_Page * Dword_T(Memory.Words_Per_Page)) or Dword_T(Ring_Mask); 
+      elsif Change < 0 then
+         -- removing pages
+         raise Processor.Not_Yet_Implemented with "Removing unshared pages with ?MEMI";
+      else
+         Loggers.Debug_Print (Sc_Log, "----- AC0 was zero - doing nothing");
+      end if;
+      return true;
+   end Sys_MEMI;
+
+   function Sys_SOPEN (CPU : in out CPU_T; PID, TID : in Word_T) return Boolean is
+      SO_Path : String := Agent.Actions.Get_Working_Directory(PID) & "/" & To_Upper (RAM.Read_String_BA (CPU.AC(0)));
+      Chan_No, Err : Word_T;
+   begin
+      Loggers.Debug_Print (Sc_Log, "?SOPEN Path: " & SO_Path);
+      if CPU.AC(1) /= 16#ffff_ffff# then
+         raise Processor.Not_Yet_Implemented with "?SOPEN of specific channel";
+      end if;
+      Agent.Actions.Shared_Open (PID_T(PID), SO_Path, (CPU.AC(2) = 0), Chan_No, Err);
+      if Err /= 0 then
+         CPU.AC(0) := Dword_T(Err);
+         return false;
+      end if;
+      CPU.AC(1) := Dword_T(Chan_No);
+      Loggers.Debug_Print (Sc_Log, "---- Allocated channel No." & Chan_No'Image);
+      return true;
+   end Sys_Sopen;
+
+   function Sys_SPAGE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
+
+   begin
+
+      return true;
+   end Sys_SPAGE;
+
+   function Sys_SSHPT (CPU : in out CPU_T; PID : in Word_T; Ring : in Phys_Addr_T) return Boolean is
+      Increase, Page_Num : Integer;
+   begin
+      Loggers.Debug_Print (Sc_Log, "?SSHPT");
+      Loggers.Debug_Print (Sc_Log, "----- First: " & Dword_To_String (CPU.AC(0), Hex, 8) & 
+                           "(Hex), Number: " & Dword_To_String (CPU.AC(1), Decimal, 8) & "(Dec.)");
+      if CPU.AC(1) < RAM.Get_Num_Shared_Pages then
+         raise Processor.Not_Yet_Implemented with "Removing shared pages via ?SSHPT";
+      end if;
+      Increase := Integer(CPU.AC(1)) - Integer(RAM.Get_Num_Shared_Pages);
+      Loggers.Debug_Print (Sc_Log, "----- Change Requested:" & Increase'Image & "(Dec.)");
+      -- At the beginning?
+      Page_Num := Integer(CPU.AC(0));
+      if CPU.AC(0) < (RAM.Get_First_Shared_Page and 16#0003_ffff#) then
+         for P in 0 .. Increase - 1 loop
+            if RAM.Page_Mapped (Page_Num + P) then
+               CPU.AC(0) := Dword_T(PARU_32.ERMEM);
+               return false;
+            end if;
+            RAM.Map_Page (P, true);
+         end loop;
+      else -- add at end
+         while RAM.Get_Num_Shared_Pages < CPU.AC(1) loop
+            RAM.Map_Page (Integer(RAM.Get_First_Shared_Page + RAM.Get_Num_Shared_Pages), true);
+            Loggers.Debug_Print (Sc_Log, "----- Mapping Page:" & 
+               Dword_To_String(RAM.Get_First_Shared_Page + RAM.Get_Num_Shared_Pages, Hex, 8));
+         end loop;
+      end if;
+      return true;
+   end Sys_SSHPT;
 end AOSVS.Sys_Memory;

@@ -90,6 +90,22 @@ package body AOSVS.System is
             end if;
             Loggers.Debug_Print (Sc_Log, "----- Returning: " & To_String(Res_US));
 
+        when GCMD =>
+            Res_US := AOSVS.Agent.Actions.Get_PR_Name (PID);
+            Num_Args := Word_T(AOSVS.Agent.Actions.Get_Num_Args (PID));
+            if Num_Args > 0 then
+                for A in 1 .. Num_Args loop
+                   Res_US := Res_US & " " &  AOSVS.Agent.Actions.Get_Nth_Arg(PID, A);
+                end loop;
+            end if;
+            Res_US := Res_US & ASCII.NUL;
+            CPU.AC(1) := Dword_T((Length(Res_US)+1)); -- byte length
+            P_Gres := RAM.Read_Dword (Pkt_Addr + PARU_32.GRES);
+            if P_Gres /= 16#ffff_ffff# then
+                RAM.Write_String_BA (P_Gres, To_String(Res_US));
+            end if;
+            Loggers.Debug_Print (Sc_Log, "----- Returning: " & To_String(Res_US));
+
         when GARG =>
             declare
                Arg_US  : Unbounded_String := AOSVS.Agent.Actions.Get_Nth_Arg(PID, P_Gnum);

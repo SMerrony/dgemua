@@ -127,13 +127,18 @@ package body AOSVS.Agent.Tasking is
                when 8#027# => Syscall_OK := AOSVS.IPC.Sys_ILKUP (CPU, Task_Data.PID, Task_Data.TID);
                when 8#036# => Syscall_OK := AOSVS.System.Sys_GTOD (CPU);
                when 8#041# => Syscall_OK := AOSVS.System.Sys_GDAY (CPU);
+               when 8#044# => Syscall_OK := AOSVS.Sys_Memory.Sys_SSHPT(CPU, Task_Data.PID, Task_Data.Ring_Mask);
+               when 8#060# => Syscall_OK := AOSVS.Sys_Memory.Sys_SPAGE(CPU, Task_Data.PID,Task_Data.TID);
+               when 8#063# => Syscall_OK := AOSVS.Sys_Memory.Sys_SOPEN(CPU, Task_Data.PID,Task_Data.TID);
                when 8#072# => Syscall_OK := AOSVS.Process.Sys_GUNM (CPU, Task_Data.PID);
+               when 8#073# => Syscall_OK := AOSVS.Sys_Memory.Sys_GSHPT(CPU, Task_Data.PID, Task_Data.Ring_Mask);
                when 8#127# => Syscall_OK := AOSVS.Process.Sys_DADID (CPU, Task_Data.PID);
                when 8#157# => Syscall_OK := AOSVS.System.Sys_SINFO  (CPU);
                --when 8#251# => 
                when 8#263# => Syscall_OK := AOSVS.Multitasking.Sys_WDELAY (CPU, Task_Data.PID, Task_Data.TID);
                when 8#300# => Syscall_OK := AOSVS.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#301# => Syscall_OK := AOSVS.File_IO.Sys_CLOSE (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#302# => Syscall_OK := AOSVS.File_IO.Sys_READ  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#303# => Syscall_OK := AOSVS.File_IO.Sys_WRITE (CPU, Task_Data.PID, Task_Data.TID);
                when 8#307# => Syscall_OK := AOSVS.System.Sys_GTMES  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#310# => -- ?RETURN - handled differently
