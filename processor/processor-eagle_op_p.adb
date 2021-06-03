@@ -23,12 +23,14 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;  use Debug_Logs;
+with DG_Types;    use DG_Types;
 with Resolver;    use Resolver;
 
 package body Processor.Eagle_Op_P is 
 
    procedure Do_Eagle_Op (I : in Decoded_Instr_T; CPU : in out CPU_T) is
  
+      Acd_S16, Acs_S16, S16: Integer_16;
       Acd_S32, Acs_S32, S32: Integer_32;
       S64   : Integer_64;
       -- Word  : Word_T;
@@ -71,6 +73,14 @@ package body Processor.Eagle_Op_P is
             CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
             Set_OVR (CPU.Carry);
             CPU.AC(I.Acd) := Integer_32_To_Dword(S32);
+
+         when I_NADDI =>
+            Acd_S16 := DG_Types.Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)));
+            S16     := Word_To_Integer_16(I.Word_2);
+            S32     := Integer_32(Acd_S16) + Integer_32(S16);
+            CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
+            Set_OVR (CPU.Carry);
+            CPU.AC(I.Ac) := Integer_32_To_Dword(S32); 
 
          when I_NADI =>
             S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)))) +

@@ -146,21 +146,17 @@ package body DG_Types is
 
    procedure Get_Data_Sensitive_Portion (B_Arr     : in Byte_Arr_T;
                                          Max_Len   : in Integer;
-                                         DS_Bytes  : out Integer;
-                                         Too_Long  : out Boolean) is
+                                         DS_Bytes  : out Integer) is
+      Ix : Integer := B_Arr'First;
    begin
-      Too_Long := false;
-      for B in B_Arr'Range loop
-         if B > Max_Len -1 then
-            Too_Long := true;
-            exit;
-         end if;
-         if (B_Arr(B) = 0) then --or (B_Arr(B) = 10) or(B_Arr(B) = 12) or(B_Arr(B) = 13) then
-            DS_Bytes := B - 1;
-            return;
-         end if;
+      DS_Bytes := 0;
+      loop
+         -- delimiter?
+         exit when B_Arr(Ix) = 0;
+         DS_Bytes := DS_Bytes + 1;
+         Ix := Ix + 1;
+         exit when Ix = B_Arr'Last;
       end loop;
-      DS_Bytes := B_Arr'Last + 1;
    end Get_Data_Sensitive_Portion;
 
    function String_To_Integer

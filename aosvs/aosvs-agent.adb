@@ -233,11 +233,11 @@ package body AOSVS.Agent is
             if Rec_Len = -1 then
                Max_Len := Agent_Chans(Integer(Chan_No)).Rec_Len;
             end if;
-            Get_Data_Sensitive_Portion (Bytes, Max_Len, DS_Len, Too_Long);
+            Get_Data_Sensitive_Portion (Bytes, Max_Len, DS_Len);
             Loggers.Debug_Print (Sc_Log,"----- Found D/S bytes:" & DS_Len'Image);
-            if Too_Long then
-               Err := PARU_32.ERLTL;
-            end if;
+            -- if Too_Long then
+            --    Err := PARU_32.ERLTL;
+            -- end if;
          end if;
          if not Too_Long then
             if Agent_Chans(Integer(Chan_No)).Is_Console then
