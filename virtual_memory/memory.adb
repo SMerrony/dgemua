@@ -85,6 +85,20 @@ package body Memory is
             end loop;
         end Map_Range;
 
+        procedure Map_Shared_Pages (Start_Addr : in Phys_Addr_T; Pages : in Page_Arr_T) is
+            Page_Start : Phys_Addr_T;
+        begin
+            for P in Pages'Range loop
+                Page_Start := Start_Addr + Phys_Addr_T(P * Words_Per_Page);
+               if not Address_Mapped (Page_Start) then
+                  Map_Page(Natural(Shift_Right(Page_Start,10)), true);
+               end if;
+               for W in 0 .. Words_Per_Page - 1 loop
+                  Write_Word(Page_Start + Phys_Addr_T(W), Pages(P)(W));
+               end loop; 
+            end loop;
+        end Map_Shared_Pages;
+
         function  Get_Last_Unshared_Page return Dword_T is
             (Dword_T(Last_Unshared_Page));
 

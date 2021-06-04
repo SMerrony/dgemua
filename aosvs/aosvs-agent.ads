@@ -28,6 +28,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with GNAT.Sockets;
 
+with Memory; use Memory;
 with PARU_32;
 
 package AOSVS.Agent is
@@ -66,8 +67,10 @@ package AOSVS.Agent is
 	);
 
 	-- Shared Page I/O
-	type Page_T is array (0 .. 1023) of Word_T; -- 4 disk blocks, 2kB
-	package Page_IO is new Ada.Direct_IO (Page_T);
+	type Page_T is array  (0 .. 1023) of Word_T; -- 4 disk blocks, 2kB
+	type Block_T is array (0 .. 255) of Word_T;  -- a disk block is 512B or 256W
+	package Block_IO is new Ada.Direct_IO (Block_T);
+	type Block_Arr_T is array (Natural range <>) of Block_T;
 
 	-- File channels
 	type Agent_Channel_T is record
@@ -81,7 +84,7 @@ package AOSVS.Agent is
 	   Rec_Len     : Natural;
 	   Con         : GNAT.Sockets.Stream_Access;
 	   File_Stream : Stream_Access;
-	   File_Shared : Page_IO.File_Type;
+	   File_Shared : Block_IO.File_Type;
 	end record;
 	type Agent_Channel_Arr is array (1 .. 128) of Agent_Channel_T;
 
@@ -164,6 +167,13 @@ package AOSVS.Agent is
 		procedure Shared_Open (PID : in PID_T; S_Path : in String; Read_Only : in Boolean;
 							   Chan_No : out Word_T;
 							   Err     : out Word_T);
+		procedure Shared_Read (PID : in PID_T;
+							   Chan_No : in Natural;
+							   Base_Addr : in Phys_Addr_T;
+							   Num_Pages : in Natural;
+							   Start_Block : in Natural;
+							   Page_Arr    : in out Page_Arr_T;
+							   Err         : out Word_T);
 
 	private
 		PIDs_In_Use      : PIDs_Arr;

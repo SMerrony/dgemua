@@ -40,6 +40,7 @@ package Memory is
 
     type Memory_Region is array (Natural range <>) of Word_T;
     type Page_T is array (0 .. Words_Per_Page - 1) of Word_T;
+    type Page_Arr_T is array (Natural range <>) of Page_T;
 
     -- Page 0 special locations for stacks
     WSFH_Loc : constant Phys_Addr_T := 8#14#;
@@ -78,6 +79,8 @@ package Memory is
         procedure Map_Range (Start_Addr : in Phys_Addr_T;
                              Region     : in Memory_Region;
                              Is_Shared  : in Boolean);
+        procedure Map_Shared_Pages (Start_Addr : in Phys_Addr_T; Pages : in Page_Arr_T);
+
         -- function Address_Mapped (Addr : in Phys_Addr_T) return Boolean;
         function  Read_Word   (Word_Addr : in Phys_Addr_T) return Word_T with Inline;
         function  Read_Dword  (Word_Addr : in Phys_Addr_T) return Dword_T;

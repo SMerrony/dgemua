@@ -101,8 +101,23 @@ package body AOSVS.Sys_Memory is
    end Sys_Sopen;
 
    function Sys_SPAGE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
-
+      Chan_No     : Natural     := Natural(Lower_Word (CPU.AC(1)));
+      Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+      Mem_Pages   : Natural     := Natural(RAM.Read_Word(Pkt_Addr + PARU_32.PSTI) and 16#00ff#) / 4;
+      Page_Arr    : Page_Arr_T(1 .. Mem_Pages);
+      Start_Addr  : Phys_Addr_T := Phys_Addr_T(RAM.Read_Dword(Pkt_Addr + PARU_32.PCAD));
+      Start_Block : Natural     := Natural(RAM.Read_Dword(Pkt_Addr + PARU_32.PRNH)); -- Disk block addr (not page #)
+      Err         : Word_T;
    begin
+      Loggers.Debug_Print (Sc_Log, "?SPAGE - Channel No." & Chan_No'Image);
+      Loggers.Debug_Print (Sc_Log, "------ - Mem Pages. " & Mem_Pages'Image);
+      Loggers.Debug_Print (Sc_Log, "------ - Base Addr. " & Dword_To_String (RAM.Read_Dword(Pkt_Addr + PARU_32.PCAD), Octal, 11));
+      Loggers.Debug_Print (Sc_Log, "------ - 1st Block. " & Dword_To_String (RAM.Read_Dword(Pkt_Addr + PARU_32.PRNH), Octal, 11));
+      Agent.Actions.Shared_Read (PID_T(PID), Chan_No, Start_Addr, Mem_Pages, Start_Block, Page_Arr, Err);
+      if Err /= 0 then
+         CPU.AC(0) := Dword_T(Err);
+         return false;
+      end if;
 
       return true;
    end Sys_SPAGE;

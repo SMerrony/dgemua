@@ -803,5 +803,19 @@ package PARU_32 is
 					-- WORDS FOR FUTURE EXPANSIONS)
 
 	SAVS : constant Word_T := 2;	-- AOS/VS
+
+	-- SYSTEM RECORD I/O PACKET FOR ALL DISK AND MAG. TAPEAND MCA REQUESTS FROM EITHER THE AGENT OR USER CONTEXTS. USED FOR rdb/wrb, prdb/PWRB, spage AND allocate
+	-- Used for ?SPAGE, ?RDB, ?WDB
+	PSTI : constant Phys_Addr_T := 0;        -- RECORD COUNT (RIGHT), STATUS IN (LEFT)
+	PSTO : constant Phys_Addr_T := PSTI + 1; -- RESERVED (LEFT) PRIORITY (RIGHT)
+	PCAD : constant Phys_Addr_T := PSTO + 1; -- WORD ADDRESS FOR DATA
+	PCDL : constant Phys_Addr_T := PCAD + 1; -- LOW ORDER PORTION OF pcad
+	PRNH : constant Phys_Addr_T := PCDL + 1; -- RECORD NUMBER (HIGH) LINK # (MCA)
+	PRNL : constant Phys_Addr_T := PRNH + 1; -- RECORD NUMBER (LOW)  RETRY COUNT (MCA)
+	PRCL : constant Phys_Addr_T := PRNL + 1; -- MAX LENGTH OF EACH RECORD (MAG TAPE)
+	--                 BYTE COUNT IN LAST BLOCK (DISK WRITES)
+	--                 BYTE COUNT (MCA)
+	PRES : constant Phys_Addr_T := PRCL + 1; -- RESERVED WORD
+	PBLT : constant Phys_Addr_T := PRES + 1; -- PACKET SIZE
 	
 end PARU_32;

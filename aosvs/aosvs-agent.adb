@@ -116,6 +116,7 @@ package body AOSVS.Agent is
                            Chan_No : out Word_T;
                            Err     : out Word_T) is
          Chan_Num : Natural;
+         Options  : Word_T := Mode and 7;
       begin
          Err := 0;
          Chan_Num := Get_Free_Channel;
@@ -123,7 +124,13 @@ package body AOSVS.Agent is
          Agent_Chans(Chan_Num).Path := To_Unbounded_String (Path);
          -- parse creation options
          -- parse R/W options
-         Agent_Chans(Chan_Num).Data_Sens := ((Mode and 7) = PARU_32.RTDS); -- TODO add the rest
+         Loggers.Debug_Print (Sc_Log,"-----  Type:" & Options'Image);
+         Agent_Chans(Chan_Num).Dynamic      := (Options = PARU_32.RTDY);
+         Agent_Chans(Chan_Num).Data_Sens    := (Options = PARU_32.RTDS);
+         Agent_Chans(Chan_Num).Fixed_Length := (Options = PARU_32.RTFX);
+         Agent_Chans(Chan_Num).Var_Length   := (Options = PARU_32.RTVR);
+         Agent_Chans(Chan_Num).Undefined    := (Options = PARU_32.RTUN);
+         Agent_Chans(Chan_Num).IBM_VB       := (Options = PARU_32.RTVB);
 
          if Path(Path'First) = '@' then
             if (Path = "@CONSOLE") or (Path = "@INPUT") or (Path = "@OUTPUT") then
@@ -186,23 +193,27 @@ package body AOSVS.Agent is
                               Bytes       : in out Byte_Arr_T;
                               Transferred : out Word_T;
                               Err         : out Word_T) is
-         Byte_Ix : Integer := 0;
+         Byte_Ix : Integer := Bytes'First;
          Byte    : Byte_T;
       begin
          Err := 0;
+         Transferred := 0;
          if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
             raise Channel_Not_Open with "?READ";
          end if;
          if Agent_Chans(Integer(Chan_No)).Is_Console then
             loop
                Byte_T'Read (Agent_Chans(Integer(Chan_No)).Con, Byte);
-               exit when (Byte = Character'Pos(Dasher_NL)) or (Byte = Character'Pos(Dasher_CR));
+               if (Byte = Character'Pos(Dasher_NL)) or (Byte = Character'Pos(Dasher_CR)) then
+                  Transferred := Transferred - 1;
+                  exit;
+               end if;
                -- TODO Handle Delete char
                Bytes(Byte_Ix) := Byte;
                Byte_Ix := Byte_Ix + 1;
+               Transferred := Transferred + 1;
                -- exit when (Byte = Character'Pos(Dasher_NL)) or (Byte = Character'Pos(Dasher_CR));
             end loop;
-            Transferred := Word_T(Byte_Ix);
          else
             raise Not_Yet_Implemented with "physical file reads";
          end if;
@@ -322,24 +333,49 @@ package body AOSVS.Agent is
       procedure Shared_Open (PID : in PID_T; S_Path : in String; Read_Only : in Boolean;
 							        Chan_No : out Word_T; Err : out Word_T) is
          C      : Natural;
-         SFile  : Page_IO.File_Type;
+         SFile  : Block_IO.File_Type;
       begin
          Err := 0;
          C := Get_Free_Channel;
          Agent_Chans(C).Opener_PID := 0; -- ensure set to zero so it can be resused if this open fails
-         Page_IO.Open (Agent_Chans(C).File_Shared, (if Read_Only then Page_IO.In_File else Page_IO.Inout_File), S_Path);
+         Block_IO.Open (Agent_Chans(C).File_Shared, (if Read_Only then Block_IO.In_File else Block_IO.Inout_File), S_Path);
          Agent_Chans(C).Opener_PID := PID;
          Agent_Chans(C).Path       := To_Unbounded_String(S_Path);
-         Agent_Chans(C).IS_Console := false;
+         Agent_Chans(C).Is_Console := false;
          Agent_Chans(C).Read       := true;
          Agent_Chans(C).Write      := not Read_Only;
          Agent_Chans(C).For_Shared := true;
-         Agent_Chans(C).Rec_Len    := 1204; -- not used
+         Agent_Chans(C).Rec_Len    := 1024; -- not used
          Chan_No := Word_T(C);
       exception
          when others =>
             Err := PARU_32.ERFAD;
       end Shared_Open;
+
+      procedure Shared_Read (PID         : in PID_T;
+                             Chan_No     : in Natural;
+                             Base_Addr   : in Phys_Addr_T;
+                             Num_Pages   : in Natural;
+                             Start_Block : in Natural;
+                             Page_Arr    : in out Page_Arr_T;
+                             Err         : out Word_T) is
+         Num_Blocks : Natural := Num_Pages * 4; -- 4 disk blocks per memory page
+         Blocks : Block_Arr_T(1..Num_Blocks);
+         for Blocks'Address use Page_Arr'Address;
+      begin
+         Err := 0;
+         Block_IO.Set_Index (Agent_Chans(Chan_No).File_Shared, Block_IO.Count(Start_Block+1));
+         for B in 1 .. Num_Blocks loop
+            if Block_IO.End_Of_File (Agent_Chans(Chan_No).File_Shared) then
+               -- it seems AOS/VS magics pages into existence
+               null;
+            else
+               Block_IO.Read (Agent_Chans(Chan_No).File_Shared, Blocks(B));
+            end if;
+         end loop;
+
+
+      end Shared_Read;
       
    end Actions;
 

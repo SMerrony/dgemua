@@ -79,6 +79,7 @@ package body AOSVS.File_IO is
         Txfrd, Err  : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?READ - Channel:" &Chan_No'Image);
+        Loggers.Debug_Print (Debug_Log, "?READ - Channel:" &Chan_No'Image);
         AOSVS.Agent.Actions.File_Read (Chan_No,
                                         Is_Extd,
                                         Is_Abs,
@@ -93,6 +94,7 @@ package body AOSVS.File_IO is
             return false;
         end if;
         RAM.Write_Word(Pkt_Addr + IRLR, Txfrd);
+        Loggers.Debug_Print (Sc_Log, "----- Bytes Read:" & Txfrd'Image);
         return true;
     end Sys_READ;
 
@@ -110,6 +112,7 @@ package body AOSVS.File_IO is
         Txfrd, Err  : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?WRITE - Channel:" & Chan_No'Image);
+        Loggers.Debug_Print (Debug_Log, "?WRITE - Channel:" & Chan_No'Image);
         AOSVS.Agent.Actions.File_Write (Chan_No,
                                         Is_Extd,
                                         Is_Abs,
@@ -125,6 +128,7 @@ package body AOSVS.File_IO is
             return false;
         end if;
         RAM.Write_Word(Pkt_Addr + IRLR, Txfrd);
+        Loggers.Debug_Print (Sc_Log, "----- Bytes Read:" & Txfrd'Image);
         return true;
     end Sys_Write;
 
