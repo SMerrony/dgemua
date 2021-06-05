@@ -46,8 +46,8 @@ package body Processor.Eagle_Decimal_P is
                   Decode_Dec_Data_Type (CPU.AC(1), SF_2, Type_2, Size_2);
                   Dec_US_1 := Read_Decimal(CPU.AC(2), Size_1);
                   Dec_US_2 := Read_Decimal(CPU.AC(3), Size_2);
-                  Loggers.Debug_Print (Debug_Log, "... Arg 1 Type: " & Type_1'Image & " String: " & To_String(Dec_US_1));
-                  Loggers.Debug_Print (Debug_Log, "... Arg 2 Type: " & Type_2'Image & " String: " & To_String(Dec_US_2));
+                  Loggers.Debug_Print (Debug_Log, "... Arg 1 Type: " & Type_1'Image & " String: " & To_String(Dec_US_1) & " Length:" & Size_1'Image);
+                  Loggers.Debug_Print (Debug_Log, "... Arg 2 Type: " & Type_2'Image & " String: " & To_String(Dec_US_2) & " Length:" & Size_2'Image);
                   raise Execution_Failure with "ERROR: WDCMP not fully implemented";
                end;
             end if;

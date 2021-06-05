@@ -299,6 +299,17 @@ package body Processor.Eagle_PC_P is
                CPU.PC := CPU.PC + 1;
             end if;
 
+         when I_WSZBO =>
+            Resolve_Eagle_Bit_Addr (CPU, I.Acd , I.Acs, Addr, Bit_Num);
+            Word := RAM.Read_Word(Addr);
+            if not Test_W_Bit (Word, Bit_Num) then
+               Set_W_Bit (Word, Bit_Num);
+               RAM.Write_Word (Addr, Word);
+               CPU.PC := CPU.PC + 2;
+            else
+               CPU.PC := CPU.PC + 1;
+            end if;
+
          -- when I_WUSGE =>
          --    if I.Acs = I.Acd then
          --       if CPU.AC(I.Acs) >= 0 then

@@ -128,7 +128,7 @@ package body AOSVS.File_IO is
             return false;
         end if;
         RAM.Write_Word(Pkt_Addr + IRLR, Txfrd);
-        Loggers.Debug_Print (Sc_Log, "----- Bytes Read:" & Txfrd'Image);
+        Loggers.Debug_Print (Sc_Log, "----- Bytes Written:" & Txfrd'Image);
         return true;
     end Sys_Write;
 

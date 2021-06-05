@@ -29,6 +29,26 @@
             ]
         },
         {
+            "name": "(gdb) VSEMUA HANGMAN Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/vsemua",
+            "args": ["-pr", "PROGRAMS/GAMES/IMSUTIL/HANGMAN.PR", 
+                     "-root", "/home/steve/ada/github.com/dgemua/PROGRAMS/GAMES/IMSUTIL"],               
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "(gdb) VSEMUA Tests",
             "type": "cppdbg",
             "request": "launch",

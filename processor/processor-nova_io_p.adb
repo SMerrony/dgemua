@@ -92,7 +92,11 @@ package body Processor.Nova_IO_P is
             --    when P =>
             --       raise Not_Yet_Implemented with "NIO Pulse";
             -- end case;
-            Devices.Bus.Actions.Data_Out(I.IO_Dev, 0, N, I.IO_Flag);
+            if Devices.Bus.Actions.Is_Connected (I.IO_Dev) then
+               Devices.Bus.Actions.Data_Out(I.IO_Dev, 0, N, I.IO_Flag);
+            else
+               Loggers.Debug_Print(Debug_Log, "WARNING: NIO Attempted to unattached or non-I/O capable device");
+            end if;
 
          when I_SKP =>
             case I.IO_Dev is

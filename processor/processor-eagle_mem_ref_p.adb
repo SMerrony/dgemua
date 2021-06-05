@@ -362,6 +362,9 @@ package body Processor.Eagle_Mem_Ref_P is
 
          when I_XLEF =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            Loggers.Debug_Print (Debug_Log, "... Addr resolved to: " &  Dword_To_String(Dword_T(Addr), Octal, 11));
+            Loggers.Debug_Print (Debug_Log, "... from Disp_15: " & Int_To_String( Integer(I.Disp_15), Octal, 11) &
+                                            " Offset: " &  Int_To_String( Integer(I.Disp_Offset), Octal, 11));
             CPU.AC(I.Ac) := Dword_T(Addr);
 
          when I_XLEFB =>

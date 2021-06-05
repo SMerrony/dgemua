@@ -94,9 +94,9 @@ package body Resolver is
         when PC =>
             Eff := Integer_32_To_Phys(Integer_32(CPU.PC) + Disp32 + Integer_32(Disp_Offset));
         when AC2 =>
-            Eff := Phys_Addr_T(Integer_32(CPU.AC(2)) + Disp32) or Ring;
+            Eff := Phys_Addr_T(Dword_To_Integer_32(CPU.AC(2)) + Disp32) or Ring;
         when AC3 =>
-            Eff := Phys_Addr_T(Integer_32(CPU.AC(3)) + Disp32) or Ring;   
+            Eff := Phys_Addr_T(Dword_To_Integer_32(CPU.AC(3)) + Disp32) or Ring;   
         end case;
 
         if Indirect then

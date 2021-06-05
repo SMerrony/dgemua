@@ -33,7 +33,7 @@ package body AOSVS.Process is
     begin
         -- TODO fake response....
         Loggers.Debug_Print (Sc_Log, "?DADID (Faking response)");
-        CPU.AC (0) := Dword_T (PID) - 1;
+        CPU.AC (1) := Dword_T (PID) - 1;
         return True;
     end Sys_DADID;
 

@@ -22,6 +22,8 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
+with Interfaces;  use Interfaces;
+
 with Debug_Logs;  use Debug_Logs;
 with DG_Types;    use DG_Types;
 with Resolver;    use Resolver;
@@ -185,6 +187,19 @@ package body Processor.Eagle_Op_P is
 
          when I_WANDI =>
             CPU.AC(I.Ac) := CPU.AC(I.Ac) and I.Imm_DW;
+
+         when I_WASHI => -- "EAGLE"!
+            Shift := Integer(Integer_32(Word_To_Integer_16(I.Word_2)));
+            if (Shift /= 0) and (CPU.AC(I.Ac) /= 0) then
+               S32 := Dword_To_Integer_32(CPU.AC(I.Ac));
+               if Shift < 0 then
+                  Shift := Shift * (-1);
+                  S32 := S32 / (2 ** Shift);
+               else
+                  S32 := S32 * (2 ** Shift);
+               end if;
+               CPU.AC(I.Ac) := Integer_32_To_Dword(S32);
+            end if;
 
          when I_WCOM =>
             CPU.AC(I.Acd) := not CPU.AC(I.Acs);
