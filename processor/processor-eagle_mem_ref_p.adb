@@ -76,6 +76,14 @@ package body Processor.Eagle_Mem_Ref_P is
             Word := Word + Word_T(I.Imm_U16);
             RAM.Write_Word (Addr, Word);
 
+         when I_LNADD =>
+            Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            I32 := Integer_32(Word_To_Integer_16(RAM.Read_Word(Addr))) + 
+                   Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac))));
+            CPU.Carry := (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16);
+            Set_OVR (CPU.Carry);
+            CPU.AC(I.Ac) := Integer_32_To_Dword(I32);
+
          when I_LNLDA =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             CPU.AC(I.Ac) := Sext_Word_To_Dword (RAM.Read_Word(Addr));

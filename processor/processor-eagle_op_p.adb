@@ -89,6 +89,19 @@ package body Processor.Eagle_Op_P is
             Set_OVR (CPU.Carry);
             CPU.AC(I.Ac) := Integer_32_To_Dword(S32); 
 
+         when I_NDIV =>
+            Acd_S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acd))));
+            Acs_S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acs))));
+            if Acs_S32 = 0 then
+               CPU.Carry := true;
+               Set_OVR (true);
+            else
+               S32 := Acd_S32 / Acs_S32;
+               CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
+               Set_OVR (CPU.Carry);
+               CPU.AC(I.Acd) := Integer_32_To_Dword(S32);   
+            end if;
+
          when I_NLDAI =>
             CPU.AC(I.Ac) := Sext_Word_To_Dword(I.Word_2);
 
