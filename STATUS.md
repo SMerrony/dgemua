@@ -20,7 +20,7 @@ Initial milestones are to run from image of AOS/VS 7.73 system tape image...
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 24 May 2021
+* Last status update: 5 Jun 2021
   
 The following 32-bit sample programs copied from a physical machine are working...
 * HW.PR - Hello, World! (13 May 2021)
@@ -37,10 +37,11 @@ The NADGUG library provides a good range of freely-available test targets...
   
 * 32-bit NADGUG Games compiled for AOS/VS
 
-  |    Game   |   Problem  |   Date   |
-  |-----------|------------|------------------|
+  |    Game           |   Problem                                             |   Date     |
+  |-------------------|-------------------------------------------------------|------------|
+  | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               | 5 Jun 2021 |       
   | HANGMAN (IMSUTIL) | Bad comparison in WDCMP after displaying start screen | 28 May 2021 |
-  | WUMPUS    | Hang/loop after displaying start screen | 24 May 2021 |
+  | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 |
   
 ### Reminders
 * Check ?READ/WRITE/OPEN flag mode interpretation - it might be back-to-front

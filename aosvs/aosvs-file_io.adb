@@ -107,7 +107,7 @@ package body AOSVS.File_IO is
         Is_DataSens : Boolean     := ((File_Spec and 7) = RTDS); -- ((File_Spec and Word_T(RTDS)) /= 0);
         Is_Dynamic  : Boolean     := ((File_Spec and 7) = RTDY); -- overrides Data Sens
         Rec_Len     : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
-        Bytes       : Byte_Arr_T(0 .. Rec_Len-1) := RAM.Read_Bytes_BA (RAM.Read_Dword(Pkt_Addr + IBAD), Rec_Len);
+        Bytes_BA    : Dword_T     := RAM.Read_Dword(Pkt_Addr + IBAD);
         Position    : Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
         Txfrd, Err  : Word_T;
     begin
@@ -119,7 +119,7 @@ package body AOSVS.File_IO is
                                         Is_Dynamic,
                                         Is_DataSens,
                                         Rec_Len,
-                                        Bytes,
+                                        Bytes_BA,
                                         Position,
                                         Txfrd,
                                         Err);

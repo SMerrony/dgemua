@@ -227,46 +227,42 @@ package body AOSVS.Agent is
                               Is_Dynamic,
                               Is_DataSens : in Boolean;
                               Rec_Len     : in Integer;
-                              Bytes       : in Byte_Arr_T;
+                              Bytes_BA    : in Dword_T;
                               Position    : in Integer;
                               Transferred : out Word_T;
                               Err         : out Word_T) is
-         Max_Len  : Integer;
          Too_Long : Boolean := false;
-         DS_Len   : Integer;
+         DS_Len   : Integer := 0;
+         Max_Len  : Integer := (if Rec_Len = (-1) then Agent_Chans(Integer(Chan_No)).Rec_Len else Rec_Len);
+         Byte     : Byte_T;
       begin
          Err := 0;
          if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
             raise Channel_Not_Open with "?WRITE";
          end if;
-         if (not Is_Dynamic) and (Is_DataSens or Agent_Chans(Integer(Chan_No)).Data_Sens) then
-            Max_Len := Rec_Len;
-            if Rec_Len = -1 then
-               Max_Len := Agent_Chans(Integer(Chan_No)).Rec_Len;
-            end if;
-            Get_Data_Sensitive_Portion (Bytes, Max_Len, DS_Len);
-            Loggers.Debug_Print (Sc_Log,"----- Found D/S bytes:" & DS_Len'Image);
-            -- if Too_Long then
-            --    Err := PARU_32.ERLTL;
-            -- end if;
-         end if;
-         if not Too_Long then
-            if Agent_Chans(Integer(Chan_No)).Is_Console then
-               if (not Is_Dynamic) and (Is_DataSens or Agent_Chans(Integer(Chan_No)).Data_Sens) then
-                  for B in 0 .. DS_Len -1 loop
-                     Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Bytes(B));
-                  end loop;
-                  Transferred := Integer_16_To_Word(Integer_16(DS_Len));
-                  Loggers.Debug_Print (Sc_Log,"----- No of D/S bytes written:" & Transferred'Image);
-               else
+         if Agent_Chans(Integer(Chan_No)).Is_Console then
+            if (not Is_Dynamic) and (Is_DataSens or Agent_Chans(Integer(Chan_No)).Data_Sens) then
+               loop
+                  Byte := RAM.Read_Byte_BA( Bytes_BA + Dword_T(DS_Len));
+                  exit when Byte = 0; -- FIXME other terminators exist...
+                  DS_Len := DS_Len + 1;
+                  Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Byte);
+                  exit when DS_Len = Max_Len;
+               end loop;
+               Transferred := Integer_16_To_Word(Integer_16(DS_Len));
+               Loggers.Debug_Print (Sc_Log,"----- No of D/S bytes written:" & Transferred'Image);
+            else
+               declare
+                  Bytes : Byte_Arr_T(0 .. Rec_Len-1) := RAM.Read_Bytes_BA(Bytes_BA, Max_Len);
+               begin
                   for B in Bytes'Range loop
                      Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Bytes(B));
                   end loop;
                   Transferred := Word_T(Bytes'Length);
-               end if;
-            else
-               raise Not_Yet_Implemented with "?WRITE to real file";
+               end;
             end if;
+         else
+            raise Not_Yet_Implemented with "?WRITE to real file";
          end if;
       end File_Write;
 

@@ -143,7 +143,7 @@ package AOSVS.Agent is
 							  Is_Dynamic,
 							  Is_DataSens : in Boolean;
 							  Rec_Len     : in Integer;
-							  Bytes       : in Byte_Arr_T;
+							  Bytes_BA    : in Dword_T;
 							  Position    : in Integer;
 							  Transferred : out Word_T;
 							  Err         : out Word_T);
