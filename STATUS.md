@@ -37,13 +37,14 @@ The NADGUG library provides a good range of freely-available test targets...
   
 * 32-bit NADGUG Games compiled for AOS/VS
 
-  |    Game           |   Problem                                             |   Date     |
-  |-------------------|-------------------------------------------------------|------------|
-  | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               | 5 Jun 2021 |       
-  | HANGMAN (IMSUTIL) | Bad comparison in WDCMP after displaying start screen | 28 May 2021 |
-  | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 |
+  |    Game           |   Problem                                             |   Date      | cf. VS/Emug |
+  |-------------------|-------------------------------------------------------|-------------|-------------|
+  | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | Same :-/ |      
+  | HANGMAN (IMSUTIL) | Bad comparison in WDCMP after displaying start screen | 28 May 2021 | Same :-/ | 
+  | QUEST_SERVER      |                                                       |  5 Jun 2021 | Better :=) |
+  | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | Same :-/ | 
   
 ### Reminders
 * Check ?READ/WRITE/OPEN flag mode interpretation - it might be back-to-front
 * Is there an off-by-one in byte handling somewhere - could explain display glitches
-* 
+* Probably need to specify both CWD and virtual root via command 

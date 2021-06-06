@@ -195,4 +195,28 @@ package body AOSVS.File_IO is
         return true;
     end Sys_SCHR;
 
+    function Sys_SEND  (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+        Msg_BA    : Dword_T := CPU.AC(1);
+        Dest_Type : Dword_T := Get_DW_Bits (CPU.AC(3), 22, 2);
+        Msg_Len   : Natural := Dword_To_Integer(CPU.AC(2) and 16#0000_00ff#);
+        Msg_Str   : String  := RAM.Read_String_BA (Msg_BA); -- TODO should we use length?
+        Dest_PID  : Word_T;
+    begin
+        Loggers.Debug_Print (Sc_Log, "?SEND");
+        case Dest_Type is
+            when 0 => -- PID
+                Dest_PID := Lower_Word (CPU.AC(0));
+            --when 1 => -- BA of Proc Name
+            --when 2 => -- BA of Console Name
+            when others =>
+                CPU.AC(0) := Dword_T(PARU_32.ERPRE);
+                Loggers.Debug_Print (Sc_Log, "----- Unknown Destination type:" & Dest_Type'Image);
+                return false;
+        end case;
+        Loggers.Debug_Print (Sc_Log, "----- Dest, PID:" & Dest_PID'Image);
+        Loggers.Debug_Print (Sc_Log, "----- Message  : " & Msg_Str);
+        Agent.Actions.Send_Msg(Dest_PID, Msg_Str, PID);
+        return true;
+    end Sys_SEND;
+
 end AOSVS.File_IO;

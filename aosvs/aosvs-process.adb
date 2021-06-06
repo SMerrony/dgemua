@@ -64,6 +64,25 @@ package body AOSVS.Process is
         return True;
     end Sys_GUNM;
 
+    function Sys_SUSER (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+    begin
+        Loggers.Debug_Print (Sc_Log, "?SUSER");
+        case CPU.AC(0) is
+            when 0 =>
+                CPU.AC(0) := (if AOSVS.Agent.Actions.Get_Superuser(PID) then 16#ffff_ffff# else 1);
+            when 16#ffff_ffff# =>
+                AOSVS.Agent.Actions.Set_Superuser(PID, true);
+                Loggers.Debug_Print (Sc_Log, "------ Superuser turned on");
+            when 1 =>
+                AOSVS.Agent.Actions.Set_Superuser(PID, false);
+                Loggers.Debug_Print (Sc_Log, "------ Superuser turned off");
+            when others =>
+                CPU.AC(0) := Dword_T(ERPRE);
+                return false;
+        end case;
+        return true;
+    end Sys_SUSER;
+
     function Sys_SYSPRV (CPU : in out CPU_T; PID : in Word_T) return Boolean is
         Pkt_Addr : Phys_Addr_T := Phys_Addr_T (CPU.AC (2));
         P_FUNC   : Word_T      := RAM.Read_Word (Pkt_Addr + 2);

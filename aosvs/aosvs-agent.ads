@@ -49,6 +49,7 @@ package AOSVS.Agent is
 		User_Name           : Unbounded_String;
         Console             : GNAT.Sockets.Stream_Access;
         TIDs_In_Use         : TIDs_Arr;
+		Superuser_On        : Boolean;
 	end record;
 	type PPD_Arr is array (PID_T) of Per_Process_Data_T;
 
@@ -153,16 +154,22 @@ package AOSVS.Agent is
 		function Get_PR_Name   (PID : in Word_T) return Unbounded_String;
 		function Get_User_Name (PID : in Word_T) return Unbounded_String;
 		function Get_Working_Directory (PID : in Word_T) return String;
+		function Get_Superuser (PID : in Word_T) return Boolean;
+		procedure Set_Superuser (PID : in Word_T; SU : in Boolean);
+
 		-- terminal I/O...
 		procedure Get_Default_Chars (Device : in Unbounded_String;
 									 WD_1, WD_2, WD_3 : out Word_T);
 		procedure Get_Current_Chars (Device : in Unbounded_String;
 									 WD_1, WD_2, WD_3 : out Word_T);
+		procedure Send_Msg (Dest_PID : in Word_T; Msg : in String; Send_PID : in Word_T);
+
 		-- IPCs...
 		procedure I_Lookup (PID : in Word_T; Filename : in String;
 							Glob_Port : out Integer; 
 							F_Type : out Word_T;
 							Err    : out Word_T);
+							
 		-- Shared Files...
 		procedure Shared_Open (PID : in PID_T; S_Path : in String; Read_Only : in Boolean;
 							   Chan_No : out Word_T;

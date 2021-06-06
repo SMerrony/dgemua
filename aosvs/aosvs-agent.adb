@@ -290,6 +290,14 @@ package body AOSVS.Agent is
       function Get_Working_Directory (PID : in Word_T) return String is 
          (To_String(Per_Process_Data(PID_T(PID)).Working_Directory));
 
+      function Get_Superuser (PID : in Word_T) return Boolean is
+         (Per_Process_Data(PID_T(PID)).Superuser_On);
+
+      procedure Set_Superuser (PID : in Word_T; SU : in Boolean) is
+      begin
+         Per_Process_Data(PID_T(PID)).Superuser_On := SU;
+      end Set_Superuser;
+
       -- Terminal I/O...
       procedure Get_Default_Chars (Device : in Unbounded_String;
 									        WD_1, WD_2, WD_3 : out Word_T) is
@@ -309,6 +317,27 @@ package body AOSVS.Agent is
          WD_3 := Chars(3);
       end Get_Current_Chars;
 
+      function Get_Console_For_PID (PID : in PID_T) return GNAT.Sockets.Stream_Access is
+         Console : GNAT.Sockets.Stream_Access;
+      begin
+         for AC in Agent_Chans'Range loop
+            if (Agent_Chans(AC).Opener_PID = PID) and (Agent_Chans(AC).Is_Console) then
+               Console := Agent_Chans(AC).Con;
+               exit;
+            end if;            
+         end loop;
+         -- TODO handle not found
+         return Console;
+      end Get_Console_For_PID;
+
+      procedure Send_Msg (Dest_PID : in Word_T; Msg : in String; Send_PID : in Word_T) is
+         Out_Msg : String := Dasher_NL & "From PID" & Send_PID'Image & ": " & Msg & Dasher_NL;
+         Con     : GNAT.Sockets.Stream_Access := Get_Console_For_PID(PID_T(Dest_PID));
+      begin
+         String'Write (Con, Out_Msg);
+      end Send_Msg;
+
+      -- IPCs...
       procedure I_Lookup (PID : in Word_T; Filename : in String;
 							Glob_Port : out Integer; 
 							F_Type : out Word_T;

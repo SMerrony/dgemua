@@ -33,4 +33,6 @@ package AOSVS.File_IO is
     function Sys_GCHR  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
     function Sys_SCHR  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
 
+    function Sys_SEND  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+
 end AOSVS.File_IO;

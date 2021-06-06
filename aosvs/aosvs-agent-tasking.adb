@@ -120,18 +120,20 @@ package body AOSVS.Agent.Tasking is
                -- Loggers.Debug_Print (Sc_Log, "System Call # is: " & Dword_To_String (Dword_T(Call_ID), Octal, 6));
             end if;
             case Call_ID is
-               when 8#001# => Syscall_OK := AOSVS.File_Management.Sys_CREATE(CPU, Task_Data.PID);
-               when 8#002# => Syscall_OK := AOSVS.File_Management.Sys_DELETE(CPU, Task_Data.PID);
+               when 8#001# => Syscall_OK := AOSVS.File_Management.Sys_CREATE (CPU, Task_Data.PID);
+               when 8#002# => Syscall_OK := AOSVS.File_Management.Sys_DELETE (CPU, Task_Data.PID);
                when 8#003# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEM  (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
                when 8#014# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEMI (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
-               when 8#027# => Syscall_OK := AOSVS.IPC.Sys_ILKUP (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#027# => Syscall_OK := AOSVS.IPC.Sys_ILKUP   (CPU, Task_Data.PID, Task_Data.TID);
                when 8#036# => Syscall_OK := AOSVS.System.Sys_GTOD (CPU);
                when 8#041# => Syscall_OK := AOSVS.System.Sys_GDAY (CPU);
-               when 8#044# => Syscall_OK := AOSVS.Sys_Memory.Sys_SSHPT(CPU, Task_Data.PID, Task_Data.Ring_Mask);
-               when 8#060# => Syscall_OK := AOSVS.Sys_Memory.Sys_SPAGE(CPU, Task_Data.PID,Task_Data.TID);
-               when 8#063# => Syscall_OK := AOSVS.Sys_Memory.Sys_SOPEN(CPU, Task_Data.PID,Task_Data.TID);
-               when 8#072# => Syscall_OK := AOSVS.Process.Sys_GUNM (CPU, Task_Data.PID);
+               when 8#044# => Syscall_OK := AOSVS.Sys_Memory.Sys_SSHPT (CPU, Task_Data.PID, Task_Data.Ring_Mask);
+               when 8#060# => Syscall_OK := AOSVS.Sys_Memory.Sys_SPAGE (CPU, Task_Data.PID,Task_Data.TID);
+               when 8#063# => Syscall_OK := AOSVS.Sys_Memory.Sys_SOPEN (CPU, Task_Data.PID,Task_Data.TID);
+               when 8#072# => Syscall_OK := AOSVS.Process.Sys_GUNM     (CPU, Task_Data.PID);
                when 8#073# => Syscall_OK := AOSVS.Sys_Memory.Sys_GSHPT(CPU, Task_Data.PID, Task_Data.Ring_Mask);
+               when 8#111# => Syscall_OK := AOSVS.File_Management.Sys_GNAME (CPU, Task_Data.PID);
+               when 8#113# => Syscall_OK := AOSVS.Process.Sys_SUSER (CPU, Task_Data.PID);
                when 8#127# => Syscall_OK := AOSVS.Process.Sys_DADID (CPU, Task_Data.PID);
                when 8#157# => Syscall_OK := AOSVS.System.Sys_SINFO  (CPU);
                --when 8#251# => 
@@ -152,9 +154,10 @@ package body AOSVS.Agent.Tasking is
                   exit;
                when 8#312# => Syscall_OK := AOSVS.File_IO.Sys_GCHR (CPU, Task_Data.PID);
                when 8#313# => Syscall_OK := AOSVS.File_IO.Sys_SCHR (CPU, Task_Data.PID);
-               when 8#330# => Syscall_OK := AOSVS.System.Sys_EXEC (CPU, Task_Data.PID, Task_Data.TID); -- !!!
+               when 8#316# => Syscall_OK := AOSVS.File_IO.Sys_SEND (CPU, Task_Data.PID);
+               when 8#330# => Syscall_OK := AOSVS.System.Sys_EXEC  (CPU, Task_Data.PID, Task_Data.TID); -- !!!
                when 8#333# => Syscall_OK := AOSVS.Multitasking.Sys_UIDSTAT (CPU, Task_Data.PID, Task_Data.TID);
-               when 8#336# => Syscall_OK := AOSVS.File_Management.Sys_RECREATE(CPU, Task_Data.PID);
+               when 8#336# => Syscall_OK := AOSVS.File_Management.Sys_RECREATE (CPU, Task_Data.PID);
                when 8#505# => Syscall_OK := AOSVS.Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr);
                when 8#542# => Syscall_OK := true; -- AOSVS.FPU.Sys_IFPU (CPU, Task_Data.PID, Task_Data.TID);
                when 8#573# => Syscall_OK := AOSVS.Process.Sys_SYSPRV (CPU, Task_Data.PID);
