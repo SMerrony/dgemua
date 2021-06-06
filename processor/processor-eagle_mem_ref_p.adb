@@ -182,6 +182,7 @@ package body Processor.Eagle_Mem_Ref_P is
                   Loggers.Debug_Print (Debug_Log, "WARNING: WCMP called with 2 zero lengths not doing anything");
                else
                   while (CPU.AC(1) /= 0) and (CPU.AC(0) /= 0) loop
+                  Loggers.Debug_Print (Debug_Log, "... AC0:" & CPU.AC(0)'Image & " AC1:" & CPU.AC(1)'Image);
                      -- read the two bytes to compare, substitute with a space if one string has run out
                      if CPU.AC(1) /= 0 then
                         Str1_Char := RAM.Read_Byte_BA (CPU.AC(3));
@@ -204,21 +205,27 @@ package body Processor.Eagle_Mem_Ref_P is
                         exit;
                      end if;
                      -- they were equal, so adjust remaining lengths, move pointers, and loop round
-                     if CPU.AC(0) /= 0 then
-                        CPU.AC(0) := Dword_T(Dword_To_Integer_32(CPU.AC(0)) + Str2_Dir);
-                     end if;
-                     if CPU.AC(1) /= 0 then
-                        CPU.AC(1) := Dword_T(Dword_To_Integer_32(CPU.AC(1)) + Str1_Dir);
-                     end if;
                      if Str2_Dir < 0 then
                         CPU.AC(2) := CPU.AC(2) - 1;
+                        if CPU.AC(0) /= 0 then
+                           CPU.AC(0) := CPU.AC(0) + 1;
+                        end if;
                      else
                         CPU.AC(2) := CPU.AC(2) + 1;
+                        if CPU.AC(0) /= 0 then
+                           CPU.AC(0) := CPU.AC(0) - 1;
+                        end if;
                      end if;
                      if Str1_Dir < 0 then
                         CPU.AC(3) := CPU.AC(3) - 1;
+                        if CPU.AC(1) /= 0 then
+                           CPU.AC(1) := CPU.AC(1) + 1;
+                        end if;                      
                      else
                         CPU.AC(3) := CPU.AC(3) + 1;
+                        if CPU.AC(1) /= 0 then
+                           CPU.AC(1) := CPU.AC(1) - 1;
+                        end if;    
                      end if;
                   end loop;
                end if;
