@@ -170,6 +170,8 @@ package AOSVS.Agent is
 							Glob_Port : out Integer; 
 							F_Type : out Word_T;
 							Err    : out Word_T);
+		procedure I_Create (PID : in Word_T; Filename : in String; Local_Port : in Positive;
+		                    Err : out Word_T);
 							
 		-- Shared Files...
 		procedure Shared_Open (PID : in PID_T; S_Path : in String; Read_Only : in Boolean;

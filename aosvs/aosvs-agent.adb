@@ -358,6 +358,18 @@ package body AOSVS.Agent is
          end if;
       end I_Lookup;
 
+      procedure I_Create (PID : in Word_T; Filename : in String; Local_Port : in Positive;
+		                    Err : out Word_T) is
+         I_New  : Ada.Text_IO.File_Type;
+      begin
+         Err := 0;
+         Ada.Text_IO.Create (I_New, Ada.Text_IO.Out_File, Filename);
+         Ada.Text_IO.Close  (I_New);
+         -- TODO 'register' the IPC internally
+         Loggers.Debug_Print (Sc_Log, "------- Created IPC file: " & Filename);
+      end I_Create;
+
+      -- Shared Files...
       procedure Shared_Open (PID : in PID_T; S_Path : in String; Read_Only : in Boolean;
 							        Chan_No : out Word_T; Err : out Word_T) is
          C      : Natural;

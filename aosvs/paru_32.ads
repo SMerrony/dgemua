@@ -817,5 +817,118 @@ package PARU_32 is
 	--                 BYTE COUNT (MCA)
 	PRES : constant Phys_Addr_T := PRCL + 1; -- RESERVED WORD
 	PBLT : constant Phys_Addr_T := PRES + 1; -- PACKET SIZE
-	
+
+	--  PACKET FOR DIRECTORY ENTRY CREATION (create)
+	CFTYP : constant Phys_Addr_T := 0;        -- ENTRY TYPE (RH) AND RECORD FORMAT (LH)
+	CPOR  : constant Phys_Addr_T := 1;        -- PORT NUMBER (IPC TYPES ONLY)
+	CHFS  : constant Phys_Addr_T := 1;        -- HASH FRAME SIZE (DIRECTORY TYPES ONLY)
+	CHID  : constant Phys_Addr_T := 1;        -- HOST ID (frem TYPE FILES ONLY )
+	CCPS  : constant Phys_Addr_T := 1;        -- FILE CONTROL PARAMETER (OTHERS)
+	CTIM  : constant Phys_Addr_T := 2;        -- POINTER TO TIME BLOCK
+	CTIL  : constant Phys_Addr_T := CTIM + 1; -- LOWER PORTION OF ctim
+	CACP  : constant Phys_Addr_T := CTIL + 1; -- POINTER TO INITIAL ACL
+	CACL  : constant Phys_Addr_T := CACP + 1; -- LOWER PORTION OF cacp
+	CMSH  : constant Phys_Addr_T := CACL + 1; -- MAX SPACE ALLOCATED (fcpd)
+	CMSL  : constant Phys_Addr_T := CMSH + 1; -- MAX SPACE ALLOCATED (LOW)
+	CDEH  : constant Phys_Addr_T := CACL + 1; -- RESERVED
+	CDEL  : constant Phys_Addr_T := CDEH + 1; -- FILE ELEMENT SIZE
+	CMIL  : constant Phys_Addr_T := CDEL + 1; -- MAXIMUM INDEX LEVEL DEPTH
+	CMRS  : constant Phys_Addr_T := CMIL + 1; -- RESERVED
+	CLTH  : constant Phys_Addr_T := CMRS + 1; -- LENGTH OF THE PARAMETER BLOCK
+
+
+	-- ENTRY TYPE RANGES
+	SMIN :constant Word_T := 0;        -- SYSTEM MINIMUM
+	SMAX :constant Word_T := 63;       -- SYSTEM MAXIMUM
+	DMIN :constant Word_T := smax + 1; -- DGC MINIMUM
+	DMAX :constant Word_T := 127;      -- DGC MAXIMUM
+	UMIN :constant Word_T := dmax + 1; -- USER MINIMUM
+	UMAX :constant Word_T := 255;      -- USER MAXIMUM	
+
+	-- SYSTEM ENTRY TYPES
+	-- MISC
+	FLNK : constant Word_T := SMIN;     -- LINK
+	FSDF : constant Word_T := FLNK + 1; -- SYSTEM DATA FILE
+	FMTF : constant Word_T := FSDF + 1; -- MAG TAPE FILE
+	FGFN : constant Word_T := FMTF + 1; -- GENERIC FILE NAME
+
+	-- DIRECTORIES (DO NOT CHANGE THEIR ORDER)
+	FDIR : constant Word_T := 10;       -- DISK DIRECTORY
+	FLDU : constant Word_T := FDIR + 1; -- LD ROOT DIRECTORY
+	FCPD : constant Word_T := FLDU + 1; -- CONTROL POINT DIRECTORY
+	FMTV : constant Word_T := FCPD + 1; -- MAG TAPE VOLUME
+	FMDR : constant Word_T := FMTV + 1; -- RESERVED FOR RT32(MEM DIRS), NOT LEGAL FOR AOS
+	FGNR : constant Word_T := FMDR + 1; -- RESERVED FOR RT32, NOT LEGAL FOR AOS
+	LDIR : constant Word_T := FDIR;     -- LOW DIR TYPE
+	HDIR : constant Word_T := FGNR;     -- HIGH DIR TYPE
+	LCPD : constant Word_T := FLDU;     -- LOW CONTROL POINT DIR TYPE
+	HCPD : constant Word_T := FCPD;     -- HIGH CONTROL POINT DIR TYPE
+
+	-- UNITS
+	FDKU : constant Word_T := 20;       -- DISK UNIT
+	FMCU : constant Word_T := FDKU + 1; -- MULTIPROCESSOR COMMUNICATIONS UNIT
+	FMTU : constant Word_T := FMCU + 1; -- MAG TAPE UNIT
+	FLPU : constant Word_T := FMTU + 1; -- DATA CHANNEL LINE PRINTER
+	FLPD : constant Word_T := FLPU + 1; -- DATA CHANNEL LP2 UNIT
+	FLPE : constant Word_T := FLPD + 1; -- DATA CHANNEL LINE PRINTER (LASER)
+	FPGN : constant Word_T := FLPE + 1; -- RESERVED FOR RT32(PROCESS GROUP)
+	FLTU : constant Word_T := FLPU + 1; -- LABELLED MAG TAPE UNIT
+	-- ***** NO LONGER USED *****
+	LUNT : constant Word_T := FDKU; -- LOW UNIT TYPE
+	HUNT : constant Word_T := FPGN; -- HIGH UNIT TYPE
+
+	-- IPC ENTRY TYPES
+	FIPC : constant Word_T := 30;     -- IPC PORT ENTRY
+
+	-- DGC ENTRY TYPES
+	FUDF : constant Word_T := DMIN;     -- USER DATA FILE
+	FPRG : constant Word_T := FUDF + 1; -- PROGRAM FILE
+	FUPF : constant Word_T := FPRG + 1; -- USER PROFILE FILE
+	FSTF : constant Word_T := FUPF + 1; -- SYMBOL TABLE FILE
+	FTXT : constant Word_T := FSTF + 1; -- TEXT FILE
+	FLOG : constant Word_T := FTXT + 1; -- SYSTEM LOG FILE (ACCOUNTING FILE)
+	FNCC : constant Word_T := FLOG + 1; -- FORTRAN CARRIAGE CONTROL FILE
+	FLCC : constant Word_T := FNCC + 1; -- FORTRAN CARRIAGE CONTROL FILE
+	FFCC : constant Word_T := FLCC + 1; -- FORTRAN CARRIAGE CONTROL FILE
+	FOCC : constant Word_T := FFCC + 1; -- FORTRAN CARRIAGE CONTROL FILE
+	FPRV : constant Word_T := FOCC + 1; -- AOS/VS PROGRAM FILE
+	FWRD : constant Word_T := FPRV + 1; -- WORD PROCESSING
+	FAFI : constant Word_T := FWRD + 1; -- APL FILE
+	FAWS : constant Word_T := FAFI + 1; -- APL WORKSPACE FILE
+	FBCI : constant Word_T := FAWS + 1; -- BASIC CORE IMAGE FILE
+	FDCF : constant Word_T := FBCI + 1; -- DEVICE CONFIGURATION FILE (NETWORKING)
+	FLCF : constant Word_T := FDCF + 1; -- LINK CONFIGURATION FILE (NETWORKING)
+	FLUG : constant Word_T := FLCF + 1; -- LOGICAL UNIT GROUP FILE (SNA)
+	FRTL : constant Word_T := FLUG + 1; -- AOS/RT32 RESERVED FILE TYPE RANGE (LO)
+	FRTH : constant Word_T := FRTL + 4; -- AOS/RT32 RESERVED FILE TYPE RANGE (HI)
+	FUNX : constant Word_T := FRTH + 1; -- VS/UNIX FILE
+	FBBS : constant Word_T := FUNX + 1; -- BUSINESS BASIC SYMBOL FILE
+	FVLF : constant Word_T := FBBS + 1; -- BUSINESS BASIC VOLUME LABEL FILE
+	FDBF : constant Word_T := FVLF + 1; -- BUSINESS BASIC DATA BASE FILE
+
+	-- CEO FILE TYPES
+	FGKM : constant Word_T := FDBF + 1; -- DG GRAPHICS KERNAL METAFILE
+	FVDM : constant Word_T := FGKM + 1; -- VIRTUAL DEVICE METAFILE
+	FNAP : constant Word_T := FVDM + 1; -- NAPLPS STANDARD GRAPH FILE
+	FTRV : constant Word_T := FNAP + 1; -- TRENDVIEW COMMAND FILE
+	FSPD : constant Word_T := FTRV + 1; -- SPREADSHEET FILE
+	FQRY : constant Word_T := FSPD + 1; -- PRESENT QUERY MACRO
+	FDTB : constant Word_T := FQRY + 1; -- PHD DATA TABLE
+	FFMT : constant Word_T := FDTB + 1; -- PHD FORMAT FILE
+	FWPT : constant Word_T := FFMT + 1; -- TEXT INTERCHANGE FORMAT
+	FDIF : constant Word_T := FWPT + 1; -- DATA INTERCHANGE FORMAT
+	FVIF : constant Word_T := FDIF + 1; -- VOICE IMAGE FILE
+	FIMG : constant Word_T := FVIF + 1; -- FACSIMILE IMAGE
+	FPRF : constant Word_T := FIMG + 1; -- PRINT READY FILE
+
+	-- MORE DGC ENTRY TYPES
+	FPIP : constant Word_T := FPRF + 1; -- PIPE FILE
+	FTTX : constant Word_T := FPIP + 1; -- TELETEX FILE
+	FDXF : constant Word_T := FTTX + 1; -- RESERVED FOR DXA
+	FDXR : constant Word_T := FDXF + 1; -- RESERVED FOR DXA
+	FCWP : constant Word_T := FDXR + 1; -- CEO WORD PROCESSOR FILE
+	FCWT : constant Word_T := FCWP;     -- CEOwrite WORD PROCESSOR FILE
+	FRPT : constant Word_T := FCWP + 1; -- PHD REPORT FILE
+
+
 end PARU_32;

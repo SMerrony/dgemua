@@ -34,9 +34,29 @@ package body AOSVS.File_Management is
     function Sys_CREATE (CPU : in out CPU_T; PID : in Word_T) return Boolean is
         Filename_BA  : Dword_T := CPU.AC(0);
         Filename_Str : String  := RAM.Read_String_BA(Filename_BA);
+        Pkt_Addr     : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        File_Type    : Word_T := RAM.Read_Word (Pkt_Addr + PARU_32.CFTYP) and 16#00ff#;
+        Err          : Word_T := 0;
     begin
-        Loggers.Debug_Print (Sc_Log, "?CREATE - filename: " & Filename_Str);
-        raise AOSVS.Agent.Not_Yet_Implemented with "?CREATE";
+        Loggers.Debug_Print (Sc_Log, "?CREATE - filename: " & Filename_Str & " Type No." & File_Type'Image);
+        case File_Type is
+            when PARU_32.FIPC =>
+                declare
+                   Local_Port : Word_T := RAM.Read_Word (Pkt_Addr + PARU_32.CPOR);
+                begin
+                   if Local_Port = 0 then
+                      CPU.AC(0) := Dword_T(PARU_32.ERIVP);
+                      return false;
+                   end if;
+                   AOSVS.Agent.Actions.I_Create(PID, Agent.Actions.Get_Working_Directory(PID) & "/" &Filename_Str, Positive(Local_Port), Err);
+                   if Err /= 0 then
+                      CPU.AC(0) := Dword_T(Err);
+                      return false;
+                   end if;
+                end;
+            when others =>
+                raise AOSVS.Agent.Not_Yet_Implemented with "?CREATE type No." & File_Type'Image;
+        end case;
         return true;
     end Sys_CREATE;
 
