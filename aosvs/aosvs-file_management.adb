@@ -32,9 +32,10 @@ with PARU_32;
 package body AOSVS.File_Management is
 
     function Sys_CREATE (CPU : in out CPU_T; PID : in Word_T) return Boolean is
-    
+        Filename_BA  : Dword_T := CPU.AC(0);
+        Filename_Str : String  := RAM.Read_String_BA(Filename_BA);
     begin
-        Loggers.Debug_Print (Sc_Log, "?CREATE");
+        Loggers.Debug_Print (Sc_Log, "?CREATE - filename: " & Filename_Str);
         raise AOSVS.Agent.Not_Yet_Implemented with "?CREATE";
         return true;
     end Sys_CREATE;

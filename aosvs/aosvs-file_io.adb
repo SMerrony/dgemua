@@ -54,7 +54,12 @@ package body AOSVS.File_IO is
         Chan_No     : Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
         Err         : Word_T;
     begin
-        Loggers.Debug_Print (Sc_Log, "?CLOSE");
+        Loggers.Debug_Print (Sc_Log, "?CLOSE - Chan. No:" & Chan_No'Image);
+        if Chan_No = 16#ffff# then
+            Loggers.Debug_Print (Sc_Log, "------ Ignoring attempt to ?CLOSE -1");
+            CPU.AC(0) := Dword_T(PARU_32.ERPRE);
+            return false;
+        end if;
         AOSVS.Agent.Actions.File_Close(Chan_No, Err);
         if Err /= 0 then
             CPU.AC(0) := Dword_T(Err);

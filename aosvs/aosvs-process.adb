@@ -47,7 +47,14 @@ package body AOSVS.Process is
                 raise AOSVS.Agent.Not_Yet_Implemented
                    with "?GUNM via target process";
             when 0 =>
-                raise AOSVS.Agent.Not_Yet_Implemented with "?GUNM via PID";
+                if CPU.AC(0) = 16#ffff_ffff# then
+                    User_Name := AOSVS.Agent.Actions.Get_User_Name (PID);
+                    RAM.Write_String_BA (CPU.AC (2), To_String (User_Name));
+                    CPU.AC (0) := 0;        -- Claim NOT to be in Superuser mode
+                    CPU.AC (1) := 16#001f#; -- Claim to have nearly all privileges
+                else  
+                    raise AOSVS.Agent.Not_Yet_Implemented with "?GUNM via another PID"; 
+                end if;
             when others =>
                 if CPU.AC (0) /= 16#ffff_ffff# then
                     Loggers.Debug_Print (Sc_Log, "----- Invalid parameters");
@@ -63,6 +70,24 @@ package body AOSVS.Process is
            (Sc_Log, "----- Returning: " & To_String (User_Name));
         return True;
     end Sys_GUNM;
+
+    function Sys_PNAME  (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+        Pname_BA : Dword_T := CPU.AC(0);
+    begin
+        Loggers.Debug_Print (Sc_Log, "?PNAME");
+        case CPU.AC(1) is
+            when 16#ffff_ffff# =>   -- get own PID
+                CPU.AC(1) := Dword_T(PID);
+                if Pname_BA /= 0 then
+                    RAM.Write_String_BA (Pname_BA,Agent.Actions.Get_Proc_Name(PID_T(PID)));
+                end if;
+            when 0 =>               -- get PID of named target process
+                raise AOSVS.Agent.Not_Yet_Implemented with "?PNAME for named proc";
+            when others =>          -- get proc name for given PID in AC0
+                raise AOSVS.Agent.Not_Yet_Implemented with "?PNAME for another PID";
+        end case;
+        return true;
+    end Sys_PNAME;
 
     function Sys_SUSER (CPU : in out CPU_T; PID : in Word_T) return Boolean is
     begin

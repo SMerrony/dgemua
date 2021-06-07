@@ -118,6 +118,7 @@ package AOSVS.Agent is
 								User_Name       : in Unbounded_String;
 								PID             : out PID_T);
 	    procedure Allocate_TID (PID : in PID_T; TID : out Word_T);
+		function Get_Proc_Name (PID : in PID_T) return String;
 
 		-- System Call supporting subprograms...
         -- file I/O...

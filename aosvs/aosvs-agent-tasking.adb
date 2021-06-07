@@ -21,9 +21,13 @@
 -- SOFTWARE.
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Text_IO;
+
+with GNAT.Traceback.Symbolic;
 
 with Interfaces; use Interfaces;
 
+with AOSVS.Connection;
 with AOSVS.File_IO;
 with AOSVS.File_Management;
 with AOSVS.IPC;
@@ -120,8 +124,9 @@ package body AOSVS.Agent.Tasking is
                -- Loggers.Debug_Print (Sc_Log, "System Call # is: " & Dword_To_String (Dword_T(Call_ID), Octal, 6));
             end if;
             case Call_ID is
-               when 8#001# => Syscall_OK := AOSVS.File_Management.Sys_CREATE (CPU, Task_Data.PID);
-               when 8#002# => Syscall_OK := AOSVS.File_Management.Sys_DELETE (CPU, Task_Data.PID);
+               when 8#000# => Syscall_OK := AOSVS.File_Management.Sys_CREATE (CPU, Task_Data.PID);
+               when 8#001# => Syscall_OK := AOSVS.File_Management.Sys_DELETE (CPU, Task_Data.PID);
+               -- 2 RENAME
                when 8#003# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEM  (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
                when 8#014# => Syscall_OK := AOSVS.Sys_Memory.Sys_MEMI (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
                when 8#027# => Syscall_OK := AOSVS.IPC.Sys_ILKUP   (CPU, Task_Data.PID, Task_Data.TID);
@@ -134,9 +139,11 @@ package body AOSVS.Agent.Tasking is
                when 8#073# => Syscall_OK := AOSVS.Sys_Memory.Sys_GSHPT(CPU, Task_Data.PID, Task_Data.Ring_Mask);
                when 8#111# => Syscall_OK := AOSVS.File_Management.Sys_GNAME (CPU, Task_Data.PID);
                when 8#113# => Syscall_OK := AOSVS.Process.Sys_SUSER (CPU, Task_Data.PID);
+               when 8#116# => Syscall_OK := AOSVS.Process.Sys_PNAME (CPU, Task_Data.PID);
                when 8#127# => Syscall_OK := AOSVS.Process.Sys_DADID (CPU, Task_Data.PID);
                when 8#157# => Syscall_OK := AOSVS.System.Sys_SINFO  (CPU);
-               --when 8#251# => 
+               -- when 8#166# => Syscall_OK := AOSVS.File_Management.Sys_DACL (CPU, Task_Data.PID);
+               when 8#171# => Syscall_OK := AOSVS.Connection.Sys_SERVE (CPU, Task_Data.PID);
                when 8#263# => Syscall_OK := AOSVS.Multitasking.Sys_WDELAY (CPU, Task_Data.PID, Task_Data.TID);
                when 8#300# => Syscall_OK := AOSVS.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#301# => Syscall_OK := AOSVS.File_IO.Sys_CLOSE (CPU, Task_Data.PID, Task_Data.TID);
@@ -162,7 +169,7 @@ package body AOSVS.Agent.Tasking is
                when 8#542# => Syscall_OK := true; -- AOSVS.FPU.Sys_IFPU (CPU, Task_Data.PID, Task_Data.TID);
                when 8#573# => Syscall_OK := AOSVS.Process.Sys_SYSPRV (CPU, Task_Data.PID);
                when others =>
-                  raise System_Call_Not_Implemented with "Decimal call #:" & Call_ID'Image;
+                  raise System_Call_Not_Implemented with "Octal call #:" & Word_To_String(Call_ID, Octal, 5);
             end case;
             Processor.Eagle_Stack_P.WS_Pop(CPU, Dummy);
             if Syscall_OK then
@@ -185,8 +192,9 @@ package body AOSVS.Agent.Tasking is
       end Start; -- just for testing
 
       exception
-         when others =>
+         when E : others =>
             Loggers.Debug_Logs_Dump ("logs/");
+            Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
 
    end VS_Task;
 

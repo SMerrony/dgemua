@@ -23,12 +23,8 @@
 with DG_Types;      use DG_Types;
 with Processor;     use Processor;
 
-package AOSVS.Process is
+package AOSVS.Connection is
+   
+   function Sys_SERVE (CPU : in out CPU_T; PID : in Word_T) return Boolean;
 
-    function Sys_DADID  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_GUNM   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_PNAME  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_SUSER  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_SYSPRV (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-
-end AOSVS.Process;
+end AOSVS.Connection;

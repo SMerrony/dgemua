@@ -106,6 +106,11 @@ package body AOSVS.System is
             end if;
             Loggers.Debug_Print (Sc_Log, "----- Returning: " & To_String(Res_US));
 
+        when GCNT =>
+            Num_Args := Word_T(AOSVS.Agent.Actions.Get_Num_Args (PID)) - 1;
+            CPU.AC(0) := Dword_T(Num_Args);
+            Loggers.Debug_Print (Sc_Log, "----- Returning Arg Count:" & Num_Args'Image);
+
         when GARG =>
             declare
                Arg_US  : Unbounded_String := AOSVS.Agent.Actions.Get_Nth_Arg(PID, P_Gnum);

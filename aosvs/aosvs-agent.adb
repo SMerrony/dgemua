@@ -105,6 +105,9 @@ package body AOSVS.Agent is
          end loop;
       end Allocate_TID;
 
+      function Get_Proc_Name (PID : in PID_T) return String is
+         (To_String(Per_Process_Data(PID).Proc_Name));
+   
       -- Sys Call Support below...
 
       -- File I/O...
