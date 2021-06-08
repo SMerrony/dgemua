@@ -32,14 +32,14 @@ package body AOSVS.File_IO is
     function Sys_OPEN (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
         Chan_No, Err : Word_T;
         Pkt_Addr  : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        File_Spec : Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
+        File_Opts : Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
         File_Type : Word_T      := RAM.Read_Word(Pkt_Addr + ISTO);
         Rec_Len   : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
         Path_Name : Dword_T     := RAM.Read_Dword(Pkt_Addr + IFNP);
         Path      : String      := Ada.Characters.Handling.To_Upper(RAM.Read_String_BA(Path_Name));
     begin
         Loggers.Debug_Print (Sc_Log, "?OPEN Pathname: " & Path);
-        AOSVS.Agent.Actions.File_Open (PID, Path, File_Spec, Rec_Len, Chan_No, Err);
+        AOSVS.Agent.Actions.File_Open (PID, Agent.Actions.Get_Working_Directory(PID) & "/" & Path, File_Opts, File_Type, Rec_Len, Chan_No, Err);
         if Err /= 0 then
             CPU.AC(0) := Dword_T(Err);
             return false;
@@ -60,7 +60,7 @@ package body AOSVS.File_IO is
             CPU.AC(0) := Dword_T(PARU_32.ERPRE);
             return false;
         end if;
-        AOSVS.Agent.Actions.File_Close(Chan_No, Err);
+        AOSVS.Agent.Actions.File_Close(Natural(Chan_No), Err);
         if Err /= 0 then
             CPU.AC(0) := Dword_T(Err);
             return false;

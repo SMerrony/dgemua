@@ -20,7 +20,9 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Directories;
+with Ada.Streams.Stream_IO;
+with Ada.Text_IO;
 
 with Interfaces;  use Interfaces;
 
@@ -85,7 +87,7 @@ package body AOSVS.Agent is
          Device_Chars.Include("@CONSOLE", Default_Chars);
          Device_Chars.Include("@INPUT", Default_Chars);
          Device_Chars.Include("@OUTPUT", Default_Chars);
-         Put_Line ("DEBUG: AGENT: Assigned PID " & PID'Image &
+         Ada.Text_IO.Put_Line ("DEBUG: AGENT: Assigned PID " & PID'Image &
                    " to Process Name: " & To_String(Proc_Name));
          Loggers.Debug_Print (Sc_Log,"AGENT: Assigned PID:" & PID'Image & " for program: " & To_String(PR_Name)); 
          Loggers.Debug_Print (Sc_Log,"-----  Working Dir : " & To_String (Virtual_Root));
@@ -114,26 +116,42 @@ package body AOSVS.Agent is
 
 		procedure File_Open (PID     : in Word_T; 
                            Path    : in String;
-                           Mode    : in Word_T;
+                           Options,               -- ?ISTI
+                           File_Type : in Word_T; -- ?ISTO
                            Rec_Len : in Integer;
                            Chan_No : out Word_T;
                            Err     : out Word_T) is
          Chan_Num : Natural;
-         Options  : Word_T := Mode and 7;
+         Format_Bits : Word_T := Options and 7;
+         Create, Create_Or_Error, Create_If_Reqd, Recreate, Read_Only : Boolean;
+         F_New  : Ada.Text_IO.File_Type;
       begin
          Err := 0;
          Chan_Num := Get_Free_Channel;
          Agent_Chans(Chan_Num).Opener_PID := 0; -- ensure set to zero so can be resused if open fails
          Agent_Chans(Chan_Num).Path := To_Unbounded_String (Path);
+         Loggers.Debug_Print (Sc_Log,"----- ?ISTI: " & Word_To_String (Options, Binary, 16, true));
+         Loggers.Debug_Print (Sc_Log,"----- ?ISTO: " & Word_To_String (File_Type, Binary, 16, true));
+
          -- parse creation options
+         Create_If_Reqd  := Test_W_Bit (Options, PARU_32.OF1B);
+         Create_Or_Error := Test_W_Bit (Options, PARU_32.OF2B); -- for a new file
+         Recreate        := (not Create_If_Reqd) and Create_Or_Error;
+         Create          := Create_If_Reqd or Create_Or_Error;
+
          -- parse R/W options
-         Loggers.Debug_Print (Sc_Log,"-----  Type:" & Options'Image);
-         Agent_Chans(Chan_Num).Dynamic      := (Options = PARU_32.RTDY);
-         Agent_Chans(Chan_Num).Data_Sens    := (Options = PARU_32.RTDS);
-         Agent_Chans(Chan_Num).Fixed_Length := (Options = PARU_32.RTFX);
-         Agent_Chans(Chan_Num).Var_Length   := (Options = PARU_32.RTVR);
-         Agent_Chans(Chan_Num).Undefined    := (Options = PARU_32.RTUN);
-         Agent_Chans(Chan_Num).IBM_VB       := (Options = PARU_32.RTVB);
+         Read_Only := Test_W_Bit (Options, PARU_32.OPIB) and not Test_W_Bit (Options, PARU_32.OPOB);
+         Agent_Chans(Chan_Num).Read  := Test_W_Bit (Options, PARU_32.OPIB);
+         Agent_Chans(Chan_Num).Write := Test_W_Bit (Options, PARU_32.OPOB);         
+
+         -- parse Format Field options which are at end of File_Type
+         Loggers.Debug_Print (Sc_Log,"----- Type:" & Format_Bits'Image);
+         Agent_Chans(Chan_Num).Dynamic      := (Format_Bits = PARU_32.RTDY);
+         Agent_Chans(Chan_Num).Data_Sens    := (Format_Bits = PARU_32.RTDS);
+         Agent_Chans(Chan_Num).Fixed_Length := (Format_Bits = PARU_32.RTFX);
+         Agent_Chans(Chan_Num).Var_Length   := (Format_Bits = PARU_32.RTVR);
+         Agent_Chans(Chan_Num).Undefined    := (Format_Bits = PARU_32.RTUN);
+         Agent_Chans(Chan_Num).IBM_VB       := (Format_Bits = PARU_32.RTVB);
 
          if Path(Path'First) = '@' then
             if (Path = "@CONSOLE") or (Path = "@INPUT") or (Path = "@OUTPUT") then
@@ -142,10 +160,28 @@ package body AOSVS.Agent is
             else
                raise Not_Yet_Implemented with "Cannot handle unknown generic files";
             end if;
-         elsif (Path(Path'First) /= ':') and (Per_Process_Data(PID_T(PID)).Virtual_Root /= "") then
-             raise Not_Yet_Implemented with "Real (relative) file opening";
          else 
-            raise Not_Yet_Implemented with "Real (abolute) file opening";
+            Agent_Chans(Chan_Num).Is_Console := false;
+
+            if Recreate and Ada.Directories.Exists (Path) then
+               Loggers.Debug_Print (Sc_Log, "------ Deleting old file");
+               Ada.Directories.Delete_File (Path);
+            end if;
+
+            if Create then
+               if Create_Or_Error and Ada.Directories.Exists (Path) then
+                  Loggers.Debug_Print (Sc_Log, "------ Uh-oh - it already exists...");
+                  Err := PARU_32.ERNAE;
+                  return;
+               end if;
+               Ada.Text_IO.Create (F_New, Ada.Text_IO.Out_File, Path);
+               Loggers.Debug_Print (Sc_Log, "----- Created new file");
+               Ada.Text_IO.Close (F_New);
+            end if;
+
+            Loggers.Debug_Print (Sc_Log, "----- Attempting to open: " & Path);
+            Ada.Streams.Stream_IO.Open (Agent_Chans(Chan_Num).File_Stream, (if Read_Only then Ada.Streams.Stream_IO.In_File else Ada.Streams.Stream_IO.Out_File), Path);
+
          end if;
 
          -- check for errors
@@ -160,7 +196,7 @@ package body AOSVS.Agent is
 
       end File_Open;
 
-      procedure File_Close (Chan_No : in Word_T; Err : out Word_T) is
+      procedure File_Close (Chan_No : in Natural; Err : out Word_T) is
       begin
          Err := 0;
          if Chan_No /= 0 then
@@ -170,7 +206,8 @@ package body AOSVS.Agent is
                if Agent_Chans(Integer(Chan_No)).Is_Console then
                   null; -- ignore ?CLOSE on console device for now
                else
-                  raise Not_Yet_Implemented with "Real file closing";
+                  Ada.Streams.Stream_IO.Close (Agent_Chans(Chan_No).File_Stream);
+                  Agent_Chans(Chan_No).Opener_PID := 0;
                end if;
             end if;
          end if;
@@ -363,6 +400,11 @@ package body AOSVS.Agent is
          I_New  : Ada.Text_IO.File_Type;
       begin
          Err := 0;
+         -- if the IPC filealready exists we delete it (FIXUP would do this on a real system)
+         if Ada.Directories.Exists (Filename) then
+            Loggers.Debug_Print (Sc_Log, "------- Deleting stale IPC file");
+            Ada.Directories.Delete_File(Filename);
+         end if;
          Ada.Text_IO.Create (I_New, Ada.Text_IO.Out_File, Filename);
          Ada.Text_IO.Close  (I_New);
          -- TODO 'register' the IPC internally

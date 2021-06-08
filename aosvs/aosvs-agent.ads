@@ -84,7 +84,8 @@ package AOSVS.Agent is
 	   			   : Boolean;
 	   Rec_Len     : Natural;
 	   Con         : GNAT.Sockets.Stream_Access;
-	   File_Stream : Stream_Access;
+	   --File_Stream : Stream_Access;
+	   File_Stream : Ada.Streams.Stream_IO.File_Type;
 	   File_Shared : Block_IO.File_Type;
 	end record;
 	type Agent_Channel_Arr is array (1 .. 128) of Agent_Channel_T;
@@ -124,11 +125,11 @@ package AOSVS.Agent is
         -- file I/O...
 		procedure File_Open (PID     : in Word_T; 
 							 Path    : in String;
-							 Mode    : in Word_T;
+							 Options, File_Type : in Word_T;
 							 Rec_Len : in Integer;
 							 Chan_No : out Word_T;
 							 Err     : out Word_T);
-		procedure File_Close (Chan_No : in Word_T; Err : out Word_T);
+		procedure File_Close (Chan_No : in Natural; Err : out Word_T);
 	    function  Get_Device_For_Channel(Chan_No : in Word_T) return Unbounded_String;
 		procedure File_Read (Chan_No : in Word_T;
                               Is_Extended,

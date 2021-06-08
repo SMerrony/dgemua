@@ -31,7 +31,7 @@ project vsemua is
    package Binder is
       case Mode is
          when "debug" =>
-            for Switches ("ada") use ("-Es");
+            for Switches ("ada") use ("-E");
          when "release" =>
 
       end case;
