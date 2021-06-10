@@ -20,7 +20,7 @@ Initial milestones are to run from image of AOS/VS 7.73 system tape image...
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 5 Jun 2021
+* Last status update: 10 Jun 2021
   
 The following 32-bit sample programs copied from a physical machine are working...
 * HW.PR - Hello, World! (13 May 2021)
@@ -41,10 +41,12 @@ The NADGUG library provides a good range of freely-available test targets...
   |-------------------|-------------------------------------------------------|-------------|-------------|
   | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | Same :-/ |      
   | HANGMAN (IMSUTIL) | Bad comparison in WDCMP after displaying start screen | 28 May 2021 | Same :-/ | 
-  | QUEST_SERVER      |                                                       |  5 Jun 2021 | Better :=) |
+  | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | Better :-) |
   | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | Same :-/ | 
+  | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 | Better :-) |
   
 ### Reminders
-* Check ?READ/WRITE/OPEN flag mode interpretation - it might be back-to-front
+* ~~Check ?READ/WRITE/OPEN flag mode interpretation - it might be back-to-front~~
 * Is there an off-by-one in byte handling somewhere - could explain display glitches
-* Probably need to specify both CWD and virtual root via command 
+* Probably need to specify both CWD and virtual root via command and handle them better.
+* ~~The YAHTZEE fault looks worth investigating as it happens so early in the execution.~~
