@@ -36,6 +36,8 @@ package body Memory is
             -- always need to map user page 0
             Map_Page (Ring_7_Page_0, false);
             First_Shared_Page := (2 ** 31) - 1;
+            Num_Shared_Pages := 0;
+            Num_Unshared_Pages := 0;
         end Init;
 
         procedure Map_Page (Page : in Natural; Is_Shared : in Boolean) is
@@ -51,6 +53,7 @@ package body Memory is
                         First_Shared_Page := Page;
                     end if;
                 else
+                    Num_Unshared_Pages := Num_Unshared_Pages  + 1;
                     Last_Unshared_Page := Page;
                 end if;
             end if;
@@ -107,6 +110,9 @@ package body Memory is
 
         function  Get_Num_Shared_Pages return Dword_T is
             (Dword_T(Num_Shared_Pages));
+
+        function  Get_Num_Unshared_Pages return Dword_T is
+            (Dword_T(Num_Unshared_Pages));    
 
         function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
             Page : Natural := Natural(Shift_Right(Word_Addr, 10));

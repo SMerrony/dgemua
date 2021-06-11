@@ -32,7 +32,8 @@ package body Processor.Eagle_Stack_P is
       DW := RAM.Read_Dword (CPU.WSP);
       CPU.WSP := CPU.WSP - 2;
       if CPU.Debug_Logging then
-         Loggers.Debug_Print (Debug_Log, "Popped " & Dword_To_String (DW, Octal, 11));
+         Loggers.Debug_Print (Debug_Log, "Popped " & Dword_To_String (DW, Octal, 11) &
+                                         " from: " & Dword_To_String (Dword_T(CPU.WSP + 2), Octal, 11));
       end if;
    end WS_Pop;
 
@@ -41,7 +42,8 @@ package body Processor.Eagle_Stack_P is
       CPU.WSP := CPU.WSP + 2;
       RAM.Write_Dword (CPU.WSP, DW);
       if CPU.Debug_Logging then
-         Loggers.Debug_Print (Debug_Log, "Pushed " & Dword_To_String (DW, Octal, 11));
+         Loggers.Debug_Print (Debug_Log, "Pushed " & Dword_To_String (DW, Octal, 11) &
+                                           " to: " & Dword_To_String (Dword_T(CPU.WSP), Octal, 11));
       end if;
    end WS_Push;
 
@@ -94,6 +96,8 @@ package body Processor.Eagle_Stack_P is
       procedure WSP_Check_Bounds (Delta_Words : in Integer; Is_Save : in Boolean;
                                   OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
       begin
+         Loggers.Debug_Print (Debug_Log, "... WSB: " & Dword_To_String (Dword_T(CPU.WSB), Octal, 11, true) &
+                                            " WSL: " & Dword_To_String (Dword_T(CPU.WSL), Octal, 11, true));
          OK := true;
          if Delta_Words > 0 then
             if CPU.WSP + Phys_Addr_T(Delta_Words) > CPU.WSL then
@@ -124,7 +128,7 @@ package body Processor.Eagle_Stack_P is
       begin
          -- from pp.5-23 of PoP
          -- step 1
-         if Primary_Fault = WSF_Overflow then
+         if Primary_Fault = WSF_Underflow then
             CPU.WSP := CPU.WSL; -- Seems odd, should this be WSB???
          end if;
          -- step 2

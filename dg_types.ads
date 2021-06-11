@@ -103,6 +103,7 @@ package DG_Types is
     Twos_Comp_Dec    : constant Natural := 6;
     FP_Dec           : constant Natural := 7;
 
+    Interrupted,
     Not_Yet_Implemented : Exception;
 
     -- boolean routines

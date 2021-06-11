@@ -101,6 +101,17 @@ package body AOSVS is
         Addrs.WSFH     := Phys_Addr_T(PR_Arr(WSFH_In_Pr)); 
         Addrs.WSL      := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(WSL_In_Pr), PR_Arr(WSL_In_Pr + 1)));
         Addrs.WSP      := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(WSP_In_Pr), PR_Arr(WSP_In_Pr + 1)));
+        Ada.Text_IO.Put_Line ("Page 8 - PC   :" & Dword_To_String (Dword_T(Addrs.PR_Start), Octal, 11, true));
+        Ada.Text_IO.Put_Line ("Page 8 - WFP  :" & Dword_To_String (Dword_T(Addrs.WFP), Octal, 11, true));
+        Ada.Text_IO.Put_Line (" - Page 0 - WFP  :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#20#), Octal, 11, true));
+        Ada.Text_IO.Put_Line ("Page 8 - WSB  :" & Dword_To_String (Dword_T(Addrs.WSB), Octal, 11, true));
+        Ada.Text_IO.Put_Line (" - Page 0 - WSB  :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#26#), Octal, 11, true));
+        Ada.Text_IO.Put_Line ("Page 8 - WSL  :" & Dword_To_String (Dword_T(Addrs.WSL), Octal, 11, true));
+        Ada.Text_IO.Put_Line (" - Page 0 - WSL  :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#24#), Octal, 11, true));
+        Ada.Text_IO.Put_Line ("Page 8 - WSP  :" & Dword_To_String (Dword_T(Addrs.WSP), Octal, 11, true));
+        Ada.Text_IO.Put_Line (" - Page 0 - WSP  :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#22#), Octal, 11, true));
+        Ada.Text_IO.Put_Line ("Page 8 - WSFH :" & Dword_To_String (Dword_T(Addrs.WSFH), Octal, 11, true));  
+        Ada.Text_IO.Put_Line (" - Page 0 - WSFH :" & Word_To_String (RAM.Read_Word(16#7000_0000# or 8#14#), Octal, 11, true));                                 
         return Addrs;
     end Load_PR_Addresses;
 
@@ -154,5 +165,21 @@ package body AOSVS is
         Agent.Tasking.Create_Task (PID, 0, PR_Addrs, Console);
 
     end Start;
+
+    function Encode_Global_Port (PID : in PID_T; Ring : in Natural; Local_Port : in Word_T) return Dword_T is
+        Left_Word, Right_Word : Word_T;
+    begin
+        Left_Word  := Shift_Left(Integer_16_To_Word(Integer_16(PID)), 6);
+        Right_Word := Shift_Left(Integer_16_To_Word(Integer_16(Ring)), 12) or (Local_Port and 16#0fff#);
+        return Dword_From_Two_Words(Left_Word, Right_Word);
+    end Encode_Global_Port;
+
+    procedure Decode_Global_Port (Global_Port : in Dword_T; 
+                                  PID : out PID_T; Ring : out Natural; Local_Port : out Word_T) is
+    begin
+        PID        := PID_T(Get_DW_Bits(Global_Port, 0, 10));
+        Ring       := Natural(Get_DW_Bits(Global_Port, 17, 3));
+        Local_Port := Lower_Word(Get_DW_Bits(Global_Port, 20, 12));
+    end Decode_Global_Port;
 
 end AOSVS;

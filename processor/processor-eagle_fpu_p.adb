@@ -67,6 +67,13 @@ package body Processor.Eagle_FPU_P is
             Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
             Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
 
+         when I_LFMMD =>
+            Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            DG_Dbl.Double_QW := RAM.Read_Qword (Addr);
+            CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) * DG_Double_To_Long_Float(DG_Dbl);
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));   
+
          when I_LFMMS =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) * DG_Single_To_Long_Float(RAM.Read_Dword(Addr));

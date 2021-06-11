@@ -106,8 +106,11 @@ package body Processor.Eagle_Mem_Ref_P is
 
          when I_LWADD =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
-            I32 := Dword_To_Integer_32(RAM.Read_Dword(Addr)) + Dword_To_Integer_32(CPU.AC(I.Ac));
-            CPU.AC(I.Ac) := Integer_32_To_Dword(I32);
+            S64 := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr))) + Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac)));
+            if S64 < Min_Neg_S32 or S64 > Max_Pos_S32 then
+               Set_OVR (true);
+            end if;
+            CPU.AC(I.Ac) := Lower_Dword(Qword_T(Integer_64_To_Unsigned_64(S64)));
 
          when I_LWLDA =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
@@ -115,8 +118,11 @@ package body Processor.Eagle_Mem_Ref_P is
 
          when I_LWMUL =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
-            I32 := Dword_To_Integer_32(RAM.Read_Dword(Addr)) * Dword_To_Integer_32(CPU.AC(I.Ac));
-            CPU.AC(I.Ac) := Integer_32_To_Dword(I32);
+            S64 := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr))) * Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac)));
+            if S64 < Min_Neg_S32 or S64 > Max_Pos_S32 then
+               Set_OVR (true);
+            end if;
+            CPU.AC(I.Ac) := Lower_Dword(Qword_T(Integer_64_To_Unsigned_64(S64)));
 
          when I_LWSTA =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);

@@ -20,6 +20,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
@@ -194,6 +195,7 @@ package body AOSVS.Agent.Tasking is
       exception
          when E : others =>
             Loggers.Debug_Logs_Dump ("logs/");
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message(E));
             Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
 
    end VS_Task;

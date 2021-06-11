@@ -30,7 +30,7 @@ package body AOSVS.IPC is
 
     function Sys_ILKUP  (CPU : in out CPU_T; PID, TID : in Word_T) return Boolean is
         I_Path : String := To_Upper (RAM.Read_String_BA (CPU.AC(0)));
-        G_Port : Integer;
+        G_Port : Dword_T;
         F_Type : Word_T;
         Err    : Word_T;
     begin
@@ -42,6 +42,7 @@ package body AOSVS.IPC is
         end if;
         CPU.AC(1) := Dword_T(G_Port);
         CPU.AC(2) := Dword_T(F_Type);
+        Loggers.Debug_Print (Sc_Log, "------ Global Port No. " & Dword_To_String(G_Port, binary, 32, true));
         return true;
     end Sys_ILKUP;
 

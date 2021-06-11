@@ -47,11 +47,9 @@ package body AOSVS.Sys_Memory is
       -- No. Unshared Pages Available
       CPU.AC(0) := RAM.Get_First_Shared_Page - RAM.Get_Last_Unshared_Page - 4; -- Not sure why we need th 4-page gap...
       -- No. Unshared Pages currently in use
-      CPU.AC(1) := (RAM.Get_Last_Unshared_Page - 
-                     (Dword_T(Ring_Mask) / Dword_T(Memory.Words_Per_Page))) / 
-                  Dword_T(Memory.Words_Per_Page);
+      CPU.AC(1) := RAM.Get_Num_Unshared_Pages;
       -- Hignest Unshared addr in logical addr space 
-      CPU.AC(2) := (RAM.Get_Last_Unshared_Page * Dword_T(Memory.Words_Per_Page)) or Dword_T(Ring_Mask); 
+      CPU.AC(2) := ((RAM.Get_Last_Unshared_Page * Dword_T(Memory.Words_Per_Page)) - 1) or Dword_T(Ring_Mask); 
       return true;
    end Sys_MEM;
 
@@ -72,7 +70,8 @@ package body AOSVS.Sys_Memory is
             RAM.Map_Page (Natural(Last_Unshared), false);  
             Loggers.Debug_Print (Sc_Log, "----- Mapped page : " & Dword_To_String (Last_Unshared, Hex, 8));
          end loop;
-         CPU.AC(1) := (RAM.Get_Last_Unshared_Page * Dword_T(Memory.Words_Per_Page)) or Dword_T(Ring_Mask); 
+         CPU.AC(1) := ((RAM.Get_Last_Unshared_Page * Dword_T(Memory.Words_Per_Page)) - 1) or Dword_T(Ring_Mask); 
+         Loggers.Debug_Print (Sc_Log, "----- Mapped for addresses up to " & Dword_To_String (CPU.AC(1), Octal, 11));
       elsif Change < 0 then
          -- removing pages
          raise Processor.Not_Yet_Implemented with "Removing unshared pages with ?MEMI";

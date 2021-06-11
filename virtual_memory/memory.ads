@@ -75,6 +75,7 @@ package Memory is
         function  Get_Last_Unshared_Page return Dword_T;
         function  Get_First_Shared_Page return Dword_T;
         function  Get_Num_Shared_Pages return Dword_T;
+        function  Get_Num_Unshared_Pages return Dword_T;
         
         procedure Map_Range (Start_Addr : in Phys_Addr_T;
                              Region     : in Memory_Region;
@@ -106,6 +107,7 @@ package Memory is
         Logging : Boolean;
         First_Shared_Page,
         Last_Unshared_Page,
+        Num_Unshared_Pages,
         Num_Shared_Pages : Natural;
         
     end RAM;

@@ -20,7 +20,8 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Memory; use Memory;
+with Debug_Logs;    use Debug_Logs;
+with Memory;        use Memory;
 
 package body Resolver is
 
@@ -101,6 +102,7 @@ package body Resolver is
 
         if Indirect then
             Eff := Eff or Ring;
+            Loggers.Debug_Print (Debug_Log, "... Indirect addr resolves from : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
             Ind_Addr := RAM.Read_Dword (Eff);
             while (Ind_Addr and 16#8000_0000#) /= 0 loop
                 Indirection_Level := Indirection_Level + 1;
@@ -108,8 +110,10 @@ package body Resolver is
                     raise Indirection_Failure with "Too many levels of indirection";
                 end if;
                 Ind_Addr := RAM.Read_Dword (Phys_Addr_T(Ind_Addr) and 16#7fff_ffff#);
+                Loggers.Debug_Print (Debug_Log, "... Nested Indirect addr resolves to : " & Dword_To_String (Dword_T(Ind_Addr), Octal, 11, true));
             end loop;
             Eff := Phys_Addr_T(Ind_Addr) or Ring;
+            Loggers.Debug_Print (Debug_Log, "... Indirect addr resolves to   : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
         end if;
 
         if not CPU.ATU then

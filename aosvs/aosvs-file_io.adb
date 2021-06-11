@@ -39,7 +39,11 @@ package body AOSVS.File_IO is
         Path      : String      := Ada.Characters.Handling.To_Upper(RAM.Read_String_BA(Path_Name));
     begin
         Loggers.Debug_Print (Sc_Log, "?OPEN Pathname: " & Path);
-        AOSVS.Agent.Actions.File_Open (PID, Agent.Actions.Get_Working_Directory(PID) & "/" & Path, File_Opts, File_Type, Rec_Len, Chan_No, Err);
+        if Path(Path'First) = '@' then
+            AOSVS.Agent.Actions.File_Open (PID, Path, File_Opts, File_Type, Rec_Len, Chan_No, Err);
+        else
+            AOSVS.Agent.Actions.File_Open (PID, Agent.Actions.Get_Working_Directory(PID) & "/" & Path, File_Opts, File_Type, Rec_Len, Chan_No, Err);
+        end if;
         if Err /= 0 then
             CPU.AC(0) := Dword_T(Err);
             return false;

@@ -48,7 +48,7 @@ package body AOSVS.File_Management is
                       CPU.AC(0) := Dword_T(PARU_32.ERIVP);
                       return false;
                    end if;
-                   AOSVS.Agent.Actions.I_Create(PID, Agent.Actions.Get_Working_Directory(PID) & "/" &Filename_Str, Positive(Local_Port), Err);
+                   AOSVS.Agent.Actions.I_Create(PID, Filename_Str, Local_Port, Err);
                    if Err /= 0 then
                       CPU.AC(0) := Dword_T(Err);
                       return false;
@@ -78,6 +78,7 @@ package body AOSVS.File_Management is
         exception
             when others =>
                 CPU.AC(0) := Dword_T(PARU_32.ERWAD); -- Write access denied...
+                Loggers.Debug_Print (Sc_Log, "------- Failed!");
                 return false;
         end;
         return true;

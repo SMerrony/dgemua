@@ -94,8 +94,8 @@ package AOSVS.Agent is
 	type Agent_IPC_T is record
 		Owner_PID   : PID_T;
 		Name        : Unbounded_String;
-		Local_Port  : Integer;
-		Global_Port : Integer;
+		Local_Port  : Word_T;
+		Global_Port : Dword_T;
 		File_Type   : Word_T;
 		-- may need spool here...
 	end record;
@@ -168,10 +168,10 @@ package AOSVS.Agent is
 
 		-- IPCs...
 		procedure I_Lookup (PID : in Word_T; Filename : in String;
-							Glob_Port : out Integer; 
+							Glob_Port : out Dword_T; 
 							F_Type : out Word_T;
 							Err    : out Word_T);
-		procedure I_Create (PID : in Word_T; Filename : in String; Local_Port : in Positive;
+		procedure I_Create (PID : in Word_T; Filename : in String; Local_Port : in Word_T;
 		                    Err : out Word_T);
 							
 		-- Shared Files...

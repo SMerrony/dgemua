@@ -930,5 +930,69 @@ package PARU_32 is
 	FCWT : constant Word_T := FCWP;     -- CEOwrite WORD PROCESSOR FILE
 	FRPT : constant Word_T := FCWP + 1; -- PHD REPORT FILE
 
+	--  INTERPROCESS COMMUNICATION SYSTEM (IPC) PARAMETERS
+	-- 
+	--  HIGHEST LEGAL LOCAL PORT NUMBER
+	IMPRT : constant Natural := 2047;   -- MAX LEGAL USER LOCAL PORT #
+	MXLPN : constant Natural := 4095;   -- MAX LEGAL LOCAL PORT #
 
-end PARU_32;
+
+	--  IPC MESSAGE HEADER
+	ISFL : constant Phys_Addr_T := 0;       -- SYSTEM FLAGS
+	IUFL : constant Phys_Addr_T := 1;       -- USER FLAGS
+
+	--  PORT NUMBERS FOR ?ISEND
+	IDPH : constant Phys_Addr_T := 2;       -- DESTINATION PORT NUMBER (HIGH)
+	IDPL : constant Phys_Addr_T := 3;       -- DESTINATION PORT NUMBER (LOW)
+	IOPN : constant Phys_Addr_T := 4;       -- ORIGIN PORT NUMBER
+
+	--  PORT NUMBERS FOR ?IREC
+	IOPH : constant Phys_Addr_T := 2;       -- ORIGIN PORT NUMBER (HIGH)
+	IOPL : constant Phys_Addr_T := 3;       -- ORIGIN PORT NUMBER (LOW)
+	IDPN : constant Phys_Addr_T := 4;       -- DESTINATION PORT NUMBER
+
+	ILTH : constant Phys_Addr_T := 5;       -- LENGTH OF MESSAGE OR BUFFER (IN WORDS)
+	IPTR : constant Phys_Addr_T := 6;       -- POINTER TO MESSAGE/BUFFER
+	IPTL : constant Phys_Addr_T := IPTR+1;  -- LOWER PORTION OF IPTR
+
+	IPLTH : constant Phys_Addr_T := IPTL+1; -- LENGTH OF HEADER
+
+	IRSV : constant Phys_Addr_T := IPTL+1; -- RESERVED
+	IRLT : constant Phys_Addr_T := IRSV+1; -- IS.R RECEIVE BUFFER LENGTH
+	IRPT : constant Phys_Addr_T := IRLT+1; -- IS.R RECEIVE BUFFER POINTER
+	IRPL : constant Phys_Addr_T := IRPT+1; -- LOWER PORTION OF IRPT
+	IPRLTH : constant Phys_Addr_T := IRPL+1; --  LENGTH OF ?IS.R HEADER
+
+	-- PACKET FOR TASK DEFINITION (?TASK)
+	DLNK 	: constant Phys_Addr_T :=  0;        -- NON-ZERO = SHORT PACKET, ZERO = EXTENDED
+	DLNL	: constant Phys_Addr_T := DLNK + 1;  -- 1 LOWER PORTION OF ?DLNK
+	DLNKB	: constant Phys_Addr_T := DLNL + 1;  -- 2 BACKWARDS LINK (UPPER PORTION)
+	DLNKBL	: constant Phys_Addr_T := DLNKB + 1; -- 3 BACKWARDS LINK (LOWER PORTION)
+	DPRI	: constant Phys_Addr_T := DLNKBL + 1; --4 PRIORITY, ZERO TO USE CALLER'S
+	DID		: constant Phys_Addr_T := DPRI + 1; -- 5 I.D., ZERO FOR NONE
+	DPC		: constant Phys_Addr_T := DID + 1;  -- 6 STARTING ADDRESS OR RESOURCE ENTRY
+	DPCL	: constant Phys_Addr_T := DPC + 1;  -- 7 LOWER PORTION OF ?DPC
+	DAC2	: constant Phys_Addr_T := DPCL + 1; -- 8 INITIAL AC2 CONTENTS
+	DCL2	: constant Phys_Addr_T := DAC2 + 1; -- 9 LOWER PORTION OF ?DAC2
+	DSTB	: constant Phys_Addr_T := DCL2 + 1; -- 10 STACK BASE, MINUS ONE FOR NO STACK
+	DSTL	: constant Phys_Addr_T := DSTB + 1; -- 11 LOWER PORTION OF ?DSTB
+	DSFLT	: constant Phys_Addr_T := DSTL + 1; -- 12 STACK FAULT ROUTINE ADDR OR -1 IF SAME AS CURRENT
+	DSSZ	: constant Phys_Addr_T := DSFLT + 1;-- 13 STACK SIZE, IGNORED IF NO STACK
+	DSSL	: constant Phys_Addr_T := DSSZ + 1; -- 14 LOWER PORTION OF ?DSSZ
+	DFLGS	: constant Phys_Addr_T := DSSL + 1; -- 15 FLAGS
+	-- DFL0	: constant Phys_Addr_T :=  1B0     -- RESERVED FOR SYSTEM
+	-- DFLRC	: constant Phys_Addr_T := 1B1     -- RESOURCE CALL TASK
+	-- DFL15	: constant Phys_Addr_T := 1B15    -- RESERVED FOR SYSTEM
+	DRES	: constant Phys_Addr_T := DFLGS + 1; -- 16 RESERVED FOR SYSTEM
+	DNUM	: constant Phys_Addr_T := DRES + 1;  -- 17 NUMBER OF TASKS TO CREATE
+
+	DSLTH	: constant Phys_Addr_T := DNUM + 1; -- LENGTH OF SHORT PACKET
+
+	DSH		: constant Phys_Addr_T := DNUM + 1; -- STARTING HOUR, -1 IF IMMEDIATE
+	DSMS	: constant Phys_Addr_T := DSH + 1;  -- STARTING SECOND IN HOUR, IGNORED IF IMMEDIATE
+	DCC		: constant Phys_Addr_T := DSMS + 1; -- NUMBER OF TIMES TO CREATE TASK(S)
+	DCI		: constant Phys_Addr_T := DCC + 1;  -- CREATION INCREMENT  IN SECONDS
+
+	DXLTH	:constant Phys_Addr_T := DCI + 1;  --  LENGTH OF EXTENDED PACKET	
+
+end PARU_32; 

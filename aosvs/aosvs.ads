@@ -71,6 +71,11 @@ package AOSVS is
                      Args      : in Args_Arr;
                      Console   : in GNAT.Sockets.Stream_Access;
                      Logging   : in Boolean);
+
+    function Encode_Global_Port (PID : in PID_T; Ring : in Natural; Local_Port : in Word_T) return Dword_T;
+    procedure Decode_Global_Port (Global_Port : in Dword_T; 
+                                  PID : out PID_T; Ring : out Natural; Local_Port : out Word_T);
+    
                  
     Invalid_PR_File,
     Not_Yet_Implemented : exception;

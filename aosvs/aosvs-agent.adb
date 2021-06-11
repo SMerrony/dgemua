@@ -244,14 +244,15 @@ package body AOSVS.Agent is
          if Agent_Chans(Integer(Chan_No)).Is_Console then
             loop
                Byte_T'Read (Agent_Chans(Integer(Chan_No)).Con, Byte);
-               if (Byte = Character'Pos(Dasher_NL)) or (Byte = Character'Pos(Dasher_CR)) then
+               Transferred := Transferred + 1;
+               Bytes(Byte_Ix) := Byte;
+               if (Byte = Character'Pos(Dasher_NL)) or (Byte = Character'Pos(Dasher_CR)) then               
                   Transferred := Transferred - 1;
                   exit;
                end if;
                -- TODO Handle Delete char
-               Bytes(Byte_Ix) := Byte;
+
                Byte_Ix := Byte_Ix + 1;
-               Transferred := Transferred + 1;
                -- exit when (Byte = Character'Pos(Dasher_NL)) or (Byte = Character'Pos(Dasher_CR));
             end loop;
          else
@@ -379,7 +380,7 @@ package body AOSVS.Agent is
 
       -- IPCs...
       procedure I_Lookup (PID : in Word_T; Filename : in String;
-							Glob_Port : out Integer; 
+							Glob_Port : out Dword_T; 
 							F_Type : out Word_T;
 							Err    : out Word_T) is
          IPC_Path : String := Agent.Actions.Get_Working_Directory(PID) & "/" & Filename;
@@ -395,20 +396,28 @@ package body AOSVS.Agent is
          end if;
       end I_Lookup;
 
-      procedure I_Create (PID : in Word_T; Filename : in String; Local_Port : in Positive;
+      procedure I_Create (PID : in Word_T; Filename : in String; Local_Port : in Word_T;
 		                    Err : out Word_T) is
-         I_New  : Ada.Text_IO.File_Type;
+         I_New_F  : Ada.Text_IO.File_Type;
+         New_IPC  : Agent_IPC_T;
+         CWD_Filename : String := Get_Working_Directory(PID) & "/" & Filename;
       begin
          Err := 0;
          -- if the IPC filealready exists we delete it (FIXUP would do this on a real system)
-         if Ada.Directories.Exists (Filename) then
+         if Ada.Directories.Exists (CWD_Filename) then
             Loggers.Debug_Print (Sc_Log, "------- Deleting stale IPC file");
-            Ada.Directories.Delete_File(Filename);
+            Ada.Directories.Delete_File(CWD_Filename);
          end if;
-         Ada.Text_IO.Create (I_New, Ada.Text_IO.Out_File, Filename);
-         Ada.Text_IO.Close  (I_New);
+         Ada.Text_IO.Create (I_New_F, Ada.Text_IO.Out_File, CWD_Filename);
+         Ada.Text_IO.Close  (I_New_F);
          -- TODO 'register' the IPC internally
-         Loggers.Debug_Print (Sc_Log, "------- Created IPC file: " & Filename);
+         New_IPC.Owner_PID  := PID_T(PID);
+         New_IPC.Name       := To_Unbounded_String(CWD_Filename);
+         New_IPC.Local_Port := Local_Port;
+         New_IPC.Global_Port := Encode_Global_Port(PID_T(PID), 7, Local_Port); -- FIXME Ring hard-coded to 7
+         IPCs.Include (CWD_Filename, New_IPC);
+
+         Loggers.Debug_Print (Sc_Log, "------- Created IPC file: " & CWD_Filename);
       end I_Create;
 
       -- Shared Files...
