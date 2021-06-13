@@ -152,11 +152,18 @@ package body AOSVS.Agent is
          Agent_Chans(Chan_Num).Var_Length   := (Format_Bits = PARU_32.RTVR);
          Agent_Chans(Chan_Num).Undefined    := (Format_Bits = PARU_32.RTUN);
          Agent_Chans(Chan_Num).IBM_VB       := (Format_Bits = PARU_32.RTVB);
+         if Agent_Chans(Chan_Num).Data_Sens then
+            Loggers.Debug_Print (Sc_Log, "----- Data Sensitive");
+        end if;
+        if Agent_Chans(Chan_Num).Dynamic then
+            Loggers.Debug_Print (Sc_Log, "----- Dynamic");
+        end if;
 
          if Path(Path'First) = '@' then
             if (Path = "@CONSOLE") or (Path = "@INPUT") or (Path = "@OUTPUT") then
-               Agent_Chans(Chan_Num).Con := Console;
+               Agent_Chans(Chan_Num).Con        := Console;
                Agent_Chans(Chan_Num).Is_Console := true;
+               Agent_Chans(Chan_Num).Echo       := true;
             else
                raise Not_Yet_Implemented with "Cannot handle unknown generic files";
             end if;
@@ -244,17 +251,25 @@ package body AOSVS.Agent is
          if Agent_Chans(Integer(Chan_No)).Is_Console then
             loop
                Byte_T'Read (Agent_Chans(Integer(Chan_No)).Con, Byte);
-               Transferred := Transferred + 1;
+               -- ECHO 
+               if Agent_Chans(Integer(Chan_No)).Echo then
+                   Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Byte);
+                   if Character'Val(Byte) = Dasher_CR then 
+                      Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Char_To_Byte(Dasher_NL));
+                  end if;
+               end if;
                Bytes(Byte_Ix) := Byte;
+               Bytes(Byte_Ix+1) := 0;
                if (Byte = Character'Pos(Dasher_NL)) or (Byte = Character'Pos(Dasher_CR)) then               
-                  Transferred := Transferred - 1;
+                  Bytes(Byte_Ix) := 0;
+                  --Byte_Ix := Byte_Ix + 1;
                   exit;
                end if;
                -- TODO Handle Delete char
 
                Byte_Ix := Byte_Ix + 1;
-               -- exit when (Byte = Character'Pos(Dasher_NL)) or (Byte = Character'Pos(Dasher_CR));
             end loop;
+            Transferred := Word_T(Byte_Ix) - 1;
          else
             raise Not_Yet_Implemented with "physical file reads";
          end if;
@@ -263,6 +278,7 @@ package body AOSVS.Agent is
       end File_Read;
 
       procedure File_Write (Chan_No : in Word_T;
+                              Defaults,
                               Is_Extended,
                               Is_Absolute,
                               Is_Dynamic,
@@ -276,13 +292,22 @@ package body AOSVS.Agent is
          DS_Len   : Integer := 0;
          Max_Len  : Integer := (if Rec_Len = (-1) then Agent_Chans(Integer(Chan_No)).Rec_Len else Rec_Len);
          Byte     : Byte_T;
+         T_Dyn, T_DS : Boolean;
       begin
          Err := 0;
          if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
             raise Channel_Not_Open with "?WRITE";
          end if;
+         if Defaults then
+            T_Dyn := Agent_Chans(Integer(Chan_No)).Dynamic;
+            T_DS  := Agent_Chans(Integer(Chan_No)).Data_Sens;
+            Loggers.Debug_Print (Sc_Log,"------ ... Type: " & (if T_Dyn then "Dynamic" else "Data Sensitive"));
+         else
+            T_Dyn := Is_Dynamic;
+            T_DS  := Is_DataSens;
+         end if;
          if Agent_Chans(Integer(Chan_No)).Is_Console then
-            if (not Is_Dynamic) and (Is_DataSens or Agent_Chans(Integer(Chan_No)).Data_Sens) then
+            if T_DS then
                loop
                   Byte := RAM.Read_Byte_BA( Bytes_BA + Dword_T(DS_Len));
                   exit when Byte = 0; -- FIXME other terminators exist...
@@ -294,7 +319,7 @@ package body AOSVS.Agent is
                Loggers.Debug_Print (Sc_Log,"----- No of D/S bytes written:" & Transferred'Image);
             else
                declare
-                  Bytes : Byte_Arr_T(0 .. Rec_Len-1) := RAM.Read_Bytes_BA(Bytes_BA, Max_Len);
+                  Bytes : Byte_Arr_T := RAM.Read_Bytes_BA(Bytes_BA, Rec_Len);
                begin
                   for B in Bytes'Range loop
                      Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Bytes(B));

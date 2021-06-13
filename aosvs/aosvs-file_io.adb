@@ -36,7 +36,7 @@ package body AOSVS.File_IO is
         File_Type : Word_T      := RAM.Read_Word(Pkt_Addr + ISTO);
         Rec_Len   : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
         Path_Name : Dword_T     := RAM.Read_Dword(Pkt_Addr + IFNP);
-        Path      : String      := Ada.Characters.Handling.To_Upper(RAM.Read_String_BA(Path_Name));
+        Path      : String      := Ada.Characters.Handling.To_Upper(RAM.Read_String_BA(Path_Name, false));
     begin
         Loggers.Debug_Print (Sc_Log, "?OPEN Pathname: " & Path);
         if Path(Path'First) = '@' then
@@ -76,19 +76,32 @@ package body AOSVS.File_IO is
         Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
         Chan_No     : Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
         File_Spec   : Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
-        Is_Extd     : Boolean     := ((File_Spec and Word_T(IPKL)) /= 0);
-        Is_Abs      : Boolean     := ((File_Spec and Word_T(IPST)) /= 0);
+        Defaults    : Boolean     := (File_Spec = 0);
+        Is_Extd     : Boolean     := ((File_Spec and IPKL) /= 0);
+        Is_Abs      : Boolean     := ((File_Spec and IPST) /= 0);
         Is_DataSens : Boolean     := ((File_Spec and 7) = RTDS); -- ((File_Spec and Word_T(RTDS)) /= 0);
         Is_Dynamic  : Boolean     := ((File_Spec and 7) = RTDY); -- overrides Data Sens
         Rec_Len     : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
         Dest        : Dword_T     := RAM.Read_Dword(Pkt_Addr + IBAD);
-        Read_Line   : Boolean     := (RAM.Read_Word(Pkt_Addr + IBIN) = 0);
+        -- Read_Line   : Boolean     := (RAM.Read_Word(Pkt_Addr + IBIN) = 0);
         Bytes       : Byte_Arr_T(0 .. Rec_Len-1);
         Position    : Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
         Txfrd, Err  : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?READ - Channel:" &Chan_No'Image);
         Loggers.Debug_Print (Debug_Log, "?READ - Channel:" &Chan_No'Image);
+        if Defaults then
+            Loggers.Debug_Print (Sc_Log, "------ Default Type from ?Open");
+        end if;
+        if Is_DataSens then
+            Loggers.Debug_Print (Sc_Log, "------ Data Sensitive");
+        end if;
+        if Is_Dynamic then
+            Loggers.Debug_Print (Sc_Log, "------ Dynamic");
+        end if;
+        if Is_Extd then
+            Loggers.Debug_Print (Sc_Log, "------ Extended!");
+        end if;
         AOSVS.Agent.Actions.File_Read (Chan_No,
                                         Is_Extd,
                                         Is_Abs,
@@ -111,8 +124,9 @@ package body AOSVS.File_IO is
         Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
         Chan_No     : Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
         File_Spec   : Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
-        Is_Extd     : Boolean     := ((File_Spec and Word_T(IPKL)) /= 0);
-        Is_Abs      : Boolean     := ((File_Spec and Word_T(IPST)) /= 0);
+        Defaults    : Boolean     := (File_Spec = 0);
+        Is_Extd     : Boolean     := ((File_Spec and IPKL) /= 0);
+        Is_Abs      : Boolean     := ((File_Spec and IPST) /= 0);
         Is_DataSens : Boolean     := ((File_Spec and 7) = RTDS); -- ((File_Spec and Word_T(RTDS)) /= 0);
         Is_Dynamic  : Boolean     := ((File_Spec and 7) = RTDY); -- overrides Data Sens
         Rec_Len     : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
@@ -122,7 +136,23 @@ package body AOSVS.File_IO is
     begin
         Loggers.Debug_Print (Sc_Log, "?WRITE - Channel:" & Chan_No'Image);
         Loggers.Debug_Print (Debug_Log, "?WRITE - Channel:" & Chan_No'Image);
+        if Defaults then
+            Loggers.Debug_Print (Sc_Log, "------ Default Type from ?Open");
+        end if;
+        if Is_DataSens then
+            Loggers.Debug_Print (Sc_Log, "------ Data Sensitive");
+        end if;
+        if Is_Dynamic then
+            Loggers.Debug_Print (Sc_Log, "------ Dynamic");
+        end if;
+        if Is_Extd then
+            Loggers.Debug_Print (Sc_Log, "------ Extended!");
+        end if;
+        if Test_DW_Bit(RAM.Read_Dword(Pkt_Addr + ETSP), 0) then
+            Loggers.Debug_Print (Sc_Log, "------ Contains Screen Management Pkt");
+        end if;
         AOSVS.Agent.Actions.File_Write (Chan_No,
+                                        Defaults,
                                         Is_Extd,
                                         Is_Abs,
                                         Is_Dynamic,
@@ -137,7 +167,7 @@ package body AOSVS.File_IO is
             return false;
         end if;
         RAM.Write_Word(Pkt_Addr + IRLR, Txfrd);
-        Loggers.Debug_Print (Sc_Log, "----- Bytes Written:" & Txfrd'Image);
+        Loggers.Debug_Print (Sc_Log, "------ Bytes Written:" & Txfrd'Image);
         return true;
     end Sys_Write;
 
@@ -156,7 +186,7 @@ package body AOSVS.File_IO is
            end if;
         else
            -- AC0 should be a BP to the target device name
-           Device_Name := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0)));
+           Device_Name := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0), false));
         end if;
         Loggers.Debug_Print (Sc_Log, "----- for device: " & To_String(Device_Name));
         if Get_Defaults then
@@ -188,7 +218,7 @@ package body AOSVS.File_IO is
            end if;
         else
            -- AC0 should be a BP to the target device name
-           Device_Name := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0)));
+           Device_Name := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0), false));
         end if;
         Loggers.Debug_Print (Sc_Log, "----- for device: " & To_String(Device_Name));
         AOSVS.Agent.Actions.Get_Current_Chars(Device_Name, Old_WD_1, Old_WD_2, Old_WD_3);
@@ -208,7 +238,7 @@ package body AOSVS.File_IO is
         Msg_BA    : Dword_T := CPU.AC(1);
         Dest_Type : Dword_T := Get_DW_Bits (CPU.AC(3), 22, 2);
         Msg_Len   : Natural := Dword_To_Integer(CPU.AC(2) and 16#0000_00ff#);
-        Msg_Str   : String  := RAM.Read_String_BA (Msg_BA); -- TODO should we use length?
+        Msg_Str   : String  := RAM.Read_String_BA (Msg_BA, true); -- TODO should we use length?
         Dest_PID  : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?SEND");

@@ -29,7 +29,7 @@ with Memory;      use Memory;
 package body AOSVS.IPC is
 
     function Sys_ILKUP  (CPU : in out CPU_T; PID, TID : in Word_T) return Boolean is
-        I_Path : String := To_Upper (RAM.Read_String_BA (CPU.AC(0)));
+        I_Path : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
         G_Port : Dword_T;
         F_Type : Word_T;
         Err    : Word_T;

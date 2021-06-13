@@ -406,21 +406,21 @@ package PARU_32 is
 	RF3B : constant Natural := 15; -- RECORD FORMAT BIT 3
 
 	--  isti FLAGS: MASK DEFINITIONS
-	IPKL : constant Phys_Addr_T := Shift_Right (16#8000#, IPLB); -- EXTENDED PACKET (IF SET)
-	ICRF : constant Phys_Addr_T := Shift_Right (16#8000#, ICFB); -- CHANGE RECORD FORMAT (IF SET)
-	CDMP : constant Phys_Addr_T := Shift_Right (16#8000#, ICDM); -- SET DUMP BIT (ONLY ON close)
-	IPST : constant Phys_Addr_T := Shift_Right (16#8000#, IPTB); -- RECORD POSITIONING TYPE (1 - ABSOLUTE)
-	IBIN : constant Phys_Addr_T := Shift_Right (16#8000#, IBIB); -- BINARY I-O
-	IFOP : constant Phys_Addr_T := Shift_Right (16#8000#, IFOB); -- FORCE OUTPUT
-	IEXO : constant Phys_Addr_T := Shift_Right (16#8000#, IOEX); -- EXCLUSIVE OPEN
-	IIPC : constant Phys_Addr_T := Shift_Right (16#8000#, IIPS); -- IPC NO WAIT BIT
-	PDEL : constant Phys_Addr_T := Shift_Right (16#8000#, PDLM); -- PRIORITY OPEN-I-O
-	APND : constant Phys_Addr_T := Shift_Right (16#8000#, APBT); -- OPEN FILE FOR APPENDING
-	OFCR : constant Phys_Addr_T := Shift_Right (16#8000#, OF1B); -- ATTEMPT CREATE BEFORE OPEN
-	OFCE : constant Phys_Addr_T := Shift_Right (16#8000#, OF2B); -- CORRECT ERROR ON CREATE OR OPEN
-	OFIN : constant Phys_Addr_T := Shift_Right (16#8000#, OPIB); -- OPEN FOR INPUT
-	OFOT : constant Phys_Addr_T := Shift_Right (16#8000#, OPOB); -- OPEN FOR OUTPUT
-	OFIO : constant Phys_Addr_T := OFIN + OFOT   ; -- OPEN FOR INPUT AND OUTPUT
+	IPKL : constant Word_T := Shift_Right (16#8000#, IPLB); -- EXTENDED PACKET (IF SET)
+	ICRF : constant Word_T := Shift_Right (16#8000#, ICFB); -- CHANGE RECORD FORMAT (IF SET)
+	CDMP : constant Word_T := Shift_Right (16#8000#, ICDM); -- SET DUMP BIT (ONLY ON close)
+	IPST : constant Word_T := Shift_Right (16#8000#, IPTB); -- RECORD POSITIONING TYPE (1 - ABSOLUTE)
+	IBIN : constant Word_T := Shift_Right (16#8000#, IBIB); -- BINARY I-O
+	IFOP : constant Word_T := Shift_Right (16#8000#, IFOB); -- FORCE OUTPUT
+	IEXO : constant Word_T := Shift_Right (16#8000#, IOEX); -- EXCLUSIVE OPEN
+	IIPC : constant Word_T := Shift_Right (16#8000#, IIPS); -- IPC NO WAIT BIT
+	PDEL : constant Word_T := Shift_Right (16#8000#, PDLM); -- PRIORITY OPEN-I-O
+	APND : constant Word_T := Shift_Right (16#8000#, APBT); -- OPEN FILE FOR APPENDING
+	OFCR : constant Word_T := Shift_Right (16#8000#, OF1B); -- ATTEMPT CREATE BEFORE OPEN
+	OFCE : constant Word_T := Shift_Right (16#8000#, OF2B); -- CORRECT ERROR ON CREATE OR OPEN
+	OFIN : constant Word_T := Shift_Right (16#8000#, OPIB); -- OPEN FOR INPUT
+	OFOT : constant Word_T := Shift_Right (16#8000#, OPOB); -- OPEN FOR OUTPUT
+	OFIO : constant Word_T := OFIN + OFOT   ; -- OPEN FOR INPUT AND OUTPUT
 
 	-- PACKET TO GET INITIAL MESSAGE (?GTMES)
 	GREQ : constant Phys_Addr_T := 0;        -- REQUEST TYPE (SEE BELOW)

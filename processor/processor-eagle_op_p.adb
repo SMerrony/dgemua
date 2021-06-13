@@ -212,7 +212,7 @@ package body Processor.Eagle_Op_P is
                if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
                   Set_OVR(true);
                else
-                  CPU.AC(I.Acd) := Dword_T(S64);
+                  CPU.AC(I.Acd) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
                   Set_OVR(false);
                end if;
             else

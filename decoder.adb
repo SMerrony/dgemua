@@ -718,6 +718,10 @@ package body Decoder is
          when UNIQUE_2_WORD_FMT =>
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Imm_U16 := Unsigned_16(Decoded.Word_2);
+            if Disassemble then
+               Decoded.Disassembly :=
+                 Decoded.Disassembly & " " & Word_To_String(Decoded.Word_2, Octal, 7) & " [2-Word Instruction]";
+            end if;
 
          when WIDE_DEC_SPECIAL_FMT => -- Funky - following word defines OpCode...
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);

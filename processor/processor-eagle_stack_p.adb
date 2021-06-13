@@ -179,10 +179,11 @@ package body Processor.Eagle_Stack_P is
                Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
                PC_4 : Dword_T := Dword_T(CPU.PC) + 4;
             begin
+               Set_OVR (false);
                if I.Arg_Count >= 0 then
                   DW := Dword_T(I.Arg_Count);
                else
-                  DW := RAM.Read_Dword (CPU.WSP) and 16#0000_ffff#;
+                  DW := RAM.Read_Dword (CPU.WSP) and 16#0000_7fff#;
                end if;
                DW := DW or Shift_Left(Dword_T(CPU.PSR), 16);
                WSP_Check_Bounds (Delta_Words => 2, 
@@ -191,8 +192,9 @@ package body Processor.Eagle_Stack_P is
                                  Primary_Fault => Primary_Fault, 
                                  Secondary_Fault => Secondary_Fault);
                if not OK then
-                  Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WSAVR/S");
-                  WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+                  Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by LCALL");
+                  raise Not_Yet_Implemented with "LCALL Stack fault";
+                  --WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
                   -- return;
                end if;
                WS_Push (CPU, DW);
@@ -437,6 +439,17 @@ package body Processor.Eagle_Stack_P is
          when I_XPEF =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             WS_Push (CPU, Dword_T(Addr));
+            Set_OVR (false);
+            WSP_Check_Bounds (Delta_Words => 0, 
+                              Is_Save => false, 
+                              OK => OK, 
+                              Primary_Fault => Primary_Fault, 
+                              Secondary_Fault => Secondary_Fault);
+            if not OK then
+               Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by XPEF");
+               WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+               return; -- We have set the PC
+            end if;
 
          when I_XPEFB =>
             Addr := Resolve_15bit_Disp (CPU, false, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -452,7 +465,7 @@ package body Processor.Eagle_Stack_P is
                               Primary_Fault => Primary_Fault, 
                               Secondary_Fault => Secondary_Fault);
             if not OK then
-               Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by LPEFB");
+               Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by XPEFB");
                WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
                return; -- We have set the PC
             end if;

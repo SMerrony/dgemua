@@ -42,14 +42,15 @@ package body AOSVS.Sys_Memory is
    end Sys_GSHPT;
 
    function Sys_MEM (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T; Ring_Mask : in Phys_Addr_T) return Boolean is
+      I32 : Integer_32 := Integer_32(RAM.Get_First_Shared_Page) - Integer_32(RAM.Get_Last_Unshared_Page) - 4;
    begin
       Loggers.Debug_Print (Debug_Log, "?MEM"); Loggers.Debug_Print (Sc_Log, "?MEM");
       -- No. Unshared Pages Available
-      CPU.AC(0) := RAM.Get_First_Shared_Page - RAM.Get_Last_Unshared_Page - 4; -- Not sure why we need th 4-page gap...
+      CPU.AC(0) := (if I32 < 0 then 0 else Dword_T(I32)); -- Not sure why we need the 4-page gap...
       -- No. Unshared Pages currently in use
       CPU.AC(1) := RAM.Get_Num_Unshared_Pages;
       -- Hignest Unshared addr in logical addr space 
-      CPU.AC(2) := ((RAM.Get_Last_Unshared_Page * Dword_T(Memory.Words_Per_Page)) - 1) or Dword_T(Ring_Mask); 
+      CPU.AC(2) := ((RAM.Get_Last_Unshared_Page - 1) * Dword_T(Memory.Words_Per_Page)) or Dword_T(Ring_Mask); 
       return true;
    end Sys_MEM;
 
@@ -82,7 +83,7 @@ package body AOSVS.Sys_Memory is
    end Sys_MEMI;
 
    function Sys_SOPEN (CPU : in out CPU_T; PID, TID : in Word_T) return Boolean is
-      SO_Path : String := Agent.Actions.Get_Working_Directory(PID) & "/" & To_Upper (RAM.Read_String_BA (CPU.AC(0)));
+      SO_Path : String := Agent.Actions.Get_Working_Directory(PID) & "/" & To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
       Chan_No, Err : Word_T;
    begin
       Loggers.Debug_Print (Sc_Log, "?SOPEN Path: " & SO_Path);

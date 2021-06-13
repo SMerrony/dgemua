@@ -28,6 +28,18 @@ with Resolver;        use Resolver;
 
 package body Processor.Eagle_FPU_P is 
 
+   procedure Debug_FPACs (CPU : in CPU_T) is
+   begin
+      Loggers.Debug_Print (Debug_Log, "FPAC0: " & CPU.FPAC(0)'Image & 
+                                     " FPAC1: " & CPU.FPAC(1)'Image & 
+                                     " FPAC2: " & CPU.FPAC(2)'Image & 
+                                     " FPAC3: " & CPU.FPAC(3)'Image);
+      Ada.Text_IO.Put_Line("FPAC0: " & CPU.FPAC(0)'Image & 
+                                     " FPAC1: " & CPU.FPAC(1)'Image & 
+                                     " FPAC2: " & CPU.FPAC(2)'Image & 
+                                     " FPAC3: " & CPU.FPAC(3)'Image);
+   end Debug_FPACs;                                                                          
+
    procedure Do_Eagle_FPU (I : in Decoded_Instr_T; CPU : in out CPU_T) is
       Scale_Factor : Integer_8;
       Dec_Type     : Natural;
@@ -102,9 +114,11 @@ package body Processor.Eagle_FPU_P is
             CPU.AC(I.Acs) := Dword_T(Integer_32(CPU.FPAC(I.Acd)));
 
          when I_WFLAD =>
+            Debug_FPACs (CPU);
             CPU.FPAC(I.Acd) := Long_Float(Dword_To_Integer_32(CPU.AC(I.Acs)));
             Set_Z (CPU, (CPU.AC(I.Acs) = 0));
             Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
+            Debug_FPACs (CPU);
 
          when I_WLDI =>
             declare

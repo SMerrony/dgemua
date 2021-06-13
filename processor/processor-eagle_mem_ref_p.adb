@@ -289,36 +289,42 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_WCST =>
             declare
                   Delim_Tab_Addr : Phys_Addr_T;
-                  type Delim_Tab_T is array (0 .. 255) of Boolean;
+                  type Delim_Tab_T is array (Byte_T range 0 .. 255) of Boolean;
                   Delim_Tab : Delim_Tab_T;
                   Wd        : Word_T;
-                  Inc_Dec   : Integer_32 := 1;
-                  Char_Val  : Integer;
+                  Src_Len   : Integer_32 := Dword_To_Integer_32(CPU.AC(1));
+                  Char_Ix   : Integer_32 := 0;
+                  Ascending : Boolean := (Src_Len > 0);
+                  Char_Val  : Byte_T;
             begin
                if CPU.AC(1) = 0 then
                   Loggers.Debug_Print (Debug_Log, "WARNING: WCST called with AC1 = 0, not scanning anything");
                else
                   Delim_Tab_Addr := Resolve_32bit_Indirectable_Addr (CPU.ATU, CPU.AC(0));
                   CPU.AC(0) := Dword_T(Delim_Tab_Addr);
+
                   -- load the table which is 256 bits stored as 16 words
                   for T_Ix in 0 .. 15 loop
                      Wd := RAM.Read_Word (Delim_Tab_Addr + Phys_Addr_T(T_Ix));
                      for Bit in 0 .. 15 loop
-                        Delim_Tab((T_Ix * 16) + Bit) := Test_W_Bit (Wd, Bit);
+                        Delim_Tab(Byte_T((T_Ix * 16) + Bit)) := Test_W_Bit (Wd, Bit);
                      end loop;
+                     Loggers.Debug_Print (Debug_Log, "... Delim. Tab. " & Word_To_String(Wd, Binary, 16, true));
                   end loop;  
-                  if Test_DW_Bit (CPU.AC(1), 0) then
-                     Inc_Dec := -1;
+
+                  if Ascending then
+                     while Char_Ix < Src_Len loop
+                        Char_Val := RAM.Read_Byte_BA(CPU.AC(3) + Dword_T(Char_Ix));
+                        Char_Ix := Char_Ix + 1;
+                        exit when Delim_Tab(Char_Val);
+                     end loop;
+                     CPU.AC(1) := Integer_32_To_Dword(Char_Ix);
+                     CPU.AC(3) := CPU.AC(3) + Dword_T(Char_Ix);
+                  else
+                     raise Not_Yet_Implemented;
                   end if;
-                  while CPU.AC(1) /= 0 loop
-                     Char_Val := Integer(RAM.Read_Byte_BA(CPU.AC(3)));
-                     if Delim_Tab(Char_Val) then
-                        CPU.AC(1) := 0;
-                        exit;
-                     end if;
-                     CPU.AC(1) := (if Inc_Dec = 1 then CPU.AC(1) + 1 else CPU.AC(1) - 1);
-                     CPU.AC(3) := (if Inc_Dec = 1 then CPU.AC(3) + 1 else CPU.AC(3) - 1);
-                  end loop;
+
+
                end if;
             end;
 
@@ -519,7 +525,7 @@ package body Processor.Eagle_Mem_Ref_P is
                CPU.Carry := true;
                Set_OVR (true);
             end if;
-            CPU.Ac(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64));
+            CPU.Ac(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
 
          when others =>
             Put_Line ("ERROR: EAGLE_MEMREF instruction " & To_String(I.Mnemonic) & 

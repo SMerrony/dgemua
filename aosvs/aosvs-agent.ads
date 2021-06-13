@@ -84,6 +84,7 @@ package AOSVS.Agent is
 	   			   : Boolean;
 	   Rec_Len     : Natural;
 	   Con         : GNAT.Sockets.Stream_Access;
+	   Echo        : Boolean;
 	   --File_Stream : Stream_Access;
 	   File_Stream : Ada.Streams.Stream_IO.File_Type;
 	   File_Shared : Block_IO.File_Type;
@@ -141,6 +142,7 @@ package AOSVS.Agent is
                               Transferred : out Word_T;
                               Err         : out Word_T); 
 		procedure File_Write (Chan_No : in Word_T;
+							  Defaults,
 							  Is_Extended,
 							  Is_Absolute,
 							  Is_Dynamic,

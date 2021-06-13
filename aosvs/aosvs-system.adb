@@ -74,6 +74,7 @@ package body AOSVS.System is
         Err := 0;
         case P_Greq is
         when GMES =>
+            Loggers.Debug_Print (Sc_Log, "------ Req. Type: ?GMES");
             Res_US := AOSVS.Agent.Actions.Get_PR_Name (PID);
             Num_Args := Word_T(AOSVS.Agent.Actions.Get_Num_Args (PID));
             if Num_Args > 0 then
@@ -91,15 +92,20 @@ package body AOSVS.System is
             Loggers.Debug_Print (Sc_Log, "----- Returning: " & To_String(Res_US));
 
         when GCMD =>
-            Res_US := AOSVS.Agent.Actions.Get_PR_Name (PID);
+            Loggers.Debug_Print (Sc_Log, "------ Req. Type: ?GCMD");
+            -- Procs launched interactively do not return the program name part of the command...
+            -- Res_US := AOSVS.Agent.Actions.Get_PR_Name (PID);
             Num_Args := Word_T(AOSVS.Agent.Actions.Get_Num_Args (PID));
             if Num_Args > 0 then
                 for A in 1 .. Num_Args loop
-                   Res_US := Res_US & " " &  AOSVS.Agent.Actions.Get_Nth_Arg(PID, A);
+                   if A > 1 then
+                      Res_US := Res_US & " ";
+                   end if;
+                   Res_US :=  Res_US & AOSVS.Agent.Actions.Get_Nth_Arg(PID, A);
                 end loop;
             end if;
-            Res_US := Res_US & ASCII.NUL;
-            CPU.AC(1) := Dword_T((Length(Res_US)+1)); -- byte length
+            -- Res_US := Res_US & ASCII.NUL;
+            CPU.AC(1) := Dword_T((Length(Res_US))); -- byte length
             P_Gres := RAM.Read_Dword (Pkt_Addr + PARU_32.GRES);
             if P_Gres /= 16#ffff_ffff# then
                 RAM.Write_String_BA (P_Gres, To_String(Res_US));
@@ -107,6 +113,7 @@ package body AOSVS.System is
             Loggers.Debug_Print (Sc_Log, "----- Returning: " & To_String(Res_US));
 
         when GCNT =>
+            Loggers.Debug_Print (Sc_Log, "------ Req. Type: ?GCNT");
             Num_Args := Word_T(AOSVS.Agent.Actions.Get_Num_Args (PID)) - 1;
             CPU.AC(0) := Dword_T(Num_Args);
             Loggers.Debug_Print (Sc_Log, "----- Returning Arg Count:" & Num_Args'Image);
@@ -116,6 +123,7 @@ package body AOSVS.System is
                Arg_US  : Unbounded_String := AOSVS.Agent.Actions.Get_Nth_Arg(PID, P_Gnum);
                Arg_Int : Integer;
             begin
+               Loggers.Debug_Print (Sc_Log, "------ Req. Type: ?GARG");
                Arg_Int := Integer'Value(To_String(Arg_US));
                -- no exception - it's a simple integer argument
                CPU.AC(1) := Dword_T(Arg_Int);

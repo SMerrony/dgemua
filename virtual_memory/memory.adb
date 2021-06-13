@@ -181,13 +181,13 @@ package body Memory is
         function  Read_Bytes_BA (BA : in Dword_T; Num : in Natural) return Byte_Arr_T is
             Bytes : Byte_Arr_T (0 .. Num-1);
         begin
-            for B in 0 .. Num - 1 loop
+            for B in Bytes'Range loop
                Bytes(B) := Read_Byte_BA (BA + Dword_T(B));
             end loop;
             return Bytes;
         end Read_Bytes_BA;
 
-        function Read_String_BA (BA : in Dword_T) return String is
+        function Read_String_BA (BA : in Dword_T; Keep_NUL : in Boolean) return String is
             Is_Low_Byte    : Boolean := Test_DW_Bit (BA, 31);
             Byte, Low_Byte : Byte_T;
             Offset         : Dword_T := 0;
@@ -199,10 +199,15 @@ package body Memory is
                U_Str := U_Str & Byte_To_Char(Byte);
                Offset := Offset + 1;               
             end loop;
-            return To_String(U_Str);
+            if Keep_NUL then
+                return To_String(U_Str) & ASCII.NUL;
+            else
+                return To_String(U_Str);
+            end if;
         end Read_String_BA;
 
         procedure Write_String_BA (BA : in Dword_T; Str : in String) is
+        -- Write an AOS/VS "String" into memory, appending a NUL character
             Offset         : Dword_T := 0;
         begin
             for C in Str'Range loop

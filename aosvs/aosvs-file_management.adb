@@ -33,7 +33,7 @@ package body AOSVS.File_Management is
 
     function Sys_CREATE (CPU : in out CPU_T; PID : in Word_T) return Boolean is
         Filename_BA  : Dword_T := CPU.AC(0);
-        Filename_Str : String  := RAM.Read_String_BA(Filename_BA);
+        Filename_Str : String  := RAM.Read_String_BA(Filename_BA, false);
         Pkt_Addr     : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
         File_Type    : Word_T := RAM.Read_Word (Pkt_Addr + PARU_32.CFTYP) and 16#00ff#;
         Err          : Word_T := 0;
@@ -67,7 +67,7 @@ package body AOSVS.File_Management is
             raise AOSVS.Agent.Not_Yet_Implemented with "?DELETE via channel";
         end if;
         declare
-            D_Name : String := To_Upper (RAM.Read_String_BA (CPU.AC(0)));
+            D_Name : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
             D_Path : String := Agent.Actions.Get_Working_Directory(PID) & "/" & D_Name; 
         begin
             if not Ada.Directories.Exists(D_Path) then
@@ -97,7 +97,7 @@ package body AOSVS.File_Management is
         In_Name_BA  : Dword_T := CPU.AC(0);
         Out_Name_BA : Dword_T := CPU.AC(1);
         Out_Buflen  : Natural := Natural(CPU.AC(2));
-        In_Name_Str : String  := RAM.Read_String_BA(In_Name_BA);
+        In_Name_Str : String  := RAM.Read_String_BA(In_Name_BA, true);
         Tmp_US      : Unbounded_String;
     begin
         Loggers.Debug_Print (Sc_Log, "?GNAME for: '" & In_Name_Str & "'");
@@ -135,13 +135,13 @@ package body AOSVS.File_Management is
             RAM.Write_String_BA(Out_Name_BA, To_String(Tmp_US));
             CPU.AC(2) := Dword_T(Length(Tmp_US));
         end if;
-        Loggers.Debug_Print (Sc_Log, "------ Returning: '" & RAM.Read_String_BA(Out_Name_BA) & 
+        Loggers.Debug_Print (Sc_Log, "------ Returning: '" & RAM.Read_String_BA(Out_Name_BA, true) & 
             "', Length: " & CPU.AC(2)'Image);
         return true;
     end Sys_GNAME;
 
     function Sys_RECREATE (CPU : in out CPU_T; PID : in Word_T) return Boolean is
-        R_Name : String := To_Upper (RAM.Read_String_BA (CPU.AC(0)));
+        R_Name : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
         R_Path : String := Agent.Actions.Get_Working_Directory(PID) & "/" & R_Name; 
         R_New  : Ada.Text_IO.File_Type;
     begin
