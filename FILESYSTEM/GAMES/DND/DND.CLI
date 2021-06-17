@@ -1,0 +1,17 @@
+push
+prompt pop pop  pop
+del/2=i tmp.dndchr.dat
+copy tmp.dndchr.dat dndchr.dat
+x dnd
+str [!read Do you want to restore old characters? ]
+[!eq,[!str],y]
+  del/v dndchr.dat
+  copy dndchr.dat tmp.dndchr.dat
+[!end]
+del tmp.dndchr.dat
+wr
+wr [!read Press NEWLINE to return to games menu ...,]
+wr [!as 222 214]
+pop/1=ig/2=ig
+
+

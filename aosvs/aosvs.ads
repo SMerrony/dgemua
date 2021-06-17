@@ -65,7 +65,7 @@ package AOSVS is
 
 
     procedure Start (PR_Name   : in String;
-                     Virt_Root : in String;
+                     Dir       : in String;
                      Segment   : in Natural;
                      Arg_Count : in Positive;
                      Args      : in Args_Arr;

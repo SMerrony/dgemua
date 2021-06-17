@@ -48,20 +48,21 @@ package body AOSVS.Agent is
          return Natural(Chan_No);
       end Get_Free_Channel;
 
-      Procedure Init (Cons : in GNAT.Sockets.Stream_Access) is
+      Procedure Init (Cons : in GNAT.Sockets.Stream_Access; Virt_Root : in String) is
       begin
          -- Fake some in-use PIDs 
          for P in PID_T'Range loop
             PIDs_In_Use(P) := (P < 5);
          end loop;
          Console := Cons;
+         Virtual_Root := To_Unbounded_String(Virt_Root);
       end Init;
       		
       procedure Allocate_PID (
          PR_Name         : in Unbounded_String;
          Num_Invocation_Args : in Natural;
          Invocation_Args : in Args_Arr;
-			Virtual_Root    : in Unbounded_String;
+         Working_Dir     : in Unbounded_String;
 			Sixteen_Bit     : in Boolean;
 			Proc_Name       : in Unbounded_String;
          User_Name       : in Unbounded_String;
@@ -75,22 +76,21 @@ package body AOSVS.Agent is
                exit;
             end if;
          end loop;
-         Per_Process_Data(PID).PR_Name         := PR_Name;
+         Per_Process_Data(PID).PR_Name             := PR_Name;
          Per_Process_Data(PID).Num_Invocation_Args := Num_Invocation_Args;
-         Per_Process_Data(PID).Invocation_Args := Invocation_Args;
-         Per_Process_Data(PID).Virtual_Root    := Virtual_Root;
-         Per_Process_Data(PID).Working_Directory := Virtual_Root;
-         Per_Process_Data(PID).Sixteen_Bit     := Sixteen_Bit;
-         Per_Process_Data(PID).Proc_Name       := Proc_Name;
-         Per_Process_Data(PID).User_Name       := User_Name;
-         Per_Process_Data(PID).Console         := Console;
-         Device_Chars.Include("@CONSOLE", Default_Chars);
-         Device_Chars.Include("@INPUT", Default_Chars);
-         Device_Chars.Include("@OUTPUT", Default_Chars);
+         Per_Process_Data(PID).Invocation_Args     := Invocation_Args;
+         Per_Process_Data(PID).Working_Directory   := Working_Dir;
+         Per_Process_Data(PID).Sixteen_Bit         := Sixteen_Bit;
+         Per_Process_Data(PID).Proc_Name           := Proc_Name;
+         Per_Process_Data(PID).User_Name           := User_Name;
+         Per_Process_Data(PID).Console             := Console;
+         Device_Chars.Include ("@CONSOLE", Default_Chars);
+         Device_Chars.Include ("@INPUT",   Default_Chars);
+         Device_Chars.Include ("@OUTPUT",  Default_Chars);
          Ada.Text_IO.Put_Line ("DEBUG: AGENT: Assigned PID " & PID'Image &
                    " to Process Name: " & To_String(Proc_Name));
          Loggers.Debug_Print (Sc_Log,"AGENT: Assigned PID:" & PID'Image & " for program: " & To_String(PR_Name)); 
-         Loggers.Debug_Print (Sc_Log,"-----  Working Dir : " & To_String (Virtual_Root));
+         Loggers.Debug_Print (Sc_Log,"-----  Working Dir : " & To_String (Working_Dir));
       end Allocate_PID;
 
       procedure Allocate_TID (PID : in PID_T; 

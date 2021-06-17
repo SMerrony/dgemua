@@ -116,7 +116,7 @@ package body AOSVS is
     end Load_PR_Addresses;
 
     procedure Start (PR_Name  : in String;
-                    Virt_Root : in String;
+                    Dir       : in String;
                     Segment   : in Natural;
                     Arg_Count : in Positive;
                     Args      : in Args_Arr;
@@ -143,7 +143,7 @@ package body AOSVS is
         AOSVS.Agent.Actions.Allocate_PID (PR_Name_US,
                                           Arg_Count,
                                           Args,
-                                          To_Unbounded_String(Virt_Root),
+                                          To_Unbounded_String(Dir),
                                           Sixteen_Bit,
                                           To_Unbounded_String("DUMMY"), -- fake proc name
                                           To_Unbounded_String("STEVE"), -- fake user name

@@ -1,0 +1,363 @@
+
+
+EMPIRE Playing Instructions
+
+
+
+                                  EMPIRE
+                        THE WARGAME OF THE CENTURY
+                            Two Player Version.
+
+
+	EMPIRE is a simulation of a full-scale war between two emperors,
+the you and your opponent.  Naturally, there is only room for one, so
+the object of the game is to destroy the other.  Both players play by
+the same rules.
+
+	The map is a rectangle 600*1000 miles on a side.  The resolution
+is 10, so the map you see is 60*100.  The map consists of sea='.',
+land='+', Uncontrolled cities='*', Player 1-controlled cities='O', and
+Player 2-controlled cities='X'.  Each emperor gets 1 move per round
+(1 round=1 day), moves are done sequentially.
+
+	The map is displayed on the player's screen during movement.
+Each piece is represented by a unique character on the map.  With a few
+exceptions, you can only have ONE piece on a given location.  On the
+map, you are shown only the 8 squares adjacent to your units.  This
+information is updated before and after every move.  The map displays
+the most recent information known.
+
+STARTING THE GAME:
+
+	Both players MUST have write (and read) access to the directory
+:GAMES:EMPIRE2.  When the program starts up it will prompt you for a
+file name.  This is the name of the save file for your game in the
+above directory.  If the file does not exist, (you are starting a new
+game), the program will create it.  Please be considerate and delete
+old game files when you are done.  The program will then ask you for
+a password.  This is to help keep your half of the game private, because
+everyone has read access to your file.  The username and password you
+use when you are playing MUST be the same each time.
+
+	The game starts by assigning you one city and your opponent one
+city.  Cities can produce new units.  Every city that you own produces
+more pieces for you according to the cost of the desired unit.  The
+typical play of the game is to issue the Automove command until you
+decide to do something special.  During movement in each round, the
+player is prompted to move each piece that does not otherwise have an
+assigned function.
+
+	Map coordinates are 4-digit numbers.  The first two digits are
+the row, the second two digits are the column.
+
+	The pieces are as follows:
+
+Piece	      Player #1 Player #2 Moves	Hits	Cost	Maximum Number
+ARMY		  A	   a	   1	 1	 5(6)	500
+FIGHTER		  F	   f	   4	 1	10(12)	200
+DESTROYER	  D	   d	   2	 3	20(24)	200
+SUBMARINE	  S	   s	   2	 2	25(30)	200
+TROOP TRANSPORT	  T	   t	   2	 3	30(36)	100
+CRUISER		  R	   r	   2	 8	50(60)	100
+AIRCRAFT CARRIER  C	   c	   2	 8	60(72)	100
+BATTLESHIP	  B	   b	   2	12	75(90)	100
+ 
+ The second column shows the map representation for player 1's units.
+ The third shows the representations of player 2's units.
+ Moves is the number of squares that unit can move in a single round.
+ Hits is the amount of damage a unit can take before it is destroyed.
+ Cost is the number of rounds needed to produce another of the same unit.
+ The number in parenthesis is the start up cost to produce the unit.
+ The last column is the maximum number of that unit that you can have.
+
+
+EMPIRE Playing Instructions                                       PAGE 2
+
+
+
+1.0  DESCRIPTION OF THE PIECES
+
+Army:		Armies move only on land.  ONLY ARMIES CAN CAPTURE
+	CITIES. They have a 50% probability of doing so.  Attacking
+	one's own cities results in the army's destruction.   Armies
+	can be carried by troop transports.  Just move the army on the
+	transport and when the transport moves the army moves with it.
+	You cannot attack any ships while on board a transport.  YOU CAN
+	NOT MOVE BACK ON A CITY WITH AN ARMY.  This is true EVEN IF YOU
+	ARE ON A TROOP TRANSPORT.
+
+Fighter:	Fighters move over sea or land.  They move 4 times per
+	round.  They are refueled at controlled cities and carriers.
+	They are shot down over uncontrolled cities.  They have a max
+	range of 20 spaces.
+
+Ships, general:	All ships can move only on the sea.  They move two times
+	per round.  Ships can also dock in a controlled city.  Docked
+	ships have damage repaired at rate of 1 hit per round.  If a
+	ship is hit badly, it will slow to 1 move per round.
+
+Destroyer:	Typical ship, quickest to produce.
+
+Submarine:	When a submarine scores a hit, 3 hits are exacted
+	instead of the usual 1 from the enemy unit.  This is the only
+	unit having this property.
+
+Troop Transport: Troop Transports are the only units that can carry
+	armies.  They can carry a maximum of 2 * (the number of hits
+	left) of armies.  Armies will drown that cannot be carried.
+
+Cruisers:	Typical ship.
+
+Aircraft Carriers: Carriers are the only ships that can carry fighters.
+	Carriers carry a maximum of the number of hits left of fighters.
+
+Battleship:	Typical ship.
+
+
+EMPIRE Playing Instructions                                       PAGE 3
+
+
+
+2.0   FUNCTIONS TO WHICH YOU CAN ASSIGN YOUR PIECES
+
+
+
+	Other than just moving your pieces you can assign them the
+following automatic functions:
+
+awake:	   cancel current automatic function and return to manual moves.
+
+sentry:	   stay put, do not ask the player to move the piece, wake up
+	if an enemy piece comes within sensor range.
+
+direction: move in specified direction, wake up if an enemy piece, enemy
+	city, or unoccupied city is encountered.  Temporary wake up if
+	an obstacle is in path of movement, after getting a manual move
+	from you, THE UNIT IS STILL ASSIGNED A DIRECTION.  A direction
+	assignment is represented by the key which sets that direction
+	(e.g.:  D means east).
+
+move:	   move towards location assigned to the piece (in editing
+	mode).  Wake up if enemy piece is encountered.  Wake up
+	temporarily if obstacle is in path of movement.  Represented by
+	the coordinate the piece is moving toward.
+
+fill:	   (troop transports and aircraft carriers only) go on sentry
+	duty until full of armies or fighters.  Be careful not to
+	overfill.  Excess pieces will be drowned next round.
+
+random:	   (for armies only) move at random subject to the following
+	conditions:  If an uncontrolled city is adjacent, attack it.  If
+	an enemy unit is adjacent, attack it (even if it is a ship).  If
+	an unfilled troop transport of yours is adjacent, get on it and
+	wake up.  Move if possible without attacking any of your own
+	units.  It will not destroy itself unless it is in a city
+	surrounded by your units.
+
+
+EMPIRE Playing Instructions                                       PAGE 4
+
+
+
+3.0   ORDERS MODE
+
+The top level prompt is: Your Orders?
+ 
+This is asked between each round.
+The following commands are valid at this time:
+
+ A:  Auto move.  Begin movement, stay there until "O" in move mode
+	cancels the auto move.
+
+ H:  Display the Help screen.  Contains a brief description of all the
+	commands.
+
+ J:  Puts you into Editing Mode (explained later), where you can examine
+	and/or change the functions associated with your pieces and
+	cities.
+
+ L:  Examines the save file to see if your opponent is currently
+	logged on, then prints an appropriate message.
+
+ M:  Move.  Cause a round to be played by you and the computer.
+
+ N:  Redisplays the battle information that is displayed at the
+	beginning of your move.
+
+ P:  Re-display current sector on screen.
+
+ R:  Display the round number.
+
+ S:  Clears the screen.
+
+ T:  Request a printout of your current map.  You must supply a file
+	spec for where you want the map put.
+
+ Q:  Quit the game.
+
+ @:  Displays your current 'holdings'.  ie the number of cities you
+	control, the number of each type of piece you own, and the
+	number of cities producing each type of piece.
+
+ +:  Displays information about all your cities.  This includes what
+	the city is producing, when the next one will be done, and 
+	how many fighters and ships are docked.
+
+
+EMPIRE Playing Instructions                                       PAGE 5
+
+
+
+4.0   MOVEMENT MODE
+
+ 
+To simply move a piece, type one of the following keys;
+ 
+	QWE
+	A D
+	ZXC
+ 
+These keys move in the direction of the key from S.  The characters are
+not echoed and only 1 character is accepted, so no need for a <Return>.
+Hit the SPACE BAR if you want the piece to stay put.
+ 
+Other commands are:
+ 
+H: display Help text (hit any character to continue moving)
+ 
+J: enter Editing Mode
+ 
+G: fill:  put the troop transport (or aircraft carrier) to sleep until
+   it accumulates 6 armies (or 8 fighters), then wake it up.  If the
+   ship is damaged, the ship will wake up when it has all it can take.
+ 
+I: set unit to moving in a direction specified by the next character
+   typed in, i.e. QWE
+       	 	  A D
+		  ZXC
+ 
+K: wake up piece. If piece is a troop transport or carrier, all armies
+   or fighters on board are also woken up.
+ 
+L: set fighter path for city to be the direction following the "L".
+ 
+O: cancel auto move. At the end of the round, Orders Mode will prompt.
+   Doesn't affect current piece.
+ 
+P: refresh the screen
+ 
+R: if it's an army, set it to moving at random.
+ 
+S: put on sentry duty.
+ 
+?: display information about the piece. Shows the function, hits left,
+   range and number of armies or fighters aboard.
+
+ATTACKING something is accomplished by moving onto the square of the
+unit you wish to attack.  Hits are traded off at 50% probability of a
+hit landing on one or the other units until one unit is totally
+destroyed.  There is only 1 possible winner.
+
+
+EMPIRE Playing Instructions                                       PAGE 6
+
+
+
+NOTES:
+
+  If you give a piece a direction or move function, they will wake
+TEMPORARILY if they run into an obstacle (or enemy).  You must
+explicitly wake the piece to regain complete control or assign it
+a new function.
+
+  Fighters moving under the command of a function will wake up when they
+have  10  rounds of fuel left.  This is to enable you to decide whether
+you want to make it kamikaze or send it back to a city for refueling.
+Be careful to cancel any currently assigned function before trying to
+bring the fighter back.
+
+  You are "allowed" to do FATAL things like, attack your own cities
+or other pieces.  If you try to do a fatal move that involves terrain
+restrictions, like, drive armys into the sea and ships into land, you
+are given a chance to reconsider.  Answer with an "Y" if you want to
+commit suicide.  You cannot move onto the edge of the world.
+
+
+EMPIRE Playing Instructions                                       PAGE 7
+
+
+
+5.0   EDITING MODE
+
+Editing mode allows you to move around the 'world' and check on things.
+You can assign and deassign movements and inquire on the production of
+cities.  Movements assigned during editing mode do not take effect until
+the next round.
+ 
+To move the cursor around, use the standard direction keys.
+ 
+	QWE
+	A D
+	ZXC
+ 
+Other commands are:
+ 
+H: Display Help text (hit any character to continue editing).
+ 
+O: Exit from editing mode.
+ 
+I: Give piece (or city) the function 'direction', enter the key
+	specifying the direction following the 'I'.
+ 
+K: Wake up piece (or cancel city fighter path).
+ 
+M: Put piece (or city) in 'move' function. Type M over piece (or city),
+	then move the cursor to where you want it to go, and type 'N'.
+	Assigning a 'move' to a city, effects any fighters that land
+	there.
+ 
+N: Specify the end point of a move (see M command).
+ 
+P: Display new sector. Each sector represents a 20*70 area of the map, 
+	arranged as follows:
+		0 5
+		1 6
+		2 7
+		3 8
+		4 9
+	the sectors overlap by 5 vertically, and 40 horizontally.
+ 
+R: Put army in 'random'.
+ 
+S: Put piece in Sentry mode.
+ 
+Y: Change phase of city that cursor is on top of. When program asks for
+	production demands, key in the letter corresponding to what you
+	want produced.
+ 
+?: Display information about piece or city. For pieces, displays
+	function, range, hits left, any pieces aboard. Cities display
+	production, fighter paths, and any pieces in the city.
+
+@:  Displays your current 'holdings'.  ie the number of cities you
+	control, the number of each type of piece you own, and the
+	number of cities producing each type of piece.
+
++:  Displays information about all your cities.  This includes what
+	the city is producing, when the next one will be done, and 
+	how many fighters and ships are docked.
+
+
+EMPIRE Playing Instructions                                       PAGE 8
+
+
+
+NOTES:
+
+  You can give cities functions.  This doesn't affect the city any, but
+any fighter landing in that city will pick up the specified function.
+This is useful for setting up automatic fighter movements.
+
+  Note that you cannot affect anything inside a city with the editor.
+This also holds for anything on board a troop transport or an aircraft
+carrier.

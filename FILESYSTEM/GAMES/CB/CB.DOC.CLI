@@ -1,0 +1,6 @@
+PUSH
+prompt pop
+SEA CB [!SEA]
+TYPE CLI.TPC.CB
+PAUSE 5.00
+POP

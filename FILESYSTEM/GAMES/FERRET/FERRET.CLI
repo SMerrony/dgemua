@@ -1,0 +1,20 @@
+push
+prompt pop pop pop
+wr [!as 214 220 200 212]AOS/VS Ferret Rev [last_ferret_rev]
+str [!read Enter name of saved game or NewLine for new game ?,]
+[!eq,([!str]),()]
+  wr please wait ......[!as 220 200 226]
+  x ferret
+[!el]
+  [!neq,([!filename [!str]]),(=[!str])]
+    wr Savefile does not exist[!as 207]
+  [!el]
+    wr please wait ......[!as 220 200 227]
+    x ferret [!str]
+  [!end]
+[!end]
+wr
+wr [!read Press NEWLINE to return to games menu ...,]
+wr [!as 222 214]
+pop/1=ig/2=ig
+

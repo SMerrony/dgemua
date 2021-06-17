@@ -9,10 +9,16 @@ vsemua
 /obj/*
 !/obj/gnattest
 
-/disks
+# Debug logs
 /logs
+
+# Virtual Device Images
 /TAPES
 /DISKS
-/PROGRAMS/GAMES
+
+# Virtual files that shouldn't be shared (yet)
+/FILESYSTEM/*.PR
+/FILESYSTEM/UTIL
+
+# Memory dump for debugging
 mvemua.dmp
-PROGRAMS/CONTEST

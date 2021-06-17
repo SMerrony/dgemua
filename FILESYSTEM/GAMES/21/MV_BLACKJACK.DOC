@@ -1,0 +1,832 @@
+     
+     
+     
+     
+     
+     
+                  MV/Blackjack - Blackjack Computer Simulation
+     
+     
+                            February 1989 - Rev 1.02
+     
+     
+     
+     
+     
+     DOCUMENTATION CONTENTS
+     
+     
+     I   So all you want to do is play blackjack?
+     
+     II  Overview
+     
+     III Installation instructions
+     
+     IV  Input parameters
+     
+         a   Vegas mode
+     
+         b   No-frills mode
+     
+         c   Simulation mode
+     
+         d   Practice mode
+     
+     V   Screen items definition
+     
+     VI  Additional reading
+     
+     VII The end
+               
+     
+     I   SO ALL YOU WANT TO DO IS PLAY BLACKJACK?
+     
+     MV/Blackjack can perform many tasks other than allow you to play
+     blackjack head-to-head against the computer.  But if that's all you
+     want to do, execute MV/Blackjack with the macro BJ.CLI and answer the
+     questions.  You'll be playing in no time.  
+     
+     If this is all you want to do, you don't need to read any more
+     documentation except for the installation instructions.
+               
+     
+     II  OVERVIEW
+     
+     There are a few global notes I should make before documenting all the
+     detailed parameters that dictate the actions of MV/Blackjack.
+     
+     First of all, MV/Blackjack is a computer program that simulates the
+     casino game of blackjack.  
+     
+     You must realize that it wasn't written for general distribution.  It
+     was written for my own personal use and almost no thought was given to
+     make it generalized or easy to use.  
+     
+     Some terms are mentioned that may not be familiar.  Read How to Play
+     Blackjack in the November 1987 FOCUS magazine to familiarize yourself
+     with blackjack terms.
+     
+     MV/Blackjack is a CPU-hog when run in simulation mode when displays are
+     suppressed.  If MV/Blackjack is run at a high CLI priority in
+     simulation mode with few displays, your system will be CPU-bound.  Your
+     best bet will be to lower your CLI priority or do enough displays to
+     allow other users some CPU time.  MV/Blackjack offers an input
+     parameter where you can adjust your CLI priority.  This is discussed in
+     detail later.
+               
+     
+     MV/Blackjack can be run in one of four "modes".
+     
+     The original purpose of MV/Blackjack was to simulate many hands of
+     blackjack so I could experiment with various strategies without losing
+     any money in Vegas in the process.  This is called simulation mode.
+     Simulation mode simulates not only the dealer but the player as well.
+     In this way, if I decided that a certain strategy seemed reasonable,
+     I'd 
+     
+         1   modify MV/Blackjack to perform this strategy, 
+         2   run millions of hands, and 
+         3   evaluate the results.
+     
+     Soon after this first mode was written, practice mode was added.  This
+     allowed me to play against the simulated dealer.  In this way, I could
+     actually play blackjack against the dealer away from the pressures of
+     the casino.
+     
+     A few months before NADGUG Conference '87 in Las Vegas, MV/Blackjack
+     was enhanced to include Vegas mode.  This is the "pretty" version of
+     MV/Blackjack.  It is in full-color with large white, black, and red
+     cards on a felt-green background with white and yellow prompts.  It was
+     designed to work on a D470C terminal and it happens to work fairly well
+     on other terminal types.
+     
+     Even though Vegas mode was appropriate for the conference, I created a
+     new mode called no-frills mode that is similar to Vegas mode but is
+     more practical for practicing.
+               
+     Another thing to keep in mind about simulation mode: MV/Blackjack has
+     never been optimized for speed.  Quite the contrary in fact.  There are
+     many redundant checks in MV/Blackjack that are constantly on the
+     look-out for anything that might cause the simulation to be
+     inconsistent with actual casino play.  My philosophy is, therefore, to
+     concentrate on accuracy and pure simulation at the expense of raw
+     performance.  On our MV/10000, MV/Blackjack will simulate over 125
+     hands per second.  I hope this sufficient for your purposes.
+     
+     As mentioned, MV/Blackjack was not designed for general use.  If you'd
+     like to contact me to discuss MV/Blackjack or blackjack topics, feel
+     free to call or write.  
+     
+         Kim L. Medlin
+         Data General Corporation
+         3617 Parkway Lane
+         Norcross, GA  30058
+     
+         404/448-6072 x2007
+     
+     By the way, if you think you've found a bug in MV/Blackjack, you've
+     found a feature.  
+     
+     Just kidding.  I want to know about those too.
+               
+     III INSTALLATION INSTRUCTIONS
+     
+     Installing MV/Blackjack is a snap.  Follow these steps:
+     
+     1   Create a directory for the MV/Blackjack software to reside.  
+     2   Dir into it.  
+     3   Load the software from tape with a command similar to this: 
+         LOAD/V @MTB0:0
+     4   MV/Blackjack has now been installed.
+     5   Read about the input parameters before running MV/Blackjack.
+     
+     
+     SYSTEM REQUIREMENTS
+     
+         AOS/VS
+         INFOS II (for Vegas mode)
+               
+     IV  INPUT PARAMETERS
+     
+     To start MV/Blackjack:
+         1   Be positioned in the directory that contains MV/Blackjack
+             software, and
+         2   Type "BJ" from the CLI prompt followed by a NEWLINE.
+     
+     
+     Global notes:
+     
+     o   For all parameters, you can hit NEWLINE to take the default.  Your
+         other options are also listed.  The value within the square
+         brackets is the default value.  Press NL to accept that value.
+     o   There is no way to back up to a previously entered parameter.  The
+         only way to change a previously-entered parameter is to ^C^B out of
+         MV/Blackjack and start over.
+     o   In this documentation, text displayed in bold type is displayed by
+         MV/Blackjack.  If you want to import this documentation into CEO,
+         the file name is MV_BLACKJACK.DOC.WRD.  If you don't have CEO, a DG
+         sales representative will be happy to remedy that situation.
+     o   MV/Blackjack assumes you are knowledgable about the input
+         parameters.  It is possible to enter conflicting input parameter
+         information and receive unpredictable results.  If you intend on
+         tampering with the defaults given for parameters, first read the
+         documentation carefully.
+     o   When a parameter is documented such as "Enter selection: ([x] or
+         x):", the "x"s indicate that the parameter values will be
+         determined at run-time based on previous selections.  
+               
+     
+     Some parameters that are displayed regardless of mode are:
+     
+     
+     Your CLI priority is listed on the next line.
+     2
+     Change priority? (NL or Y):
+     
+     This is your chance to change your CLI priority.  MV/Blackjack is a
+     real "CPU hog".  So if you plan on running in simulation mode, you'd
+     better lower your priority to something like "3" or better yet, "512".
+     Just hit NEWLINE to keep your priority where it is.  
+     
+     
+     Logoff after run? (NL or Y):
+     
+     Enter a "Y" to have MV/Blackjack log off when he is finished.  
+     
+     Executing MV/Blackjack...
+     
+     
+     MV/Blackjack - Blackjack simulation - Revision 1.02
+     
+     My thanks go to those who helped with the development of
+     'MV/Blackjack':
+     Wayne Akins, Mike Brown, George Sosebee, John Wendel, and Ben Zipperer
+     
+     Vegas      (Demonstrated at NADGUG Conference '87 in Las Vegas)
+     Practice   (1 on 1 with computer with statistics)
+     Simulation (Computer simulation with statistics)
+     
+     Select from above program modes: ([V], P, S):
+     
+     Enter a "V" for Vegas mode, "P" for practice mode, or "S" for
+     simulation mode.
+     
+     What type of terminal is in use?  (1=Dumb, [2]=D460, 3=D470C):
+     
+     Answer appropriately.
+     
+     Are you using a graphics terminal? ([Y] or N, or (~ or |)):
+     
+     Enter Y if you're using a character graphics terminal.  (A "~" can be
+     substituted for "Y".  A "|" can be substituted for "N".  These
+     alternative responses are used when MV/Blackjack is executed in /M
+     mode.)
+               
+     Now I'll review the parameters for each mode, starting with the fun
+     ones.  
+     
+     VEGAS MODE -    Vegas mode is what you saw running if you were at
+                     NADGUG Conference '87.  You must have a graphics
+                     terminal for this mode.  This includes terminals such
+                     as D450, D460, D461, or D470C.  This mode was designed
+                     to take advantage of the D470C color monitor.  The
+                     characters don't display quite right on anything else.
+     
+     
+     Cut out Vegas demo frills? ([Y], or N): 
+     
+     Enter "N" for pure Vegas mode (like Conference '87).
+     
+     
+     Maximum hands [10]:  
+     
+     Enter the maximum hands MV/Blackjack will play before automatically
+     stopping.
+     
+     
+     Beginning stash [500]:  
+     
+     Enter the amount of money you want to start playing with.
+     
+     
+     Display banner screen? [Y]:  
+     
+     Enter "Y" to display the "Welcome to Conference '87" banner.  This will
+     only work correctly on a D470C.
+     
+     Some general verbage and instructions will now be displayed.  You'll be
+     given an opportunity to enter your name so that your score will be
+     recorded.  If you don't want your score recorded (chicken!) just press
+     NEWLINE when prompted for your name.
+     
+     
+     These are all the parameters it takes to start Vegas mode.  When it's
+     finished, your score will be recorded and the top scorers will be
+     displayed.  The results you see are from the conference.
+     
+     Note:   The only way to stop Vegas mode is to type the ^C^B sequence.
+     Note:   While in Vegas mode, one deck is used with shuffling occurring
+             after 55% of the deck has been played.
+               
+     NO-FRILLS MODE  No-frills mode is my favorite way to play against the
+                     computer because it comes the closest to simulating
+                     actual casino play.  Practice mode, on the other hand,
+                     also allows you to play against the computer.  But it
+                     gives you an array of statistics that obviously aren't
+                     available while in the casino.
+     
+     
+     First of all, select Vegas mode.
+     
+     Cut out Vegas demo frills? ([Y], or N): 
+     
+     Enter "Y" or just press NEWLINE to enter no-frills mode.  
+     
+     No-frills mode is similar to Vegas mode with the following differences:
+     
+     1   Maximum hands until automatic termination is 1,000
+     2   Your initial stash is $0
+     3   The banner screen is never displayed
+     4   The discard stack is represented on the 23rd line of the screen
+         with the characters "[==========]".  Each "=" symbol represents 10%
+         of the cards in the deck.  For example; "[====      ]" would
+         indicate that about 40% of the deck has already been played.
+     5   Your results are not recorded.  Your results are written to a flat
+         file, however, called BJ_NOFRILLS_LOG.  In this way, you can play
+         against the computer for many sessions and then check the contents
+         of BJ_NOFRILLS_LOG to analyze your performance.  The following is
+         an example of the contents of BJ_NOFRILLS_LOG:
+     
+     30-OCT-87 19:29:22 ASDD.KLM 2FN 45 83.00
+     30-OCT-87 19:48:11 ASDD.KLM 2FN 48 10.50
+     03-NOV-87 13:03:02 ASDD.KLM 2FN 50 52.50-
+     05-NOV-87 17:35:04 ASDD.KLM 2FN 35 27.00
+     
+         One record is generated each time you play.  The contents of each
+         record are:
+         1   Run date
+         2   Run time
+         3   AOS username
+         4   Strategy codes for play, bet, and count strategies
+         5   Number of hands played
+         6   Net stash when finished (stash begins at zero each session)
+     
+     
+     Note:   While in No-frills mode, one deck is used with shuffling
+             occurring after 55% of the deck has been played.
+               
+     SIMULATION MODE     Simulation mode allows you to customize playing
+                         conditions and have the computer simulate both
+                         dealer and player for a specified number of hands.
+                         This is a great way to try out a strategy of your
+                         own "the easy way".   Simulation mode is intended
+                         for use with D460 terminals.  D470C terminals will
+                         not work well.  You can use non-graphics terminals
+                         (like D410 and D415) if you answer "N" to the "Use
+                         Graphics?" prompt.
+     
+     
+     First of all, select Simulation mode.
+     
+     Take defaults? ([Y] or N):
+     
+     Enter N if you want to alter the defaults that have been assigned to
+     the input parameters.  If you do not change defaults, the simulation
+     begins at this point and no other prompts are given.  If you do change
+     defaults, bear in mind that you can not back up from one parameter to a
+     previous one.  In order to change a previously-entered parameter, you
+     must ^C^B out of the program and begin entering parameters again.
+     
+     
+     The following is a detailed description of each parameter that can be
+     user defined at run time.
+     
+     Iterations between displays [x]:
+     
+     Enter the number of hands MV/Blackjack should play before the screen
+     display is updated.  When you let MV/Blackjack play many hands between
+     displays, MV/Blackjack runs much faster.
+     
+     Batch mode? (Suppresses displays) ([N] or Y]:
+     
+     Entering Y to this question will suppress ALL screen displays.  This
+     feature allows MV/Blackjack to be run in a batch stream.  This option
+     hasn't been used for at least a year.
+     
+     Quick mode? ([Y] or N):
+     
+     Answering Y here tells MV/Blackjack to only update the graphics portion
+     of the screen (the upper half) until the program stops, at which time
+     MV/Blackjack will display the final results of the run.  This makes
+     MV/Blackjack run faster.
+     
+     NL after display? ([x] or x):
+     
+     Entering Y will make MV/Blackjack pause after each screen display and
+     wait for you to press NL.  This allows you to examine the results
+     before continuing.
+               
+     Process a maximum no of hands? ([N] or Y):
+     
+     Enter Y if you want MV/Blackjack to play a maximum number of hands and
+     then stop.  It is normal if MV/Blackjack actually plays one more hand
+     than you specify.
+     
+     Maximum hands [1,000]:
+     
+     If you entered Y to the previous question, you may now enter the number
+     of hands MV/Blackjack is to play.
+     
+     Calculate linear regression? ([Y] or N):
+     
+     If you enter Y, MV/Blackjack will display (when the maximum number of
+     hands have been played) the following:
+     
+         1   standard error
+         2   correlation coefficient
+         3   equation for linear regression line
+     
+     Remember, for this option to work, you must indicate a maximum number
+     of hands to be played.
+     
+     Store graph values? ([N] or Y):
+     
+     Entering Y here will cause MV/Blackjack to store the X and Y axis
+     values to disk each time a bar is drawn on the screen.  The values will
+     be in KV_FILE in the subdirectory PR (PR is an abbreviation for
+     PRESENT).  The file KV_FILE.DF describes the record layout of the
+     file.  This revision of MV/Blackjack allows you to store graph values
+     while in batch mode.
+     
+     Test run number (optional):
+     
+     This parameter is displayed only if the previous answer was "Y".  Enter
+     a number that identifies this run from others.  In this way, you can
+     store multiple runs of data in the same file and let PRESENT select the
+     run(s) you want to examine.
+     
+     Y-axis UOM [x]:
+     
+     Enter the unit of measure the Y-axis should have.  The larger the
+     number here, the less the bars will vary in size based on your current
+     stash (a "stash" is your net earnings at any point in time).  A value
+     of 12 will cause each pixel to represent one betting unit.  This
+     parameter really only makes sense when using a D460-type terminal.
+               
+     Number of decks: ([1], 2, or 4):
+     
+     Select the number of decks you wish to play with.  Six decks are not
+     permitted.  MV/Blackjack is showing his age.  When he was written, a
+     6-deck game was the exception.
+     
+     Play what % of cards before shuffle? [55]:
+     
+     The dealer shuffles after playing a specified percentage of cards from
+     the pack.  Most one- and two-deck games shuffle at about 55%.
+     Four-decks are usually shuffled between 65%-75%.
+     
+     Display shuffle message? ([x] or x):
+     
+     Indicate if you want to be notified when shuffling is taking place.
+     You probably want to enter N when in simulation mode since displaying
+     the shuffle message reduces MV/Blackjack's speed.
+     
+     Play strategy: 1=Stand on value
+                    2=Basic strategy
+                    3=Braun strategy
+                    4=Streak strategy (out of order)
+                    5=Wimp (never double or split)
+     Play strategy: [2]:
+     
+     Enter the type of strategy you want to simulate.
+     1   Stand on Value will hit when your hand's total is under a specified
+         value and stand otherwise.  You can use this option to simulate
+         "never bust" and "mimic the dealer" strategies.
+     2   Basic Strategy uses the dealer's up-card to determine the optimum
+         play.
+     3   Braun Strategy uses the dealer's up-card and the true count to
+         determine the optimum play (devised by Julian Braun).  This
+         strategy should be more profitable than Basic Strategy.  Mr. Braun
+         did not fully explain his strategy in his book and will not answer
+         my letters.  Therefore, this logic is incomplete and is not a
+         reliable simulation of Braun Strategy.
+     4   Streak Strategy no longer works.  It proved to be unprofitable so I
+         no longer support it with MV/Blackjack.
+     5   Wimp strategy will hit or stand using Basic Strategy but will never
+         split or double down.
+     
+     Stand on what value [16]:
+     
+     This parameter is asked only if you've selected the Stand on Value
+     strategy.  Your simulated player will stand when his hand total is less
+     than the entered number and hit otherwise.
+               
+     Count strategy: ([P]oint count, Hi count, or None):
+     
+     Enter the strategy used to count cards.  Point count is the strategy
+     discussed in the FOCUS article.  Hi Count did not prove to be
+     profitable and is no longer supported.
+     
+     Bet strategy: (True count, [K]im, Ian, Streak, or Flat):
+     
+     True count will vary the bet based on the true count.  Kim count is the
+     betting strategy I'm currently working on for personal use.  It is
+     based on the true count and streaks of previous winning and losing
+     hands.  This strategy is still evolving.  Ian strategy attempts to bet
+     like a tourist while actually betting based on the true count (See Ian
+     Andersen's book listed in additional reading section).  Do not choose
+     the Streak option.  The Flat option will make every bet equal.
+     
+     First betting unit is 1
+     Raise to 2nd bet at what count [3] (999 for 0):
+     
+     Enter the true count that you want your bet increased.  If you want it
+     increased at true count of "0", enter 999.
+     
+     2nd betting factor: [10]:
+     
+     Enter the factor to increase your bet by at the above-indicated count.
+     
+     The above two prompts will be repeated several more times depending on
+     the bet strategy chosen.  This will allow you to place various bets at
+     various true count values.
+     
+     One betting unit [1]:
+     
+     Enter the amount of your betting unit.  I suggest you always enter 1,
+     then multiply your results by the betting unit you'll actually play
+     with in Vegas.
+     
+     Approximate remaining decks (Half, Full, [N]o):
+     
+     This parameter determines how accurate MV/Blackjack will be when
+     approximating the number of remaining decks there are.  You can have
+     MV/Blackjack approximate to the nearest half deck, full deck, or use no
+     approximation at all.  I suggest using no approximation.
+     
+     Take insurance? ([N] or Y):
+     
+     Indicate whether MV/Blackjack should take insurance or not.
+     
+     Minimum true knt for insurance bet: [3] (99.9 for 0):
+     
+     Enter the minimum true count at which you'll take insurance.  This
+     parameter isn't asked if you answered N to the previous question.
+               
+     Maximum true knt for insurance bet: [999.99] (99.9 for 0)
+     
+     Enter the maximum true count at which you'll take insurance.  This
+     parameter isn't asked if you requested no insurance.
+     
+     Display insurance bets only? ([N] or Y):
+     
+     Entering Y will cause MV/Blackjack to only display those hands which
+     involve insurance.
+     
+     Display big bets only? ([N] or Y):
+     
+     Entering Y will cause MV/Blackjack to only display those hands whose
+     bets are greater than the true count specified in the next parameter.
+     
+     True knt for big bet: [3]:
+     
+     Enter the true count that determines a "big bet".
+     
+     Maximum stash desired [9,999,999.99]:
+     
+     MV/Blackjack will stop if the stash becomes greater than this number.
+     
+     Minimum stash desired [-9,999,999.99]:
+     
+     MV/Blackjack will stop if the stash becomes less than this number.
+     
+     Count initial pair percentages? ([N] or Y):
+     
+     This option was used while debugging MV/Blackjack.
+     
+     John's or Bill's generator? ([J] or B):
+     
+     Always use John's random number generator.
+     
+     How many times to shuffle deck? (even #) [4]:
+     
+     The shuffling algorithm used by MV/Blackjack simulates the shuffling
+     rituals used in Las Vegas.  The deck will be separated and "riffled"
+     back into one stack (it is an arithmetic condition that requires this
+     parameter be an even number).
+     
+     Enter seed number? ([N] or Y):
+     
+     This random number generator needs a seed number to start.  You may
+     either enter it yourself or the program will produce one.  The
+     advantage of entering it yourself is that you can run multiple
+     simulations that will all shuffle the cards in exactly the same
+     pattern.
+               
+     Enter seed number:
+     
+     Enter a 7 digit number.  This parameter is entered only if the previous
+     question was answered Y.
+     
+     Bell after display? ([N] or Y):
+     
+     Answer Y if the bell should sound when MV/Blackjack updates the
+     screen.  This would be appropriate if you were displaying progress
+     after a great many hands and you want to be notified when the screen
+     has been displayed.
+     
+     Print the screen when done? ([N] or Y):
+     
+     Used with direct connect printer of the D460.  This option hasn't been
+     tested since 1984.
+     
+     Check Popik streaks? ([N] or Y):
+     
+     Mr. Popik wrote a book outlining a strategy which I proved didn't
+     work.  This option hasn't been tested since 1986.
+     
+     How many hands in a Popik streak? [5]:
+     
+     Related to above parameter.  It's not worth your time.
+     
+     Desk checking? ([N] or Y):
+     
+     Used in debugging MV/Blackjack.
+     
+     Recording session? ([N] or Y):
+     
+     Answering Y will write a record to SESSION_FILE.  Look at
+     SESSION_FILE.DF in the subdirectory PR for a record description.  With
+     this option, you can run MV/Blackjack many times and record the results
+     of each session.  Then use PRESENT to evaluate the contents of
+     SESSION_FILE.
+     
+     Print patterns report? ([N] or Y):
+     
+     This parameter will print a 132 column character graph showing the
+     relationship between winning and losing hands and the current stash.
+     One record is printed to the file each time the screen statistics are
+     updated.  The left axis shows the current stash in betting units.  The
+     line drawn with "*" characters show winning and losing streaks.  That
+     is, the "*" is printed one character higher than the last record if the
+     current hand was a winner.  The "*" is printed one line lower if the
+     hand lost.  The "$" character indicates the current stash.
+               
+     Pause before starting? ([N] or Y):
+     
+     Enter Y if you want MV/Blackjack to pause before starting the
+     simulation.
+     
+     Number of seconds to pause (1 hour = 3600):
+     
+     If you want to pause, indicate how long.
+               
+     PRACTICE MODE   Practice mode uses the same screen layout as simulation
+                     mode does.  The same basic input parameters are used.
+                     If you don't have a graphics terminal, this is the only
+                     mode you can use to practice.  Practice mode is
+                     intended for use with D460 terminals.  D470C terminals
+                     will not work well.  You can use non-graphics terminals
+                     (like D410 and D415) if you answer "N" to the "Use
+                     Graphics?" prompt.
+     
+                     Note:   To exit practice mode, press the BREAK ESC key
+                             when asked for your bet.
+     
+     
+     First of all, select Practice mode.
+     
+     Notify of incorrect plays? ([Y] or N):
+     
+     Enter Y if you want MV/Blackjack to let you know when you make a play
+     that doesn't follow basic strategy.
+     
+     Notify of incorrect bets? ([N] or Y):
+     
+     Entering Y will tell MV/Blackjack to notify you when you don't bet
+     according to some crazy betting scheme I thought of about a year ago.
+     I suggest you always take the default here.
+     
+     Take defaults? ([Y] or N):
+     
+     Enter N if you want to alter the defaults that have been assigned to
+     the remaining input parameters.  If you do not change defaults, the
+     simulation begins at this point and no other prompts are given.  If you
+     do change defaults, bear in mind that you can not back up from one
+     parameter to a previous one.  In order to change a previously-entered
+     parameter, you must ^C^B out of the program and begin entering
+     parameters again.
+     
+     Since the parameters are similar to Simulation Mode, they will not be
+     discussed again here.
+               
+     V   SCREEN ITEM DEFINITIONS
+     
+     The meanings of the items that appear on the screen for simulation and
+     practice mode may not be obvious to you.  I will now describe the
+     contents of the screen.  It would be best if you would be looking at
+     the screen layout while you read this.
+     
+     Instead of explaining fields one line at a time, I'll take them in
+     logical groups.
+     
+     The top 11 lines are used to draw a step-bar graph as MV/Blackjack
+     simulates blackjack.  (If you don't have a graphics terminal, you'll
+     have to specify such in the input parameters and these lines will be
+     blank.)  The x-axis represents the number of hands played.  The y-axis
+     represents your current stash.  The unit of measure for the y-axis is
+     indicated at the beginning of line 12.  A bar is drawn each time
+     MV/Blackjack updates the screen.  MV/Blackjack updates the screen based
+     on the Iterations between displays parameter.  For example, if you
+     requested 14 iterations between displays, then there will be one bar
+     drawn after each 14 hands are played.  In this example, you'll see a
+     maximum of 77x14=1078 hands on one screen.
+     
+     The first 15 or so characters of lines 13-16 display static information
+     that was set when entering parameters.  Line 13 tells you how many
+     decks are being used and at what percentage the deck will be shuffled.
+     This line also tells you what the current betting unit is.  Line 14
+     indicates what play strategy and card counting strategy is in use.
+     These values correspond to the values entered in parameter entry.  Line
+     15 shows you what betting strategy is in use.  Line 16 shows you the
+     seed number used in the random number generator.  This line also shows
+     whether the decks will be approximated when determining the number of
+     remaining decks.
+     
+     Now look just to the right of the lines just described (lines 13-16).
+     If you're using a graphics terminal, you'll see a symbol that
+     represents the dealer's discard tray.  As cards are played, you'll
+     notice the tray will fill up.  This simulates the image you see when
+     you're playing in the casino and you calculate the number of decks
+     remaining by looking at the discard stack.
+     
+     The cards that are in play are displayed just to the right of the
+     dealer's discard stack.  The dealer's hand is displayed on line 12
+     starting about column 23.  The dealer's up-card shows up as "()" when
+     not using a graphics terminal.  Your hand is shown on line 14.  If you
+     split a hand it's shown on line 15.  These card and suit characters are
+     displayed with graphics characters or ascii characters, depending on
+     whether you selected graphics mode or not.
+               
+     Now look on line 14 at about column 60.  This is where a summary of the
+     previous hand is displayed.  The first number is the amount of the last
+     bet.  The number just to the right of that shows the amount you won
+     from that hand.  The literal to the right of that (far right side of
+     line 14) indicates who won the last hand.
+     
+     Look to the far left of lines 12 and 13.  Line 12 shows the percent of
+     hands the dealer has won over the player.  Remember, even when you play
+     perfectly, the dealer will win more hands than you.  You compensate by
+     winning the profitable hands (blackjacks and double downs).  The right
+     side of line 13 shows the "flat bet dealer's edge".  It shows what the
+     dealer's advantage would be if every bet placed would have been the
+     same.  It is common when playing a winning strategy to see the dealer's
+     "flat bet" edge be positive while we're winning money.  This is because
+     we bet larger when the deck is favorable for us.  Remember, both of
+     these percentages are displayed in the dealer's advantage.  A positive
+     number indicates the dealer's advantage, a negative number indicates
+     our advantage.  These numbers usually are positive, even when we're
+     winning.
+     
+     On to line 17.  It is a line of column headings for the data below it.
+     Let's take this data in its logical groupings.
+     
+     On line 18, under the "Win% Lose% Psh%" column heading, you'll find the
+     percent of hands that you have won, lost, and pushed (tied).  At the
+     left side of row 19 shows the profit (or loss if negative) you are
+     currently winning per 100 hands.
+     
+     Look now at line 21.  Here you see your net earnings this session.
+     Just to the right of that is the total number of hands played this
+     session.  Just to the right of that is the total number of decks played
+     this session (this number is in parentheses).  Now look at line 22.
+     Here you see the minimum stash you've had this session followed by the
+     number of the hand it occurred.  Line 23 shows your maximum stash this
+     session and what hand it occurred on.
+     
+     Now look at line 18 under the "Dbl Down" column heading.  Here you'll
+     find more column headings labeled "%Tot" and "%W/L".  On the line under
+     "%Tot" is the percent of total hands played that have been double
+     downs.  Under that is the total number of hands that have been double
+     downs.  On the line under "%W/L" is the percent of double downs that
+     have been won.  Under that is the percent of double downs that have
+     been lost.  Any other double downs not represented in these two numbers
+     were pushed.
+     
+     Under the "Split Pairs" heading you'll find information with the same
+     organization as for "Dbl Down" explained above.
+               
+     The "Insurance" heading highlights data pertaining to hands that
+     involved insurance.  On the line under "%Tot" is the percent of total
+     hands played that you have taken insurance.  Under the "%Won" heading
+     is the percent of insurance hands that you've won.  Underneath these
+     figures on line 20 you'll find an amount representing the total
+     winnings per 100 hands of insurance and the total amount won from all
+     insurance hands played thus far.
+     
+     Now I'll explain the lower-right block of information with the heading
+     "Knt Factr %Tot PerH".  These fields relate to bets that have been
+     varied based on the true count.  For example, the first line under the
+     column heading indicates that when the true count is less than the
+     indicated value (under "Knt") and the betting factor is as indicated
+     under "Factr", the percentage of hands played under these circumstances
+     is indicated under "%Tot" and the amount won or lost per 100 hands is
+     displayed under "PerH".  The next line shows the same information when
+     the count is between the count indicated and less than the next line
+     shown.  This pattern continues until the last line in this block, when
+     the data shown is applicable when the count is greater than the count
+     shown.
+     
+     The only other data displayed on this screen is found near the bottom
+     of the screen towards the middle on lines 22 and 23.  This is where
+     some statistical amounts are displayed.  These amounts only appear at
+     the end of the run when you're playing a stated number of hands
+     (indicated with the Process a maximum no of hands? input parameter).
+     In the middle of line 23 you'll find the linear regression equation for
+     this run.  The equation will be in y=A+Bx format.  Above the equation
+     you'll find the text "S=" which denotes the value for the standard
+     error.  To the right of that value you'll find "r=" which is the
+     correlation coefficient.
+               
+     
+     VI  ADDITIONAL READING
+     
+     
+     I've rated the books listed below as follows:
+     
+     *    => Don't bother
+     **   => It's OK
+     ***  => Worth reading
+     **** => Don't miss it
+     
+     
+     Rating  Name of book, author, publisher
+     
+     ***     Beat the Dealer, Edward O. Thorp, Vintage
+     
+     *       Beat the Odds, Hans Sagan, Hayden
+     
+     *       Blackjack A Winner's Handbook, Jerry L. Patterson, Putnam
+     
+     ****    How to Play Winning Blackjack, Julian H. Braun M.S., Data House
+     
+     ***     Playing Blackjack as a Business, Lawrence Revere, Lyle Stuart
+     
+     **      Professional Blackjack, Stanford Wong, Pi Yee Press
+     
+     **      Scarne on Cards, John Scarne, Signet
+     
+     ****    Turning the Tables on Las Vegas, Ian Andersen, Vintage
+     
+     *       Winning Blackjack Without Counting Cards, David S. Popik,
+             Citadel Press
+               
+     VII     THE END
+     
+     That's about all I can think of to tell you, although I must have left
+     information out of this document that you may need.  So if you have any
+     questions, feel free to write or give me a call.  My address and phone
+     number appear earlier in this document.
+     
+     Have fun and good luck.
+               

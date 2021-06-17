@@ -1,0 +1,35 @@
+comm =--
+comm =-- Allow CLI priority to be changed
+comm =--
+push
+prompt pop
+char/on/nrm/ofc
+wr;wr Your CLI priority is listed on the next line.
+priority;wr
+st/k
+st [!rea Change priority? [!as 333]NL or Y[!as 335]: ]
+[!eq,([!st]),(y)]
+  st [!rea Enter priority: ]
+  priority [!pid] [!st]
+[!end]
+st/k
+
+comm =--
+comm =-- Ask if CLI should be stopped after run of BJ
+comm =--
+wr;st [!rea Logoff after run? [!as 333]NL or Y[!as 335]: ]
+del/2=ign std_dev_file
+[!eq,([!pat =bj_Log]),()]
+  cre bj_log
+[!end]
+
+wr;wr Executing MV/Blackjack...;wr
+x booter
+
+[!eq,([!st]),(y)]
+  comm - pau 60
+  bye
+[!end]
+
+priority [!pid] 2
+po

@@ -1,0 +1,22 @@
+
+
+               C B   (A Citizen's Band Radio Simulator) 
+
+CB  will  simulate  the  operation  of  a  40  channel  citizen's  band  radio
+receiver/transmitter.  User's of this program can carry on a conversation with
+any other user of the CB program by merely typing the message on their console.
+All other users who are tuned to the same channel will receive the message.
+
+The CB commands always begin with a '/'.  The CB commands are as follows:
+
+   Command    Action
+   /exit      This command will exit from the CB system.
+   /stat      This  will  tell you how many people are tuned to what channel,
+                  and what channel you are on (the blinking one is your's).
+   /ustat     This  will  tell you the channel, PID, and handle of all of the
+                  CB users.
+   /tune n    By using this you may tune your receiver to channel number 'n'.
+   /talk n    This command will allow you to have a private conversation with
+                  the user whose PID number  is  'n'.   To  leave  a  private
+                  conversation, merely '/tune n' to the desired channel.
+   /help      This will be displayed for you.

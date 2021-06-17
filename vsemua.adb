@@ -49,6 +49,7 @@ procedure VSEmua is
    Arg_Num       : Positive := 1;
    PR_Arg_Num, 
    Root_Arg_Num,
+   Dir_Arg_Num,
    Args_Arg_Num  : Natural := 0;
    VS_Args_Arr   : AOSVS.Args_Arr;
    VS_Num_Args   : Positive;
@@ -82,6 +83,9 @@ begin
       elsif Ada.Command_Line.Argument (Arg_num) = "-root" then
          Arg_Num := Arg_Num + 1;
          Root_Arg_Num := Arg_Num;  
+      elsif Ada.Command_Line.Argument (Arg_num) = "-dir" then
+         Arg_Num := Arg_Num + 1;
+         Dir_Arg_Num := Arg_Num;       
       elsif Ada.Command_Line.Argument (Arg_num) = "-args" then
          Arg_Num := Arg_Num + 1;
          Args_Arg_Num := Arg_Num;     
@@ -92,8 +96,8 @@ begin
       Arg_Num := Arg_Num + 1;
    end loop;
 
-   if (PR_Arg_Num = 0) or (Root_Arg_Num = 0) then
-      Ada.Text_IO.Put_Line ("ERROR: Please supply a PR file to run and a root directory");
+   if (PR_Arg_Num = 0) or (Root_Arg_Num = 0) or (Dir_Arg_Num = 0) then
+      Ada.Text_IO.Put_Line ("ERROR: You must specify -pr, -root, and -dir");
       GNAT.OS_Lib.OS_Exit (0);
    end if;
 
@@ -132,10 +136,10 @@ begin
    Decoder.Init;
    RAM.Init (Debug_Logging);
 
-   AOSVS.Agent.Actions.Init(Con_Stream);
+   AOSVS.Agent.Actions.Init(Con_Stream, Ada.Command_Line.Argument (Root_Arg_num));
 
    AOSVS.Start (PR_Name   => Ada.Command_Line.Argument (PR_Arg_num),
-                Virt_Root => Ada.Command_Line.Argument (Root_Arg_num),
+                Dir       => Ada.Command_Line.Argument (Dir_Arg_num),
                 Segment   => 7,
                 Arg_Count => VS_Num_Args,
                 Args      => VS_Args_Arr,

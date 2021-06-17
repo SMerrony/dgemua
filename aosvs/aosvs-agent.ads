@@ -42,7 +42,6 @@ package AOSVS.Agent is
         PR_Name             : Unbounded_String;
         Num_Invocation_Args : Natural;
         Invocation_Args     : Args_Arr;
-        Virtual_Root        : Unbounded_String;
 		Working_Directory   : Unbounded_String;
         Sixteen_Bit         : Boolean;
         Proc_Name           : Unbounded_String;
@@ -107,14 +106,15 @@ package AOSVS.Agent is
 		Equivalent_Keys => "=");
 
 	protected Actions is
-		procedure Init (Cons : in GNAT.Sockets.Stream_Access);
+		procedure Init (Cons       : in GNAT.Sockets.Stream_Access;
+						Virt_Root  : in String);
 
 		-- Process and Task supporting subprograms...
 
 		procedure Allocate_PID (PR_Name         : in Unbounded_String;
 								Num_Invocation_Args : in Natural;
 								Invocation_Args : in Args_Arr;
-								Virtual_Root    : in Unbounded_String;
+								Working_Dir     : in Unbounded_String;
 								Sixteen_Bit     : in Boolean;
 								Proc_Name       : in Unbounded_String;
 								User_Name       : in Unbounded_String;
@@ -189,6 +189,7 @@ package AOSVS.Agent is
 							   Err         : out Word_T);
 
 	private
+		Virtual_Root     : Unbounded_String;
 		PIDs_In_Use      : PIDs_Arr;
 		Per_Process_Data : PPD_Arr;
 		Console          : GNAT.Sockets.Stream_Access;
