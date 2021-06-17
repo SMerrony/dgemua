@@ -97,7 +97,7 @@ package body AOSVS.File_Management is
         In_Name_BA  : Dword_T := CPU.AC(0);
         Out_Name_BA : Dword_T := CPU.AC(1);
         Out_Buflen  : Natural := Natural(CPU.AC(2));
-        In_Name_Str : String  := RAM.Read_String_BA(In_Name_BA, true);
+        In_Name_Str : String  := RAM.Read_String_BA(In_Name_BA, false);
         Tmp_US      : Unbounded_String;
     begin
         Loggers.Debug_Print (Sc_Log, "?GNAME for: '" & In_Name_Str & "'");
@@ -135,7 +135,7 @@ package body AOSVS.File_Management is
             RAM.Write_String_BA(Out_Name_BA, To_String(Tmp_US));
             CPU.AC(2) := Dword_T(Length(Tmp_US));
         end if;
-        Loggers.Debug_Print (Sc_Log, "------ Returning: '" & RAM.Read_String_BA(Out_Name_BA, true) & 
+        Loggers.Debug_Print (Sc_Log, "------ Returning: '" & RAM.Read_String_BA(Out_Name_BA, false) & 
             "', Length: " & CPU.AC(2)'Image);
         return true;
     end Sys_GNAME;

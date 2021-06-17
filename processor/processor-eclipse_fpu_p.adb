@@ -22,15 +22,29 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
+with Debug_Logs;  use Debug_Logs;
 with Resolver;    use Resolver;
 
 package body Processor.Eclipse_FPU_P is 
+
+   procedure Debug_FPACs (CPU : in CPU_T) is
+   begin
+      Loggers.Debug_Print (Debug_Log, "FPAC0: " & CPU.FPAC(0)'Image & 
+                                     " FPAC1: " & CPU.FPAC(1)'Image & 
+                                     " FPAC2: " & CPU.FPAC(2)'Image & 
+                                     " FPAC3: " & CPU.FPAC(3)'Image);
+      -- Ada.Text_IO.Put_Line("FPAC0: " & CPU.FPAC(0)'Image & 
+      --                                " FPAC1: " & CPU.FPAC(1)'Image & 
+      --                                " FPAC2: " & CPU.FPAC(2)'Image & 
+      --                                " FPAC3: " & CPU.FPAC(3)'Image);
+   end Debug_FPACs;   
 
    procedure Do_Eclipse_FPU (I : in Decoded_Instr_T; CPU : in out CPU_T) is
       QW : Qword_T;
       --LF : Long_Float;
       DG_Dbl : Double_Overlay;
    begin
+      Debug_FPACs (CPU);
       case I.Instruction is
 
          when I_FAD =>
@@ -124,6 +138,7 @@ package body Processor.Eclipse_FPU_P is
             raise Execution_Failure with "ERROR: ECLIPSE_FPU instruction " & To_String(I.Mnemonic) & 
                         " not yet implemented";
       end case;
+      Debug_FPACs (CPU);
       CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
    end Do_Eclipse_FPU;
 

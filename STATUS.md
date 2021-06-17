@@ -48,6 +48,8 @@ The NADGUG library provides a good range of freely-available test targets...
 ### Reminders
 * ~~Check ?READ/WRITE/OPEN flag mode interpretation - it might be back-to-front~~
 * Is there an off-by-one in byte handling somewhere - could explain display glitches
-* Probably need to specify both CWD and virtual root via command and handle them better.
-* ~~The YAHTZEE fault looks worth investigating as it happens so early in the execution.~~
-* FP ops are producing wrong results...
+* Probably need to specify both CWD and virtual root via command and handle them better. I think we need...
+  * -root < location of virtual fs> 
+  * -dir <AOS/VS working dir in vfs> 
+  * -pr <AOS/VS path to PR> (either absolute - starting with : - or relative to working dir)
+

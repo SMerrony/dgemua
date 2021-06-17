@@ -23,7 +23,6 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;      use Debug_Logs;
-with Memory_Channels; use Memory_Channels;
 with Resolver;        use Resolver;
 
 package body Processor.Eagle_FPU_P is 
@@ -34,11 +33,21 @@ package body Processor.Eagle_FPU_P is
                                      " FPAC1: " & CPU.FPAC(1)'Image & 
                                      " FPAC2: " & CPU.FPAC(2)'Image & 
                                      " FPAC3: " & CPU.FPAC(3)'Image);
-      Ada.Text_IO.Put_Line("FPAC0: " & CPU.FPAC(0)'Image & 
-                                     " FPAC1: " & CPU.FPAC(1)'Image & 
-                                     " FPAC2: " & CPU.FPAC(2)'Image & 
-                                     " FPAC3: " & CPU.FPAC(3)'Image);
-   end Debug_FPACs;                                                                          
+      -- Ada.Text_IO.Put_Line("FPAC0: " & CPU.FPAC(0)'Image & 
+      --                                " FPAC1: " & CPU.FPAC(1)'Image & 
+      --                                " FPAC2: " & CPU.FPAC(2)'Image & 
+      --                                " FPAC3: " & CPU.FPAC(3)'Image);
+   end Debug_FPACs;       
+
+   function Floor(X : in Long_Float) return Integer_32 is
+      Answer : Integer_32 := Integer_32(X);
+   begin
+      if Long_Float(Answer) > X then
+         Answer := Answer - 1;
+      end if;
+      return Answer;
+   end Floor;
+
 
    procedure Do_Eagle_FPU (I : in Decoded_Instr_T; CPU : in out CPU_T) is
       Scale_Factor : Integer_8;
@@ -49,6 +58,7 @@ package body Processor.Eagle_FPU_P is
       QW           : Qword_T;
       DG_Dbl       : Double_Overlay;
    begin
+      Debug_FPACs (CPU);
       case I.Instruction is
 
         when I_LFAMD =>
@@ -111,14 +121,12 @@ package body Processor.Eagle_FPU_P is
 
          when I_WFFAD =>
             -- Acs and Acd are the 'other way around' with this instruction
-            CPU.AC(I.Acs) := Dword_T(Integer_32(CPU.FPAC(I.Acd)));
+            CPU.AC(I.Acs) := Dword_T(Floor(CPU.FPAC(I.Acd)));
 
          when I_WFLAD =>
-            Debug_FPACs (CPU);
             CPU.FPAC(I.Acd) := Long_Float(Dword_To_Integer_32(CPU.AC(I.Acs)));
             Set_Z (CPU, (CPU.AC(I.Acs) = 0));
             Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
-            Debug_FPACs (CPU);
 
          when I_WLDI =>
             declare
@@ -215,6 +223,13 @@ package body Processor.Eagle_FPU_P is
             Set_Z(CPU, (CPU.FPAC(I.Ac) = 0.0));
             Set_N(CPU, (CPU.FPAC(I.Ac) < 0.0));
 
+         when I_XFDMS =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            DW := RAM.Read_Dword(Addr);
+            CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) / DG_Single_To_Long_Float(DW);
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));  
+
          when I_XFLDS =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             DW := RAM.Read_Dword(Addr);
@@ -241,12 +256,18 @@ package body Processor.Eagle_FPU_P is
             DG_Dbl.Double_QW := Long_Float_To_DG_Double(CPU.FPAC(I.Ac));
             RAM.Write_Qword (Addr, DG_Dbl.Double_QW);
 
+         when I_XFSTS =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            DG_Dbl.Double_QW := Long_Float_To_DG_Double(CPU.FPAC(I.Ac));
+            RAM.Write_Dword (Addr, Upper_Dword(DG_Dbl.Double_QW));
+
          when others =>
             Put_Line ("ERROR: EAGLE_FPU instruction " & To_String(I.Mnemonic) & 
                         " not yet implemented");
             raise Execution_Failure with "ERROR: EAGLE_FPU instruction " & To_String(I.Mnemonic) & 
                         " not yet implemented";
       end case;
+      Debug_FPACs (CPU);
       CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
    end Do_Eagle_FPU;
 
