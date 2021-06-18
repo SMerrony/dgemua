@@ -76,8 +76,11 @@ package AOSVS is
     procedure Decode_Global_Port (Global_Port : in Dword_T; 
                                   PID : out PID_T; Ring : out Natural; Local_Port : out Word_T);
     
-                 
+    function Colonify_Path (In_Str : in String) return String;
+    function Slashify_Path (In_Str : in String) return String; 
+
     Invalid_PR_File,
+    Invalid_Directory,
     Not_Yet_Implemented : exception;
 
 end AOSVS;

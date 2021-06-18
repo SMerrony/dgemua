@@ -5,6 +5,7 @@
 		}
 	],
 	"settings": {
-		"ada.projectFile": "vsemua.gpr"
+		"ada.projectFile": "vsemua.gpr",
+		"ada.enableDiagnostics": false
 	}
 }

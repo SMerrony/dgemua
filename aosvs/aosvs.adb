@@ -38,23 +38,42 @@ package body AOSVS is
 
     type Word_Arr_T is array (Natural range <>) of Word_T;
 
-    function Read_Whole_File (Name : in String) return Word_Arr_T is
-        File_ByteSize : Integer := Integer(Ada.Directories.Size (Name));
+    function Resolve_AOSVS_Filename (Name, AOSVS_Dir : in String) return String is
+        Resolved_US : Unbounded_String;
+    begin
+        -- 1 - get the virtual root
+        Resolved_US := Agent.Actions.Get_Virtual_Root;
+        -- 2 - check and append directory with trailing separator
+        if AOSVS_Dir(AOSVS_Dir'First) /= ':' then
+            raise Invalid_Directory;
+        end if;
+        -- but not if the program anem begins with a colon
+        if Name(Name'First) /= ':' then
+            Resolved_US := Resolved_US & Slashify_Path (AOSVS_Dir & ":");
+        end if;
+        -- 3 - append PR filename
+        Resolved_US := Resolved_US & Slashify_Path (Name);
+        return To_String(Resolved_US);
+    end Resolve_AOSVS_Filename;
+
+    function Read_Whole_File (Name, Dir : in String) return Word_Arr_T is
+        Phys_Name     : String  := Resolve_AOSVS_Filename (Name, Dir);
+        File_ByteSize : Integer := Integer(Ada.Directories.Size (Phys_Name));
         File_WordSize : Integer := File_ByteSize / 2;
         PR_File       : File_Type;
         PR_Stream     : Stream_Access;
         PR_Arr        : Word_Arr_T (0 .. File_WordSize - 1);
         Low_Byte, High_Byte : Byte_T;
     begin
-        Ada.Text_IO.Put_Line("DEBUG: Read_Whole_File called for: " & Name);
+        Ada.Text_IO.Put_Line("DEBUG: Read_Whole_File called for: " & Phys_Name);
         if (File_ByteSize mod 2) /= 0 then
             raise Invalid_PR_File with "Size must be even";
         end if;
         begin
-            Open (File => PR_File, Mode => In_File, Name => Name);
+            Open (File => PR_File, Mode => In_File, Name => Phys_Name);
         exception
             when others =>
-            raise Invalid_PR_File with "Could not open file: " & Name;
+            raise Invalid_PR_File with "Could not open file: " & Phys_Name;
         end;
         PR_Stream := Stream (PR_File);
         for W in 0 .. File_WordSize - 1 loop
@@ -65,9 +84,9 @@ package body AOSVS is
 
         return PR_Arr;
 
-        -- exception
-        --    when others =>
-        --    raise Invalid_PR_File;
+        exception
+           when others =>
+           raise Invalid_PR_File;
     end Read_Whole_File;
 
     function Load_UST (PR_Arr : in Word_Arr_T) return UST_T is
@@ -122,7 +141,7 @@ package body AOSVS is
                     Args      : in Args_Arr;
                     Console   : in GNAT.Sockets.Stream_Access;
                     Logging   : in Boolean) is
-        PR_Arr : Word_Arr_T := Read_Whole_File (PR_Name);
+        PR_Arr : Word_Arr_T := Read_Whole_File (PR_Name, Dir);
         PID    : PID_T;
         Sixteen_Bit : Boolean;
         PR_UST   : UST_T;
@@ -181,5 +200,23 @@ package body AOSVS is
         Ring       := Natural(Get_DW_Bits(Global_Port, 17, 3));
         Local_Port := Lower_Word(Get_DW_Bits(Global_Port, 20, 12));
     end Decode_Global_Port;
+
+    function Colonify_Path (In_Str : in String) return String is
+        Out_Str : String (In_Str'First .. In_Str'Last);
+    begin
+        for Ix in In_Str'Range loop
+           Out_Str(Ix) := (if In_Str(Ix) = '/' then ':' else In_Str(Ix)); 
+        end loop;
+        return Out_Str;
+    end Colonify_Path;
+
+    function Slashify_Path (In_Str : in String) return String is
+        Out_Str : String (In_Str'First .. In_Str'Last);
+    begin
+        for Ix in In_Str'Range loop
+           Out_Str(Ix) := (if In_Str(Ix) = ':' then '/' else In_Str(Ix)); 
+        end loop;
+        return Out_Str;
+    end Slashify_Path;
 
 end AOSVS;

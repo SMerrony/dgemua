@@ -84,15 +84,6 @@ package body AOSVS.File_Management is
         return true;
     end Sys_DELETE;
 
-    function Colonify_Path (In_Str : in String) return String is
-        Out_Str : String (In_Str'First .. In_Str'Last);
-    begin
-        for Ix in In_Str'Range loop
-           Out_Str(Ix) := (if In_Str(Ix) = '/' then ':' else In_Str(Ix)); 
-        end loop;
-        return Out_Str;
-    end Colonify_Path;
-
     function Sys_GNAME (CPU : in out CPU_T; PID : in Word_T) return Boolean is
         In_Name_BA  : Dword_T := CPU.AC(0);
         Out_Name_BA : Dword_T := CPU.AC(1);

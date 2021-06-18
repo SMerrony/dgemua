@@ -109,6 +109,9 @@ package body AOSVS.Agent is
 
       function Get_Proc_Name (PID : in PID_T) return String is
          (To_String(Per_Process_Data(PID).Proc_Name));
+
+       function Get_Virtual_Root return Unbounded_String is
+         (Virtual_Root);
    
       -- Sys Call Support below...
 

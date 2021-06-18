@@ -10,4 +10,5 @@ and a virtual one which tries to run AOS/VS user programs directly.
  * [Current Status](STATUS.md)
  * [Build Notes](BUILD.md)
  * [Development Notes](DEVNOTES.md)
- * [User Guide](UserGuide.md)
+ * [MV/Emua User Guide](UserGuide.md)
+ * [VS/Emua User Guide](VSUserGuide.md)
