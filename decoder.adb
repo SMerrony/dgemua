@@ -105,8 +105,8 @@ package body Decoder is
 -- Instruction_Lookup looks up an opcode in the opcode lookup table and returns
 -- the corresponding mnemonic.  This needs to be as quick as possible
    function Instruction_Lookup
-     (Opcode : in Word_T; LEF_Mode : in Boolean) return Instr_Mnemonic_T
-   is
+     (Opcode : in Word_T; LEF_Mode : in Boolean) return Instr_Mnemonic_T is
+     Mnem : Instr_Mnemonic_T;
    begin
       -- special case, if LEF mode is enabled then ALL I/O instructions are interpreted as LEF
       if LEF_Mode then
@@ -115,7 +115,13 @@ package body Decoder is
             return I_LEF;
          end if;
       end if;
-      return Opcode_Lookup_Arr (Integer (Opcode)).Mnem;
+      Mnem := Opcode_Lookup_Arr (Integer (Opcode)).Mnem;
+      -- catch unimplemented Eagle instructions...
+      if Mnem = I_ADC and (((Opcode and 2#0000_0000_0000_1111#) = 2#0000_0000_0000_1001#) or
+                           ((Opcode and 2#0000_0000_0000_1111#) = 2#0000_0000_0000_1000#)) then
+         raise Decode_Failed with "Unimplemented Eagle instruction: " & Word_To_String(Opcode, Binary, 16, true);
+      end if;
+      return Mnem;
    end Instruction_Lookup;
 
    procedure Init is
