@@ -460,9 +460,14 @@ package body DG_Types is
       Scale_Factor := Integer_8(Get_DW_Bits(DTI, 0, 8));
       Dec_Type     := Natural(Unsigned_8(Get_DW_Bits(DTI, 24, 3)));
       Size         := Natural(Unsigned_8(Get_DW_Bits(DTI, 27, 5)));
-      if Dec_Type /= Packed_Dec then
+      if Dec_Type = Packed_Dec then
+         if Size mod 2 = 0 then
+            Size := Size + 1;
+         end if;
+      else
          Size := Size + 1;
       end if;
+      
    end Decode_Dec_Data_Type;
 
    function Read_Decimal (BA : in Dword_T; Size : in Natural) return Unbounded_String is

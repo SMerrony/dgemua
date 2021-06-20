@@ -36,14 +36,14 @@ package body AOSVS.File_IO is
         File_Type : Word_T      := RAM.Read_Word(Pkt_Addr + ISTO);
         Rec_Len   : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
         Path_Name : Dword_T     := RAM.Read_Dword(Pkt_Addr + IFNP);
-        Path      : String      := Ada.Characters.Handling.To_Upper(RAM.Read_String_BA(Path_Name, false));
+        Name      : String      := Ada.Characters.Handling.To_Upper(RAM.Read_String_BA(Path_Name, false));
+        Path      : String      := (if Name(Name'First) = '@' then Name else To_String(Agent.Actions.Get_Virtual_Root) &
+                                   Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
+                                   ":" & Name)); 
     begin
-        Loggers.Debug_Print (Sc_Log, "?OPEN Pathname: " & Path);
-        if Path(Path'First) = '@' then
-            AOSVS.Agent.Actions.File_Open (PID, Path, File_Opts, File_Type, Rec_Len, Chan_No, Err);
-        else
-            AOSVS.Agent.Actions.File_Open (PID, Agent.Actions.Get_Working_Directory(PID) & "/" & Path, File_Opts, File_Type, Rec_Len, Chan_No, Err);
-        end if;
+        Loggers.Debug_Print (Sc_Log, "?OPEN Pathname: " & Name);
+        Loggers.Debug_Print (Sc_Log, "----- Resolved to local file: " & Path);
+        AOSVS.Agent.Actions.File_Open (PID, Path, File_Opts, File_Type, Rec_Len, Chan_No, Err);
         if Err /= 0 then
             CPU.AC(0) := Dword_T(Err);
             return false;

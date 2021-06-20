@@ -39,17 +39,16 @@ The NADGUG library provides a good range of freely-available test targets...
 
   |    Game           |   Problem                                             |   Date      | cf. VS/Emug |
   |-------------------|-------------------------------------------------------|-------------|-------------|
-  | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | Same :-/ |      
-  | HANGMAN (IMSUTIL) | Bad comparison in WDCMP after displaying start screen | 28 May 2021 | Same :-/ | 
-  | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | Better :-) |
-  | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | Same :-/ | 
-  | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 | Better :-) |
+  | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | Same    :-/ |    
+  | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 | Better  :-) | 
+  | HANGMAN (IMSUTIL) | Bad comparison in WDCMP after displaying start screen | 28 May 2021 | Same    :-/ | 
+  | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | Better  :-) |
+  | SCRABBLE          | Calling ?ERMSG after ?OPENing SEED file               | 19 Jun 2021 | Same    :-/ |
+  | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | Same    :-/ | 
+  | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 | Better  :-) |
   
 ### Reminders
 * ~~Check ?READ/WRITE/OPEN flag mode interpretation - it might be back-to-front~~
 * Is there an off-by-one in byte handling somewhere - could explain display glitches
-* Probably need to specify both CWD and virtual root via command and handle them better. I think we need...
-  * -root < location of virtual fs> 
-  * -dir <AOS/VS working dir in vfs> 
-  * -pr <AOS/VS path to PR> (either absolute - starting with : - or relative to working dir)
+
 

@@ -79,6 +79,7 @@ package DG_Types is
     Dasher_NL          : constant Character := Character'Val(8#12#);
     Dasher_Erase_EOL   : constant Character := Character'Val(8#13#);
     Dasher_Erase_Page  : constant Character := Character'Val(8#14#);
+    Dasher_FF          : constant Character := Dasher_Erase_Page;
     Dasher_CR          : constant Character := Character'Val(8#15#);
     Dasher_Write_Window_Addr : constant Character := Character'Val(8#20#); -- followed by col, row
     Dasher_Underline   : constant Character := Character'Val(8#24#);
@@ -99,7 +100,7 @@ package DG_Types is
     Unpacked_Dec_TS  : constant Natural := 2;
     Unpacked_Dec_LS  : constant Natural := 3; -- <sign><zeroes><int>
     Unpacked_Dec_U   : constant Natural := 4; -- <zeroes><int>
-    Packed_Dec       : constant Natural := 5;
+    Packed_Dec       : constant Natural := 5; -- <BCD int + Sign>
     Twos_Comp_Dec    : constant Natural := 6;
     FP_Dec           : constant Natural := 7;
 

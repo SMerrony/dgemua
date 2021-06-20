@@ -370,6 +370,8 @@ package body Processor is
             Syscall_Trap := false;
          end if;
 
+         exit when PC = 8#16000000000#;
+
       end loop;
    end VRun;
 

@@ -128,6 +128,7 @@ package body AOSVS.Agent is
          Format_Bits : Word_T := Options and 7;
          Create, Create_Or_Error, Create_If_Reqd, Recreate, Read_Only : Boolean;
          F_New  : Ada.Text_IO.File_Type;
+         Local_Path : Unbounded_String;
       begin
          Err := 0;
          Chan_Num := Get_Free_Channel;
@@ -172,6 +173,16 @@ package body AOSVS.Agent is
             end if;
          else 
             Agent_Chans(Chan_Num).Is_Console := false;
+
+            -- Local_Path := Virtual_Root;
+            -- if Path(Path'First) /= ':' then
+            --    Local_Path := Local_Path & 
+            --                  "/" & 
+            --                  To_Unbounded_String (Slashify_Path(To_String(Per_Process_Data(PID_T(PID)).Working_Directory))) & 
+            --                  "/";
+            -- end if;
+            -- Local_Path := Local_Path & Slashify_Path(Path);
+            -- Loggers.Debug_Print (Sc_Log, "------ Resolved AOS/VS file to physical location: " & To_String(Local_Path));
 
             if Recreate and Ada.Directories.Exists (Path) then
                Loggers.Debug_Print (Sc_Log, "------ Deleting old file");
@@ -313,9 +324,11 @@ package body AOSVS.Agent is
             if T_DS then
                loop
                   Byte := RAM.Read_Byte_BA( Bytes_BA + Dword_T(DS_Len));
-                  exit when Byte = 0; -- FIXME other terminators exist...
+                  -- TODO handle custom delimiter tables
+                  exit when Byte = 0;
                   DS_Len := DS_Len + 1;
                   Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Byte);
+                  exit when Byte = 8#12# or Byte = 8#14# or Byte = 8#15#; 
                   exit when DS_Len = Max_Len;
                end loop;
                Transferred := Integer_16_To_Word(Integer_16(DS_Len));
@@ -411,16 +424,15 @@ package body AOSVS.Agent is
 							Glob_Port : out Dword_T; 
 							F_Type : out Word_T;
 							Err    : out Word_T) is
-         IPC_Path : String := Agent.Actions.Get_Working_Directory(PID) & "/" & Filename;
       begin
          Err := 0;
-         if IPCs.Contains (IPC_Path) then
-            Glob_Port := IPCs(IPC_Path).Global_Port;
-            F_Type    := IPCs(IPC_Path).File_Type;
-            Loggers.Debug_Print (Sc_Log,"----- IPC Lookup succeeded for: " & IPC_Path);
+         if IPCs.Contains (Filename) then
+            Glob_Port := IPCs(Filename).Global_Port;
+            F_Type    := IPCs(Filename).File_Type;
+            Loggers.Debug_Print (Sc_Log,"----- IPC Lookup succeeded for: " & Filename);
          else
             Err := PARU_32.ERFDE;
-            Loggers.Debug_Print (Sc_Log,"----- IPC Lookup failed for: " & IPC_Path);
+            Loggers.Debug_Print (Sc_Log,"----- IPC Lookup failed for: " & Filename);
          end if;
       end I_Lookup;
 
@@ -428,24 +440,23 @@ package body AOSVS.Agent is
 		                    Err : out Word_T) is
          I_New_F  : Ada.Text_IO.File_Type;
          New_IPC  : Agent_IPC_T;
-         CWD_Filename : String := Get_Working_Directory(PID) & "/" & Filename;
       begin
          Err := 0;
-         -- if the IPC filealready exists we delete it (FIXUP would do this on a real system)
-         if Ada.Directories.Exists (CWD_Filename) then
+         -- if the IPC file already exists we delete it (FIXUP would do this on a real system)
+         if Ada.Directories.Exists (Filename) then
             Loggers.Debug_Print (Sc_Log, "------- Deleting stale IPC file");
-            Ada.Directories.Delete_File(CWD_Filename);
+            Ada.Directories.Delete_File(Filename);
          end if;
-         Ada.Text_IO.Create (I_New_F, Ada.Text_IO.Out_File, CWD_Filename);
+         Ada.Text_IO.Create (I_New_F, Ada.Text_IO.Out_File, Filename);
          Ada.Text_IO.Close  (I_New_F);
          -- TODO 'register' the IPC internally
          New_IPC.Owner_PID  := PID_T(PID);
-         New_IPC.Name       := To_Unbounded_String(CWD_Filename);
+         New_IPC.Name       := To_Unbounded_String(Filename);
          New_IPC.Local_Port := Local_Port;
          New_IPC.Global_Port := Encode_Global_Port(PID_T(PID), 7, Local_Port); -- FIXME Ring hard-coded to 7
-         IPCs.Include (CWD_Filename, New_IPC);
+         IPCs.Include (Filename, New_IPC);
 
-         Loggers.Debug_Print (Sc_Log, "------- Created IPC file: " & CWD_Filename);
+         Loggers.Debug_Print (Sc_Log, "------- Created IPC file: " & Filename);
       end I_Create;
 
       -- Shared Files...

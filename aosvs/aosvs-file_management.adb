@@ -32,13 +32,16 @@ with PARU_32;
 package body AOSVS.File_Management is
 
     function Sys_CREATE (CPU : in out CPU_T; PID : in Word_T) return Boolean is
-        Filename_BA  : Dword_T := CPU.AC(0);
-        Filename_Str : String  := RAM.Read_String_BA(Filename_BA, false);
-        Pkt_Addr     : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        File_Type    : Word_T := RAM.Read_Word (Pkt_Addr + PARU_32.CFTYP) and 16#00ff#;
-        Err          : Word_T := 0;
+        C_Name     : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
+        C_Path     : String := To_String(Agent.Actions.Get_Virtual_Root) &
+                               Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
+                               ":" & C_Name); 
+        Pkt_Addr   : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        File_Type  : Word_T := RAM.Read_Word (Pkt_Addr + PARU_32.CFTYP) and 16#00ff#;
+        Err        : Word_T := 0;
     begin
-        Loggers.Debug_Print (Sc_Log, "?CREATE - filename: " & Filename_Str & " Type No." & File_Type'Image);
+        Loggers.Debug_Print (Sc_Log, "?CREATE - filename: " & C_Name & " Type No." & File_Type'Image);
+        Loggers.Debug_Print (Sc_Log, "-------   Resolved to local file: " & C_Path);
         case File_Type is
             when PARU_32.FIPC =>
                 declare
@@ -48,7 +51,7 @@ package body AOSVS.File_Management is
                       CPU.AC(0) := Dword_T(PARU_32.ERIVP);
                       return false;
                    end if;
-                   AOSVS.Agent.Actions.I_Create(PID, Filename_Str, Local_Port, Err);
+                   AOSVS.Agent.Actions.I_Create(PID, C_Path, Local_Port, Err);
                    if Err /= 0 then
                       CPU.AC(0) := Dword_T(Err);
                       return false;
@@ -133,10 +136,13 @@ package body AOSVS.File_Management is
 
     function Sys_RECREATE (CPU : in out CPU_T; PID : in Word_T) return Boolean is
         R_Name : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
-        R_Path : String := Agent.Actions.Get_Working_Directory(PID) & "/" & R_Name; 
+        R_Path : String := To_String(Agent.Actions.Get_Virtual_Root) &
+                           Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
+                           ":" & R_Name); 
         R_New  : Ada.Text_IO.File_Type;
     begin
-        Loggers.Debug_Print (Sc_Log, "?RECREATE file: " & R_Path);
+        Loggers.Debug_Print (Sc_Log, "?RECREATE file: " & R_Name);
+        Loggers.Debug_Print (Sc_Log, "--------- Resolved to local file: " & R_Path);
         if not Ada.Directories.Exists(R_Path) then
             CPU.AC(0) := Dword_T(PARU_32.ERFDE);
             return false;

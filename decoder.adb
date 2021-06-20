@@ -195,12 +195,12 @@ package body Decoder is
       if Mode = Absolute then
          return Integer_16 (D15 and 16#7fff#); -- zero extend
       end if;
-      -- if Test_W_Bit (D15, 1) then
-      --    return Word_To_Integer_16 (D15 or 2#1100_0000_0000_0000#);
-      -- else
-      --    return Integer_16 (D15 and 2#0011_1111_1111_1111#);
-      -- end if;
-      return Word_To_Integer_16(Shift_Left(D15, 1)) / 2;
+      if Test_W_Bit (D15, 1) then
+         return Word_To_Integer_16 (D15 or 2#1000_0000_0000_0000#);
+      else
+         return Integer_16 (D15 and 2#0011_1111_1111_1111#);
+      end if;
+      -- return Word_To_Integer_16(Shift_Left(D15, 1)) / 2;
    end Decode_15bit_Disp; -- TODO Test/verify this
 
    procedure Decode_16bit_Byte_Disp (D16 : in Word_T; Disp_16 : out Integer_16; Lo_Byte : out Boolean) is
@@ -654,7 +654,9 @@ package body Decoder is
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
                  Char_Indirect(Decoded.Ind) & 
-                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & String_Mode(Decoded.Mode) &
+                 --Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & 
+                 Decoded.Disp_15'Image & "." &
+                 String_Mode(Decoded.Mode) &
                  " [2-Word Instruction]";
             end if;
 

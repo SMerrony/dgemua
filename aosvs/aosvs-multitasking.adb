@@ -27,6 +27,13 @@ with PARU_32;
 
 package body AOSVS.Multitasking is
 
+    function Sys_IFPU (CPU : in out CPU_T) return Boolean is
+    begin
+        Loggers.Debug_Print (Sc_Log, "?IFPU");
+        -- STUB
+        return true;
+    end Sys_IFPU;
+
     function Sys_KILAD (CPU : in out CPU_T; PID : in Word_T; Kill_Addr : out Phys_Addr_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?KILAD");

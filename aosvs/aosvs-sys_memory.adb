@@ -83,10 +83,14 @@ package body AOSVS.Sys_Memory is
    end Sys_MEMI;
 
    function Sys_SOPEN (CPU : in out CPU_T; PID, TID : in Word_T) return Boolean is
-      SO_Path : String := Agent.Actions.Get_Working_Directory(PID) & "/" & To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
+      SO_Name : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
+      SO_Path : String := To_String(Agent.Actions.Get_Virtual_Root) &
+                           Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
+                           ":" & SO_Name); 
       Chan_No, Err : Word_T;
    begin
       Loggers.Debug_Print (Sc_Log, "?SOPEN Path: " & SO_Path);
+      Loggers.Debug_Print (Sc_Log, "------ Resolved to local file: " & SO_Path);
       if CPU.AC(1) /= 16#ffff_ffff# then
          raise Processor.Not_Yet_Implemented with "?SOPEN of specific channel";
       end if;

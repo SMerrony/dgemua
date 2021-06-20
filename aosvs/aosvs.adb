@@ -53,6 +53,7 @@ package body AOSVS is
         end if;
         -- 3 - append PR filename
         Resolved_US := Resolved_US & Slashify_Path (Name);
+        Ada.Text_IO.Put_Line("DEBUG: Resolved PR file to: " & To_String(Resolved_US));
         return To_String(Resolved_US);
     end Resolve_AOSVS_Filename;
 

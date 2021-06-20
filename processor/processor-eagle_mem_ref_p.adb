@@ -413,7 +413,7 @@ package body Processor.Eagle_Mem_Ref_P is
                CPU.Carry := true;
                Set_OVR (true);
             end if;
-            RAM.Write_Word (Addr, Word_T(I32));
+            RAM.Write_Dword (Addr, Integer_32_To_Dword(I32) and 16#0000_ffff#);
 
          when I_XNLDA =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);

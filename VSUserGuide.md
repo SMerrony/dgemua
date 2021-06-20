@@ -1,6 +1,6 @@
 # VS/Emua User Guide
-VS/Emua is a basic user-level AOS/VS emulator designed to run Ring 7 user programs and contribute to the enhancement
-of the bare-metal MV/Emua machine emulator.
+VS/Emua is a basic user-level AOS/VS emulator designed to run Ring 7 user programs to test and aid the enhancement
+of the bare-metal MV/Emua machine emulator (with which it shares a lot of code).
 
 ## Build
 `gprbuild -Pvsemua`
@@ -10,7 +10,7 @@ of the bare-metal MV/Emua machine emulator.
 `./vsemua -pr LOOPS4.PR -root FILESYSTEM  -dir :SAMPLES`
 
 You must specify...
-* The root of the virtual (AOS/VS) filesystem as a local path
+* The root of the virtual (AOS/VS) filesystem as a local (eg. Linux) path
 * The AOS/VS working directory as a complete AOS/VS path from the root
 * The absolute or relative AOS/VS name of the program file to run, in AOS/VS format
 
@@ -19,6 +19,8 @@ virtual root.  Conversely, program names without a leading colon are looked for 
 
 1. `./vsemua -pr LOOPS4.PR -root FILESYSTEM  -dir :SAMPLES`
 2. `./vsemua -pr :SAMPLES:LOOPS4.PR -root FILESYSTEM  -dir :SAMPLES`
+
+(There is not *yet* any concept of AOS/VS searchlists implemented.)
 
 After starting the emulated program you must connect a DASHER-compatible terminal emulator to port 10000 (default).
 [DasherG](https://github.com/SMerrony/DasherG) is known to work.

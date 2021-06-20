@@ -137,6 +137,7 @@ begin
    RAM.Init (Debug_Logging);
 
    AOSVS.Agent.Actions.Init(Con_Stream, Ada.Command_Line.Argument (Root_Arg_num));
+   Ada.Text_IO.Put_Line ("INFO: Psuedo-AGENT initialised");
 
    AOSVS.Start (PR_Name   => Ada.Command_Line.Argument (PR_Arg_num),
                 Dir       => Ada.Command_Line.Argument (Dir_Arg_num),
@@ -148,8 +149,8 @@ begin
 
    Clean_Exit;
 
-   -- exception
-   --    when others =>
-   --       Clean_Exit;
+   exception
+      when others =>
+         Clean_Exit;
 
 end VSEmua;

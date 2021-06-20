@@ -25,12 +25,29 @@ with Ada.Characters.Handling;
 
 with GNAT.Calendar;
 
+with Interfaces;  use Interfaces;
+
 with AOSVS.Agent;
 with Debug_Logs;  use Debug_Logs;
 with Memory;      use Memory;
 with PARU_32;     use PARU_32;
 
 package body AOSVS.System is
+
+    function Sys_ERMSG  (CPU : in out CPU_T) return Boolean is
+        Supplied_Buf_Len : Unsigned_8 := Unsigned_8(Get_DW_Bits(CPU.AC(1), 16, 8));
+        ERMES_Chan       : Unsigned_8 := Unsigned_8(Get_DW_Bits(CPU.AC(1), 24, 8));
+        Default_Response : String := "UNKNOWN ERROR CODE " & CPU.AC(0)'Image;
+    begin
+        Loggers.Debug_Print (Sc_Log, "?ERMSG - Octal code: " & Dword_To_String (CPU.AC(0), Octal, 8));
+        if ERMES_Chan /= 255 then
+            raise Not_Yet_Implemented with "Custom ERMES files";
+        end if;
+        -- TODO - actually look it up!
+        RAM.Write_String_BA (CPU.AC(2), Default_Response);
+        CPU.AC(0) := Dword_T(Default_Response'Last);
+        return true;
+    end Sys_ERMSG;
 
     function Sys_EXEC (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
         Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));

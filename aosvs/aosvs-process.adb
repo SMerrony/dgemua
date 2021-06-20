@@ -89,6 +89,17 @@ package body AOSVS.Process is
         return true;
     end Sys_PNAME;
 
+    function Sys_RNGPR  (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+        Pkt_Addr  : Phys_Addr_T := Phys_Addr_T (CPU.AC (2));
+    begin
+        Loggers.Debug_Print (Sc_Log, "?RNGPR");
+        if CPU.AC(0) /= 16#ffff_ffff# then
+            raise Not_Yet_Implemented with ?RNGPR for other/named procs";
+        end if;
+kjh
+        return true;
+    end Sys_RNGPR;
+
     function Sys_SUSER (CPU : in out CPU_T; PID : in Word_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?SUSER");

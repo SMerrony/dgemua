@@ -145,6 +145,7 @@ package body AOSVS.Agent.Tasking is
                when 8#157# => Syscall_OK := AOSVS.System.Sys_SINFO  (CPU);
                -- when 8#166# => Syscall_OK := AOSVS.File_Management.Sys_DACL (CPU, Task_Data.PID);
                when 8#171# => Syscall_OK := AOSVS.Connection.Sys_SERVE (CPU, Task_Data.PID);
+               when 8#251# => Syscall_OK := AOSVS.Process.Sys_RNGPR    (CPU, Task_Data.PID);
                when 8#263# => Syscall_OK := AOSVS.Multitasking.Sys_WDELAY (CPU, Task_Data.PID, Task_Data.TID);
                when 8#300# => Syscall_OK := AOSVS.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#301# => Syscall_OK := AOSVS.File_IO.Sys_CLOSE (CPU, Task_Data.PID, Task_Data.TID);
@@ -160,6 +161,7 @@ package body AOSVS.Agent.Tasking is
                      Term_Msg := Byte_Arr_To_Unbounded(RAM.Read_Bytes_BA(CPU.AC(1), Msg_Len));
                   end if;
                   exit;
+               when 8#311# => Syscall_OK := AOSVS.System.Sys_ERMSG (CPU);   
                when 8#312# => Syscall_OK := AOSVS.File_IO.Sys_GCHR (CPU, Task_Data.PID);
                when 8#313# => Syscall_OK := AOSVS.File_IO.Sys_SCHR (CPU, Task_Data.PID);
                when 8#316# => Syscall_OK := AOSVS.File_IO.Sys_SEND (CPU, Task_Data.PID);
@@ -167,7 +169,7 @@ package body AOSVS.Agent.Tasking is
                when 8#333# => Syscall_OK := AOSVS.Multitasking.Sys_UIDSTAT (CPU, Task_Data.PID, Task_Data.TID);
                when 8#336# => Syscall_OK := AOSVS.File_Management.Sys_RECREATE (CPU, Task_Data.PID);
                when 8#505# => Syscall_OK := AOSVS.Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr);
-               when 8#542# => Syscall_OK := true; -- AOSVS.FPU.Sys_IFPU (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#542# => Syscall_OK := AOSVS.Multitasking.Sys_IFPU (CPU); 
                when 8#573# => Syscall_OK := AOSVS.Process.Sys_SYSPRV (CPU, Task_Data.PID);
                when others =>
                   raise System_Call_Not_Implemented with "Octal call #:" & Word_To_String(Call_ID, Octal, 5);

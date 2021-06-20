@@ -310,20 +310,16 @@ package body Processor.Eagle_PC_P is
                CPU.PC := CPU.PC + 1;
             end if;
 
-         -- when I_WUSGE =>
-         --    if I.Acs = I.Acd then
-         --       if CPU.AC(I.Acs) >= 0 then
-         --          CPU.PC := CPU.PC + 2;
-         --       else
-         --          CPU.PC := CPU.PC + 1;
-         --       end if;
-         --    else
-         --       if CPU.AC(I.Acs) >= CPU.AC(I.Acd) then
-         --          CPU.PC := CPU.PC + 2;
-         --       else
-         --          CPU.PC := CPU.PC + 1;
-         --       end if;
-         --    end if;
+         when I_WUSGE =>
+            if I.Acs = I.Acd then
+               CPU.PC := CPU.PC + 2;
+            else
+               if CPU.AC(I.Acs) >= CPU.AC(I.Acd) then
+                  CPU.PC := CPU.PC + 2;
+               else
+                  CPU.PC := CPU.PC + 1;
+               end if;
+            end if;
 
          when I_WUSGT =>
             if I.Acs = I.Acd then

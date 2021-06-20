@@ -29,12 +29,16 @@ with Memory;      use Memory;
 package body AOSVS.IPC is
 
     function Sys_ILKUP  (CPU : in out CPU_T; PID, TID : in Word_T) return Boolean is
-        I_Path : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
+        I_Name : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
+        I_Path : String := To_String(Agent.Actions.Get_Virtual_Root) &
+                           Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
+                           ":" & I_Name); 
         G_Port : Dword_T;
         F_Type : Word_T;
         Err    : Word_T;
     begin
-        Loggers.Debug_Print (Sc_Log, "?ILKUP");
+        Loggers.Debug_Print (Sc_Log, "?ILKUP - filename: " & I_Name);
+        Loggers.Debug_Print (Sc_Log, "------   Resolved to local file: " & I_Path);
         AOSVS.Agent.Actions.I_Lookup(PID, I_Path, G_Port, F_Type, Err);
         if Err /= 0 then
             CPU.AC(0) := Dword_T(Err);

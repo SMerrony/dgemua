@@ -157,6 +157,29 @@ package body Processor.Eagle_FPU_P is
                raise Not_Yet_Implemented with "Non-Zero Decimal Scale factors is WSTI";
             end if;
             case Dec_Type is
+
+               when Packed_Dec =>
+                  declare
+                     type Nibble is mod 2 ** 4;
+                     type Nibble_Arr_T is array (0 .. SSize) of Nibble;
+                     Nibble_Arr : Nibble_Arr_T := (others => 0);
+                     Int_Val    : Integer := Integer(CPU.FPAC(I.Ac));
+                     Byte       : Byte_T;
+                  begin
+                     -- trailing sign
+                     Nibble_Arr(SSize) := (if Int_Val < 0 then 16#D# else 16#C#);
+                     -- digits in reverse order
+                     for D in reverse 0 .. SSize - 1 loop
+                        Nibble_Arr(D) := Nibble(Int_Val mod 10);
+                        Int_Val := Int_Val / 10;
+                     end loop;
+                     for B in 0 ..SSize / 2 loop
+                        Byte := Shift_Left(Byte_T(Nibble_Arr(2 * B)), 4) or Byte_T(Nibble_Arr((2 * B) + 1));
+                        RAM.Write_Byte_BA(CPU.AC(3), Byte);
+                        Loggers.Debug_Print (Debug_Log, "... BCD stored: " & Byte_To_String(Byte, Hex, 2, true));
+                        CPU.AC(3) := CPU.AC(3) + 1;
+                     end loop;
+                  end;
                when Unpacked_Dec_LS =>
                   declare
                      Converted : String(1 .. SSize);
