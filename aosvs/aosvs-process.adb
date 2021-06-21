@@ -91,12 +91,24 @@ package body AOSVS.Process is
 
     function Sys_RNGPR  (CPU : in out CPU_T; PID : in Word_T) return Boolean is
         Pkt_Addr  : Phys_Addr_T := Phys_Addr_T (CPU.AC (2));
+        Buff_BA   : Dword_T     := RAM.Read_Dword (Pkt_Addr + RNGBP);
+        Buff_Len  : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word (Pkt_Addr + RNGLB)));
     begin
         Loggers.Debug_Print (Sc_Log, "?RNGPR");
         if CPU.AC(0) /= 16#ffff_ffff# then
-            raise Not_Yet_Implemented with ?RNGPR for other/named procs";
+            raise Not_Yet_Implemented with "?RNGPR for other/named procs";
         end if;
-kjh
+        declare 
+            PR_S : Unbounded_String := AOSVS.Agent.Actions.Get_PR_Name(PID);
+        begin
+            if Length(PR_S) > Buff_Len then
+                CPU.AC(0) := Dword_T(ERIRB);
+                return false;
+            end if;
+            RAM.Write_String_BA (Buff_BA, To_String(PR_S));
+            CPU.AC(0) := Dword_T(Length(PR_S));
+            Loggers.Debug_Print (Sc_Log, "------ Returning: " & To_String(PR_S));
+        end;
         return true;
     end Sys_RNGPR;
 

@@ -995,4 +995,11 @@ package PARU_32 is
 
 	DXLTH	:constant Phys_Addr_T := DCI + 1;  --  LENGTH OF EXTENDED PACKET	
 
+	-- ?RNGPR PACKET OFFSETS
+	--
+    RNGBP : constant Phys_Addr_T := 0;           -- BYTE POINTER TO BUFFER (2 WORDS)
+    RNGNM : constant Phys_Addr_T := RNGBP + 2;   -- RING # OF RING TO CHECK
+    RNGLB : constant Phys_Addr_T := RNGNM + 1;   -- BUFFER BYTE LENGTH
+    RNGPL : constant Phys_Addr_T := RNGLB + 1;   -- PACKET LENGTH
+
 end PARU_32; 
