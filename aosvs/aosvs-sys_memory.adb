@@ -89,7 +89,7 @@ package body AOSVS.Sys_Memory is
                            ":" & SO_Name); 
       Chan_No, Err : Word_T;
    begin
-      Loggers.Debug_Print (Sc_Log, "?SOPEN Path: " & SO_Path);
+      Loggers.Debug_Print (Sc_Log, "?SOPEN Path: " & SO_Name);
       Loggers.Debug_Print (Sc_Log, "------ Resolved to local file: " & SO_Path);
       if CPU.AC(1) /= 16#ffff_ffff# then
          raise Processor.Not_Yet_Implemented with "?SOPEN of specific channel";

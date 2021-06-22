@@ -32,7 +32,7 @@ package body Processor.Eagle_Stack_P is
       DW := RAM.Read_Dword (CPU.WSP);
       CPU.WSP := CPU.WSP - 2;
       if CPU.Debug_Logging then
-         Loggers.Debug_Print (Debug_Log, "Popped " & Dword_To_String (DW, Octal, 11) &
+         Loggers.Debug_Print (Debug_Log, "... Popped " & Dword_To_String (DW, Octal, 11) &
                                          " from: " & Dword_To_String (Dword_T(CPU.WSP + 2), Octal, 11));
       end if;
    end WS_Pop;
@@ -42,7 +42,7 @@ package body Processor.Eagle_Stack_P is
       CPU.WSP := CPU.WSP + 2;
       RAM.Write_Dword (CPU.WSP, DW);
       if CPU.Debug_Logging then
-         Loggers.Debug_Print (Debug_Log, "Pushed " & Dword_To_String (DW, Octal, 11) &
+         Loggers.Debug_Print (Debug_Log, "... Pushed " & Dword_To_String (DW, Octal, 11) &
                                            " to: " & Dword_To_String (Dword_T(CPU.WSP), Octal, 11));
       end if;
    end WS_Push;
@@ -91,13 +91,11 @@ package body Processor.Eagle_Stack_P is
          RAM.Write_Dword (CPU.WSP, Dword_T(Datum));
       end WS_Push_QW;
 
-      -- WSP_Check_Bounds does a pre-flight check to see if the intended change of WSP would cause a stack fault
+      -- WSP_Check_Bounds does a check to see if the intended change of WSP would cause a stack fault
       -- Is_Save must be set by WMSP, WSSVR, WSSVS, WSAVR & WSAVS
       procedure WSP_Check_Bounds (Delta_Words : in Integer; Is_Save : in Boolean;
                                   OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
       begin
-         Loggers.Debug_Print (Debug_Log, "... WSB: " & Dword_To_String (Dword_T(CPU.WSB), Octal, 11, true) &
-                                            " WSL: " & Dword_To_String (Dword_T(CPU.WSL), Octal, 11, true));
          OK := true;
          if Delta_Words > 0 then
             if CPU.WSP + Phys_Addr_T(Delta_Words) > CPU.WSL then
@@ -121,6 +119,26 @@ package body Processor.Eagle_Stack_P is
             end if;
          end if;
       end WSP_Check_Bounds;
+
+      procedure WSP_Check_Overflow (OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
+      begin
+         OK := true;
+         if CPU.WSP > CPU.WSL then
+            OK := false;
+            Secondary_Fault := WSF_Overflow;
+            Primary_Fault := WSF_Overflow; 
+         end if;      
+      end WSP_Check_Overflow;
+
+      procedure WSP_Check_Underflow (OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
+      begin
+         OK := true;
+         if CPU.WSP < CPU.WSB then
+            OK := false;
+            Secondary_Fault := WSF_Underflow;
+            Primary_Fault := WSF_Underflow;
+         end if;
+      end WSP_Check_Underflow;
 
       procedure WSP_Handle_Fault (Ring : in Phys_Addr_T; I_Len : in Positive; Primary_Fault, Secondary_Fault : in Dword_T) is
          DW : Dword_T;
@@ -169,7 +187,12 @@ package body Processor.Eagle_Stack_P is
          CPU.PC := WSFH_Addr;
       end WSP_Handle_Fault;
 
+      Have_Set_PC : Boolean := false;
+
    begin
+      Loggers.Debug_Print (Debug_Log, "... Before - WSB: " & Dword_To_String (Dword_T(CPU.WSB), Octal, 11, true) &
+                                            " WSP: " & Dword_To_String (Dword_T(CPU.WSP), Octal, 11, true) &
+                                            " WSL: " & Dword_To_String (Dword_T(CPU.WSL), Octal, 11, true));
       case I.Instruction is
 
          when I_LCALL => -- FIXME - LCALL only handling trivial case
@@ -200,7 +223,7 @@ package body Processor.Eagle_Stack_P is
                WS_Push (CPU, DW);
                CPU.PC := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset); 
                CPU.AC(3) := PC_4;
-               return; -- we have set the PC
+               Have_Set_PC := true; -- we have set the PC
             end;
 
          when I_LDAFP =>
@@ -223,18 +246,17 @@ package body Processor.Eagle_Stack_P is
                Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
                WS_Push (CPU, Dword_T(Addr));
                Set_OVR (false);
+               WSP_Check_Overflow (
+                  OK => OK, 
+                  Primary_Fault => Primary_Fault, 
+                  Secondary_Fault => Secondary_Fault);
+               if not OK then
+                  Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by LPEFB");
+                  WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+                  Have_Set_PC := true; -- We have set the PC
+               end if;
 
          when I_LPEFB =>
-            WSP_Check_Bounds (Delta_Words => 2, 
-                              Is_Save => false, 
-                              OK => OK, 
-                              Primary_Fault => Primary_Fault, 
-                              Secondary_Fault => Secondary_Fault);
-            if not OK then
-               Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by LPEFB");
-               WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
-               return; -- We have set the PC
-            end if;
             -- FIXME should the byte address have sign preserved?
             Addr := Resolve_31bit_Disp (CPU, false, I.Mode, Integer_32(Shift_Right(I.Disp_32,1)), I.Disp_Offset);
             Addr := Shift_Left(Addr, 1);
@@ -243,6 +265,15 @@ package body Processor.Eagle_Stack_P is
             end if;
             WS_Push (CPU, Dword_T(Addr));
             Set_OVR (false);
+            WSP_Check_Overflow ( 
+                           OK => OK, 
+                           Primary_Fault => Primary_Fault, 
+                           Secondary_Fault => Secondary_Fault);
+            if not OK then
+               Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by LPEFB");
+               WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+               Have_Set_PC := true; -- We have set the PC
+            end if;
 
          when I_STAFP =>
             -- TODO Segment handling here?
@@ -290,6 +321,15 @@ package body Processor.Eagle_Stack_P is
             WS_Push_QW (Qword_T(CPU.FPAC(1)));
             WS_Push_QW (Qword_T(CPU.FPAC(2)));
             WS_Push_QW (Qword_T(CPU.FPAC(3)));
+            WSP_Check_Overflow ( 
+                           OK => OK, 
+                           Primary_Fault => Primary_Fault, 
+                           Secondary_Fault => Secondary_Fault);
+            if not OK then
+               Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WFPSH");
+               WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+               Have_Set_PC := true; -- We have set the PC
+            end if;
 
          when I_WMSP =>
             declare
@@ -301,12 +341,13 @@ package body Processor.Eagle_Stack_P is
                                  Primary_Fault => Primary_Fault, 
                                  Secondary_Fault => Secondary_Fault);
                if not OK then
-                  Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WMSP");
+                  Loggers.Debug_Print(Debug_Log, "... Stack Fault trapped by WMSP");
                   WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
-                  return; -- We have set the PC
+                  Have_Set_PC := true; -- We have set the PC
+               else
+                  CPU.WSP := CPU.WSP + Phys_Addr_T(DeltaWds);
+                  Set_OVR (false);
                end if;
-               CPU.WSP := CPU.WSP + Phys_Addr_T(DeltaWds);
-               Set_OVR (false);
             end;
 
 
@@ -317,7 +358,7 @@ package body Processor.Eagle_Stack_P is
             This_Ac := First;
             loop
                if CPU.Debug_Logging then
-                  Loggers.Debug_Print (Debug_Log, "POP popping AC" & This_AC'Image);
+                  Loggers.Debug_Print (Debug_Log, "... WPOP popping AC" & AC_Circle(This_AC)'Image);
                end if;
                WS_Pop(CPU,CPU.AC(AC_Circle(This_AC)));
                exit when This_Ac = Last;
@@ -334,11 +375,11 @@ package body Processor.Eagle_Stack_P is
                               Primary_Fault => Primary_Fault, 
                               Secondary_Fault => Secondary_Fault);
             if not OK then
-               Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WPOPJ");
+               Loggers.Debug_Print(Debug_Log, "... Stack Fault trapped by WPOPJ");
                WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
-               return; -- We have set the PC
+               Have_Set_PC := true; -- We have set the PC
             end if;
-            return; -- we've set PC
+            Have_Set_PC := true; -- we've set PC
 
 
          when I_WPSH =>
@@ -347,26 +388,35 @@ package body Processor.Eagle_Stack_P is
             if Last < First then Last := Last + 4; end if;
             for This_AC in First .. Last loop
                if CPU.Debug_Logging then
-                  Loggers.Debug_Print (Debug_Log, "WPSH pushing AC" & This_AC'Image);
+                  Loggers.Debug_Print (Debug_Log, "... WPSH pushing AC" & AC_Circle(This_AC)'Image);
                end if;   
                WS_Push (CPU, CPU.AC(AC_Circle(This_AC)));
             end loop;
             Set_OVR (false);
-
+            WSP_Check_Overflow ( 
+                           OK => OK, 
+                           Primary_Fault => Primary_Fault, 
+                           Secondary_Fault => Secondary_Fault);
+            if not OK then
+               Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WPSH");
+               WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
+               Have_Set_PC := true; -- We have set the PC
+            end if;
+          
          when I_WRTN => -- FIXME: WRTN incomplete, handle PSR and Rings
             CPU.WSP := CPU.WFP;
-            WS_Pop (CPU, DW);
+            WS_Pop (CPU, DW);                  -- 1
             CPU.Carry := Test_DW_Bit (DW, 0);
             CPU.PC := Phys_Addr_T(DW and 16#7fff_ffff#);
-            WS_Pop (CPU, CPU.AC(3));
+            WS_Pop (CPU, CPU.AC(3));           -- 2
             CPU.WFP := Phys_Addr_T(CPU.AC(3));
-            WS_Pop (CPU, CPU.AC(2));
-            WS_Pop (CPU, CPU.AC(1));
-            WS_Pop (CPU, CPU.AC(0));
-            WS_Pop (CPU, DW);
+            WS_Pop (CPU, CPU.AC(2));           -- 3
+            WS_Pop (CPU, CPU.AC(1));           -- 4
+            WS_Pop (CPU, CPU.AC(0));           -- 5
+            WS_Pop (CPU, DW);                  -- 6
             CPU.PSR := Upper_Word (DW);
             CPU.WSP := CPU.WSP - Phys_Addr_T (Shift_Left ((DW and 16#0000_7fff#), 1));
-            return; -- We've set PC
+            Have_Set_PC := true; -- We've set PC
 
          when I_WSAVR | I_WSAVS =>
             Req_Space := Integer(Word_To_Integer_16(I.Word_2));
@@ -378,26 +428,27 @@ package body Processor.Eagle_Stack_P is
             if not OK then
                Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WSAVR/S");
                WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
-               return; -- We have set the PC
-            end if;
-            DW := CPU.AC(3) and 16#7fff_ffff#;
-            if CPU.Carry then
-               DW := DW or 16#8000_0000#;
-            end if;
-            WS_Push (CPU, CPU.AC(0));
-            WS_Push (CPU, CPU.AC(1));
-            WS_Push (CPU, CPU.AC(2));
-            WS_Push (CPU, Dword_T(CPU.WFP));
-            WS_Push (CPU, DW);
-            CPU.WFP := CPU.WSP;
-            CPU.AC(3) := Dword_T(CPU.WSP);
-            if Req_Space > 0 then
-               CPU.WSP := CPU.WSP + Phys_Addr_T(Req_Space * 2);
-            end if;
-            if I.Instruction = I_WSAVR then
-               Set_OVK (false);
+               Have_Set_PC := true; -- We have set the PC
             else
-               Set_OVK (true);
+               DW := CPU.AC(3) and 16#7fff_ffff#;
+               if CPU.Carry then
+                  DW := DW or 16#8000_0000#;
+               end if;
+               WS_Push (CPU, CPU.AC(0));
+               WS_Push (CPU, CPU.AC(1));
+               WS_Push (CPU, CPU.AC(2));
+               WS_Push (CPU, Dword_T(CPU.WFP));
+               WS_Push (CPU, DW);
+               CPU.WFP := CPU.WSP;
+               CPU.AC(3) := Dword_T(CPU.WSP);
+               if Req_Space > 0 then
+                  CPU.WSP := CPU.WSP + Phys_Addr_T(Req_Space * 2);
+               end if;
+               if I.Instruction = I_WSAVR then
+                  Set_OVK (false);
+               else
+                  Set_OVK (true);
+               end if;
             end if;
 
          when I_WSSVR | I_WSSVS =>
@@ -410,45 +461,45 @@ package body Processor.Eagle_Stack_P is
             if not OK then
                Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by WSSVR/S");
                WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
-               return; -- We have set the PC
-            end if;
-            -- push the special return block
-            DW := CPU.AC(3) and 16#7fff_ffff#;
-            if CPU.Carry then
-               DW := DW or 16#8000_0000#;
-            end if;
-            WS_Push (CPU, Dword_From_Two_Words(CPU.PSR, 0));
-            WS_Push (CPU, CPU.AC(0));
-            WS_Push (CPU, CPU.AC(1));
-            WS_Push (CPU, CPU.AC(2));
-            WS_Push (CPU, Dword_T(CPU.WFP));
-            WS_Push (CPU, DW);
-            CPU.WFP := CPU.WSP;
-            CPU.AC(3) := Dword_T(CPU.WSP);
-            if Req_Space > 0 then
-               CPU.WSP := CPU.WSP + Phys_Addr_T(Req_Space * 2);
-            end if;
-            if I.Instruction = I_WSSVR then
-               Set_OVK(false);
-               Set_OVR(false);
+               Have_Set_PC := true; -- We have set the PC
             else
-               Set_OVK(true);
-               Set_OVR(false);
+               -- push the special return block
+               DW := CPU.AC(3) and 16#7fff_ffff#;
+               if CPU.Carry then
+                  DW := DW or 16#8000_0000#;
+               end if;
+               WS_Push (CPU, Dword_From_Two_Words(CPU.PSR, 0));
+               WS_Push (CPU, CPU.AC(0));
+               WS_Push (CPU, CPU.AC(1));
+               WS_Push (CPU, CPU.AC(2));
+               WS_Push (CPU, Dword_T(CPU.WFP));
+               WS_Push (CPU, DW);
+               CPU.WFP := CPU.WSP;
+               CPU.AC(3) := Dword_T(CPU.WSP);
+               if Req_Space > 0 then
+                  CPU.WSP := CPU.WSP + Phys_Addr_T(Req_Space * 2);
+               end if;
+               if I.Instruction = I_WSSVR then
+                  Set_OVK(false);
+                  Set_OVR(false);
+               else
+                  Set_OVK(true);
+                  Set_OVR(false);
+               end if;
             end if;
 
          when I_XPEF =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             WS_Push (CPU, Dword_T(Addr));
             Set_OVR (false);
-            WSP_Check_Bounds (Delta_Words => 0, 
-                              Is_Save => false, 
-                              OK => OK, 
-                              Primary_Fault => Primary_Fault, 
-                              Secondary_Fault => Secondary_Fault);
+            WSP_Check_Overflow ( 
+                           OK => OK, 
+                           Primary_Fault => Primary_Fault, 
+                           Secondary_Fault => Secondary_Fault);
             if not OK then
                Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by XPEF");
                WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
-               return; -- We have set the PC
+               Have_Set_PC := true; -- We have set the PC
             end if;
 
          when I_XPEFB =>
@@ -459,33 +510,30 @@ package body Processor.Eagle_Stack_P is
             end if;
             WS_Push (CPU, Dword_T(Addr));
             Set_OVR (false);
-            WSP_Check_Bounds (Delta_Words => 0, 
-                              Is_Save => false, 
-                              OK => OK, 
-                              Primary_Fault => Primary_Fault, 
-                              Secondary_Fault => Secondary_Fault);
+            WSP_Check_Overflow ( 
+                           OK => OK, 
+                           Primary_Fault => Primary_Fault, 
+                           Secondary_Fault => Secondary_Fault);
             if not OK then
                Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by XPEFB");
                WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
-               return; -- We have set the PC
+               Have_Set_PC := true; -- We have set the PC
             end if;
 
          when I_XPSHJ =>
             WS_Push (CPU, Dword_T(CPU.PC) + 2);
-            WSP_Check_Bounds (Delta_Words => 0, 
-                              Is_Save => false, 
-                              OK => OK, 
+            WSP_Check_Overflow (OK => OK, 
                               Primary_Fault => Primary_Fault, 
                               Secondary_Fault => Secondary_Fault);
             if not OK then
                Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by XPSHJ");
                WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
-               return; -- We have set the PC
+            else
+               Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               Addr := (Addr and 16#0fff_ffff#) or Ring;
+               CPU.PC := Addr;
             end if;
-            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
-            Addr := (Addr and 16#0fff_ffff#) or Ring;
-            CPU.PC := Addr;
-            return; -- We have set the PC
+            Have_Set_PC := true; -- We have set the PC
 
          when others =>
             Put_Line ("ERROR: EAGLE_STACK instruction " & To_String(I.Mnemonic) & 
@@ -493,7 +541,12 @@ package body Processor.Eagle_Stack_P is
             raise Execution_Failure with "ERROR: EAGLE_STACK instruction " & To_String(I.Mnemonic) & 
                         " not yet implemented";
       end case;
-      CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+      Loggers.Debug_Print (Debug_Log, "... After  - WSB: " & Dword_To_String (Dword_T(CPU.WSB), Octal, 11, true) &
+                                      " WSP: " & Dword_To_String (Dword_T(CPU.WSP), Octal, 11, true) &
+                                      " WSL: " & Dword_To_String (Dword_T(CPU.WSL), Octal, 11, true));
+      if not Have_Set_PC then
+         CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+      end if;
 
    end Do_Eagle_Stack;
 

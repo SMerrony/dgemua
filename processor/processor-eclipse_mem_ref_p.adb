@@ -197,6 +197,7 @@ package body Processor.Eclipse_Mem_Ref_P is
          when I_LEF =>
             Addr := Resolve_8bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15);
             Addr := (Addr and 16#0000_7fff#) or Ring;
+            CPU.AC(I.Ac) := Dword_T(Addr);
 
          when I_STB =>
             declare

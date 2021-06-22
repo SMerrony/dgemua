@@ -164,7 +164,7 @@ package body AOSVS.Agent is
         end if;
 
          if Path(Path'First) = '@' then
-            if (Path = "@CONSOLE") or (Path = "@INPUT") or (Path = "@OUTPUT") then
+            if (Path = "@CONSOLE") or (Path = "@INPUT") or (Path = "@OUTPUT") or (Path = "@OUT") then
                Agent_Chans(Chan_Num).Con        := Console;
                Agent_Chans(Chan_Num).Is_Console := true;
                Agent_Chans(Chan_Num).Echo       := true;

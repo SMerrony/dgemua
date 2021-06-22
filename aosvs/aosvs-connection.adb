@@ -24,6 +24,19 @@ with Debug_Logs;    use Debug_Logs;
 
 package body AOSVS.Connection is
 
+   function Sys_CON (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+   begin
+      Loggers.Debug_Print (Sc_Log, "?CON - to PID" & CPU.AC(0)'Image & " - Ignoring");
+      return true;
+   end Sys_CON;
+
+   function Sys_DCON (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+   begin
+      Loggers.Debug_Print (Sc_Log, "?DCON - to PID" & CPU.AC(1)'Image & " - Ignoring");
+      CPU.AC(0) := CPU.AC(1);
+      return true;
+   end Sys_DCON;
+
    function Sys_SERVE (CPU : in out CPU_T; PID : in Word_T) return Boolean is
    begin
       Loggers.Debug_Print (Sc_Log, "?SERVE - Ignoring");

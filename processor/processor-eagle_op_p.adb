@@ -32,11 +32,10 @@ package body Processor.Eagle_Op_P is
 
    procedure Do_Eagle_Op (I : in Decoded_Instr_T; CPU : in out CPU_T) is
  
-      Acd_S16, Acs_S16, S16: Integer_16;
-      Acd_S32, Acs_S32, S32: Integer_32;
-      S64   : Integer_64;
-      -- Word  : Word_T;
-      Shift : Integer;
+      Acd_S16, S16          : Integer_16;
+      Acd_S32, Acs_S32, S32 : Integer_32;
+      S64                   : Integer_64;
+      Shift                 : Integer;
             
       procedure Set_OVR (New_OVR : in Boolean) is
       begin
@@ -306,7 +305,8 @@ package body Processor.Eagle_Op_P is
          when I_WNEG =>
             CPU.Carry := CPU.AC(I.Acs) = 16#8000_0000#; -- TODO Error in PoP?
             Set_OVR(CPU.Carry);
-            CPU.AC(I.Acd) := (not CPU.AC(I.Acs)) + 1;
+            S32 := (- Dword_To_Integer_32(CPU.AC(I.Acs)));
+            CPU.AC(I.Acd) := Integer_32_To_Dword(S32);
 
          when I_WSBI =>
             S32 := Integer_32(Integer_16(I.Imm_U16));

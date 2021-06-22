@@ -99,7 +99,7 @@ package body AOSVS.Process is
             raise Not_Yet_Implemented with "?RNGPR for other/named procs";
         end if;
         declare 
-            PR_S : Unbounded_String := AOSVS.Agent.Actions.Get_PR_Name(PID);
+            PR_S : Unbounded_String := ':' & AOSVS.Agent.Actions.Get_PR_Name(PID);
         begin
             if Length(PR_S) > Buff_Len then
                 CPU.AC(0) := Dword_T(ERIRB);

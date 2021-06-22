@@ -338,7 +338,7 @@ package body Processor is
          Segment := Integer(Shift_Right(PC, 29));
          Instr := Instruction_Decode (Opcode => This_Op, 
                                     PC => PC, 
-                                    LEF_Mode => Get_LEF(CPU, Segment), 
+                                    LEF_Mode => true, 
                                     IO_On => Get_IO(CPU, Segment), 
                                     ATU_On => Get_ATU (CPU), 
                                     Disassemble => Disassemble, 

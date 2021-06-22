@@ -25,6 +25,8 @@ with Processor;     use Processor;
 
 package AOSVS.Connection is
    
+   function Sys_CON   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+   function Sys_DCON  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
    function Sys_SERVE (CPU : in out CPU_T; PID : in Word_T) return Boolean;
 
 end AOSVS.Connection;

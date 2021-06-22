@@ -54,19 +54,23 @@ package body Processor.Eagle_PC_P is
       case I.Instruction is
 
          when I_DSZTS | I_ISZTS =>
-            Addr := CPU.WSP;
-            if I.Instruction = I_DSZTS then
-               DW := RAM.Read_Dword (Addr) - 1;
-            else 
-               DW := RAM.Read_Dword (Addr) + 1;
-            end if;
-            RAM.Write_Dword (Addr, DW);
-            Set_OVR (false);
-            if DW = 0 then
-               CPU.PC := CPU.PC + 2;
-            else
-               CPU.PC := CPU.PC + 1;
-            end if;
+            declare
+               S32 : Integer_32 := Dword_To_Integer_32(RAM.Read_Dword(CPU.WSP));
+            begin
+               if I.Instruction = I_DSZTS then
+                  S32 := S32 - 1;
+               else 
+                  S32 := S32 + 1;
+               end if;
+               RAM.Write_Dword (CPU.WSP, Integer_32_To_Dword(S32));
+               Loggers.Debug_Print(Debug_Log, "... @WSP now: " & Dword_To_String (RAM.Read_Dword(CPU.WSP), Octal, 11, true));
+               Set_OVR (false);
+               if S32 = 0 then
+                  CPU.PC := CPU.PC + 2;
+               else
+                  CPU.PC := CPU.PC + 1;
+               end if;  
+            end;
 
          when I_LDSP =>
             declare

@@ -119,7 +119,7 @@ package body Memory is
         begin
             if not Page_Mapped(Page) then
                 raise Read_From_Unmapped_Page with Int_To_String(Page, Hex, 8) &
-                    " for address: " & Dword_To_String(Dword_T(Word_Addr), Hex, 8);
+                    " Unmapped Read for address: " & Dword_To_String(Dword_T(Word_Addr), Octal, 11);
             end if;
             return VRAM(Page)(Integer(Word_Addr and 16#03ff#));
         end Read_Word;
