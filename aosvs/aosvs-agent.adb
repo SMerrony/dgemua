@@ -129,6 +129,7 @@ package body AOSVS.Agent is
          Create, Create_Or_Error, Create_If_Reqd, Recreate, Read_Only : Boolean;
          F_New  : Ada.Text_IO.File_Type;
          Local_Path : Unbounded_String;
+         -- Stream_File : Ada.Streams.Stream_IO.File_Type;
       begin
          Err := 0;
          Chan_Num := Get_Free_Channel;
@@ -174,16 +175,6 @@ package body AOSVS.Agent is
          else 
             Agent_Chans(Chan_Num).Is_Console := false;
 
-            -- Local_Path := Virtual_Root;
-            -- if Path(Path'First) /= ':' then
-            --    Local_Path := Local_Path & 
-            --                  "/" & 
-            --                  To_Unbounded_String (Slashify_Path(To_String(Per_Process_Data(PID_T(PID)).Working_Directory))) & 
-            --                  "/";
-            -- end if;
-            -- Local_Path := Local_Path & Slashify_Path(Path);
-            -- Loggers.Debug_Print (Sc_Log, "------ Resolved AOS/VS file to physical location: " & To_String(Local_Path));
-
             if Recreate and Ada.Directories.Exists (Path) then
                Loggers.Debug_Print (Sc_Log, "------ Deleting old file");
                Ada.Directories.Delete_File (Path);
@@ -201,8 +192,7 @@ package body AOSVS.Agent is
             end if;
 
             Loggers.Debug_Print (Sc_Log, "----- Attempting to open: " & Path);
-            Ada.Streams.Stream_IO.Open (Agent_Chans(Chan_Num).File_Stream, (if Read_Only then Ada.Streams.Stream_IO.In_File else Ada.Streams.Stream_IO.Out_File), Path);
-
+            Direct_IO.Open (Agent_Chans(Chan_Num).File_Direct, (if Read_Only then Direct_IO.In_File else Direct_IO.Inout_File), Path);
          end if;
 
          -- check for errors
@@ -227,7 +217,7 @@ package body AOSVS.Agent is
                if Agent_Chans(Integer(Chan_No)).Is_Console then
                   null; -- ignore ?CLOSE on console device for now
                else
-                  Ada.Streams.Stream_IO.Close (Agent_Chans(Chan_No).File_Stream);
+                  Direct_IO.Close (Agent_Chans(Chan_No).File_Direct);
                   Agent_Chans(Chan_No).Opener_PID := 0;
                end if;
             end if;
@@ -257,6 +247,7 @@ package body AOSVS.Agent is
          Byte_Ix : Integer := Bytes'First;
          Byte    : Byte_T;
       begin
+         Loggers.Debug_Print (Sc_Log,"----- Record Length:" & Rec_Len'Image);
          Err := 0;
          Transferred := 0;
          if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
@@ -285,7 +276,16 @@ package body AOSVS.Agent is
             end loop;
             Transferred := Word_T(Byte_Ix) - 1;
          else
-            raise Not_Yet_Implemented with "physical file reads";
+            if Is_Dynamic then
+               -- Rec_Len is the fixed # of Bytes to read
+               for B in 0 .. Rec_Len - 1 loop
+                  Direct_IO.Read(Agent_Chans(Integer(Chan_No)).File_Direct, Bytes(B));
+               end loop;
+               Transferred := Word_T(Rec_Len);
+
+            else
+               raise Not_Yet_Implemented with "NYI - non-Dynamic physical file reads";
+            end if;
          end if;
 
 
@@ -395,7 +395,7 @@ package body AOSVS.Agent is
          Chars : Chars_Arr := Device_Chars(To_String(Device));
       begin
          WD_1 := Chars(1);
-         WD_2 := Chars(2);
+         WD_2 := 0; -- Chars(2);
          WD_3 := Chars(3);
       end Get_Current_Chars;
 

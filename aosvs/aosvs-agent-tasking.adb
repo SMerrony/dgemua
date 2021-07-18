@@ -177,6 +177,7 @@ package body AOSVS.Agent.Tasking is
                   raise System_Call_Not_Implemented with "Octal call #:" & Word_To_String(Call_ID, Octal, 5);
             end case;
             Processor.Eagle_Stack_P.WS_Pop(CPU, Dummy);
+            CPU.AC(3) := Dword_T(CPU.WFP);
             if Syscall_OK then
                CPU.PC := Return_Addr + 1; -- normal return
             else

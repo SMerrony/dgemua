@@ -61,15 +61,16 @@ package AOSVS.Agent is
 		Equivalent_Keys => "=");
 
 	Default_Chars : constant Chars_Arr := (
-		PARU_32.CST or PARU_32.CSFF, 				-- 8-col tabs, Form-feeds
-		PARU_32.CULC or PARU_32.CRT3, 				-- Upper and lower case, D200 style
-		Shift_Left(Word_T(24), 8) or Word_T(80) 	-- 24x80 chars
+		PARU_32.CST or PARU_32.CSFF or PARU_32.COTT or PARU_32.CEB0, -- 8-col tabs, Form-feeds, default echoing
+		PARU_32.CULC or PARU_32.CRT3, 				 -- Upper and lower case, D200 style
+		Shift_Left(Word_T(24), 8) or Word_T(80) 	 -- 24x80 chars
 	);
 
 	-- Shared Page I/O
 	type Page_T is array  (0 .. 1023) of Word_T; -- 4 disk blocks, 2kB
 	type Block_T is array (0 .. 255) of Word_T;  -- a disk block is 512B or 256W
 	package Block_IO is new Ada.Direct_IO (Block_T);
+	package Direct_IO is new Ada.Direct_IO (Byte_T);
 	type Block_Arr_T is array (Natural range <>) of Block_T;
 
 	-- File channels
@@ -84,8 +85,7 @@ package AOSVS.Agent is
 	   Rec_Len     : Natural;
 	   Con         : GNAT.Sockets.Stream_Access;
 	   Echo        : Boolean;
-	   --File_Stream : Stream_Access;
-	   File_Stream : Ada.Streams.Stream_IO.File_Type;
+	   File_Direct : Direct_IO.File_Type;
 	   File_Shared : Block_IO.File_Type;
 	end record;
 	type Agent_Channel_Arr is array (1 .. 128) of Agent_Channel_T;

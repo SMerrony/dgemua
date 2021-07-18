@@ -72,6 +72,11 @@ package body Processor.Eclipse_FPU_P is
             Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
             Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
 
+         when I_FMS =>
+            CPU.FPAC(I.Acd) := CPU.FPAC(I.Acd) * CPU.FPAC(I.Acs);
+            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
+
          when I_FSGT =>
             if (not Get_Z(CPU)) and (not Get_N(CPU)) then
                CPU.PC := CPU.PC + 1;

@@ -41,7 +41,7 @@ package body AOSVS.File_IO is
                                    Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
                                    ":" & Name)); 
     begin
-        Loggers.Debug_Print (Sc_Log, "?OPEN Pathname: " & Name);
+        Loggers.Debug_Print (Sc_Log, "?OPEN Pathname: " & Name); Loggers.Debug_Print (Debug_Log, "?OPEN Pathname: " & Name);
         Loggers.Debug_Print (Sc_Log, "----- Resolved to local file: " & Path);
         AOSVS.Agent.Actions.File_Open (PID, Path, File_Opts, File_Type, Rec_Len, Chan_No, Err);
         if Err /= 0 then
@@ -116,6 +116,9 @@ package body AOSVS.File_IO is
             return false;
         end if;
         RAM.Write_Word(Pkt_Addr + IRLR, Txfrd);
+        for B in 0 .. Txfrd - 1 loop
+            RAM.Write_Byte_BA(Dest + Dword_T(B), Bytes(Integer(B)));
+        end loop;
         Loggers.Debug_Print (Sc_Log, "----- Bytes Read:" & Txfrd'Image);
         return true;
     end Sys_READ;
@@ -143,13 +146,16 @@ package body AOSVS.File_IO is
             Loggers.Debug_Print (Sc_Log, "------ Data Sensitive");
         end if;
         if Is_Dynamic then
-            Loggers.Debug_Print (Sc_Log, "------ Dynamic");
+            Loggers.Debug_Print (Sc_Log, "------ Dynamic, Rec Len: " & Rec_Len'Image);
         end if;
         if Is_Extd then
             Loggers.Debug_Print (Sc_Log, "------ Extended!");
         end if;
         if Test_DW_Bit(RAM.Read_Dword(Pkt_Addr + ETSP), 0) then
             Loggers.Debug_Print (Sc_Log, "------ Contains Screen Management Pkt");
+        end if;
+        if Test_DW_Bit(RAM.Read_Dword(Pkt_Addr + ETFT), 0) then
+            Loggers.Debug_Print (Sc_Log, "------ Contains Field Translation Pkt");
         end if;
         AOSVS.Agent.Actions.File_Write (Chan_No,
                                         Defaults,
@@ -167,6 +173,7 @@ package body AOSVS.File_IO is
             return false;
         end if;
         RAM.Write_Word(Pkt_Addr + IRLR, Txfrd);
+
         Loggers.Debug_Print (Sc_Log, "------ Bytes Written:" & Txfrd'Image);
         return true;
     end Sys_Write;
@@ -176,7 +183,7 @@ package body AOSVS.File_IO is
         Get_Defaults : Boolean := Test_DW_Bit (CPU.AC(1), 1);
         WD_1, WD_2, WD_3 : Word_T;
     begin
-        Loggers.Debug_Print (Sc_Log, "?GCHR");
+        Loggers.Debug_Print (Sc_Log, "?GCHR"); Loggers.Debug_Print (Debug_Log, "?GCHR");
         if Test_DW_Bit (CPU.AC(1), 0) then
            -- ACO should contain a channel number which should already be open
            Device_Name := AOSVS.Agent.Actions.Get_Device_For_Channel(Lower_Word(CPU.AC(0)));
@@ -190,13 +197,18 @@ package body AOSVS.File_IO is
         end if;
         Loggers.Debug_Print (Sc_Log, "----- for device: " & To_String(Device_Name));
         if Get_Defaults then
+            Loggers.Debug_Print (Sc_Log, "----- Fetching Default characteristics");
             AOSVS.Agent.Actions.Get_Default_Chars(Device_Name, WD_1, WD_2, WD_3);
         else
+            Loggers.Debug_Print (Sc_Log, "----- Fetching Current characteristics");
             AOSVS.Agent.Actions.Get_Current_Chars(Device_Name, WD_1, WD_2, WD_3);
         end if;
-            RAM.Write_Word(Phys_Addr_T(CPU.AC(2)), WD_1);
-            RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+1, WD_2);
-            RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+2, WD_3);
+            -- RAM.Write_Word(Phys_Addr_T(CPU.AC(2)), WD_1);
+            -- RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+1, WD_2);
+            -- RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+2, WD_3);
+        RAM.Write_Word(Phys_Addr_T(CPU.AC(2)), 0);
+        RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+1, 0);
+        RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+2, 0);
         return true;
     end Sys_GCHR;
 
