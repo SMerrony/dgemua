@@ -338,7 +338,7 @@ package body AOSVS.Agent is
                   exit when DS_Len = Max_Len;
                end loop;
                Transferred := Integer_16_To_Word(Integer_16(DS_Len));
-               Loggers.Debug_Print (Sc_Log,"----- No of D/S bytes written:" & Transferred'Image);
+               -- Loggers.Debug_Print (Sc_Log,"----- No of D/S bytes written:" & Transferred'Image);
             else
                declare
                   Bytes : Byte_Arr_T := RAM.Read_Bytes_BA(Bytes_BA, Rec_Len);

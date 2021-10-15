@@ -123,7 +123,7 @@ package body AOSVS.File_IO is
         return true;
     end Sys_READ;
 
-    function Sys_WRITE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
+    function Sys_WRITE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T; Logging : in Boolean) return Boolean is
         Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
         Chan_No     : Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
         File_Spec   : Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
@@ -137,25 +137,27 @@ package body AOSVS.File_IO is
         Position    : Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
         Txfrd, Err  : Word_T;
     begin
-        Loggers.Debug_Print (Sc_Log, "?WRITE - Channel:" & Chan_No'Image);
-        Loggers.Debug_Print (Debug_Log, "?WRITE - Channel:" & Chan_No'Image);
-        if Defaults then
-            Loggers.Debug_Print (Sc_Log, "------ Default Type from ?Open");
-        end if;
-        if Is_DataSens then
-            Loggers.Debug_Print (Sc_Log, "------ Data Sensitive");
-        end if;
-        if Is_Dynamic then
-            Loggers.Debug_Print (Sc_Log, "------ Dynamic, Rec Len: " & Rec_Len'Image);
-        end if;
-        if Is_Extd then
-            Loggers.Debug_Print (Sc_Log, "------ Extended!");
-        end if;
-        if Test_DW_Bit(RAM.Read_Dword(Pkt_Addr + ETSP), 0) then
-            Loggers.Debug_Print (Sc_Log, "------ Contains Screen Management Pkt");
-        end if;
-        if Test_DW_Bit(RAM.Read_Dword(Pkt_Addr + ETFT), 0) then
-            Loggers.Debug_Print (Sc_Log, "------ Contains Field Translation Pkt");
+        if Logging then
+            Loggers.Debug_Print (Sc_Log, "?WRITE - Channel:" & Chan_No'Image);
+            Loggers.Debug_Print (Debug_Log, "?WRITE - Channel:" & Chan_No'Image);
+             if Defaults then
+                Loggers.Debug_Print (Sc_Log, "------ Default Type from ?Open");
+            end if;
+            if Is_DataSens then
+                Loggers.Debug_Print (Sc_Log, "------ Data Sensitive");
+            end if;
+            if Is_Dynamic then
+                Loggers.Debug_Print (Sc_Log, "------ Dynamic, Rec Len: " & Rec_Len'Image);
+            end if;
+            if Is_Extd then
+                Loggers.Debug_Print (Sc_Log, "------ Extended!");
+            end if;
+            if Test_DW_Bit(RAM.Read_Dword(Pkt_Addr + ETSP), 0) then
+                Loggers.Debug_Print (Sc_Log, "------ Contains Screen Management Pkt");
+            end if;
+            if Test_DW_Bit(RAM.Read_Dword(Pkt_Addr + ETFT), 0) then
+                Loggers.Debug_Print (Sc_Log, "------ Contains Field Translation Pkt");
+            end if;
         end if;
         AOSVS.Agent.Actions.File_Write (Chan_No,
                                         Defaults,
@@ -174,7 +176,9 @@ package body AOSVS.File_IO is
         end if;
         RAM.Write_Word(Pkt_Addr + IRLR, Txfrd);
 
-        Loggers.Debug_Print (Sc_Log, "------ Bytes Written:" & Txfrd'Image);
+        if Logging then
+            Loggers.Debug_Print (Sc_Log, "------ Bytes Written:" & Txfrd'Image);
+        end if;
         return true;
     end Sys_Write;
 

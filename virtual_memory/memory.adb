@@ -115,6 +115,7 @@ package body Memory is
             (Dword_T(Num_Unshared_Pages));    
 
         function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
+            pragma Suppress (Index_Check);
             Page : Natural := Natural(Shift_Right(Word_Addr, 10));
         begin
             if not Page_Mapped(Page) then

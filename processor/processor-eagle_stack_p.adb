@@ -190,10 +190,12 @@ package body Processor.Eagle_Stack_P is
       Have_Set_PC : Boolean := false;
 
    begin
-      Loggers.Debug_Print (Debug_Log, "... Before - WSB: " & Dword_To_String (Dword_T(CPU.WSB), Octal, 11, true) &
-                                            " WSP: " & Dword_To_String (Dword_T(CPU.WSP), Octal, 11, true) &
-                                            " WSL: " & Dword_To_String (Dword_T(CPU.WSL), Octal, 11, true) &
-                                            " WFP: " & Dword_To_String (Dword_T(CPU.WFP), Octal, 11, true));
+      if CPU.Debug_Logging then
+         Loggers.Debug_Print (Debug_Log, "... Before - WSB: " & Dword_To_String (Dword_T(CPU.WSB), Octal, 11, true) &
+                                             " WSP: " & Dword_To_String (Dword_T(CPU.WSP), Octal, 11, true) &
+                                             " WSL: " & Dword_To_String (Dword_T(CPU.WSL), Octal, 11, true) &
+                                             " WFP: " & Dword_To_String (Dword_T(CPU.WFP), Octal, 11, true));
+      end if;
       case I.Instruction is
 
          when I_LCALL => -- FIXME - LCALL only handling trivial case
@@ -542,10 +544,12 @@ package body Processor.Eagle_Stack_P is
             raise Execution_Failure with "ERROR: EAGLE_STACK instruction " & To_String(I.Mnemonic) & 
                         " not yet implemented";
       end case;
-      Loggers.Debug_Print (Debug_Log, "... After  - WSB: " & Dword_To_String (Dword_T(CPU.WSB), Octal, 11, true) &
-                                      " WSP: " & Dword_To_String (Dword_T(CPU.WSP), Octal, 11, true) &
-                                      " WSL: " & Dword_To_String (Dword_T(CPU.WSL), Octal, 11, true)  &
-                                      " WFP: " & Dword_To_String (Dword_T(CPU.WFP), Octal, 11, true));
+      if CPU.Debug_Logging then
+         Loggers.Debug_Print (Debug_Log, "... After  - WSB: " & Dword_To_String (Dword_T(CPU.WSB), Octal, 11, true) &
+                                       " WSP: " & Dword_To_String (Dword_T(CPU.WSP), Octal, 11, true) &
+                                       " WSL: " & Dword_To_String (Dword_T(CPU.WSL), Octal, 11, true)  &
+                                       " WFP: " & Dword_To_String (Dword_T(CPU.WFP), Octal, 11, true));
+      end if;
       if not Have_Set_PC then
          CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
       end if;
