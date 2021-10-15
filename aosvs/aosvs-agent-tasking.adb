@@ -47,7 +47,8 @@ package body AOSVS.Agent.Tasking is
      (PID : in PID_T;
       -- TID : in Word_T;
       Priority : in Word_T; PR_Addrs : in PR_Addrs_T;
-      Console  : in GNAT.Sockets.Stream_Access)
+      Console  : in GNAT.Sockets.Stream_Access;
+      Logging  : in Boolean)
    is
       Task_Data    : Task_Data_T;
       TID          : Word_T;
@@ -65,7 +66,7 @@ package body AOSVS.Agent.Tasking is
       Task_Data.WSL  := PR_Addrs.WSL;
       Task_Data.WSFH := PR_Addrs.WSFH;
 
-      Task_Data.Debug_Logging := TRUE; -- FIXME
+      Task_Data.Debug_Logging := Logging;
 
       AOSVS.Agent.Actions.Allocate_TID (PID, TID);
       if TID = 0 then
@@ -105,7 +106,9 @@ package body AOSVS.Agent.Tasking is
          CPU.WSB  := TD.WSB;
          CPU.WSL  := TD.WSL;
          Adj_WSFH := (CPU.PC and 16#7000_0000#) or Memory.WSFH_Loc;
-         RAM.Write_Word (Adj_WSFH, Word_T (TD.WSFH));
+         RAM.Write_Word (Adj_WSFH, Word_T (TD.WSFH)); -- FIXME is this right???
+         Loggers.Debug_Print (Sc_Log, "Adjusted WSFH set to: " & Dword_To_String (Dword_T(Adj_WSFH), Hex, 8, true) &
+                                      " Containing: " &Dword_To_String (RAM.Read_Dword(Adj_WSFH), Hex, 8, true));
          CPU.ATU := True;
          Set_Debug_Logging (CPU, TD.Debug_Logging);
          Task_Data := TD;

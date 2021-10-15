@@ -16,3 +16,10 @@ Default build is with debugging and without optimisation.  Append `-Xmode=releas
 (In obj/driver)
 
 `./test_runner`
+
+## Valgrind (Call Profiling)
+`valgrind --tool=callgrind ./vsemua -pr SPIGOT.PR -root /home/steve/ada/github.com/dgemua/FILESYSTEM -dir :SAMPLES`
+
+## Run VS/Emua
+* `./vsemua -pr SPIGOT.PR -root /home/steve/ada/github.com/dgemua/FILESYSTEM -dir :SAMPLES`
+* `./vsemua -pr MMM.PR -root /home/steve/ada/github.com/dgemua/FILESYSTEM -dir :GAMES:MMM`

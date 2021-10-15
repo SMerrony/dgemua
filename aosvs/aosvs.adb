@@ -123,15 +123,15 @@ package body AOSVS is
         Addrs.WSP      := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(WSP_In_Pr), PR_Arr(WSP_In_Pr + 1)));
         Ada.Text_IO.Put_Line ("Page 8 - PC   :" & Dword_To_String (Dword_T(Addrs.PR_Start), Octal, 11, true));
         Ada.Text_IO.Put_Line ("Page 8 - WFP  :" & Dword_To_String (Dword_T(Addrs.WFP), Octal, 11, true));
-        Ada.Text_IO.Put_Line (" - Page 0 - WFP  :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#20#), Octal, 11, true));
+        Ada.Text_IO.Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#20#), Octal, 11, true));
         Ada.Text_IO.Put_Line ("Page 8 - WSB  :" & Dword_To_String (Dword_T(Addrs.WSB), Octal, 11, true));
-        Ada.Text_IO.Put_Line (" - Page 0 - WSB  :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#26#), Octal, 11, true));
+        Ada.Text_IO.Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#26#), Octal, 11, true));
         Ada.Text_IO.Put_Line ("Page 8 - WSL  :" & Dword_To_String (Dword_T(Addrs.WSL), Octal, 11, true));
-        Ada.Text_IO.Put_Line (" - Page 0 - WSL  :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#24#), Octal, 11, true));
+        Ada.Text_IO.Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#24#), Octal, 11, true));
         Ada.Text_IO.Put_Line ("Page 8 - WSP  :" & Dword_To_String (Dword_T(Addrs.WSP), Octal, 11, true));
-        Ada.Text_IO.Put_Line (" - Page 0 - WSP  :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#22#), Octal, 11, true));
+        Ada.Text_IO.Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#22#), Octal, 11, true));
         Ada.Text_IO.Put_Line ("Page 8 - WSFH :" & Dword_To_String (Dword_T(Addrs.WSFH), Octal, 11, true));  
-        Ada.Text_IO.Put_Line (" - Page 0 - WSFH :" & Word_To_String (RAM.Read_Word(16#7000_0000# or 8#14#), Octal, 11, true));                                 
+        Ada.Text_IO.Put_Line (" - Page 0     :" & Word_To_String (RAM.Read_Word(16#7000_0000# or 8#14#), Octal, 11, true));                                 
         return Addrs;
     end Load_PR_Addresses;
 
@@ -182,7 +182,7 @@ package body AOSVS is
                       true);
         PR_Addrs := Load_PR_Addresses (PR_Arr);
 
-        Agent.Tasking.Create_Task (PID, 0, PR_Addrs, Console);
+        Agent.Tasking.Create_Task (PID, 0, PR_Addrs, Console, Logging);
 
     end Start;
 

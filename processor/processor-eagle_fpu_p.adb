@@ -29,14 +29,10 @@ package body Processor.Eagle_FPU_P is
 
    procedure Debug_FPACs (CPU : in CPU_T) is
    begin
-      Loggers.Debug_Print (Debug_Log, "FPAC0: " & CPU.FPAC(0)'Image & 
+      Loggers.Debug_Print (Debug_Log, "... FPAC0: " & CPU.FPAC(0)'Image & 
                                      " FPAC1: " & CPU.FPAC(1)'Image & 
                                      " FPAC2: " & CPU.FPAC(2)'Image & 
                                      " FPAC3: " & CPU.FPAC(3)'Image);
-      -- Ada.Text_IO.Put_Line("FPAC0: " & CPU.FPAC(0)'Image & 
-      --                                " FPAC1: " & CPU.FPAC(1)'Image & 
-      --                                " FPAC2: " & CPU.FPAC(2)'Image & 
-      --                                " FPAC3: " & CPU.FPAC(3)'Image);
    end Debug_FPACs;       
 
    function Floor(X : in Long_Float) return Integer_32 is

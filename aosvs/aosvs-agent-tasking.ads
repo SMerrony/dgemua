@@ -42,7 +42,8 @@ package AOSVS.Agent.Tasking is
                            -- TID : in Word_T;
                            Priority : in Word_T;
                            PR_Addrs : in PR_Addrs_T;
-                           Console : in GNAT.Sockets.Stream_Access);
+                           Console : in GNAT.Sockets.Stream_Access;
+                           Logging : in Boolean);
 
     function Get_Unique_TID (PID : in PID_T; TID : in Word_T) return Word_T;
 

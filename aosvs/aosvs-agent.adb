@@ -191,6 +191,12 @@ package body AOSVS.Agent is
                Ada.Text_IO.Close (F_New);
             end if;
 
+            if not Ada.Directories.Exists (Path) then
+               Loggers.Debug_Print (Sc_Log, "------ File did not exist to OPEN");
+               Err := PARU_32.ERFDE;
+               return;
+            end if;
+
             Loggers.Debug_Print (Sc_Log, "----- Attempting to open: " & Path);
             Direct_IO.Open (Agent_Chans(Chan_Num).File_Direct, (if Read_Only then Direct_IO.In_File else Direct_IO.Inout_File), Path);
          end if;

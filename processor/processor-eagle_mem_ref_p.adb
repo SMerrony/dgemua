@@ -250,9 +250,13 @@ package body Processor.Eagle_Mem_Ref_P is
                   Dest_Ascend := Dest_Cnt > 0;
                   Src_Cnt := Dword_To_Integer_32(CPU.AC(1));
                   Src_Ascend := Src_Cnt > 0;
+                  Loggers.Debug_Print (Debug_Log, "... Source Count:" & Src_Cnt'Image & "., Dest. Count:" & Dest_Cnt'Image);
                   CPU.Carry := (Abs Src_Cnt) > (Abs Dest_Cnt);
                   -- move Src_Cnt bytes
                   loop
+                     Loggers.Debug_Print (Debug_Log, "... Copy from: " & Dword_To_String (CPU.AC(3),Octal,11,true) & 
+                                                               " to: " & Dword_To_String (CPU.AC(2),Octal,11,true) &
+                                                               " remaining Src:" & Src_Cnt'Image & "., Dest:" & Dest_Cnt'Image);
                      RAM.Copy_Byte_BA(CPU.AC(3),CPU.AC(2));
                      if Src_Ascend then
                         CPU.AC(3) := CPU.AC(3) + 1;

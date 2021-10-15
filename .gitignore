@@ -23,3 +23,8 @@ vsemua
 
 # Memory dump for debugging
 mvemua.dmp
+gmon.out
+
+# Profiling
+callgrind.*.*
+
