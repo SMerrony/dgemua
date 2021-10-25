@@ -51,14 +51,14 @@ package body Processor.Eclipse_Op_P is
             declare
                D_Plus_1 : AC_ID;
             begin
-               if I.Acd = 3 then
+               if I.Ac = 3 then
                   D_Plus_1 := 0;
                else
-                  D_Plus_1 := I.Acd + 1;
+                  D_Plus_1 := I.Ac + 1;
                end if;
-               Dword := Dword_From_Two_Words (DG_Types.Lower_Word(CPU.AC(I.Acd)), DG_Types.Lower_Word(CPU.AC(D_Plus_1)));
+               Dword := Dword_From_Two_Words (DG_Types.Lower_Word(CPU.AC(I.Ac)), DG_Types.Lower_Word(CPU.AC(D_Plus_1)));
                Dword := Shift_Left (Dword, Natural(I.Imm_U16) * 4);
-               CPU.AC(I.Acd) := Dword_T(DG_Types.Upper_Word (Dword));
+               CPU.AC(I.Ac) := Dword_T(DG_Types.Upper_Word (Dword));
                CPU.AC(D_Plus_1) := Dword_T(DG_Types.Lower_Word (Dword));
             end;
 
