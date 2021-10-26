@@ -18,6 +18,7 @@ vsemua
 
 # Virtual files that shouldn't be shared (yet)
 /FILESYSTEM/*.PR
+/FILESYSTEM/*.ST
 /FILESYSTEM/PER
 /FILESYSTEM/UTIL
 
@@ -27,4 +28,3 @@ gmon.out
 
 # Profiling
 callgrind.*.*
-

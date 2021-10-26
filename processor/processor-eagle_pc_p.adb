@@ -206,20 +206,20 @@ package body Processor.Eagle_PC_P is
                Val    : Integer_32 := Dword_To_Integer_32(CPU.AC(I.Acs));
             begin
                if I.Acs /= I.Acd then
-                  Lo := Dword_To_Integer_32(RAM.Read_Dword (Phys_Addr_T(CPU.AC(I.Acd))));
+                  Lo := Dword_To_Integer_32(RAM.Read_Dword (Phys_Addr_T(CPU.AC(I.Acs))));
                   Hi := Dword_To_Integer_32(RAM.Read_Dword (Phys_Addr_T(CPU.AC(I.Acd)+2)));
-                  if (Val >= Lo) and (Val <= Hi) then
-                     CPU.PC := CPU.PC + 2;
-                  else
+                  if (Val < Lo) or (Val > Hi) then
                      CPU.PC := CPU.PC + 1;
+                  else
+                     CPU.PC := CPU.PC + 2;
                   end if;
                else
                   Lo := Dword_To_Integer_32(RAM.Read_Dword (Phys_Addr_T(CPU.PC + 1)));
                   Hi := Dword_To_Integer_32(RAM.Read_Dword (Phys_Addr_T(CPU.PC + 3)));
-                  if (Val >= Lo) and (Val <= Hi) then
-                     CPU.PC := CPU.PC + 6;
-                  else
+                  if (Val < Lo) or (Val > Hi) then
                      CPU.PC := CPU.PC + 5;
+                  else
+                     CPU.PC := CPU.PC + 6;
                   end if;
                end if;
             end;

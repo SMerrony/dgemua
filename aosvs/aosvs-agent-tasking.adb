@@ -174,8 +174,9 @@ package body AOSVS.Agent.Tasking is
                when 8#333# => Syscall_OK := AOSVS.Multitasking.Sys_UIDSTAT (CPU, Task_Data.PID, Task_Data.TID);
                when 8#336# => Syscall_OK := AOSVS.File_Management.Sys_RECREATE (CPU, Task_Data.PID);
                when 8#505# => Syscall_OK := AOSVS.Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr);
-               when 8#542# => Syscall_OK := AOSVS.Multitasking.Sys_IFPU (CPU); 
-               when 8#573# => Syscall_OK := AOSVS.Process.Sys_SYSPRV (CPU, Task_Data.PID);
+               when 8#525# => Syscall_OK := AOSVS.Multitasking.Sys_REC   (CPU, Task_Data.PID, Task_Data.TID);
+               when 8#542# => Syscall_OK := AOSVS.Multitasking.Sys_IFPU  (CPU); 
+               when 8#573# => Syscall_OK := AOSVS.Process.Sys_SYSPRV     (CPU, Task_Data.PID);
                when others =>
                   raise System_Call_Not_Implemented with "Octal call #:" & Word_To_String(Call_ID, Octal, 5);
             end case;

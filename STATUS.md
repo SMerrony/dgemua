@@ -40,16 +40,19 @@ The NADGUG library provides a good range of freely-available test targets...
   |    Game           |   Problem                                             |   Date      | cf. VS/Emug |
   |-------------------|-------------------------------------------------------|-------------|-------------|
   | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | Same    :-/ | 
+  | DND               | 'Error 71697. on file CONSOLE'                        | 28 Oct 2021 | Same    :-/ |
   | EMPIRE2T          | 'Error 71683. on file FILE_IN'                        | 22 Jun 2021 | Same    :-/ |
   | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 | Better  :-) | 
+  | FOOBAR            | 'Error 11381. from line 15'                           | 28 Oct 2021 | Worse   :-( |
   | HANGMAN (IMSUTIL) | Bad comparison in WDCMP after displaying start screen | 28 May 2021 | Same    :-/ | 
   | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | Better  :-) |
   | SCRABBLE          | Calling ?ERMSG after ?OPENing SEED file               | 19 Jun 2021 | Same    :-/ |
   | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | Same    :-/ | 
   | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 | Better  :-) |
+  | ZORK              | 'Error 71683. on file heap_ro'                        | 28 Oct 2021 | Same    :-/ |
   
 ### Reminders
 * ~~Check ?READ/WRITE/OPEN flag mode interpretation - it might be back-to-front~~
 * Is there an off-by-one in byte handling somewhere - could explain display glitches
-
+* We have the FORTRAN source for FOOBAR
 

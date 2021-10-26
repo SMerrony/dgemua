@@ -472,6 +472,11 @@ package body AOSVS.Agent is
          SFile  : Block_IO.File_Type;
       begin
          Err := 0;
+         if not Ada.Directories.Exists (S_Path) then
+            Loggers.Debug_Print (Sc_Log, "------ File does not exist");
+            Err := PARU_32.ERFDE;
+            return;
+         end if;
          C := Get_Free_Channel;
          Agent_Chans(C).Opener_PID := 0; -- ensure set to zero so it can be resused if this open fails
          Block_IO.Open (Agent_Chans(C).File_Shared, (if Read_Only then Block_IO.In_File else Block_IO.Inout_File), S_Path);

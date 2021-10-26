@@ -41,11 +41,20 @@ package body AOSVS.Multitasking is
         return true;
     end Sys_KILAD;
 
+    function Sys_REC (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
+    begin
+        Loggers.Debug_Print (Sc_Log, "?REC");
+        raise Not_Yet_Implemented;
+        return true;
+    end Sys_REC;
+
     function Sys_UIDSTAT (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
         Req_TID  : Dword_T     := CPU.AC(1);
         Pkt_Addr : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
     begin
         Loggers.Debug_Print (Sc_Log, "?UIDSTAT");
+        Loggers.Debug_Print (Sc_Log, "-------- Returning UTID: " & Word_To_String(Agent.Tasking.Get_Unique_TID(PID_T(PID), TID), Decimal, 2) &
+            ", STID: " & Word_To_String(TID, Decimal, 2));
         if Req_TID /= 16#ffff_ffff# then
             raise Not_Yet_Implemented with "?UIDSTAT for another TID";
         end if;
