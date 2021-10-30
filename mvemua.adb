@@ -162,10 +162,10 @@ procedure MVEmuA is
       case Dev is
          when Devices.MTB =>
             Devices.Magtape6026.Drives.Load_TBOOT;
-            Processor.Boot (CPU, Devices.MTB, 10);
+            Processor.Actions.Boot (CPU, Devices.MTB, 10);
          when Devices.DPF =>
             Devices.Disk6061.Drives.Load_DKBT;
-            Processor.Boot (CPU, Devices.DPF, 10);
+            Processor.Actions.Boot (CPU, Devices.DPF, 10);
          when others =>
             TTOut.Put_String (Dasher_NL & " *** Booting from that device is not yet implemented ***");
       end case;   
@@ -446,6 +446,10 @@ procedure MVEmuA is
       end if;
    end Do_Command;
 
+----------
+-- MAIN --
+----------
+
 begin
    while Arg_Num <= Ada.Command_Line.Argument_Count loop
       if Ada.Command_Line.Argument (Arg_num) = "-do" then
@@ -489,15 +493,17 @@ begin
 		--   NO IACs, LPT or ISC
 
       Decoder.Init;
+      Devices.Bus.Actions.Init;
       CPU := Processor.Make;
 
       Status_Monitor.Monitor.Start (Monitor_Port);
       RAM.Init (Debug_Logging);
-      Devices.Bus.Actions.Init;
+      -- Devices.Bus.Actions.Init;
       Devices.Bus.Actions.Connect (Devices.BMC);
       Devices.Bus.Actions.Set_Reset_Proc (Devices.BMC, BMC_DCH.Reset'Access);
       Devices.Bus.Actions.Connect (Devices.SCP);
       Devices.Bus.Actions.Connect (Devices.CPU);
+      Devices.Bus.Actions.Set_Reset_Proc (Devices.CPU, Processor.Actions.Reset'Access);
 
       Devices.Bus.Actions.Connect (Devices.TTO);
       Devices.Console.TTOut.Init (Connection);

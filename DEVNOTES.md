@@ -4,6 +4,9 @@
 
 Default build is with debugging and without optimisation.  Append `-Xmode=release` for optimised build.
 
+## Clean
+`gprclean mvemua.gpr`
+
 ## Regenerate tests
 `gnattest -P vsemua.gpr  -v  dg_types.ads --harness-dir=driver`
 

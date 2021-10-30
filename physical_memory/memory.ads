@@ -26,7 +26,7 @@ with DG_Types;   use DG_Types;
 
 package Memory is
 
-    Mem_Size_Words : constant Integer     := 8_388_608;
+    Mem_Size_Words : constant Integer     :=  33_554_432; -- 8_388_608;
     Max_Phys_Addr  : constant Phys_Addr_T := Phys_Addr_T(Mem_Size_Words - 1);
     -- MemSizeLCPID is the code returned by the LCPID to indicate the size of RAM in half megabytes
 	Mem_Size_LCPID : constant Dword_T := 63;
