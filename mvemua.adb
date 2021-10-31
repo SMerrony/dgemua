@@ -162,10 +162,10 @@ procedure MVEmuA is
       case Dev is
          when Devices.MTB =>
             Devices.Magtape6026.Drives.Load_TBOOT;
-            Processor.Actions.Boot (CPU, Devices.MTB, 10);
+            Processor.Boot (CPU, Devices.MTB, 10);
          when Devices.DPF =>
             Devices.Disk6061.Drives.Load_DKBT;
-            Processor.Actions.Boot (CPU, Devices.DPF, 10);
+            Processor.Boot (CPU, Devices.DPF, 10);
          when others =>
             TTOut.Put_String (Dasher_NL & " *** Booting from that device is not yet implemented ***");
       end case;   
@@ -503,7 +503,7 @@ begin
       Devices.Bus.Actions.Set_Reset_Proc (Devices.BMC, BMC_DCH.Reset'Access);
       Devices.Bus.Actions.Connect (Devices.SCP);
       Devices.Bus.Actions.Connect (Devices.CPU);
-      Devices.Bus.Actions.Set_Reset_Proc (Devices.CPU, Processor.Actions.Reset'Access);
+      -- Devices.Bus.Actions.Set_Reset_Proc (Devices.CPU, Processor.Actions.Reset'Access);
 
       Devices.Bus.Actions.Connect (Devices.TTO);
       Devices.Console.TTOut.Init (Connection);

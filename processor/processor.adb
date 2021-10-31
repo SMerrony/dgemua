@@ -72,32 +72,30 @@ package body Processor is
       end if;
    end Set_OVR;
 
-   protected body Actions is
-      procedure Reset (CPU : in out CPU_T) is
-      begin
-         CPU.PC := 0;
-         for A in AC_ID loop
-            CPU.AC(A)   := 0;
-            CPU.FPAC(A) := 0.0;
-         end loop;
-         CPU.PSR := 0;
-         CPU.Carry := false;
-         CPU.ATU   := false;
-         CPU.ION   := false;
-         CPU.PF_Flag := false;
-         Set_OVR (CPU, false);
-         CPU.Instruction_Count := 0;
-         Put_Line ("INFO: CPU reset");
-      end Reset;
+   procedure Reset (CPU : in out CPU_T) is
+   begin
+      CPU.PC := 0;
+      for A in AC_ID loop
+         CPU.AC(A)   := 0;
+         CPU.FPAC(A) := 0.0;
+      end loop;
+      CPU.PSR := 0;
+      CPU.Carry := false;
+      CPU.ATU   := false;
+      CPU.ION   := false;
+      CPU.PF_Flag := false;
+      Set_OVR (CPU, false);
+      CPU.Instruction_Count := 0;
+      Put_Line ("INFO: CPU reset");
+   end Reset;
 
-      -- Boot sets up the CPU to boot, it is NOT started
-      procedure Boot (CPU : in out CPU_T; Dev : Dev_Num_T; PC : Phys_Addr_T) is
-      begin
-         CPU.SR := 16#8000# or Word_T(Dev);
-         CPU.AC(0) := Dword_T(Dev); 
-         CPU.PC := PC;
-      end Boot;
-   end Actions;
+   -- Boot sets up the CPU to boot, it is NOT started
+   procedure Boot (CPU : in out CPU_T; Dev : Dev_Num_T; PC : Phys_Addr_T) is
+   begin
+      CPU.SR := 16#8000# or Word_T(Dev);
+      CPU.AC(0) := Dword_T(Dev); 
+      CPU.PC := PC;
+   end Boot;
 
    -- Prepare_For_Running should be called prior to a normal run
    procedure Prepare_For_Running (CPU : in out CPU_T) is

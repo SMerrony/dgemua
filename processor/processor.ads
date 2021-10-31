@@ -116,11 +116,8 @@ package Processor is
 
    function  Disassemble_Range (Low_Addr, High_Addr : Phys_Addr_T; Radix : Number_Base_T) return String;
 
-   protected Actions is
-      procedure Reset (CPU : in out CPU_T);
-      procedure Boot  (CPU : in out CPU_T; Dev : Dev_Num_T; PC : Phys_Addr_T);
-   end Actions;
-   
+   procedure Reset (CPU : in out CPU_T);
+   procedure Boot  (CPU : in out CPU_T; Dev : Dev_Num_T; PC : Phys_Addr_T); 
    procedure Prepare_For_Running (CPU : in out CPU_T);
    procedure Set_Debug_Logging   (CPU : in out CPU_T; OnOff : in Boolean);
    procedure Single_Step (CPU : in out CPU_T; Radix : in Number_Base_T; Disass : out Unbounded_String);
