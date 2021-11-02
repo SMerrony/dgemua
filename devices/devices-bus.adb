@@ -95,7 +95,7 @@ package body Devices.Bus is
           if Bus.Devices(Dev).Connected and Bus.Devices(Dev).IO_Device and (Bus.Devices(Dev).Reset_Proc /= null) then
              Bus.Devices(Dev).Reset_Proc.all;
           else
-             Put_Line ("INFO: Ignoring attempt to reset non-I/O/resetable device No. " & Get_Device_Name_Or_Number (Dev));
+             Put_Line ("INFO: Ignoring attempt to reset non-I/O or non-resettable device No. " & Get_Device_Name_Or_Number (Dev));
           end if;
 
        end Reset_IO_Device;

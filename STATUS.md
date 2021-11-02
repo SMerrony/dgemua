@@ -56,3 +56,9 @@ The NADGUG library provides a good range of freely-available test targets...
 * Is there an off-by-one in byte handling somewhere - could explain display glitches
 * We have the FORTRAN source for FOOBAR
 
+Error Codes to Look-Up...
+* 11381
+* 71231
+* 71683
+* 71697
+

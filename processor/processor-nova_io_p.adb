@@ -45,7 +45,14 @@ package body Processor.Nova_IO_P is
                   when I_DIC =>
                      Put_Line ("INFO: Reseting I/O Devices due to DIC CPU instruction");
                      Devices.Bus.Actions.Reset_All_IO_Devices;
-                  
+                     CPU.PSR := 0;
+                     CPU.FPSR := 0;
+                     if I.IO_Flag = S then -- TODO: P?
+                        CPU.ION := true;
+                     else
+                        CPU.ION := false;
+                     end if;
+                     -- TODO: CPU Busy & Done flags?
                   when I_DOC =>
                      if I.Ac = 0 then
                         raise CPU_Halt;

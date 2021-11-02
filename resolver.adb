@@ -188,7 +188,7 @@ package body Resolver is
     begin
         -- TODO handle segments and indirection
         if Acd = Acs then 
-            Word_Addr := 0;
+            Word_Addr := CPU.PC and 16#7000_0000#;
         else
             if Test_DW_Bit (CPU.AC(Acs), 0) then
                 raise Not_Yet_Implemented with "Indirect 16-bit BIT pointers";
@@ -206,7 +206,7 @@ package body Resolver is
     begin
         -- TODO handle segments and indirection
         if Acd = Acs then 
-            Word_Addr := 0;
+            Word_Addr := CPU.PC and 16#7000_0000#;
         else
             if Test_DW_Bit (CPU.AC(Acs), 0) then
                 raise Not_Yet_Implemented with "Indirect 16-bit BIT pointers";

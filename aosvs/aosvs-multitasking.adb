@@ -23,7 +23,7 @@
 with AOSVS.Agent.Tasking;
 with Debug_Logs; use Debug_Logs;
 with Memory;     use Memory;
-with PARU_32;
+with PARU_32;    use PARU_32;
 
 package body AOSVS.Multitasking is
 
@@ -58,10 +58,10 @@ package body AOSVS.Multitasking is
         if Req_TID /= 16#ffff_ffff# then
             raise Not_Yet_Implemented with "?UIDSTAT for another TID";
         end if;
-        RAM.Write_Word(Pkt_Addr, Agent.Tasking.Get_Unique_TID(PID_T(PID), TID));
-        RAM.Write_Word(Pkt_Addr + 1, 0);
-        RAM.Write_Word(Pkt_Addr + 2, TID);
-        RAM.Write_Word(Pkt_Addr + 3, 0);
+        RAM.Write_Word(Pkt_Addr + UUID, Agent.Tasking.Get_Unique_TID(PID_T(PID), TID));
+        RAM.Write_Word(Pkt_Addr + UTSTAT, 0);
+        RAM.Write_Word(Pkt_Addr + UTID, TID);
+        RAM.Write_Word(Pkt_Addr + UTPRI, 0);
         return true;
     end Sys_UIDSTAT;
 

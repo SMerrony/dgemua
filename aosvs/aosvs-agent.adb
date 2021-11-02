@@ -401,7 +401,7 @@ package body AOSVS.Agent is
          Chars : Chars_Arr := Device_Chars(To_String(Device));
       begin
          WD_1 := Chars(1);
-         WD_2 := 0; -- Chars(2);
+         WD_2 := Chars(2);
          WD_3 := Chars(3);
       end Get_Current_Chars;
 

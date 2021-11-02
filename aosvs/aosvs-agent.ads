@@ -62,8 +62,8 @@ package AOSVS.Agent is
 
 	Default_Chars : constant Chars_Arr := (
 		PARU_32.CST or PARU_32.CSFF or PARU_32.COTT or PARU_32.CEB0, -- 8-col tabs, Form-feeds, default echoing
-		PARU_32.CULC or PARU_32.CRT3, 				 -- Upper and lower case, D200 style
-		Shift_Left(Word_T(24), 8) or Word_T(80) 	 -- 24x80 chars
+		PARU_32.CULC or PARU_32.CRT3 or PARU_32.cwrp or PARU_32.cfkt or PARU_32.cnnl,  -- Upper and lower case, D200 style, wraparound, Fn keys are delimiters
+		16#18_50# 	 -- 24x80 chars
 	);
 
 	-- Shared Page I/O

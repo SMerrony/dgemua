@@ -512,38 +512,39 @@ package PARU_32 is
 	cmod : constant Word_T := 2#00010000_00000000#; -- DEVICE ON MODEM INTERFACE
 
 	--        THE FOLLOWING FOUR BITS MUST NOT BE MOVED :
-	cdt0 : constant Integer := 4; -- DEVICE TYPE BIT 0
-	cdt1 : constant Integer := 5; -- DEVICE TYPE BIT 1
-	cdt2 : constant Integer := 6; -- DEVICE TYPE BIT 2
-	cdt3 : constant Integer := 7; -- DEVICE TYPE BIT 3
+	cdt0 : constant Word_T := 2#00001000_00000000#; -- DEVICE TYPE BIT 0 (>>4)
+	cdt1 : constant Word_T := 2#00000100_00000000#; -- DEVICE TYPE BIT 1
+	cdt2 : constant Word_T := 2#00000010_00000000#; -- DEVICE TYPE BIT 2
+	cdt3 : constant Word_T := 2#00000001_00000000#; -- DEVICE TYPE BIT 3
 
-	cto  : constant Integer := 8;  -- DEVICE TIME-OUTS ENABLED
-	ctsp : constant Integer := 9;  -- CRA- NO TRAILING BLANK SUPPRESSION
-	cpbn : constant Integer := 10; -- CRA- PACKED FORMATE ON BINARY READ
-	cesc : constant Integer := 11; -- ESC CHARACTER PRODUCES INTERRUPT
-	cwrp : constant Integer := 12; -- HARDWARE WRAPS AROUND ON LINE TOO LONG
-	cfkt : constant Integer := 13; -- FUNCTION KEYS ARE INPUT DELIMITERS
-	cnnl : constant Integer := 14; -- CRA- NO NEW-LINE CHARACTERS APPENDED
+	cto  : constant Word_T := 2#00000000_10000000#;  -- DEVICE TIME-OUTS ENABLED
+	ctsp : constant Word_T := 2#00000000_01000000#;  -- CRA- NO TRAILING BLANK SUPPRESSION
+	cpbn : constant Word_T := 2#00000000_00100000#; -- CRA- PACKED FORMATE ON BINARY READ
+	cesc : constant Word_T := 2#00000000_00010000#; -- ESC CHARACTER PRODUCES INTERRUPT
+	cwrp : constant Word_T := 2#00000000_00001000#; -- HARDWARE WRAPS AROUND ON LINE TOO LONG
+	cfkt : constant Word_T := 2#00000000_00000100#; -- FUNCTION KEYS ARE INPUT DELIMITERS
+	cnnl : constant Word_T := 2#00000000_00000010#; -- CRA- NO NEW-LINE CHARACTERS APPENDED
 	--                15    -- BIT 15 USED IN PARU.16.SR FOR TRA-TPA
 
 	--        DEFINE DEVICE TYPE MASK.
-	dtype : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt2) + Shift_Right(16#8000#, cdt3);
+	dtype : constant Word_T := Shift_Right(16#8000#, 4) + Shift_Right(16#8000#, 5) + Shift_Right(16#8000#, 6) + Shift_Right(16#8000#, 7);
+	
 	tty   : constant Word_T := 0;                                          -- 4010A CONSOLE DEVICE TYPE
-	crt1  : constant Word_T := Shift_Right(16#8000#, cdt3);                             -- 4010I CONSOLE DEVICE TYPE
-	crt2  : constant Word_T := Shift_Right(16#8000#, cdt2);                             -- 6012  CONSOLE DEVICE TYPE
-	crt3  : constant Word_T := Shift_Right(16#8000#, cdt2) + Shift_Right(16#8000#, cdt3);                -- 605X CONSOLE DEVICE TYPE
-	crt4  : constant Word_T := Shift_Right(16#8000#, cdt1);                             -- ANOTHER CONSOLE DEVICE TYPE
-	crt5  : constant Word_T := Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt3);                -- PSEUDO 6012 DEVICE
-	crt6  : constant Word_T := Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt2);                -- 6130 CONSOLE DEVICE TYPE
-	crt7  : constant Word_T := Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt2) + Shift_Right(16#8000#, cdt3); -- USER DEFINED DEVICE
-	crt8  : constant Word_T := Shift_Right(16#8000#, cdt0);                             -- USER DEFINED DEVICE
-	crt9  : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt3);                -- USER DEFINED DEVICE
-	crt10 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt2);                -- USER DEFINED DEVICE
-	crt11 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt2) + Shift_Right(16#8000#, cdt3); -- USER DEFINED DEVICE
-	crt12 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt1);                -- USER DEFINED DEVICE
-	crt13 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt3); -- USER DEFINED DEVICE
-	crt14 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt2); -- USER DEFINED DEVICE
-	crt15 : constant Word_T := Shift_Right(16#8000#, cdt0) + Shift_Right(16#8000#, cdt1) + Shift_Right(16#8000#, cdt2) + Shift_Right(16#8000#, cdt3);
+	crt1  : constant Word_T := Shift_Right(16#8000#, 7);                             -- 4010I CONSOLE DEVICE TYPE
+	crt2  : constant Word_T := Shift_Right(16#8000#, 6);                             -- 6012  CONSOLE DEVICE TYPE
+	crt3  : constant Word_T := Shift_Right(16#8000#, 6) + Shift_Right(16#8000#, 7);                -- 605X CONSOLE DEVICE TYPE
+	crt4  : constant Word_T := Shift_Right(16#8000#, 5);                             -- ANOTHER CONSOLE DEVICE TYPE
+	crt5  : constant Word_T := Shift_Right(16#8000#, 5) + Shift_Right(16#8000#, 7);                -- PSEUDO 6012 DEVICE
+	crt6  : constant Word_T := Shift_Right(16#8000#, 5) + Shift_Right(16#8000#, 6);                -- 6130 CONSOLE DEVICE TYPE
+	crt7  : constant Word_T := Shift_Right(16#8000#, 5) + Shift_Right(16#8000#, 6) + Shift_Right(16#8000#, 7); -- USER DEFINED DEVICE
+	crt8  : constant Word_T := Shift_Right(16#8000#, 4);                             -- USER DEFINED DEVICE
+	crt9  : constant Word_T := Shift_Right(16#8000#, 4) + Shift_Right(16#8000#, 7);                -- USER DEFINED DEVICE
+	crt10 : constant Word_T := Shift_Right(16#8000#, 4) + Shift_Right(16#8000#, 6);                -- USER DEFINED DEVICE
+	crt11 : constant Word_T := Shift_Right(16#8000#, 4) + Shift_Right(16#8000#, 6) + Shift_Right(16#8000#, 7); -- USER DEFINED DEVICE
+	crt12 : constant Word_T := Shift_Right(16#8000#, 4) + Shift_Right(16#8000#, 5);                -- USER DEFINED DEVICE
+	crt13 : constant Word_T := Shift_Right(16#8000#, 4) + Shift_Right(16#8000#, 5) + Shift_Right(16#8000#, 7); -- USER DEFINED DEVICE
+	crt14 : constant Word_T := Shift_Right(16#8000#, 4) + Shift_Right(16#8000#, 5) + Shift_Right(16#8000#, 6); -- USER DEFINED DEVICE
+	crt15 : constant Word_T := Shift_Right(16#8000#, 4) + Shift_Right(16#8000#, 5) + Shift_Right(16#8000#, 6) + Shift_Right(16#8000#, 7);
 
 	--        ch3 - offset 2
 	--
@@ -997,9 +998,15 @@ package PARU_32 is
 
 	-- ?RNGPR PACKET OFFSETS
 	--
-    RNGBP : constant Phys_Addr_T := 0;           -- BYTE POINTER TO BUFFER (2 WORDS)
-    RNGNM : constant Phys_Addr_T := RNGBP + 2;   -- RING # OF RING TO CHECK
-    RNGLB : constant Phys_Addr_T := RNGNM + 1;   -- BUFFER BYTE LENGTH
-    RNGPL : constant Phys_Addr_T := RNGLB + 1;   -- PACKET LENGTH
+   RNGBP : constant Phys_Addr_T := 0;           -- BYTE POINTER TO BUFFER (2 WORDS)
+   RNGNM : constant Phys_Addr_T := RNGBP + 2;   -- RING # OF RING TO CHECK
+   RNGLB : constant Phys_Addr_T := RNGNM + 1;   -- BUFFER BYTE LENGTH
+   RNGPL : constant Phys_Addr_T := RNGLB + 1;   -- PACKET LENGTH
+
+	-- ?UIDSTAT
+	UUID   : constant Phys_Addr_T := 0; 	      -- Unique task identifier
+	UTSTAT : constant Phys_Addr_T := UUID + 1; 	-- Task Status Word
+	UTID   : constant Phys_Addr_T := UTSTAT + 1; -- Standard Task ID
+	UTPRI  : constant Phys_Addr_T := UTID + 1;   -- Task Prioroty
 
 end PARU_32; 

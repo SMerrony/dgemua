@@ -72,7 +72,8 @@ package body AOSVS.Agent.Tasking is
       if TID = 0 then
          raise NO_MORE_TIDS with "PID: " & PID'Image;
       end if;
-      Task_Data.TID := TID;
+      Task_Data.TID  := TID;
+      Task_Data.UTID := 1; -- FIXME UTID vs. TID
       Loggers.Debug_Print (Sc_Log, "... got TID:" & TID'Image);
 
       Initial_Task.Start (Task_Data, Console);
@@ -80,7 +81,7 @@ package body AOSVS.Agent.Tasking is
    end Create_Task;
 
    function Get_Unique_TID (PID : in PID_T; TID : in Word_T) return Word_T is
-      (Shift_Left(Word_T(PID), 8) or TID);
+      (TID);
 
    task body VS_Task is
       CPU          : Processor.CPU_T;
@@ -125,7 +126,7 @@ package body AOSVS.Agent.Tasking is
                raise Processor.Not_Yet_Implemented with "16-bit task";
             else
                Call_ID := RAM.Read_Word(Phys_Addr_T(RAM.Read_Dword (Phys_Addr_T (CPU.WSP - 2))));
-               -- Loggers.Debug_Print (Sc_Log, "System Call # is: " & Dword_To_String (Dword_T(Call_ID), Octal, 6));
+               Loggers.Debug_Print (Sc_Log, "System Call # is: " & Dword_To_String (Dword_T(Call_ID), Octal, 6));
             end if;
             case Call_ID is
                when 8#000# => Syscall_OK := AOSVS.File_Management.Sys_CREATE (CPU, Task_Data.PID);

@@ -26,7 +26,7 @@ package AOSVS.Agent.Tasking is
 
     type Task_Data_T is record
         -- CPU                : Processor.CPU_T;
-        PID, TID, Priority : Word_T;
+        PID, TID, UTID, Priority : Word_T;
         Sixteen_Bit        : Boolean;
         Dir                : Unbounded_String;
         Start_Addr, 
