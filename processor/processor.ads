@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,9 @@ package Processor is
    Microcode_Rev : constant Byte_T := 16#04#;
 
 
-   type Acc_T is array (AC_ID) of Dword_T;
+   type DW_Acc_T  is array (AC_ID) of Dword_T;
+   type I32_Acc_T is array (AC_ID) of Integer_32;
+   type U32_Acc_T is array (AC_ID) of Unsigned_32;
    type FPacc_T is array (AC_ID) of Long_Float;
    -- TODO SBR_T is currently an abstraction of the Segment Base Registers - may need to represent physically
    -- via a 32-bit DWord in the future
@@ -51,9 +53,10 @@ package Processor is
    end record;
    type SBRs is array (0 .. 7) of SBR_T;
 
-   type CPU_Rec is tagged record
+   type AC_Types is (DW, I32, U32); -- Just 32-bit for now
+
+   type CPU_Rec (Option : AC_Types := AC_Types'First) is record
       PC                       : Phys_Addr_T; -- 32-bit PC
-      AC                       : Acc_T;       -- 4 x 32-bit Accumulators
       PSR                      : Word_T;      -- Processor Status Register - see PoP 2-11 & A-4
       FPAC                     : FPacc_T;     -- 4 x 64-bit Floating Point Acs N.B Not same internal fmt as DG
       FPSR                     : Qword_T;     -- 64-bit Floating-Point Status Register
@@ -66,7 +69,13 @@ package Processor is
       XCT_Opcode        : Word_T;
       Debug_Logging     : Boolean;
       Instruction_Count : Unsigned_64;
+      case Option is
+         when DW  => AC        : DW_Acc_T;  -- 4 x 32-bit Accumulators as Double-Words
+         when I32 => AC_I32    : I32_Acc_T; -- The same as 32-bit (signed) integers
+         when U32 => AC_U32    : U32_Acc_T; -- The same as 32-bit unsigned integers
+      end case;
    end record;
+   pragma Unchecked_Union (CPU_Rec);
 
    type CPU_T is access CPU_Rec;
 
@@ -92,7 +101,7 @@ package Processor is
    -- Data sent to the Status_Monitor
    type CPU_Monitor_Rec is record
       PC                       : Phys_Addr_T; -- 32-bit PC
-      AC                       : Acc_T;       -- 4 x 32-bit Accumulators
+      AC                       : DW_Acc_T;       -- 4 x 32-bit Accumulators
       Carry, ATU, ION          : Boolean;     -- flag bits
       Instruction_Count        : Unsigned_64;
    end record;
