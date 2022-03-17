@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -46,9 +46,9 @@ package body Resolver is
             when PC =>
                 Eff := Eff + CPU.PC;
             when AC2 =>
-                Eff := Eff + Phys_Addr_T (Integer_32 (CPU.AC (2)));
+                Eff := Eff + Phys_Addr_T (CPU.AC_I32(2));
             when AC3 =>
-                Eff := Eff + Phys_Addr_T (Integer_32 (CPU.AC (3)));
+                Eff := Eff + Phys_Addr_T (CPU.AC_I32(3));
         end case;
 
         if Indirect then
@@ -95,9 +95,9 @@ package body Resolver is
         when PC =>
             Eff := Integer_32_To_Phys(Integer_32(CPU.PC) + Disp32 + Integer_32(Disp_Offset));
         when AC2 =>
-            Eff := Phys_Addr_T(Dword_To_Integer_32(CPU.AC(2)) + Disp32) or Ring;
+            Eff := Phys_Addr_T(CPU.AC_I32(2) + Disp32) or Ring;
         when AC3 =>
-            Eff := Phys_Addr_T(Dword_To_Integer_32(CPU.AC(3)) + Disp32) or Ring;   
+            Eff := Phys_Addr_T(CPU.AC_I32(3) + Disp32) or Ring;   
         end case;
 
         if Indirect then
@@ -141,9 +141,9 @@ package body Resolver is
             when PC =>
                Eff := Phys_Addr_T(Integer_32_To_Dword(Dword_To_Integer_32(Dword_T(CPU.PC)) + Disp + Integer_32(Disp_Offset)));
             when AC2 =>
-               Eff := Phys_Addr_T(Integer_32_To_Dword(Dword_To_Integer_32(CPU.AC(2)) + Disp));
+               Eff := Phys_Addr_T(Integer_32_To_Dword(CPU.AC_I32(2) + Disp));
             when AC3 =>
-               Eff := Phys_Addr_T(Integer_32_To_Dword(Dword_To_Integer_32(CPU.AC(3)) + Disp));
+               Eff := Phys_Addr_T(Integer_32_To_Dword(CPU.AC_I32(3) + Disp));
          end case;
 
          if Indirect then

@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -75,7 +75,7 @@ package body Processor.Eagle_PC_P is
          when I_LDSP =>
             declare
                Hi, Lo, Offset : Integer_32;
-               Val            : Integer_32 := Dword_To_Integer_32(CPU.AC(I.Ac));
+               Val            : Integer_32 := CPU.AC_I32(I.Ac);
                Table_Addr     : Phys_Addr_T;
                Table_Ix       : Phys_Addr_T;
             begin
@@ -203,7 +203,7 @@ package body Processor.Eagle_PC_P is
          when I_WCLM =>
             declare
                Hi, Lo : Integer_32;
-               Val    : Integer_32 := Dword_To_Integer_32(CPU.AC(I.Acs));
+               Val    : Integer_32 := CPU.AC_I32(I.Acs);
             begin
                if I.Acs /= I.Acd then
                   Lo := Dword_To_Integer_32(RAM.Read_Dword (Phys_Addr_T(CPU.AC(I.Acs))));
@@ -239,9 +239,9 @@ package body Processor.Eagle_PC_P is
             if I.Instruction = I_WSEQI then
                Skip := CPU.AC(I.Ac) = Sext_Word_To_Dword (I.Word_2);
             elsif I.Instruction = I_WSGTI then
-               Skip := Dword_To_Integer_32(CPU.AC(I.Ac)) >= Dword_To_Integer_32(Sext_Word_To_Dword (I.Word_2));
+               Skip := CPU.AC_I32(I.Ac) >= Dword_To_Integer_32(Sext_Word_To_Dword (I.Word_2));
             elsif I.Instruction = I_WSLEI then
-               Skip := Dword_To_Integer_32(CPU.AC(I.Ac)) <= Dword_To_Integer_32(Sext_Word_To_Dword (I.Word_2));
+               Skip := CPU.AC_I32(I.Ac) <= Dword_To_Integer_32(Sext_Word_To_Dword (I.Word_2));
             else
                Skip := CPU.AC(I.Ac) /= Sext_Word_To_Dword (I.Word_2);
             end if;
@@ -255,9 +255,9 @@ package body Processor.Eagle_PC_P is
             if I.Acs = I.Acd then
                S32_D := 0;
             else
-               S32_D := Dword_To_Integer_32(CPU.AC(I.Acd));
+               S32_D := CPU.AC_I32(I.Acd);
             end if;
-            S32_S := Dword_To_Integer_32(CPU.AC(I.Acs));
+            S32_S := CPU.AC_I32(I.Acs);
             if I.Instruction = I_WSGE then
                Skip := S32_S >= S32_D;
             elsif I.Instruction = I_WSGT then
@@ -374,7 +374,7 @@ package body Processor.Eagle_PC_P is
                Word := RAM.Read_Word (Loop_Var_Addr) + 1 ;
                Loop_Var := Integer_32(Word_To_Integer_16(Word)); 
                RAM.Write_Word(Loop_Var_Addr, Word);
-               Ac_Var := Dword_To_Integer_32(CPU.AC(I.Ac));
+               Ac_Var := CPU.AC_I32(I.Ac);
                CPU.AC(I.Ac) := Integer_32_To_Dword(Loop_Var);
                if Loop_Var > Ac_Var then 
                   -- loop ends
@@ -413,7 +413,7 @@ package body Processor.Eagle_PC_P is
                DW := RAM.Read_Dword (Loop_Var_Addr) + 1 ;
                Loop_Var := Dword_To_Integer_32(DW); 
                RAM.Write_Dword(Loop_Var_Addr, DW);
-               Ac_Var := Dword_To_Integer_32(CPU.AC(I.Ac));
+               Ac_Var := CPU.AC_I32(I.Ac);
                CPU.AC(I.Ac) := Integer_32_To_Dword(Loop_Var);
                if Loop_Var > Ac_Var then 
                   -- loop ends

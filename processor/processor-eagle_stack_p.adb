@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -336,7 +336,7 @@ package body Processor.Eagle_Stack_P is
 
          when I_WMSP =>
             declare
-               DeltaWds : Integer := Integer( Dword_To_Integer_32(CPU.AC(I.Ac))) * 2;
+               DeltaWds : Integer := Integer(CPU.AC_I32(I.Ac)) * 2;
             begin
                WSP_Check_Bounds (Delta_Words => DeltaWds, 
                                  Is_Save => false, 
