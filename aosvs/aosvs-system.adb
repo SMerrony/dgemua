@@ -167,6 +167,7 @@ package body AOSVS.System is
         Now : Ada.Calendar.Time := Ada.Calendar.Clock; 
     begin
         Loggers.Debug_Print (Sc_Log, "?GTOD");
+        Loggers.Debug_Print (Debug_Log, "?GTOD");
         CPU.AC(0) := Dword_T(GNAT.Calendar.Second(Now));
         CPU.AC(1) := Dword_T(GNAT.Calendar.Minute(Now));
         CPU.AC(2) := Dword_T(GNAT.Calendar.Hour(Now));

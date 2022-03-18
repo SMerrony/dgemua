@@ -40,7 +40,7 @@ procedure VSEmua is
 
    Sem_Ver : constant String := "v0.0.0";
 
-   Debug_Logging : Boolean := TRUE;
+   Debug_Logging : Boolean := True;
    Log_Dir       : constant String  := "logs/";
    Console_Port  : constant GNAT.Sockets.Port_Type := 10_000;
 

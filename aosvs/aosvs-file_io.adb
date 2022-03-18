@@ -186,6 +186,7 @@ package body AOSVS.File_IO is
         Device_Name  : Unbounded_String;
         Get_Defaults : Boolean := Test_DW_Bit (CPU.AC(1), 1);
         WD_1, WD_2, WD_3 : Word_T;
+        Num_Chars    : Dword_T := Get_DW_Bits (CPU.AC(1), 28, 4);
     begin
         Loggers.Debug_Print (Sc_Log, "?GCHR"); Loggers.Debug_Print (Debug_Log, "?GCHR");
         if Test_DW_Bit (CPU.AC(1), 0) then
@@ -207,12 +208,12 @@ package body AOSVS.File_IO is
             Loggers.Debug_Print (Sc_Log, "----- Fetching Current characteristics");
             AOSVS.Agent.Actions.Get_Current_Chars(Device_Name, WD_1, WD_2, WD_3);
         end if;
-            -- RAM.Write_Word(Phys_Addr_T(CPU.AC(2)), WD_1);
-            -- RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+1, WD_2);
-            -- RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+2, WD_3);
-        RAM.Write_Word(Phys_Addr_T(CPU.AC(2)), 0);
-        RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+1, 0);
-        RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+2, 0);
+        Loggers.Debug_Print (Sc_Log, "----- Word 1: " & Word_To_String (WD_1, Binary, 16, True));
+        Loggers.Debug_Print (Sc_Log, "----- Word 2: " & Word_To_String (WD_2, Binary, 16, True));
+        Loggers.Debug_Print (Sc_Log, "----- Word 3: " & Word_To_String (WD_3, Binary, 16, True));
+        RAM.Write_Word(Phys_Addr_T(CPU.AC(2)), WD_1);
+        RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+1, WD_2);
+        RAM.Write_Word(Phys_Addr_T(CPU.AC(2))+2, WD_3);
         return true;
     end Sys_GCHR;
 

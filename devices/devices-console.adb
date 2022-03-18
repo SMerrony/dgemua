@@ -200,7 +200,9 @@ package body Devices.Console is
          or
             accept Get_SCP_IO (SCP : out Boolean) do
                SCP := SCP_IO;
-            end Get_SCP_IO;   
+            end Get_SCP_IO;  
+         or
+            terminate; 
          end select;
       end loop;
    end SCP_Handler;

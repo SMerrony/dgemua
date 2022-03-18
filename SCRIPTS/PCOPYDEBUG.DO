@@ -16,7 +16,7 @@ BREAK 0
 # ATT MTB tapes/TAPE1.9trk
 # ATT MTB tapes/FAKE3900.9trk
 # ATT MTB tapes/STARTER.9trk
-ATT MTB TAPES/PCOPY.9trk
+ATT MTB TAPES/PCOPY.9TRK
 #
 # Attach a 6061-type disk image
 ATT DPF DISKS/DISK1.DPF
