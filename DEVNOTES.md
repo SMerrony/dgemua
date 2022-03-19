@@ -5,7 +5,9 @@
 Default build is with debugging and without optimisation.  Append `-Xmode=release` for optimised build.
 
 ## Clean
-`gprclean mvemua.gpr`
+`gprclean -Pmvemua.gpr`
+
+You *MUST* do a `gprclean` when switching between the mv- and vs- builds.
 
 ## Regenerate tests
 `gnattest -P vsemua.gpr  -v  dg_types.ads --harness-dir=driver`

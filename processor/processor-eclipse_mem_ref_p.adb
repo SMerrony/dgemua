@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -38,14 +38,14 @@ package body Processor.Eclipse_Mem_Ref_P is
 
          when I_BLM => -- AC0 - unused, AC1 - no. wds to move, AC2 - src, AC3 - dest
             declare
-               Num_Wds :  Word_T := DG_Types.Lower_Word(CPU.AC(1));
+               Num_Wds :  Word_T := CPU.AC_Wd(1);
                Src, Dest : Phys_Addr_T;
             begin
                if (Num_Wds = 0)  or (Num_Wds > 32768) then
                   Loggers.Debug_Print (Debug_Log, "WARNING: BLM called with AC1 out of bounds, No-Op");
                else
-                  Src  := Ring or Phys_Addr_T(DG_Types.Lower_Word(CPU.AC(2)));
-                  Dest := Ring or Phys_Addr_T(DG_Types.Lower_Word(CPU.AC(3)));
+                  Src  := Ring or Phys_Addr_T(CPU.AC_Wd(2));
+                  Dest := Ring or Phys_Addr_T(CPU.AC_Wd(3));
                   if CPU.Debug_Logging then
                      Loggers.Debug_Print (Debug_Log, "BLM moving" & Num_Wds'Image & " words from" &
                         Src'Image & " to" & Dest'Image);
@@ -78,14 +78,14 @@ package body Processor.Eclipse_Mem_Ref_P is
                Byte_1, Byte_2 : Byte_T;
                Res            : Dword_T := 0;
                Str_1_BP, Str_2_BP : Word_T;
-               Str_1_Len : Integer_16 := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(1)));
-               Str_2_Len : Integer_16 := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(0)));
+               Str_1_Len : Integer_16 := Word_To_Integer_16(CPU.AC_Wd(1));
+               Str_2_Len : Integer_16 := Word_To_Integer_16(CPU.AC_Wd(0));
             begin
                if (Str_1_Len = 0) and (Str_2_Len = 0) then
                   CPU.AC(1) := 0;
                else
-                  Str_1_BP := DG_Types.Lower_Word(CPU.AC(3));
-                  Str_2_BP := DG_Types.Lower_Word(CPU.AC(2));
+                  Str_1_BP := CPU.AC_Wd(3);
+                  Str_2_BP := CPU.AC_Wd(2);
                   loop
                      if Str_1_Len = 0 then 
                         Byte_1 := 32; 
@@ -135,19 +135,19 @@ package body Processor.Eclipse_Mem_Ref_P is
                Dest_Ascend, Src_Ascend : Boolean;
                Dest_Cnt, Src_Cnt : Integer_16;
             begin
-               Dest_Cnt := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(0)));
+               Dest_Cnt := Word_To_Integer_16(CPU.AC_Wd(0));
                if Dest_Cnt = 0 then
                   Loggers.Debug_Print (Debug_Log, "WARNING: CMV called with AC0 = 0, not moving anything");
                   CPU.Carry := false;
                else
                   Dest_Ascend := Dest_Cnt > 0;
-                  Src_Cnt := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(1)));
+                  Src_Cnt := Word_To_Integer_16(CPU.AC_Wd(1));
                   Src_Ascend := Src_Cnt > 0;
                   CPU.Carry := (Abs Src_Cnt) > (Abs Dest_Cnt);
                   -- move Src_Cnt bytes
                   loop
-                     RAM.Write_Byte_Eclipse_BA(Ring, DG_Types.Lower_Word(CPU.AC(2)), 
-                                                RAM.Read_Byte_Eclipse_BA(Ring, DG_Types.Lower_Word(CPU.AC(3))));
+                     RAM.Write_Byte_Eclipse_BA(Ring, CPU.AC_Wd(2), 
+                                                RAM.Read_Byte_Eclipse_BA(Ring, CPU.AC_Wd(3)));
                      if Src_Ascend then
                         CPU.AC(3) := CPU.AC(3) + 1;
                         Src_Cnt := Src_Cnt - 1;
@@ -166,7 +166,7 @@ package body Processor.Eclipse_Mem_Ref_P is
                   end loop;
                   -- now fill any excess bytes with ASCII spaces
                   while Dest_Cnt /= 0 loop
-                     RAM.Write_Byte_Eclipse_BA(Ring, DG_Types.Lower_Word(CPU.AC(2)), 32);
+                     RAM.Write_Byte_Eclipse_BA(Ring, CPU.AC_Wd(2), 32);
                      if Dest_Ascend then
                         CPU.AC(2) := CPU.AC(2) + 1;
                         Dest_Cnt := Dest_Cnt - 1;
@@ -189,10 +189,10 @@ package body Processor.Eclipse_Mem_Ref_P is
 
          when I_ESTA =>
             Addr := (Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
-            RAM.Write_Word (Addr, DG_Types.Lower_Word(CPU.AC(I.Ac)));
+            RAM.Write_Word (Addr, CPU.AC_Wd(I.Ac));
 
          when I_LDB =>
-            CPU.AC(I.Acd) := Dword_T (RAM.Read_Byte_Eclipse_BA (Ring, DG_Types.Lower_Word(CPU.AC(I.Acs))));
+            CPU.AC(I.Acd) := Dword_T (RAM.Read_Byte_Eclipse_BA (Ring, CPU.AC_Wd(I.Acs)));
 
          when I_LEF =>
             Addr := Resolve_8bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15);
@@ -203,7 +203,7 @@ package body Processor.Eclipse_Mem_Ref_P is
             declare
                Low_Byte : Boolean := Test_DW_Bit(CPU.AC(I.Acs), 31);
             begin
-               Addr := Shift_Right (Phys_Addr_T(DG_Types.Lower_Word(CPU.AC(I.Acs))), 1);
+               Addr := Shift_Right (Phys_Addr_T(CPU.AC_Wd(I.Acs)), 1);
                Addr := (Addr and 16#7fff#) or Ring;
                RAM.Write_Byte(Addr, Low_Byte, Byte_T(CPU.AC(I.Acd)));
             end;

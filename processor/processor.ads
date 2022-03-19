@@ -43,6 +43,8 @@ package Processor is
    type DW_Acc_T  is array (AC_ID) of Dword_T;
    type I32_Acc_T is array (AC_ID) of Integer_32;
    type U32_Acc_T is array (AC_ID) of Unsigned_32;
+   type Wd_Acc_T  is array (AC_ID) of Word_T;
+      for Wd_Acc_T'Component_Size use 32;
    type FPacc_T is array (AC_ID) of Long_Float;
    -- TODO SBR_T is currently an abstraction of the Segment Base Registers - may need to represent physically
    -- via a 32-bit DWord in the future
@@ -53,7 +55,7 @@ package Processor is
    end record;
    type SBRs is array (0 .. 7) of SBR_T;
 
-   type AC_Types is (DW, I32, U32); -- Just 32-bit for now
+   type AC_Types is (DW, I32, U32, WD); 
 
    type CPU_Rec (Option : AC_Types := AC_Types'First) is record
       PC                       : Phys_Addr_T; -- 32-bit PC
@@ -73,6 +75,7 @@ package Processor is
          when DW  => AC        : DW_Acc_T;  -- 4 x 32-bit Accumulators as Double-Words
          when I32 => AC_I32    : I32_Acc_T; -- The same as 32-bit (signed) integers
          when U32 => AC_U32    : U32_Acc_T; -- The same as 32-bit unsigned integers
+         when WD  => AC_Wd     : Wd_Acc_T;  -- The same at 16-bit (unsigned) Words
       end case;
    end record;
    pragma Unchecked_Union (CPU_Rec);

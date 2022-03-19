@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -34,17 +34,17 @@ package body Processor.Eclipse_Op_P is
       case I.Instruction is
 
          when I_ADDI =>
-            S16 := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)));
+            S16 := Word_To_Integer_16(CPU.AC_Wd(I.Ac));
             S16 := S16 + Word_To_Integer_16(I.Word_2);
             CPU.AC(I.Ac) := Dword_T(DG_Types.Integer_16_To_Word(S16)) and 16#0000_ffff#;
 
          when I_ADI =>
-            Word := DG_Types.Lower_Word (CPU.AC(I.Ac));
+            Word := CPU.AC_Wd(I.Ac);
             Word := Word + Word_T(I.Imm_U16);
             CPU.AC(I.Ac) := Dword_T(Word);
 
          when I_ANDI =>
-            Word := DG_Types.Lower_Word (CPU.AC(I.Ac));
+            Word := CPU.AC_Wd(I.Ac);
             CPU.AC(I.Ac) := Dword_T(Word and DG_Types.Integer_16_To_Word(I.Imm_S16)) and 16#0000_ffff#;
 
          when I_DHXL =>
@@ -56,7 +56,7 @@ package body Processor.Eclipse_Op_P is
                else
                   D_Plus_1 := I.Ac + 1;
                end if;
-               Dword := Dword_From_Two_Words (DG_Types.Lower_Word(CPU.AC(I.Ac)), DG_Types.Lower_Word(CPU.AC(D_Plus_1)));
+               Dword := Dword_From_Two_Words (CPU.AC_Wd(I.Ac), CPU.AC_Wd(D_Plus_1));
                Dword := Shift_Left (Dword, Natural(I.Imm_U16) * 4);
                CPU.AC(I.Ac) := Dword_T(DG_Types.Upper_Word (Dword));
                CPU.AC(D_Plus_1) := Dword_T(DG_Types.Lower_Word (Dword));
@@ -71,8 +71,8 @@ package body Processor.Eclipse_Op_P is
                else
                   D_Plus_1 := I.Acd + 1;
                end if;
-               Shift := Integer(Byte_To_Integer_8 (Get_Lower_Byte (DG_Types.Lower_Word (CPU.AC(I.Acs)))));
-               Dword := Dword_From_Two_Words (DG_Types.Lower_Word(CPU.AC(I.Acd)), DG_Types.Lower_Word(CPU.AC(D_Plus_1)));
+               Shift := Integer(Byte_To_Integer_8 (Get_Lower_Byte (CPU.AC_Wd(I.Acs))));
+               Dword := Dword_From_Two_Words (CPU.AC_Wd(I.Acd), CPU.AC_Wd(D_Plus_1));
                if Shift /= 0 then
                   if (Shift < -31) or (Shift > 31) then
                      Dword := 0;
@@ -97,11 +97,11 @@ package body Processor.Eclipse_Op_P is
             Clear_W_Bit (CPU.PSR, PSR_OVR);
 
          when I_IOR =>
-            Word := DG_Types.Lower_Word (CPU.AC(I.Acd)) or DG_Types.Lower_Word (CPU.AC(I.Acs));
+            Word := CPU.AC_Wd(I.Acd) or CPU.AC_Wd(I.Acs);
             CPU.AC(I.Acd) := Dword_T(Word);
 
          when I_IORI =>
-            Word := DG_Types.Lower_Word (CPU.AC(I.Ac)) or I.Word_2;
+            Word := CPU.AC_Wd(I.Ac) or I.Word_2;
             CPU.AC(I.Ac) := Dword_T(Word);
 
          when I_HXL =>
@@ -109,12 +109,12 @@ package body Processor.Eclipse_Op_P is
             CPU.AC(I.Ac) := Dword and 16#0000_ffff#;
                         
          when I_HXR =>
-            Dword := Shift_Right (CPU.AC(I.Ac), Integer(I.Imm_U16) * 4);
+            Dword := Shift_Right (CPU.AC(I.Ac) and 16#0000_ffff#, Integer(I.Imm_U16) * 4);
             CPU.AC(I.Ac) := Dword and 16#0000_ffff#;
 
          when I_LSH =>
-            Word := DG_Types.Lower_Word (CPU.AC(I.Acd));
-            Shift := Integer(Byte_To_Integer_8 (Get_Lower_Byte (DG_Types.Lower_Word (CPU.AC(I.Acs)))));
+            Word := CPU.AC_Wd(I.Acd);
+            Shift := Integer(Byte_To_Integer_8 (Get_Lower_Byte (CPU.AC_Wd(I.Acs))));
             if Shift /= 0 then
                if (Shift < -15) or (Shift > 15) then
                   Word := 0;
@@ -129,7 +129,7 @@ package body Processor.Eclipse_Op_P is
             CPU.AC(I.Acd) := Dword_T(Word);
 
          when I_SBI =>
-            Word := DG_Types.Lower_Word(CPU.AC(I.Ac));
+            Word := CPU.AC_Wd(I.Ac);
             Word := Word - Word_T(I.Imm_U16);
             CPU.AC(I.Ac) := Dword_T(Word);
                   
@@ -140,7 +140,7 @@ package body Processor.Eclipse_Op_P is
 
          when I_XCT=> -- funkiness ahead...
             CPU.XCT_Mode := true;
-            CPU.XCT_Opcode := DG_Types.Lower_Word (CPU.AC(I.Ac));
+            CPU.XCT_Opcode := CPU.AC_Wd(I.Ac);
             return; -- PC NOT advanced
 
          when I_XORI =>

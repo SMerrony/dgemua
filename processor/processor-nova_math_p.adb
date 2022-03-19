@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -31,10 +31,10 @@ package body Processor.Nova_Math_P is
                declare
                   UW, LW, Quot : Word_T;
                begin
-                  UW := DG_Types.Lower_Word (CPU.AC(0));
-                  LW := DG_Types.Lower_Word (CPU.AC(1));
+                  UW := CPU.AC_Wd(0);
+                  LW := CPU.AC_Wd(1);
                   DW := Dword_From_Two_Words (UW, LW);
-                  Quot := DG_Types.Lower_Word (CPU.AC(2));
+                  Quot := CPU.AC_Wd(2);
                   if (UW >= Quot) or (Quot = 0) then
                      CPU.Carry := true;
                   else

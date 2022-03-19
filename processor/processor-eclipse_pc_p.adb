@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -50,8 +50,8 @@ package body Processor.Eclipse_PC_P is
                      Incr := 4;
                   end if;
                else
-                  L := Word_To_Integer_16(RAM.Read_Word (Phys_Addr_T (DG_Types.Lower_Word (CPU.AC(I.Acd))) or Ring));
-                  H := Word_To_Integer_16(RAM.Read_Word (Phys_Addr_T (DG_Types.Lower_Word (CPU.AC(I.Acd)) + 1) or Ring));
+                  L := Word_To_Integer_16(RAM.Read_Word (Phys_Addr_T (CPU.AC(I.Acd)) or Ring));
+                  H := Word_To_Integer_16(RAM.Read_Word (Phys_Addr_T (CPU.AC(I.Acd) + 1) or Ring));
                   if (Acs < L) or (Acs > H) then
                      Incr := 1;
                   else
@@ -72,7 +72,7 @@ package body Processor.Eclipse_PC_P is
                Low_Limit, High_Limit : Phys_Addr_T;
             begin
                Table_Start := (Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
-               Offset     := Phys_Addr_T(DG_Types.Lower_Word(CPU.AC(I.Ac)));
+               Offset     := Phys_Addr_T(CPU.AC(I.Ac));
                Low_Limit  := Phys_Addr_T(RAM.Read_Word(Table_Start - 2));
                High_Limit := Phys_Addr_T(RAM.Read_Word(Table_Start - 1));
                if CPU.Debug_Logging then

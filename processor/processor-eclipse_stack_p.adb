@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,7 @@ package body Processor.Eclipse_Stack_P is
                if CPU.Debug_Logging then
                   Loggers.Debug_Print (Debug_Log, "PSH pushing AC" & This_AC'Image);
                end if;
-               Narrow_Stack.Push (Ring, DG_Types.Lower_Word(CPU.AC(AC_Circle(This_AC))));
+               Narrow_Stack.Push (Ring, CPU.AC_Wd(AC_Circle(This_AC)));
             end loop;
 
          when I_PSHJ =>
@@ -82,7 +82,7 @@ package body Processor.Eclipse_Stack_P is
                CPU.AC(2) := Dword_T(Narrow_Stack.Pop(Ring));     -- 3
                CPU.AC(1) := Dword_T(Narrow_Stack.Pop(Ring));     -- 2
                CPU.AC(0) := Dword_T(Narrow_Stack.Pop(Ring));     -- 1
-               RAM.Write_Word (NFP_Loc or Ring, DG_Types.Lower_Word(CPU.AC(3)));
+               RAM.Write_Word (NFP_Loc or Ring, CPU.AC_Wd(3));
                return; -- because PC has been set
             end;
 
@@ -92,11 +92,11 @@ package body Processor.Eclipse_Stack_P is
             begin
                NFP_Sav := RAM.Read_Word (NFP_Loc or Ring);
                NSP_Sav := RAM.Read_Word (NSP_Loc or Ring);
-               Narrow_Stack.Push(Ring, DG_Types.Lower_Word(CPU.AC(0))); -- 1
-               Narrow_Stack.Push(Ring, DG_Types.Lower_Word(CPU.AC(1))); -- 2
-               Narrow_Stack.Push(Ring, DG_Types.Lower_Word(CPU.AC(2))); -- 3 
+               Narrow_Stack.Push(Ring, CPU.AC_Wd(0)); -- 1
+               Narrow_Stack.Push(Ring, CPU.AC_Wd(1)); -- 2
+               Narrow_Stack.Push(Ring, CPU.AC_Wd(2)); -- 3 
                Narrow_Stack.Push(Ring, NFP_Sav);               -- 4
-               Word := DG_Types.Lower_Word(CPU.AC(3));
+               Word := CPU.AC_Wd(3);
                if CPU.Carry then
                   Word := Word or 16#8000#;
                else

@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,8 @@ package body Processor.Nova_Op_P is
       Saved_Carry, Tmp_Carry : Boolean;
       PC_Inc                 : Phys_Addr_T;
    begin
-      Tmp_Acs := DG_Types.Lower_Word (CPU.AC(I.Acs));
-      Tmp_Acd := DG_Types.Lower_Word (CPU.AC(I.Acd));
+      Tmp_Acs := CPU.AC_Wd(I.Acs);
+      Tmp_Acd := CPU.AC_Wd(I.Acd);
       Saved_Carry := CPU.Carry;
 
       case I.Carry is

@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ package body Processor.Nova_Mem_Ref_P is
 
          when I_STA =>
             Addr := (Resolve_8bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
-            Word := DG_Types.Lower_Word (CPU.AC(I.Ac));
+            Word := CPU.AC_Wd(I.Ac);
             RAM.Write_Word (Addr, Word);
 
          when others =>
