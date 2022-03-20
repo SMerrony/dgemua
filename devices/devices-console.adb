@@ -227,7 +227,7 @@ package body Devices.Console is
             -- Processor.Set_SCPIO(true);
         elsif SCP_IO then
             case One_Char is
-                when ASCII.CR =>
+                when Dasher_NL | Dasher_CR =>
                     SCP_Handler.Set_SCP_Line_Ready (SCP_Buffer);
                     SCP_Buffer := Null_Unbounded_String;
                 when Dasher_Delete =>

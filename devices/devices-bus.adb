@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -170,16 +170,16 @@ package body Devices.Bus is
 
        function  Get_Printable_Device_List return String is
          use Memory;
-         Lst : Unbounded_String := To_Unbounded_String (" #     Mnem     PMB   I/O     Busy    Done     Status") & Dasher_NL;
+         Lst : Unbounded_String := To_Unbounded_String (" #   Mnem     PMB  I/O  Busy Done         Status") & Dasher_NL;
        begin
          for D in Dev_Num_T'Range loop
             if Bus.Devices(D).Connected then
                Lst := Lst &
-                      Byte_To_String(Byte_T(D), Octal, 3, true) & ASCII.HT &
-                      Bus.Devices(D).Mnemonic & ASCII.HT &
-                      Byte_To_String(Byte_T(Bus.Devices(D).PMB), Decimal, 3) & "." & ASCII.HT &
-                      Boolean_To_YN (Bus.Devices(D).IO_Device) & ASCII.HT &
-                      Boolean_To_YN (States.Get_Busy(D)) & ASCII.HT &
+                      Byte_To_String(Byte_T(D), Octal, 3, true) & "   " &
+                      Bus.Devices(D).Mnemonic & "    " &
+                      Byte_To_String(Byte_T(Bus.Devices(D).PMB), Decimal, 3) & ".   " &
+                      Boolean_To_YN (Bus.Devices(D).IO_Device) & "    " &
+                      Boolean_To_YN (States.Get_Busy(D)) & "    " &
                       Boolean_To_YN (States.Get_Done(D));
                if Bus.Devices(D).Sim_Image_Attached then
                   Lst := Lst & " Attached to image: " & Bus.Devices(D).Sim_Image_Name;
