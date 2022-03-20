@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -446,7 +446,7 @@ package body Devices.Disk6061 is
         loop
             Status := Drives.Get_Status;
             Status_Monitor.Monitor.DPF_Update (Status);
-            delay 0.5;
+            delay Status_Period_S;
         end loop;
     end Status_Sender;
 

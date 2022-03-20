@@ -161,7 +161,14 @@ package body Status_Monitor is
                "  Cyl: " & DPF_Stats.Cylinder'Image & 
                "  Surf: " & DPF_Stats.Surface'Image &
                "  Sect: " & DPF_Stats.Sector'Image &
-               "  KIOPS: " & DPF_IOPS_I'Image);   
+               "  KIOPS: " & DPF_IOPS_I'Image); 
+            String'Write
+               (Channel,
+               Dasher_Write_Window_Addr & Character'Val (0) &
+               Character'Val (DPF_Row_2) & Dasher_Erase_EOL);     
+            String'Write
+               (Channel,
+               "               Image file: " & To_String(DPF_Stats.Image_Filename));   
          or
             accept MTB_Update (Stats : in Devices.Magtape6026.Status_Rec) do
                MTB_Stats := Stats;

@@ -152,6 +152,8 @@ package Processor is
    function  Get_N          (CPU : in CPU_T) return Boolean;
    function  Get_Z          (CPU : in CPU_T) return Boolean;
 
+   Status_Period_S : constant Duration := 1.0;
+
    task Status_Sender is
         entry Start (CPU : in CPU_T);
    end Status_Sender;

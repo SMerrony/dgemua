@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -113,6 +113,8 @@ package Devices.Magtape6026 is
         Image_Filename             : FN_Arr;
         SIMH_File                  : File_Arr;
     end record;
+
+    Status_Period_S : constant Duration := 2.0;
 
     type Status_Rec is record
         Image_Attached             : Att_Arr;

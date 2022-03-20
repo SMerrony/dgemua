@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -107,6 +107,8 @@ package Devices.Disk6061 is
 	   Instruction_Mode : Ins_Mode;
 	   Last_DOA_Was_Seek : Boolean;
     end record;
+
+	Status_Period_S : constant Duration := 1.0;
 
 	-- the data reported to the status collector
 	type Status_Rec is record

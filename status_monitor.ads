@@ -39,7 +39,10 @@ package Status_Monitor is
     CPU_Row_1 : constant Integer := 3;
     CPU_Row_2 : constant Integer := 5;
     DPF_Row_1 : constant Integer := 7;
-    MTB_Row_1 : constant Integer := 11;
-    MTB_Row_2 : constant Integer := 12;
+    DPF_Row_2 : constant Integer := 8;
+    DPJ_Row_1 : constant Integer := 10;
+    DPJ_Row_2 : constant Integer := 11;
+    MTB_Row_1 : constant Integer := 13;
+    MTB_Row_2 : constant Integer := 14;
 
 end Status_Monitor;

@@ -314,7 +314,7 @@ package body Devices.Magtape6026 is
       loop
          Status := Drives.Get_Status;
          Status_Monitor.Monitor.MTB_Update (Status);
-         delay 0.5;
+         delay Status_Period_S;
       end loop;
    end Status_Sender;
 

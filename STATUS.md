@@ -3,7 +3,7 @@
 ## Physical Emulator - mvemua
 
 * Last status update: 18th March 2022
-* Last significant progress: FIXUP produces ERROR 71231. - that's further than mvemg gets! - 28th October 2021
+* Last significant progress: FIXUP produces ERROR 71199. - that's further than mvemg gets! - 18th March 2022
 
 ### What Works?
 * File 0 - TBOOT - Appears to be working - 10th April 2021
@@ -58,7 +58,7 @@ The NADGUG library provides a good range of freely-available test targets...
 
 Error Codes to Look-Up...
 * 11381
-* 71231
+* 71199
 * 71683
 * 71697
 

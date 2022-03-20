@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -427,7 +427,7 @@ package body Processor is
          Stats := Get_Status (SS_CPU);
          -- Stats := SS_CPU.Get_Status;
          Status_Monitor.Monitor.CPU_Update (Stats);
-         delay 0.333;
+         delay Status_Period_S;
       end loop;
    end Status_Sender;
 
