@@ -160,6 +160,10 @@ package body Memory is
       begin
          RAM.Write_Word (NSP_Loc or Segment, New_NSP);
          RAM.Write_Word (Phys_Addr_T (New_NSP) or Segment, Datum);
+         if CPU.Debug_Logging then
+            Loggers.Debug_Print (Debug_Log, "... Pushed " & Word_To_String (Datum, Octal, 11) &
+                                           " to: " & Dword_To_String (Dword_T(New_NSP) or Segment), Octal, 11));
+         end if;
       end Push;
 
       function Pop (Segment : in Phys_Addr_T) return Word_T is

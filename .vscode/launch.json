@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/vsemua",
             "args": ["-pr", "FIXUP.PR", 
-                     "-root", "/home/steve/ada/github.com/dgemua/FILESYSTEM",
+                     "-root", "/home/steve/DG/AOSVS773",
                      "-dir", ":UTIL"],
             // "args": ["-pr", "CLI32.PR", 
             //          "-root", "/home/steve/ada/github.com/dgemua/FILESYSTEM",
@@ -18,7 +18,7 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": false,
+            "externalConsole": true,
             "MIMode": "gdb",
             "setupCommands": [
                 {

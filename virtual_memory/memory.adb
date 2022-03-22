@@ -269,6 +269,10 @@ package body Memory is
       begin
          RAM.Write_Word (NSP_Loc or Segment, New_NSP);
          RAM.Write_Word (Phys_Addr_T (New_NSP) or Segment, Datum);
+         -- if CPU.Debug_Logging then
+            Loggers.Debug_Print (Debug_Log, "... Pushed " & Word_To_String (Datum, Octal, 7) &
+                                           " to: " & Dword_To_String (Dword_T(Phys_Addr_T (New_NSP) or Segment), Octal, 11));
+         -- end if;
       end Push;
 
       function Pop (Segment : in Phys_Addr_T) return Word_T is
@@ -276,6 +280,10 @@ package body Memory is
          Datum   : Word_T := RAM.Read_Word (Phys_Addr_T (Old_NSP) or Segment);
       begin
          RAM.Write_Word (NSP_Loc or Segment, Old_NSP - 1);
+         -- if CPU.Debug_Logging then
+            Loggers.Debug_Print (Debug_Log, "... Popped " & Word_To_String (Datum, Octal, 7) &
+                                           " from: " & Dword_To_String (Dword_T(Phys_Addr_T (Old_NSP) or Segment), Octal, 11));
+         -- end if;
          return Datum;
       end Pop;
    end Narrow_Stack;

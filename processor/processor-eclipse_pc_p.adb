@@ -98,8 +98,8 @@ package body Processor.Eclipse_PC_P is
             CPU.PC := Addr;
 
          when I_EJSR =>
-            CPU.AC(3) := Dword_T(CPU.PC) + 2;
             Addr := (Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+            CPU.AC(3) := Dword_T(CPU.PC) + 2;
             CPU.PC := Addr;
 
          when I_FNS =>

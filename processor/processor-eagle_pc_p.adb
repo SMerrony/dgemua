@@ -105,8 +105,9 @@ package body Processor.Eagle_PC_P is
             CPU.PC := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
 
          when I_LJSR =>
-            CPU.AC(3) := Dword_T(CPU.PC) + 3;
+            Addr := CPU.PC + 3;
             CPU.PC := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            CPU.AC(3) := Dword_T(Addr);
 
          when I_LNDSZ =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
@@ -348,7 +349,7 @@ package body Processor.Eagle_PC_P is
             end if;
 
          when I_XCALL => -- FIXME - XCALL only handling trivial case
-            CPU.AC(3) := Dword_T(CPU.PC) + 3;
+            Addr := CPU.PC + 3;
             if I.Arg_Count >= 0 then
                DW := Shift_Left(Dword_T(CPU.PSR), 16);
                DW := DW or (Dword_T(I.Arg_Count) and 16#0000_ffff#);
@@ -357,14 +358,16 @@ package body Processor.Eagle_PC_P is
             end if;
             WS_Push (DW);
             CPU.PC := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            CPU.AC(3) := Dword_T(Addr);
 
          when I_XJMP =>
             CPU.PC := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) or (CPU.PC and 16#7000_0000#);
 
          when I_XJSR =>
-            CPU.AC(3) := Dword_T(CPU.PC + 2);
+            Addr := CPU.PC + 2;
             CPU.PC := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) or (CPU.PC and 16#7000_0000#);
-
+            CPU.AC(3) := Dword_T(Addr);
+            
          when I_XNDO =>
             declare
                Loop_Var_Addr    : Phys_Addr_T;

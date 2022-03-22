@@ -27,7 +27,7 @@ The following 32-bit sample programs copied from a physical machine are working.
 * HW2.PR - Hello, World! using CLI return message (13 May 2021)
 * LOOPS1.PR - Basic looping constructs (13 May 2021)
 * LOOPS2.PR - Further loops (13 May 2021)
-* LOOPS3.PR - Loops with LWDO and -ve values (14 May 2021)
+* LOOPS3.PR - Loops with LWDO and -ve values (14 May 2021)#
 * LOOPS4.PR - As LOOPS3 with external subroutines (14 May 2021)
 * SPIGOT.PR - Calculate Pi to a thousand places using the spigot method (14 May 2021)
 * STRINGTESTS.PR - Various string-handling routines (14 May 2021)
