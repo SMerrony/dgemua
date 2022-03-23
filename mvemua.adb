@@ -132,10 +132,17 @@ procedure MVEmuA is
          elsif Dev = "DPF" then
             Devices.Disk6061.Drives.Attach (0, Image_Name, OK);
             if OK then
-               TTOut.Put_String (Dasher_NL & " *** Disk Image Attached ***");
+               TTOut.Put_String (Dasher_NL & " *** DPF Disk Image Attached ***");
             else
-               TTOut.Put_String (Dasher_NL & " *** Could not attach Disk Image ***");
+               TTOut.Put_String (Dasher_NL & " *** Could not attach DPF Disk Image ***");
             end if;
+         elsif Dev = "DSKP" then
+            Devices.Disk6239.Drives.Attach (0, Image_Name, OK);
+            if OK then
+               TTOut.Put_String (Dasher_NL & " *** DSKP Disk Image Attached ***");
+            else
+               TTOut.Put_String (Dasher_NL & " *** Could not attach DSKP Disk Image ***");
+            end if;   
          else
                TTOut.Put_String (Dasher_NL & " *** Unknown or unimplemented Device for ATT command ***");
          end if;
@@ -242,7 +249,16 @@ procedure MVEmuA is
          TTOut.Put_String (Dasher_NL & "Attempting to CREATE new empty DPF-type disk image, please wait...");
          Devices.Disk6061.Create_Blank(Slice(Command,3), OK);
          if OK then
-            TTOut.Put_String (Dasher_NL & "Empty MV/Em DPF-type disk image created");
+            TTOut.Put_String (Dasher_NL & "Empty MV/Emua DPF-type disk image created");
+         else 
+            TTOut.Put_String (Dasher_NL & " *** Error: could not create empty disk image ***");
+         end if;
+      end if;
+      if Slice (Command, 2) = "DSKP" then
+         TTOut.Put_String (Dasher_NL & "Attempting to CREATE new empty DSKP-type disk image, please wait...");
+         Devices.Disk6239.Create_Blank(Slice(Command,3), OK);
+         if OK then
+            TTOut.Put_String (Dasher_NL & "Empty MV/Emua DSKP-type disk image created");
          else 
             TTOut.Put_String (Dasher_NL & " *** Error: could not create empty disk image ***");
          end if;

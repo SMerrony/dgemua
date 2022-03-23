@@ -133,6 +133,7 @@ package Devices.Disk6061 is
 	end Drives;
 
 	procedure Create_Blank (Image_Name : in String; OK : out Boolean);
+	-- Simply creates an empty disk file of the correct size for the disk6061 emulator to use
 
     task Status_Sender is
         entry Start;

@@ -20,11 +20,33 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+with Ada.Exceptions;  use Ada.Exceptions;
 with Ada.Text_IO;
 
+with Debug_Logs;      use Debug_Logs;
+with Devices.Bus;
 with Status_Monitor;
 
 package body Devices.Disk6239 is
+
+    procedure Create_Blank (Image_Name : in String; OK : out Boolean) is
+        Tmp_File     : Sector_IO.File_Type;
+        Empty_Sector : constant Sector := (others => 0);
+    begin
+        Sector_IO.Create (Tmp_File, Out_File, Image_Name);
+        for S in 1 .. Physical_Block_Size loop
+            Sector_IO.Write (Tmp_File, Empty_Sector);
+        end loop;
+        Sector_IO.Close (Tmp_File);
+        OK := True;
+    exception
+        when Error : others =>
+            Loggers.Debug_Print
+               (Debug_Log,
+                "WARNING: Could not create disk image due to " &
+                Exception_Information (Error));
+            OK := False;
+    end Create_Blank;
 
     protected body Drives is
 
@@ -39,6 +61,28 @@ package body Devices.Disk6239 is
             --Reset;
             Status_Sender.Start;
         end Init;
+
+        procedure Attach
+           (Unit : in Natural; Image_Name : in String; OK : out Boolean)
+        is
+        begin
+            if Unit /= 0 then
+                raise Not_Yet_Implemented
+                   with "DSKP - Multiple disks not yet supported";
+            end if;
+            Sector_IO.Open (State.Image_File, Inout_File, Image_Name);
+            State.Image_Filename := To_Unbounded_String (Image_Name);
+            State.Image_Attached := True;
+            Devices.Bus.Actions.Set_Image_Attached (Devices.DSKP, Image_Name);
+            OK := True;
+        exception
+            when Error : others =>
+                Loggers.Debug_Print
+                   (Debug_Log,
+                    "WARNING: Could not open disk image due to " &
+                    Exception_Information (Error));
+                OK := False;
+        end Attach;
 
         function Get_Status return Status_Rec is
             Stat : Status_Rec;

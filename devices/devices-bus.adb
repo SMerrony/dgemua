@@ -175,8 +175,8 @@ package body Devices.Bus is
          for D in Dev_Num_T'Range loop
             if Bus.Devices(D).Connected then
                Lst := Lst &
-                      Byte_To_String(Byte_T(D), Octal, 3, true) & "   " &
-                      Bus.Devices(D).Mnemonic & "    " &
+                      Byte_To_String(Byte_T(D), Octal, 3, true) & "  " &
+                      Ada.Strings.Unbounded.Head (Bus.Devices(D).Mnemonic, 6) & "  " &
                       Byte_To_String(Byte_T(Bus.Devices(D).PMB), Decimal, 3) & ".   " &
                       Boolean_To_YN (Bus.Devices(D).IO_Device) & "    " &
                       Boolean_To_YN (States.Get_Busy(D)) & "    " &

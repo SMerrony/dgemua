@@ -201,10 +201,12 @@ package Devices.Disk6239 is
 	   Reads, Writes    : Unsigned_64;
     end record;
 
-    -- procedure Create_Blank (Image_Name : in String; OK : out Boolean);
+    procedure Create_Blank (Image_Name : in String; OK : out Boolean);
+	-- Simply creates an empty disk file of the correct size for the disk6239 emulator to use
 
     protected Drives is
         procedure Init (Debug_Logging : in Boolean);
+        procedure Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean);
         function  Get_Status return Status_Rec;
 
     private
@@ -215,5 +217,6 @@ package Devices.Disk6239 is
         entry Start;
     end Status_Sender;
 
+    Not_Yet_Implemented : exception;
 
 end Devices.Disk6239;   

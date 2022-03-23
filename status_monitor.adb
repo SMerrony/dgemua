@@ -188,7 +188,7 @@ package body Status_Monitor is
                Character'Val (DSKP_Row_1) & Dasher_Erase_EOL);
             String'Write
                (Channel,
-               "DSKP:  (DPJ0) - Attached: " & Boolean_To_YN (DSKP_Stats.Image_Attached) &
+               "DSKP: (DPJ0) - Attached: " & Boolean_To_YN (DSKP_Stats.Image_Attached) &
                "  Sect: " & DSKP_Stats.Sector_No'Image &
                "  KIOPS: " & DSKP_IOPS_I'Image); 
             String'Write
