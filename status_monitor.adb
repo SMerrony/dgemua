@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -32,15 +32,7 @@ with Interfaces; use Interfaces;
 with DG_Types; use DG_Types;
 with Memory;   use Memory;
 
--- Status_Monitor maintains a near real-time status screen available on STAT_PORT.
---
--- The screen uses DG DASHER control codes for formatting, so a DASHER terminal emulator
--- should be attached to it for good results.
---
--- The Monitor task waits for status updates
--- from known senders and upon receiving an update refreshes the display of that status
--- on the monitor page.  It is therefore the responsibility of the sender to update the
--- status as often as it sees fit.
+
 package body Status_Monitor is
 
    type MIPS_T is delta 0.01 digits 5;
@@ -74,18 +66,28 @@ package body Status_Monitor is
       Radix                 : Number_Base_T := Octal;
       CPU_Stats             : Processor.CPU_Monitor_Rec;
       DPF_Stats             : Devices.Disk6061.Status_Rec;
+      DSKP_Stats            : Devices.Disk6239.Status_Rec;
       MTB_Stats             : Devices.Magtape6026.Status_Rec;
       Now, 
       Last_CPU_Time,
-      Last_DPF_Time         : Time := Clock;
+      Last_DPF_Time,
+      Last_DSKP_Time        : Time := Clock;
       CPU_Elapsed,
-      DPF_Elapsed           : Time_Span;
+      DPF_Elapsed,
+      DSKP_Elapsed          : Time_Span;
       I_Count, Last_I_Count : Unsigned_64 := 0;
       MIPS                  : Float;
       MIPS_Fixed            : MIPS_T;
-      DPF_IO_Count, Last_DPF_IO_Count : Unsigned_64 := 0;
+
+      DPF_IO_Count, 
+      Last_DPF_IO_Count     : Unsigned_64 := 0;
       DPF_IOPS              : Float;
       DPF_IOPS_I            : Natural;
+
+      DSKP_IO_Count, 
+      Last_DSKP_IO_Count    : Unsigned_64 := 0;
+      DSKP_IOPS             : Float;
+      DSKP_IOPS_I           : Natural;
    begin
       loop
          select
@@ -169,6 +171,33 @@ package body Status_Monitor is
             String'Write
                (Channel,
                "               Image file: " & To_String(DPF_Stats.Image_Filename));   
+         or
+            accept DSKP_Update (Stats : in Devices.Disk6239.Status_Rec) do
+               DSKP_Stats := Stats;
+            end DSKP_Update;
+            Now := Clock;
+            DSKP_IO_Count := DSKP_Stats.Reads + DSKP_Stats.Writes - Last_DSKP_IO_Count;
+            Last_DSKP_IO_Count := DSKP_Stats.Reads + DSKP_Stats.Writes;
+            DSKP_Elapsed := Now - Last_DSKP_Time;
+            DSKP_IOPS := Float(DSKP_IO_Count) / To_Float(DSKP_Elapsed);
+            DSKP_IOPS_I := Natural(DSKP_IOPS) / 1000;
+            Last_DSKP_Time := Now;
+            String'Write
+               (Channel,
+               Dasher_Write_Window_Addr & Character'Val (0) &
+               Character'Val (DSKP_Row_1) & Dasher_Erase_EOL);
+            String'Write
+               (Channel,
+               "DSKP:  (DPJ0) - Attached: " & Boolean_To_YN (DSKP_Stats.Image_Attached) &
+               "  Sect: " & DSKP_Stats.Sector_No'Image &
+               "  KIOPS: " & DSKP_IOPS_I'Image); 
+            String'Write
+               (Channel,
+               Dasher_Write_Window_Addr & Character'Val (0) &
+               Character'Val (DSKP_Row_2) & Dasher_Erase_EOL);     
+            String'Write
+               (Channel,
+               "               Image file: " & To_String(DSKP_Stats.Image_Filename));   
          or
             accept MTB_Update (Stats : in Devices.Magtape6026.Status_Rec) do
                MTB_Stats := Stats;

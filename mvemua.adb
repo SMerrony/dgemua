@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,7 @@ with Devices;
 with Devices.Bus;
 with Devices.Console;       use Devices.Console;
 with Devices.Disk6061;
+with Devices.Disk6239;
 with Devices.Magtape6026;
 with DG_Types;              use DG_Types;
 with Processor;
@@ -516,6 +517,10 @@ begin
 
       Devices.Bus.Actions.Connect (Devices.DPF);
       Devices.Disk6061.Drives.Init (Debug_Logging);
+
+      Devices.Bus.Actions.Connect (Devices.DSKP);
+      Devices.Disk6239.Drives.Init (Debug_Logging);
+
 
       -- say hello...
       Devices.Console.TTOut.Put_Char (ASCII.FF);

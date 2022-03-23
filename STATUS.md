@@ -2,8 +2,8 @@
 
 ## Physical Emulator - mvemua
 
-* Last status update: 18th March 2022
-* Last significant progress: FIXUP produces ERROR 71199. - that's further than mvemg gets! - 18th March 2022
+* Last status update: 22nd March 2022
+* Last significant progress: PCOPY (See below)
 
 ### What Works?
 * File 0 - TBOOT - Appears to be working - 10th April 2021
@@ -16,7 +16,7 @@ Initial milestones are to run from image of AOS/VS 7.73 system tape image...
 * ~~File 2 - DFMTR - Runs with surface analysis to completion on 6061 disk - 18th April 2021~~
 * ~~File 3 - INSTL - Runs to completion - 19th April 2021~~
 * File 1 - FIXUP - Produces ERROR ~71231.~ 71199. - that's further than mvemg gets! - 18th March 2022
-* File 1 - PCOPY - Loops with 'Fatal disk error' even though disk is not being accessed - same as mvemg - 2nd May 2021
+* File 1 - PCOPY - Aborts with "Incorrect disk format revision number" - further than mvemg got! - 22nd March 2022
 
 ## Virtual (AOS/VS) Emulator - vsemua
 

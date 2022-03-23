@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +20,31 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+-- Status_Monitor maintains a near real-time status screen available on STAT_PORT.
+--
+-- The screen uses DG DASHER control codes for formatting, so a DASHER terminal emulator
+-- should be attached to it for good results.
+--
+-- The Monitor task waits for status updates
+-- from known senders and upon receiving an update refreshes the display of that status
+-- on the monitor page.  It is therefore the responsibility of the sender to update the
+-- status as often as it sees fit.
+
 with GNAT.Sockets;
 
 with Processor;
 with Devices.Disk6061;
+with Devices.Disk6239;
 with Devices.Magtape6026;
 
 package Status_Monitor is
 
     task Monitor is
         entry Start (Port : in GNAT.Sockets.Port_Type);
-        entry CPU_Update (Stats : in Processor.CPU_Monitor_Rec);
-        entry DPF_Update (Stats : in Devices.Disk6061.Status_Rec);
-        entry MTB_Update (Stats : in Devices.Magtape6026.Status_Rec);
+        entry CPU_Update  (Stats : in Processor.CPU_Monitor_Rec);
+        entry DPF_Update  (Stats : in Devices.Disk6061.Status_Rec);
+        entry DSKP_Update (Stats : in Devices.Disk6239.Status_Rec);
+        entry MTB_Update  (Stats : in Devices.Magtape6026.Status_Rec);
         entry Stop;
     end Monitor;
 
@@ -40,8 +52,8 @@ package Status_Monitor is
     CPU_Row_2 : constant Integer := 5;
     DPF_Row_1 : constant Integer := 7;
     DPF_Row_2 : constant Integer := 8;
-    DPJ_Row_1 : constant Integer := 10;
-    DPJ_Row_2 : constant Integer := 11;
+    DSKP_Row_1 : constant Integer := 10;
+    DSKP_Row_2 : constant Integer := 11;
     MTB_Row_1 : constant Integer := 13;
     MTB_Row_2 : constant Integer := 14;
 
