@@ -58,7 +58,7 @@ package body Devices.Disk6239 is
             --Devices.Bus.Actions.Set_Data_Out_Proc (Devices.DSKP, Data_Out'Access);
             State.Image_Attached := False;
             --State.Map_Enabled    := False;
-            --Reset;
+            Reset;
             Status_Sender.Start;
         end Init;
 
@@ -83,6 +83,69 @@ package body Devices.Disk6239 is
                     Exception_Information (Error));
                 OK := False;
         end Attach;
+
+        procedure Reset is
+        begin
+            -- Reset Mapping
+            State.Mapping_Reg_A := 16#0000#; -- DMA over BMC
+            State.Mapping_Reg_B := Map_Int_Bmc_Phys or Map_Upstream_Load or Map_Upstream_Hpt;
+
+            -- Reset Int_Inf_Block
+            State.Int_Inf_Block(0) := 8#101#;
+            State.Int_Inf_Block(1) := Ucode_Rev;
+            State.Int_Inf_Block(2) := 3;
+            State.Int_Inf_Block(3) := Shift_Left (8, 11) or Max_Queued_CBs;
+            State.Int_Inf_Block(4) := 0;
+            State.Int_Inf_Block(5) := Shift_Left (11, 8);
+            State.Int_Inf_Block(6) := 0;
+            State.Int_Inf_Block(7) := 0;
+
+            -- Reset Ctrl_Inf_Block
+            State.Ctrl_Inf_Block(0) := 0;
+            State.Ctrl_Inf_Block(1) := 0;
+
+            -- Reset Unit_Inf_Block
+            State.Unit_Inf_Block(0) := 0;
+            State.Unit_Inf_Block(1) := Shift_Left (9, 12) or Ucode_Rev;
+            State.Unit_Inf_Block(2) := Logical_Blocks_H;
+            State.Unit_Inf_Block(3) := Logical_Blocks_L;
+            State.Unit_Inf_Block(4) := Word_T(Bytes_Per_Sector);
+            State.Unit_Inf_Block(5) := Word_T(User_Cylinders);
+            State.Unit_Inf_Block(6) := Shift_Left (Word_T(Surfaces_Per_Disk * Heads_Per_Surface), 8) or
+                                       (Word_T(Sectors_Per_Track) and 16#00ff#);
+
+            -- Other data
+            State.Command_Reg_B := 0;
+            State.Command_Reg_C := 0;
+            Set_PIO_Status_Reg_C (Status   => Stat_Xec_State_Reset_Done, 
+                                  CCS      => 0, 
+                                  Cmd_Echo => Pio_Reset, 
+                                  RR       => Test_W_Bit (Word => State.Command_Reg_C, Bit_Num => 15));
+            if State.Debug_Logging then
+                Loggers.Debug_Print (Dskp_Log, "DEBUG: *** Reset *** via call to Drives.Reset");
+            end if;                                
+        end Reset;
+
+        procedure Set_PIO_Status_Reg_C (Status, CCS : in Byte_T; Cmd_Echo : in Word_T; RR : in Boolean) is
+        -- Set the SYNCHRONOUS standard refturn as per p.3-22
+            Stat : Byte_T := Status;
+        begin
+            if Status = 0 and State.Is_Mapped then
+                Stat := Stat_Xec_State_Mapped;
+            end if;
+            if RR or Cmd_Echo = Pio_Reset then
+                State.Status_Reg_C := Shift_Left (Word_T(Stat), 12);
+                State.Status_Reg_C := State.Status_Reg_C or Shift_Left (Word_T(CCS and 3), 10);
+                State.Status_Reg_C := State.Status_Reg_C or Shift_Left (Cmd_Echo and 16#01ff#, 1);
+                if RR then
+                    State.Status_Reg_C := State.Status_Reg_C or 1;
+                end if;
+                if State.Debug_Logging then
+                    Loggers.Debug_Print (Dskp_Log, "DEBUG: PIO (SYNCH) status C set to: " & 
+                                                   Word_To_String (WD => State.Status_Reg_C, Base => Binary, Width => 16, Zero_Pad => True));
+                end if;
+            end if;
+        end Set_PIO_Status_Reg_C;
 
         function Get_Status return Status_Rec is
             Stat : Status_Rec;

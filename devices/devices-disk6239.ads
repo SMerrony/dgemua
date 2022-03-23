@@ -47,15 +47,15 @@ package Devices.Disk6239 is
 	Heads_Per_Surface  : constant Integer := 2;
 	Sectors_Per_Track  : constant Integer := 75;
 	Words_Per_Sector   : constant Integer := 256;
-	Bytes_Per_Sector   : constant Integer := Words_Per_Sector * 2;
+	Bytes_Per_Sector   : constant Integer  := Words_Per_Sector * 2;
 	Physical_Cylinders : constant Integer := 981;
-	User_Cylinders     : constant Integer := 978;
+	User_Cylinders     : constant Integer  := 978;
 	Logical_Blocks     : constant Integer := 1157952; -- ??? 1147943 17<<16 | 43840
-	-- Logical_Blocks_H   : constant Integer := LogicalBlocks >> 16;
-	-- Logical_Blocks_L   : constant Integer := LogicalBlocks & 0x0ffff;
-	Ucode_Rev          : constant Integer := 99;
+	Logical_Blocks_H   : constant Word_T  := 17;
+	Logical_Blocks_L   : constant Word_T  := 43840;
+	Ucode_Rev          : constant Word_T  := 99;
 
-	Max_Queued_CBs     : constant Integer:= 30; -- See p.2-13
+	Max_Queued_CBs     : constant Word_T:= 30; -- See p.2-13
 
 	Int_Inf_Blk_Size   : constant Integer:= 8;
 	Ctrlr_Inf_Blk_Size : constant Integer:= 2;
@@ -65,44 +65,44 @@ package Devices.Disk6239 is
 
 	Async_Stat_Retry_Interval_ms : constant Integer:= 1;
 
-	Stat_Xec_State_Resetting  : constant Integer := 16#00#;
-	Stat_Xec_State_Reset_Done : constant Integer := 16#01#;
-	Stat_Xec_State_Begun      : constant Integer := 16#08#;
-	Stat_Xec_State_Mapped     : constant Integer := 16#0c#;
-	Stat_Xec_State_Diag_Mode  : constant Integer := 16#04#;
+	Stat_Xec_State_Resetting  : constant Byte_T := 16#00#;
+	Stat_Xec_State_Reset_Done : constant Byte_T := 16#01#;
+	Stat_Xec_State_Begun      : constant Byte_T := 16#08#;
+	Stat_Xec_State_Mapped     : constant Byte_T := 16#0c#;
+	Stat_Xec_State_Diag_Mode  : constant Byte_T := 16#04#;
 
-	Stat_Ccs_Async          : constant Integer := 0;
-	Stat_Ccs_Pio_Inv_Cmd    : constant Integer := 1;
-	Stat_Ccs_Pio_Cmd_Failed : constant Integer := 2;
-	Stat_Ccs_Pio_Cmd_Ok     : constant Integer := 3;
+	Stat_Ccs_Async          : constant Byte_T := 0;
+	Stat_Ccs_Pio_Inv_Cmd    : constant Byte_T := 1;
+	Stat_Ccs_Pio_Cmd_Failed : constant Byte_T := 2;
+	Stat_Ccs_Pio_Cmd_Ok     : constant Byte_T := 3;
 
-	Stat_Async_No_Errors    : constant Integer := 5;
+	Stat_Async_No_Errors    : constant Byte_T := 5;
 
 	-- disk6239 PIO Command Set
-	Pio_Prog_Load        : constant Integer := 8#000#;
-	Pio_Begin            : constant Integer := 8#002#;
-	Pio_Sysgen           : constant Integer := 8#025#;
-	Diag_Mode            : constant Integer := 8#024#;
-	Set_Mapping          : constant Integer := 8#026#;
-	Get_Mapping          : constant Integer := 8#027#;
-	Set_Interface        : constant Integer := 8#030#;
-	Get_Interface        : constant Integer := 8#031#;
-	Set_Controller       : constant Integer := 8#032#;
-	Get_Controller       : constant Integer := 8#033#;
-	Set_Unit             : constant Integer := 8#034#;
-	Get_Unit             : constant Integer := 8#035#;
-	Get_ExtendedStatus_0 : constant Integer := 8#040#;
-	Get_ExtendedStatus_1 : constant Integer := 8#041#;
-	Get_ExtendedStatus_2 : constant Integer := 8#042#;
-	Get_ExtendedStatus_3 : constant Integer := 8#043#;
-	Start_List           : constant Integer := 8#0100#;
-	Start_List_Hp        : constant Integer := 8#0103#;
-	Restart              : constant Integer := 8#0116#;
-	Cancel_List          : constant Integer := 8#0123#;
-	Unit_Status          : constant Integer := 8#0131#;
-	Trespass             : constant Integer := 8#0132#;
-	Get_List_Status      : constant Integer := 8#0133#;
-	Pio_Reset            : constant Integer := 8#0777#;
+	Pio_Prog_Load        : constant Word_T := 8#000#;
+	Pio_Begin            : constant Word_T := 8#002#;
+	Pio_Sysgen           : constant Word_T := 8#025#;
+	Diag_Mode            : constant Word_T := 8#024#;
+	Set_Mapping          : constant Word_T := 8#026#;
+	Get_Mapping          : constant Word_T := 8#027#;
+	Set_Interface        : constant Word_T := 8#030#;
+	Get_Interface        : constant Word_T := 8#031#;
+	Set_Controller       : constant Word_T := 8#032#;
+	Get_Controller       : constant Word_T := 8#033#;
+	Set_Unit             : constant Word_T := 8#034#;
+	Get_Unit             : constant Word_T := 8#035#;
+	Get_ExtendedStatus_0 : constant Word_T := 8#040#;
+	Get_ExtendedStatus_1 : constant Word_T := 8#041#;
+	Get_ExtendedStatus_2 : constant Word_T := 8#042#;
+	Get_ExtendedStatus_3 : constant Word_T := 8#043#;
+	Start_List           : constant Word_T := 8#0100#;
+	Start_List_Hp        : constant Word_T := 8#0103#;
+	Restart              : constant Word_T := 8#0116#;
+	Cancel_List          : constant Word_T := 8#0123#;
+	Unit_Status          : constant Word_T := 8#0131#;
+	Trespass             : constant Word_T := 8#0132#;
+	Get_List_Status      : constant Word_T := 8#0133#;
+	Pio_Reset            : constant Word_T := 8#0777#;
 
 	--//  CB Command Set/OpCodes
 	Cb_Op_No_Op               : constant Integer := 8#0#;
@@ -207,6 +207,10 @@ package Devices.Disk6239 is
     protected Drives is
         procedure Init (Debug_Logging : in Boolean);
         procedure Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean);
+        procedure Reset;
+        procedure Set_PIO_Status_Reg_C (Status, CCS : in Byte_T; Cmd_Echo : in Word_T; RR : in Boolean);
+        -- Set the SYNCHRONOUS standard refturn as per p.3-22
+
         function  Get_Status return Status_Rec;
 
     private
