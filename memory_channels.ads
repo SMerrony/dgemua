@@ -83,12 +83,19 @@ package Memory_Channels is
         procedure Reset;
         procedure Set_Logging (Debug_Logging : in Boolean);
         function  Read_Reg (Reg : in Integer) return Word_T;
+        procedure Read_Word_BMC_Chan (Unmapped : in out Phys_Addr_T; Datum : out Word_T);
+        procedure Read_Word_BMC_16 (Unmapped : in out Word_T; Datum : out Word_T);
         procedure Write_Reg (Reg : in Integer; Datum : in Word_T); 
         procedure Write_Slot (Slot : in Integer; Datum : in Dword_T);
+        procedure Write_Word_BMC_Chan (Unmapped : in out Phys_Addr_T; Datum : in Word_T);
         procedure Write_Word_DCH_Chan (Unmapped : in out Phys_Addr_T; Datum : in Word_T);
         procedure Write_Word_BMC_16 (Unmapped : in out Word_T; Datum : in Word_T);
-        procedure Read_Word_BMC_16 (Unmapped : in out Word_T; Datum : out Word_T);
     private
+        function Decode_BMC_Addr (Unmapped : in Phys_Addr_T) return BMC_Addr_T;
+        function Get_DCH_Mode return Boolean;
+        function Resolve_BMC_Mapped_Addr (M_Addr : in Phys_Addr_T) return Phys_Addr_T;
+        function Resolve_DCH_Mapped_Addr (M_Addr : in Phys_Addr_T) return Phys_Addr_T;
+
         Registers  : BMC_DCH_Regs_Array;
         Is_Logging : Boolean;
     end BMC_DCH;

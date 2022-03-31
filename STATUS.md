@@ -2,13 +2,15 @@
 
 ## Physical Emulator - mvemua
 
-* Last status update: 22nd March 2022
-* Last significant progress: PCOPY (See below)
+* Last status update: 31st March 2022
+* Last significant progress: Type 6239 disk formatting and installing
 
 ### What Works?
 * File 0 - TBOOT - Appears to be working - 10th April 2021
 * File 2 - DFMTR - Runs with surface analysis to completion on 6061 disk - 18th April 2021
-* File 3 - INSTL - Runs to completion - 19th April 2021
+* File 2 - DFMTR - Runs with surface analysis to completion on 6239 disk - 31st March 2022
+* File 3 - INSTL - Runs to completion on 6061 disk - 19th April 2021
+* File 3 - INSTL - Runs to completion on 6239 disk - 31st March 2022
   
 ### What's Next?
 Initial milestones are to run from image of AOS/VS 7.73 system tape image...

@@ -9,7 +9,7 @@
 SET LOGGING ON
 #
 # Trap JMP to location zeros - again, slows down the emulator a little
-# BREAK 0
+BREAK 0
 #
 # Attach a SimH-standard tape image
 # ATT MTB tapes/31133_1.9trk
@@ -21,7 +21,7 @@ ATT MTB TAPES/STARTER.9TRK
 ATT DPF DISKS/DISK1.DPF
 #
 # and a 6239-type disk image
-# ATT DSKP disks/DISK1.DSKP
+ATT DSKP DISKS/DISK1.DSKP
 #
 # Boot device 22 (MTB) - this doesn't start the CPU yet
 # B 22

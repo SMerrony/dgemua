@@ -287,7 +287,7 @@ package body Devices.Disk6061 is
             end case;
             if State.Debug_Logging then
                 Loggers.Debug_Print (Dpf_Log, "DI" & ABC'Image & " [" & State.Instruction_Mode'Image & 
-                    "] Returning: " & Dword_To_String(Dword_T(Datum), Binary, 16, true));
+                    "] Returning: " & Word_To_String(Datum, Binary, 16, true));
             end if;
                     
             Handle_Flag (IO_Flag);

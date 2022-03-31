@@ -46,7 +46,7 @@ package Decoder is
       Format      : Instr_Format_T;
       Instr_Type  : Instr_Class_T;
       Instr_Len   : Positive;
-      Disp_Offset : Natural;
+      Disp_Offset : Integer_32;
       Disassembly : Unbounded_String;
       -- Instruction Parameters
       Mode         : Mode_T;

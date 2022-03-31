@@ -150,6 +150,19 @@ package body Memory_Channels is
          return P_Addr;
       end Resolve_DCH_Mapped_Addr;
 
+      procedure Write_Word_BMC_Chan (Unmapped : in out Phys_Addr_T; Datum : in Word_T) is
+         P_Addr : Phys_Addr_T;
+         Decoded : BMC_Addr_T := Decode_BMC_Addr (Unmapped);
+      begin
+         if Decoded.Is_Logical then
+            P_Addr := Resolve_BMC_Mapped_Addr (Unmapped); -- FIXME
+         else
+            P_Addr := Decoded.CA;
+         end if;
+         RAM.Write_Word (P_Addr, Datum);
+         Unmapped := Unmapped + 1;
+      end Write_Word_BMC_Chan;
+
       procedure Write_Word_DCH_Chan
         (Unmapped : in out Phys_Addr_T; Datum : in Word_T)
       is
@@ -181,6 +194,19 @@ package body Memory_Channels is
          end if;
          return Res;
       end Decode_BMC_Addr;
+
+      procedure Read_Word_BMC_Chan (Unmapped : in out Phys_Addr_T; Datum : out Word_T) is
+         P_Addr : Phys_Addr_T;
+         Decoded : BMC_Addr_T := Decode_BMC_Addr (Unmapped);
+      begin
+         if Decoded.Is_Logical then
+            P_Addr := Resolve_BMC_Mapped_Addr (Unmapped); -- FIXME
+         else
+            P_Addr := Decoded.CA;
+         end if;
+         Datum := RAM.Read_Word (P_Addr);
+         Unmapped := Unmapped + 1;
+      end Read_Word_BMC_Chan;
 
       procedure Read_Word_BMC_16 (Unmapped : in out Word_T; Datum : out Word_T) is
          P_Addr : Phys_Addr_T;

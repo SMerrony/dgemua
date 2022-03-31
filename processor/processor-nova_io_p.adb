@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -82,6 +82,12 @@ package body Processor.Nova_IO_P is
                   end if;
                end if;
             end if;
+
+         when I_INTDS =>
+            CPU.ION := False;
+
+         when I_INTEN =>
+            CPU.ION := True;
 
          when I_NIO =>
             -- catch CPU I/O instructions

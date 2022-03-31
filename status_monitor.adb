@@ -71,7 +71,7 @@ package body Status_Monitor is
       Now, 
       Last_CPU_Time,
       Last_DPF_Time,
-      Last_DSKP_Time        : Time := Clock;
+      Last_DSKP_Time        : Time;
       CPU_Elapsed,
       DPF_Elapsed,
       DSKP_Elapsed          : Time_Span;
@@ -115,6 +115,9 @@ package body Status_Monitor is
                Dasher_Erase_Page & "                             " &
                Dasher_Underline & "MV/Emua Status" & Dasher_Normal &
                Dasher_NL);
+            Last_CPU_Time  := Clock;
+            Last_DPF_Time  := Clock;
+            Last_DSKP_Time := Clock;
          or
             accept CPU_Update (Stats : in Processor.CPU_Monitor_Rec) do
                CPU_Stats := Stats;

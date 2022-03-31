@@ -105,6 +105,18 @@ package body Processor.Eclipse_PC_P is
          when I_FNS =>
             CPU.PC := CPU.PC + 1;
 
+         when I_SGT =>
+            declare
+               Acd : Integer_16 := Integer_16(CPU.AC_Wd(I.Acd));
+               Acs : Integer_16 := Integer_16(CPU.AC_Wd(I.Acs));
+            begin
+               if Acs > Acd then 
+                  CPU.PC := CPU.PC + 2;
+               else
+                  CPU.PC := CPU.PC + 1;
+               end if;
+            end;
+
          when I_SNB =>
             Resolve_Eclipse_Bit_Addr (CPU, I.Acd , I.Acs, Addr, Bit_Num);
             Addr := Addr or Ring;

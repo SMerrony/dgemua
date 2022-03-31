@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -36,13 +36,13 @@ package Resolver is
                                  Indirect    : in Boolean; 
                                  Mode        : in Mode_T;
                                  Disp15      : in Integer_16;
-                                 Disp_Offset : in Natural) return Phys_Addr_T; 
+                                 Disp_Offset : in Integer_32) return Phys_Addr_T; 
 
     function Resolve_31bit_Disp (CPU         : in CPU_T;
                                  Indirect    : in Boolean; 
                                  Mode        : in Mode_T;
                                  Disp        : in Integer_32;
-                                 Disp_Offset : in Natural) return Phys_Addr_T;
+                                 Disp_Offset : in Integer_32) return Phys_Addr_T;
 
     function Resolve_32bit_Indirectable_Addr (ATU : in Boolean; 
                                               I_Addr : in Dword_T) return Phys_Addr_T;

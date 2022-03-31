@@ -22,7 +22,7 @@ ATT MTB TAPES/PCOPY.9TRK
 ATT DPF DISKS/DISK1.DPF
 #
 # and a 6239-type disk image
-# ATT DSKP disks/DISK1.DSKP
+ATT DSKP disks/DISK1.DSKP
 #
 # Boot device 22 (MTB) - this doesn't start the CPU yet
 B 22

@@ -60,10 +60,10 @@ package Devices.Disk6239 is
 	Int_Inf_Blk_Size   : constant Integer:= 8;
 	Ctrlr_Inf_Blk_Size : constant Integer:= 2;
 	Unit_Inf_Blk_Size  : constant Integer:= 7;
-	Cb_Max_Size        : constant Integer:= 21;
-	Cb_Min_Size        : constant Integer:= 10;
+	CB_Max_Size        : constant Integer:= 21;
+	CB_Min_Size        : constant Integer:= 10;
 
-	Async_Stat_Retry_Interval_ms : constant Integer:= 1;
+	Async_Stat_Retry_Interval : constant Duration := 1.0 / 1000; -- 1ms
 
 	Stat_Xec_State_Resetting  : constant Byte_T := 16#00#;
 	Stat_Xec_State_Reset_Done : constant Byte_T := 16#01#;
@@ -105,48 +105,52 @@ package Devices.Disk6239 is
 	Pio_Reset            : constant Word_T := 8#0777#;
 
 	--//  CB Command Set/OpCodes
-	Cb_Op_No_Op               : constant Integer := 8#0#;
-	Cb_Op_Write               : constant Integer := 8#0100#;
-	Cb_Op_Write_Verify        : constant Integer := 8#0101#;
-	Cb_Op_Write_1_Word        : constant Integer := 8#0104#;
-	Cb_Op_Write_Verify_1_Word : constant Integer := 8#0105#;
-	Cb_Op_Write_Mod_Bitmap    : constant Integer := 8#0142#;
-	Cb_Op_Read                : constant Integer := 8#0200#;
-	Cb_Op_Read_Verify         : constant Integer := 8#0201#;
-	Cb_Op_Read_Verify_1_Word  : constant Integer := 8#0205#;
-	Cb_Op_Read_Raw_Data       : constant Integer := 8#0210#;
-	Cb_Op_Read_Headers        : constant Integer := 8#0220#;
-	Cb_Op_Read_Mod_Bitmap     : constant Integer := 8#0242#;
-	Cb_Op_Recalibrate_Disk    : constant Integer := 8#0400#;
+	CB_Op_No_Op               : constant Word_T := 8#0#;
+	CB_Op_Write               : constant Word_T := 8#0100#;
+	CB_Op_Write_Verify        : constant Word_T := 8#0101#;
+	CB_Op_Write_1_Word        : constant Word_T := 8#0104#;
+	CB_Op_Write_Verify_1_Word : constant Word_T := 8#0105#;
+	CB_Op_Write_Mod_Bitmap    : constant Word_T := 8#0142#;
+	CB_Op_Read                : constant Word_T := 8#0200#;
+	CB_Op_Read_Verify         : constant Word_T := 8#0201#;
+	CB_Op_Read_Verify_1_Word  : constant Word_T := 8#0205#;
+	CB_Op_Read_Raw_Data       : constant Word_T := 8#0210#;
+	CB_Op_Read_Headers        : constant Word_T := 8#0220#;
+	CB_Op_Read_Mod_Bitmap     : constant Word_T := 8#0242#;
+	CB_Op_Recalibrate_Disk    : constant Word_T := 8#0400#;
 
 	-- disk6239 CB field offsets
-	Cb_Link_Addr_High        : constant Integer := 0;
-	Cb_Link_Addr_Low         : constant Integer := 1;
-	Cb_Ina_Flags_Opcode      : constant Integer := 2;
-	Cb_Pageno_List_Addr_High : constant Integer := 3;
-	Cb_Pageno_List_Addr_Low  : constant Integer := 4;
-	Cb_Txfer_Addr_High       : constant Integer := 5;
-	Cb_Txfer_Addr_Low        : constant Integer := 6;
-	Cb_Dev_Addr_High         : constant Integer := 7;
-	Cb_Dev_Addr_Low          : constant Integer := 8;
-	Cb_Unit_No               : constant Integer := 9;
-	Cb_Txfer_Count           : constant Integer := 10;
-	Cb_Cb_Status             : constant Integer := 11;
-	Cb_Res_1                 : constant Integer := 12;
-	Cb_Res_2                 : constant Integer := 13;
-	Cb_Err_Status            : constant Integer := 14;
-	Cb_Unit_Status           : constant Integer := 15;
-	Cb_Retries_Done          : constant Integer := 16;
-	Cb_Soft_Rtn_Txfer_Count  : constant Integer := 17;
-	Cb_Phy_sCyl              : constant Integer := 18;
-	Cb_Phys_Head_Sect        : constant Integer := 19;
-	Cb_DiskErr_Code          : constant Integer := 20;
+	CB_Link_Addr_High        : constant Integer := 0;
+	CB_Link_Addr_Low         : constant Integer := 1;
+	CB_Ina_Flags_Opcode      : constant Integer := 2;
+	CB_Pageno_List_Addr_High : constant Integer := 3;
+	CB_Pageno_List_Addr_Low  : constant Integer := 4;
+	CB_Txfer_Addr_High       : constant Integer := 5;
+	CB_Txfer_Addr_Low        : constant Integer := 6;
+	CB_Dev_Addr_High         : constant Integer := 7;
+	CB_Dev_Addr_Low          : constant Integer := 8;
+	CB_Unit_No               : constant Integer := 9;
+	CB_Txfer_Count           : constant Integer := 10;
+	CB_CB_Status             : constant Integer := 11;
+	CB_Res_1                 : constant Integer := 12;
+	CB_Res_2                 : constant Integer := 13;
+	CB_Err_Status            : constant Integer := 14;
+	CB_Unit_Status           : constant Integer := 15;
+	CB_Retries_Done          : constant Integer := 16;
+	CB_Soft_Rtn_Txfer_Count  : constant Integer := 17;
+	CB_Phy_sCyl              : constant Integer := 18;
+	CB_Phys_Head_Sect        : constant Integer := 19;
+	CB_DiskErr_Code          : constant Integer := 20;
 
 	--Mapping bits
 	Map_Slot_Load_Ints : constant Word_T := 2#1000_0000_0000_0000#;
 	Map_Int_Bmc_Phys   : constant Word_T := 2#0100_0000_0000_0000#;
 	Map_Upstream_Load  : constant Word_T := 2#0010_0000_0000_0000#;
 	Map_Upstream_Hpt   : constant Word_T := 2#0001_0000_0000_0000#;
+
+	type Stat_Reg_T is (A, B, C);
+
+	type CB_T is array(0 .. CB_Max_Size-1) of Word_T;
 
     -- calculated consts
 
@@ -173,11 +177,6 @@ package Devices.Disk6239 is
 
     type State_Rec is record
 	   -- Emulator internals...
-       Image_Attached   : Boolean;
-       Image_Filename   : Unbounded_String;
-       Image_File       : Sector_IO.File_Type;
-	   Reads, Writes    : Unsigned_64;
-	   Read_Buff, Write_Buff : Sector;
 	   Debug_Logging    : Boolean;
        -- DG Data...
        Command_Reg_A, Command_Reg_B, Command_Reg_C : Word_T;
@@ -187,8 +186,6 @@ package Devices.Disk6239 is
        Int_Inf_Block                               : Int_Inf_Block_T;
        Ctrl_Inf_Block                              : Ctrl_Inf_Block_T;
        Unit_Inf_Block                              : Unit_Inf_Block_T;
-       -- cylinder, head, sector                dg_word
-       Sector_No                                   : Dword_T;
     end record;
 
     Status_Period_S : constant Duration := 1.0;
@@ -203,19 +200,41 @@ package Devices.Disk6239 is
 
     procedure Create_Blank (Image_Name : in String; OK : out Boolean);
 	-- Simply creates an empty disk file of the correct size for the disk6239 emulator to use
+    procedure Init (Debug_Logging : in Boolean);
 
     protected Drives is
-        procedure Init (Debug_Logging : in Boolean);
-        procedure Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean);
+        procedure Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
+        -- Data_In services the DIA/B/C I/O instructions
+        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
+        -- Data_Out services the DOA/B/C I/O instructions
+		function  Get_Extended_Status_Size return Natural;
+		procedure Set_Debug_Logging (TF : in Boolean);
+		procedure Set_Status_Reg (Reg : in Stat_Reg_T; Contents : Word_T);
+		-- procedure Write_Sector (Buffer : in Sector);
         procedure Reset;
-        procedure Set_PIO_Status_Reg_C (Status, CCS : in Byte_T; Cmd_Echo : in Word_T; RR : in Boolean);
-        -- Set the SYNCHRONOUS standard refturn as per p.3-22
-
-        function  Get_Status return Status_Rec;
 
     private
+        function  Extract_PIO_Command (Wd : in Word_T) return Word_T;
+        procedure Handle_Flag (IO_Flag : in IO_Flag_T);
+        -- Handle the flag or Pulse
+        procedure Do_PIO_Command;
+		-- procedure Process_CB_Chain (CB_Addr : in Phys_Addr_T);
+
+		procedure Set_PIO_Status_Reg_C (Status, CCS : in Byte_T; Cmd_Echo : in Word_T; RR : in Boolean);
+        -- Set the SYNCHRONOUS standard refturn as per p.3-22
+
         State : State_Rec;
+        -- The protected State record holds the current state of the emulated disk
     end Drives;
+
+	task CB_Processor is
+		entry Start (Debug_Logging : in Boolean);
+		entry Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean);
+		entry Get_Stats (S : in out Status_Rec);
+		entry Program_Load;
+		-- Read the 1st sector off the disk and put at the start of physical memory
+		entry Process (Start_CB_Addr : in Phys_Addr_T);
+	end CB_Processor;
 
     task Status_Sender is
         entry Start;

@@ -137,7 +137,7 @@ procedure MVEmuA is
                TTOut.Put_String (Dasher_NL & " *** Could not attach DPF Disk Image ***");
             end if;
          elsif Dev = "DSKP" then
-            Devices.Disk6239.Drives.Attach (0, Image_Name, OK);
+            Devices.Disk6239.CB_Processor.Attach (0, Image_Name, OK);
             if OK then
                TTOut.Put_String (Dasher_NL & " *** DSKP Disk Image Attached ***");
             else
@@ -174,6 +174,9 @@ procedure MVEmuA is
          when Devices.DPF =>
             Devices.Disk6061.Drives.Load_DKBT;
             Processor.Boot (CPU, Devices.DPF, 10);
+         when Devices.DSKP =>
+            Devices.Disk6239.CB_Processor.Program_Load;
+            Processor.Boot (CPU, Devices.DSKP, 10);
          when others =>
             TTOut.Put_String (Dasher_NL & " *** Booting from that device is not yet implemented ***");
       end case;   
@@ -535,7 +538,7 @@ begin
       Devices.Disk6061.Drives.Init (Debug_Logging);
 
       Devices.Bus.Actions.Connect (Devices.DSKP);
-      Devices.Disk6239.Drives.Init (Debug_Logging);
+      Devices.Disk6239.Init (Debug_Logging);
 
 
       -- say hello...

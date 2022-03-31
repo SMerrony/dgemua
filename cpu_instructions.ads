@@ -19,6 +19,8 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
+with Interfaces;            use Interfaces;
+
 with DG_Types; use DG_Types;
 
 package CPU_Instructions is
@@ -439,7 +441,7 @@ type Instr_Char_Rec is record
    Instr_Len   : Positive;
    Instr_Fmt   : Instr_Format_T;
    Instr_Class : Instr_Class_T;
-   Disp_Offset : Natural;
+   Disp_Offset : Integer_32;
 end record;
 
 type Instructions is array (Instr_Mnemonic_T range Instr_Mnemonic_T'Range) of Instr_Char_Rec;

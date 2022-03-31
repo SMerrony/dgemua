@@ -77,7 +77,7 @@ package body Resolver is
                                 Indirect    : in Boolean; 
                                 Mode        : in Mode_T;
                                 Disp15      : in Integer_16;
-                                Disp_Offset : in Natural) return Phys_Addr_T is
+                                Disp_Offset : in Integer_32) return Phys_Addr_T is
         Eff    : Phys_Addr_T;
         Ring   : Phys_Addr_T := CPU.PC and 16#7000_0000#;
         Disp32 : Integer_32;
@@ -93,7 +93,7 @@ package body Resolver is
             -- Zero-extend to 28 bits, force to current ring
             Eff := (Phys_Addr_T(Disp15) and 16#0000_7fff#) or Ring;
         when PC =>
-            Eff := Integer_32_To_Phys(Integer_32(CPU.PC) + Disp32 + Integer_32(Disp_Offset));
+            Eff := Integer_32_To_Phys(Integer_32(CPU.PC) + Disp32 + Disp_Offset);
         when AC2 =>
             Eff := Phys_Addr_T(CPU.AC_I32(2) + Disp32) or Ring;
         when AC3 =>
@@ -128,7 +128,7 @@ package body Resolver is
                                  Indirect    : in Boolean; 
                                  Mode        : in Mode_T;
                                  Disp        : in Integer_32;
-                                 Disp_Offset : in Natural) return Phys_Addr_T is
+                                 Disp_Offset : in Integer_32) return Phys_Addr_T is
          Eff    : Phys_Addr_T;
          Ring   : Phys_Addr_T := CPU.PC and 16#7000_0000#;
          Ind_Addr : Dword_T;
@@ -139,7 +139,7 @@ package body Resolver is
                -- Zero-extend to 28 bits
                Eff := Phys_Addr_T(Integer_32_To_Dword(Disp)); --  or Ring;
             when PC =>
-               Eff := Phys_Addr_T(Integer_32_To_Dword(Dword_To_Integer_32(Dword_T(CPU.PC)) + Disp + Integer_32(Disp_Offset)));
+               Eff := Phys_Addr_T(Integer_32_To_Dword(Dword_To_Integer_32(Dword_T(CPU.PC)) + Disp + Disp_Offset));
             when AC2 =>
                Eff := Phys_Addr_T(Integer_32_To_Dword(CPU.AC_I32(2) + Disp));
             when AC3 =>
