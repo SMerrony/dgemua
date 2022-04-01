@@ -373,6 +373,9 @@ package body DG_Types is
          when Hex =>
             Bas_Int := 16;
       end case;
+      if Negative then
+         Tmp_Int := -Tmp_Int;
+      end if;
       loop
          Remainder := Integer (Tmp_Int mod Bas_Int);
          Tmp_Int   := Tmp_Int / Bas_Int;
