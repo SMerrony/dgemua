@@ -173,10 +173,10 @@ procedure MVEmuA is
             Processor.Boot (CPU, Devices.MTB, 10);
          when Devices.DPF =>
             Devices.Disk6061.Drives.Load_DKBT;
-            Processor.Boot (CPU, Devices.DPF, 10);
+            Processor.Boot (CPU, Devices.DPF, 8#10#);
          when Devices.DSKP =>
             Devices.Disk6239.CB_Processor.Program_Load;
-            Processor.Boot (CPU, Devices.DSKP, 10);
+            Processor.Boot (CPU, Devices.DSKP, 8#10#);
          when others =>
             TTOut.Put_String (Dasher_NL & " *** Booting from that device is not yet implemented ***");
       end case;   
@@ -423,6 +423,18 @@ procedure MVEmuA is
          TTOut.Put_String (Dasher_NL & Ada.Exceptions.Exception_Message(Error));
    end Single_Step;
 
+   procedure Start (Command : in Slice_Set) is
+      Addr : Phys_Addr_T;
+   begin
+      if Slice_Count (Command) < 2 then
+         TTOut.Put_String (Dasher_NL & " *** ST (Start at) command requires an address argument ***");
+         return;
+      end if;
+      Addr  := Phys_Addr_T(String_To_Dword (Slice (Command, 2), Console_Radix));
+      CPU.PC := Addr;
+      Run;
+   end Start;
+
    procedure Do_Command (Cmd : in Unbounded_String) is
       Words : Slice_Set;
    begin
@@ -439,6 +451,8 @@ procedure MVEmuA is
          Show_Help;
       elsif Command = "SS" then
          Single_Step;
+      elsif Command = "ST" then
+         Start (Words);
       
       -- enulator commands
       elsif Command = "ATT" then

@@ -365,7 +365,8 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                   Decoded.Disassembly & Decoded.IO_Flag'Image & " " &
-                  Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
+                  -- Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
+                  Int_To_String (Int => Integer(Decoded.IO_Dev), Base => Radix, Width => 4, Zero_Pad => False, Truncate => True);
             end if;
 
          when IO_TEST_DEV_FMT => -- eg. SKPn
@@ -374,7 +375,8 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                   Decoded.Disassembly & Decoded.IO_Test'Image & " " &
-                  Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
+                  -- Devices.Bus.Actions.Get_Device_Name_Or_Number(Decoded.IO_Dev);
+                  Int_To_String (Int => Integer(Decoded.IO_Dev), Base => Radix, Width => 4, Zero_Pad => False, Truncate => True);
             end if;
 
          when LNDO_4_WORD_FMT => -- also LWDO
@@ -519,7 +521,8 @@ package body Decoder is
                Decoded.Disassembly :=
                  Decoded.Disassembly & Char_IO_Flag (Decoded.IO_Flag) & " " &
                  Decoded.Ac'Image & "," & 
-                 Devices.Bus.Actions.Get_Device_Name_Or_Number (Dev_Num_T(Decoded.IO_Dev));
+                 -- Devices.Bus.Actions.Get_Device_Name_Or_Number (Dev_Num_T(Decoded.IO_Dev));
+                 Int_To_String (Int => Integer(Decoded.IO_Dev), Base => Radix, Width => 4, Zero_Pad => False, Truncate => True);
             end if;
 
          when NOVA_NOACC_EFF_ADDR_FMT => -- eg. DSZ, ISZ, JMP, JSR
