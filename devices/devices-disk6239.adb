@@ -483,6 +483,11 @@ package body Devices.Disk6239 is
                     for W_Ix in 0 .. Words_Per_Sector - 1 loop
                         BMC_DCH.Write_Word_BMC_Chan (Write_Addr, Read_Buff(W_Ix));
                     end loop;
+                    Position_Image (1);
+                    Sector_IO.Read(Image_File, Read_Buff);
+                    for W_Ix in 0 .. Words_Per_Sector - 1 loop
+                        BMC_DCH.Write_Word_BMC_Chan (Write_Addr, Read_Buff(W_Ix));
+                    end loop;
                     if Logging then
                         Loggers.Debug_Print (Dskp_Log, "INFO: PROGRAM LOAD complete");
                     end if; 

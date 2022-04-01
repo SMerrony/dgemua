@@ -408,7 +408,7 @@ package body Devices.Disk6061 is
             State.Command := Cmd_T'Pos(Recal);
             Do_Command;
             State.Mem_Addr := 0;
-            State.Sector_Cnt := -1;
+            State.Sector_Cnt := -2;
             State.Command := Cmd_T'Pos(Read);
             Do_Command;
             Loggers.Debug_Print (Dpf_Log, "INFO: Load_DKBT complete - " & Printable_Addr);
