@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright (c)2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -195,10 +195,8 @@ package body DG_Types is
       return Res;
    end String_To_Integer;
 
-   -- String_To_Dword tries to convert an unsigned string in the given base
-   function String_To_Dword
-     (Str : in String; Base : in Number_Base_T) return Dword_T
-   is
+   function String_To_Dword (Str : in String; Base : in Number_Base_T) return Dword_T is
+      -- Attempt to convert Str to a Dword, may raise CONSTRAINT_ERROR
       Res   : Dword_T := 0;
       Hex_I : Integer;
    begin

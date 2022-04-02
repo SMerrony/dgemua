@@ -303,6 +303,55 @@ procedure MVEmuA is
          TTOut.Put_String (Dasher_NL & " *** DO command script cannot be opened ***");
    end Do_Script;
 
+   procedure Examine (Command : in Slice_Set) is
+      Addr : Phys_Addr_T;
+      New_Val_US : Unbounded_String;
+   begin
+      if Slice_Count (Command) < 2 then
+         TTOut.Put_String (Dasher_NL & " *** E(xamine) command requires an argument ***");
+         return;
+      end if;
+      if Slice (Command, 2) = "M" then
+         if Slice_Count (Command) /= 3 then
+            TTOut.Put_String (Dasher_NL & " *** E M command requires one address argument ***");
+            return;
+         end if;
+         Addr  := Phys_Addr_T(String_To_Dword (Slice (Command, 3), Console_Radix));
+         if Addr > Max_Phys_Addr then
+            TTOut.Put_String (Dasher_NL & " *** E(xamine) M(emory) - address beyond physical limit ***");
+            return;
+         end if;
+         TTOut.Put_String (Dasher_NL & "Location " & Slice (Command, 3) &
+                           " contains " & Word_To_String (WD => RAM.Read_Word (Addr), 
+                                                          Base => Console_Radix, 
+                                                          Width => 11, 
+                                                          Zero_Pad => false) &
+                           " - Enter new val or just NEWLINE> ");
+         SCP_Handler.SCP_Get_Line (New_Val_US);
+         declare
+            New_Val_S : String := To_String (New_Val_US);
+            New_Val   : Word_T;
+         begin
+            New_Val := Word_T(String_To_Dword(Str => New_Val_S, Base => Console_Radix));
+            RAM.Write_Word (Addr, New_Val);
+            TTOut.Put_String (Dasher_NL & "Location " & Slice (Command, 3) &
+                              " contains " & Word_To_String (WD => RAM.Read_Word (Addr), 
+                                                             Base => Console_Radix, 
+                                                             Width => 11, 
+                                                             Zero_Pad => false));
+         exception
+            when others =>
+               TTOut.Put_String (Dasher_NL & " *** Could not parse new value ***");
+         end;
+      else         
+         TTOut.Put_String (Dasher_NL & " *** Expecting A, M, or P for E(xamine) command ***");
+      end if;
+
+   exception
+      when Constraint_Error =>
+         TTOut.Put_String (Dasher_NL & " *** E(xamine) M(emory) - invalid address ***");
+   end Examine;
+
    procedure Run is
       I_Counts : Processor.Instr_Count_T;
       I_Count  : Unsigned_64;
@@ -447,6 +496,8 @@ procedure MVEmuA is
          Boot (Words);
       elsif Command = "CO" then
          Run;
+      elsif Command = "E" then
+         Examine (Words);
       elsif Command = "HE" then
          Show_Help;
       elsif Command = "SS" then

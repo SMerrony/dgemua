@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright (c)2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -156,6 +156,8 @@ package DG_Types is
         Zero_Pad : in Boolean := False) 
         return String;
     function String_To_Dword (Str : in String; Base : in Number_Base_T) return Dword_T;
+    -- Attempt to convert Str to a Dword, may raise CONSTRAINT_ERROR
+
     function Sext_Word_To_Dword(Wd : in Word_T) return Dword_T;
 
     -- Qword routines
