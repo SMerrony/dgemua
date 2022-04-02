@@ -94,6 +94,12 @@ package body Processor is
    begin
       CPU.SR := 16#8000# or Word_T(Dev);
       CPU.AC(0) := Dword_T(Dev); 
+      case Dev is
+         when Devices.DSKP | Devices.DPF =>
+            CPU.AC(0) := Shift_Left (CPU.AC(0), 1);
+         when others =>
+            null;
+      end case;
       CPU.PC := PC;
    end Boot;
 
