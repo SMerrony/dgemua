@@ -2,7 +2,7 @@
 
 ## Physical Emulator - mvemua
 
-* Last status update: 2nd April 2022
+* Last status update: 3rd April 2022
 * Last significant progress: DSKBT loads from type 6239 disk - 2nd April 2022
 
 ### What Works?
@@ -20,7 +20,7 @@ Initial milestones are to run from image of AOS/VS 7.73 system tape image...
 * ~~File 3 - INSTL - Runs to completion - 19th April 2021~~
 * File 1 - FIXUP - Produces ERROR ~71231.~ 71199. - that's further than mvemg gets! - 18th March 2022
 * File 1 - PCOPY - Aborts with "Incorrect disk format revision number" - further than mvemg got! - 22nd March 2022
-* Implement PIT
+* ~~Implement PIT~~ - 3rd April 2022
 
 ## Virtual (AOS/VS) Emulator - vsemua
 

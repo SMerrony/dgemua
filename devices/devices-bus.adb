@@ -241,6 +241,11 @@ package body Devices.Bus is
          return State.IRQ;
        end Get_IRQ;
 
+       procedure Set_IRQ_Mask (Mask : in Word_T) is
+       begin
+         State.IRQ_Mask := Mask;
+      end Set_IRQ_Mask;
+
        function Is_Dev_Masked (PMB : in Integer) return Boolean is
        begin
           return Test_W_Bit (State.IRQ_Mask, PMB);

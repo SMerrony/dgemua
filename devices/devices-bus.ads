@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -84,6 +84,7 @@ package Devices.Bus is
         procedure Set_Busy (Dev : in Dev_Num_T; Busy_State : in Boolean);
         procedure Set_Done (Dev : in Dev_Num_T; Done_State : in Boolean);
         function  Get_IRQ return Boolean;
+        procedure Set_IRQ_Mask (Mask : in Word_T);
         function  Is_Dev_Masked (PMB : in Integer) return Boolean;
         procedure Send_Interrupt (Dev : in Dev_Num_T);
         procedure Clear_Interrupt (Dev : in Dev_Num_T); 

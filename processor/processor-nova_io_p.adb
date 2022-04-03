@@ -53,6 +53,9 @@ package body Processor.Nova_IO_P is
                         CPU.ION := false;
                      end if;
                      -- TODO: CPU Busy & Done flags?
+                  when I_DOB =>
+                     -- This is effectively the Eagle MSKO instruction...
+                     Bus.States.Set_IRQ_Mask (Lower_Word(CPU.AC(I.Ac)));
                   when I_DOC =>
                      if I.Ac = 0 then
                         raise CPU_Halt;
