@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -70,9 +70,12 @@ package body Devices.Console is
                     when  C =>
                         Devices.Bus.States.Set_Busy( Devices.TTI, false);
                         Devices.Bus.States.Set_Done( Devices.TTI, false);
+                    when None =>
+                        null;
                     when others =>
-                        Ada.Text_IO.Put_Line("ERROR: Unknown I/O flag");
-                        GNAT.OS_Lib.OS_Exit (1);
+                        -- Ada.Text_IO.Put_Line("ERROR: Unknown I/O flag");
+                        -- GNAT.OS_Lib.OS_Exit (1);
+                        raise IO_Error with "Unknown I/O flag in DIx instruction";
                 end case;
             else
                 Ada.Text_IO.Put_Line("ERROR: Unknown Data I/O Buffer for DIx ac,TTI instruction");
@@ -97,8 +100,9 @@ package body Devices.Console is
                             GNAT.OS_Lib.OS_Exit (1);
                     end case;
                 when others =>
-                    Ada.Text_IO.Put_Line("ERROR: Unknown Data I/O Buffer for DOx ac,TTI instruction");
-                    GNAT.OS_Lib.OS_Exit (1);
+                    -- Ada.Text_IO.Put_Line("ERROR: Unknown Data I/O Buffer for DOx ac,TTI instruction");
+                    -- GNAT.OS_Lib.OS_Exit (1);
+                    raise IO_Error with "Unknown Data I/O Buffer for DOx ac,TTI instruction";
             end case;
         end Data_Out;
        

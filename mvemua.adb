@@ -45,6 +45,7 @@ with Devices.Console;       use Devices.Console;
 with Devices.Disk6061;
 with Devices.Disk6239;
 with Devices.Magtape6026;
+with Devices.PIT_P;
 with DG_Types;              use DG_Types;
 with Processor;
 with Memory;                use Memory;
@@ -589,6 +590,9 @@ begin
       Devices.Bus.Actions.Connect (Devices.SCP);
       Devices.Bus.Actions.Connect (Devices.CPU);
       -- Devices.Bus.Actions.Set_Reset_Proc (Devices.CPU, Processor.Actions.Reset'Access);
+
+      Devices.Bus.Actions.Connect (Devices.PIT);
+      Devices.PIT_P.Init;
 
       Devices.Bus.Actions.Connect (Devices.TTO);
       Devices.Console.TTOut.Init (Connection);
