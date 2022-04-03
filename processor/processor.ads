@@ -35,8 +35,10 @@ with Memory;   use Memory;
 package Processor is
 
    Model_No : constant Word_T :=
-     -- 16#224C#; -- => MV/10000 according to p.2-19 of AOS/VS Internals
-     16#21FC#; -- MV/9500
+      -- 16#111C#; -- MV/4000 
+      -- 16#224C#; -- => MV/10000 according to p.2-19 of AOS/VS Internals
+      -- 16#21FC#; -- MV/9500
+      16#247C#; -- FIXME fake model_no from code examination...
    Microcode_Rev : constant Byte_T := 16#04#;
 
 

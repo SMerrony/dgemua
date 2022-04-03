@@ -77,6 +77,7 @@ package body Processor.Eagle_IO_P is
 
          when I_NCLID =>
             CPU.AC(0) := Dword_T(Model_No) and 16#ffff#;
+            CPU.AC(0) := CPU.AC(0) or 1; -- indicates presence of FPU
             CPU.AC(1) := Dword_T(Microcode_Rev) and 16#ffff#;
             CPU.AC(2) := Dword_T(Mem_Size_NCLID) and 16#ffff#;
 
