@@ -620,16 +620,16 @@ package body Decoder is
                  String_Mode(Decoded.Mode) & " [2-Word Instruction]";
             end if;
          
-         when ONEACC_MODE_3_WORD_FMT => -- eg. LLDB, LLEFB
+         when ONEACC_MODE_3_WORD_B_FMT => -- eg. LLDB, LLEFB
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 1, 2)));
             Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);   
             Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
-            Decoded.Disp_32 := Unsigned_32(Dword_From_Two_Words(Decoded.Word_2,Decoded.Word_3));
+            Decoded.Disp_31 := Dword_To_Integer_32 (Dword_From_Two_Words (Decoded.Word_2,Decoded.Word_3));
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
-                 Int_To_String (Unsigned_32_To_Integer(Decoded.Disp_32), Radix, 11, false, true) &
+                 Int_To_String (Integer(Decoded.Disp_31), Radix, 11, false, true) &
                  String_Mode(Decoded.Mode) & " [3-Word Instruction]";
             end if;
 

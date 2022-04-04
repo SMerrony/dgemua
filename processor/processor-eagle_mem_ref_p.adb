@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ package body Processor.Eagle_Mem_Ref_P is
       S64_Ac : Integer_64;
       I32  : Integer_32;
       I16_Ac, I16_Mem : Integer_16;
-      DW   : Dword_T;
       Low_Byte: Boolean;
 
       procedure Set_OVR (New_OVR : in Boolean) is
@@ -50,22 +49,18 @@ package body Processor.Eagle_Mem_Ref_P is
       case I.Instruction is
 
          when I_LLDB =>
-            DW := Shift_Right(Dword_T(I.Disp_32), 1);
-            Addr := Resolve_31bit_Disp (CPU, false, I.Mode, Dword_To_Integer_32(DW), I.Disp_Offset);
-            Low_Byte := Test_DW_Bit (Dword_T(I.Disp_32), 31);
+            I32 := I.Disp_31 / 2;
+            Addr := Resolve_31bit_Disp (CPU, false, I.Mode, I32, I.Disp_Offset);
+            Low_Byte := (I.Disp_31 mod 2 = 1);
             CPU.AC(I.Ac) := Dword_T(RAM.Read_Byte(Addr, Low_Byte));
 
          when I_LLEF =>
             CPU.AC(I.Ac) := Dword_T(Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset));
 
          when I_LLEFB =>
-            DW := Shift_Right(Dword_T(I.Disp_32), 1);
-            if Test_DW_Bit (Dword_T(I.Disp_32), 0) then
-               DW := DW or 16#8000_0000#;
-            end if;
-            I32 := Dword_To_Integer_32(DW);
+            I32 := I.Disp_31 / 2;
             Addr := Shift_Left(Resolve_31bit_Disp (CPU, false, I.Mode, I32, I.Disp_Offset), 1);
-            if Test_DW_Bit (Dword_T(I.Disp_32), 31) then
+            if I.Disp_31 mod 2 = 1 then
                Addr := Addr or 1;
             end if;
             CPU.AC(I.Ac) := Dword_T(Addr);
@@ -99,9 +94,9 @@ package body Processor.Eagle_Mem_Ref_P is
             RAM.Write_Word (Addr, DG_Types.Lower_Word(CPU.AC(I.Ac)));
 
          when I_LSTB =>
-            DW := Shift_Right(Dword_T(I.Disp_32), 1);
-            Addr := Resolve_31bit_Disp (CPU, false, I.Mode, Dword_To_Integer_32(DW), I.Disp_Offset);
-            Low_Byte := Test_DW_Bit(Dword_T(I.Disp_32), 31);
+            I32 := I.Disp_31 / 2;
+            Addr := Resolve_31bit_Disp (CPU, false, I.Mode,I32, I.Disp_Offset);
+            Low_Byte :=(I.Disp_31 mod 2 = 1);
             RAM.Write_Byte(Addr, Low_Byte, Byte_T(CPU.AC(I.Ac)));
 
          when I_LWADD =>
