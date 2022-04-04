@@ -42,6 +42,7 @@ with Debug_Logs;            use Debug_Logs;
 with Devices;
 with Devices.Bus;
 with Devices.Console;       use Devices.Console;
+with Devices.DRP_SCP;
 with Devices.Disk6061;
 with Devices.Disk6239;
 with Devices.Magtape6026;
@@ -574,8 +575,9 @@ begin
 		--   One CPU
 		--   Console (TTI/TTO)
 		--   One Tape Drive
-		--   One HDD
+		--   One or two HDDs
 		--   A generous(!) 16MB (8MW) RAM
+      --   A PIT (Programmable Interval Timer)
 		--   NO IACs, LPT or ISC
 
       Decoder.Init;
@@ -587,7 +589,10 @@ begin
       -- Devices.Bus.Actions.Init;
       Devices.Bus.Actions.Connect (Devices.BMC);
       Devices.Bus.Actions.Set_Reset_Proc (Devices.BMC, BMC_DCH.Reset'Access);
+
       Devices.Bus.Actions.Connect (Devices.SCP);
+      Devices.DRP_SCP.Init (Debug_Logging);
+
       Devices.Bus.Actions.Connect (Devices.CPU);
       -- Devices.Bus.Actions.Set_Reset_Proc (Devices.CPU, Processor.Actions.Reset'Access);
 
