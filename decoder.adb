@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -396,6 +396,52 @@ package body Decoder is
                   String_Mode(Decoded.Mode) & " [4-Word Instruction]";
             end if;
                   
+         when MULTI_PROC_2_WORD_FMT => -- The multiprocessor commands, THESE ARE DIFFERENT...
+            Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
+            case Decoded.Word_2 is
+               when 0 =>
+                  Decoded.Instruction := I_JPSTOP;
+                  Decoded.Mnemonic := To_Unbounded_String("JPSTOP");            
+               when 1 =>
+                  Decoded.Instruction := I_JPSTART;
+                  Decoded.Mnemonic := To_Unbounded_String("JPSTART");
+               when 2 =>
+                  Decoded.Instruction := I_JPSTATUS;
+                  Decoded.Mnemonic := To_Unbounded_String("JPSTATUS");                              
+               when 3 =>
+                  Decoded.Instruction := I_JPID;
+                  Decoded.Mnemonic := To_Unbounded_String("JPID");
+               when 4 =>
+                  Decoded.Instruction := I_JPLCS;
+                  Decoded.Mnemonic := To_Unbounded_String("JPLCS");                 
+               when 5 =>
+                  Decoded.Instruction := I_IMODE;
+                  Decoded.Mnemonic := To_Unbounded_String("IMODE");
+               when 7 =>
+                  Decoded.Instruction := I_CINTR;
+                  Decoded.Mnemonic := To_Unbounded_String("CINTR");
+               when 8 =>
+                  Decoded.Instruction := I_JPFLUSH;
+                  Decoded.Mnemonic := To_Unbounded_String("JPFLUSH");   
+               when 9 =>
+                  Decoded.Instruction := I_JPLOAD;
+                  Decoded.Mnemonic := To_Unbounded_String("JPLOAD");                              
+               when 10 =>
+                  Decoded.Instruction := I_JPFLOAD;
+                  Decoded.Mnemonic := To_Unbounded_String("JPFLOAD");
+               when others =>
+                  -- raise Decode_Failed with "unknown multiprocessor instruction #" & 
+                  --    Word_To_String (WD => Decoded.Word_2, Base => Hex, Width => 4, Zero_Pad => True);
+                  NULL;
+            end case;
+            Decoded.Disassembly := Decoded.Mnemonic;
+            if Disassemble then
+               Decoded.Disassembly :=
+                  Decoded.Disassembly & " x" &
+                  Word_To_String (WD => Decoded.Word_2, Base => Hex, Width => 4, Zero_Pad => True) &
+                  " [2-Word Instruction] *** MULTIPROCESSOR ***";
+            end if;
+
          when NOACC_MODE_2_WORD_FMT => -- eg. XPEFB
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);

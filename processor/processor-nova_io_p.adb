@@ -76,13 +76,14 @@ package body Processor.Nova_IO_P is
                         Devices.Bus.Actions.Data_Out(I.IO_Dev, Datum, I.IO_Reg, I.IO_Flag);
                   end if;
                else
-                  if (I.IO_Dev = 2) OR (I.IO_Dev = 10) OR (I.IO_Dev = 11) then
-                     Loggers.Debug_Print(Debug_Log, "WARNING: Ignoring I/O to device " & I.IO_Dev'Image);
-                     Put_Line("WARNING: Ignoring I/O to device " & I.IO_Dev'Image & ".");
-                  else
-                     Loggers.Debug_Print(Debug_Log, "WARNING: I/O Attempted to unattached or non-I/O capable device ");
-                     raise IO_Device_Error;
-                  end if;
+                  case I.IO_Dev is
+                     when 0 | 1 | 2 | 10 | 11 =>
+                        Loggers.Debug_Print(Debug_Log, "WARNING: Ignoring I/O to device " & I.IO_Dev'Image);
+                        Put_Line("WARNING: Ignoring I/O to device " & I.IO_Dev'Image & ".");
+                     when others =>
+                        Loggers.Debug_Print(Debug_Log, "WARNING: I/O Attempted to unattached or non-I/O capable device ");
+                        raise IO_Device_Error;
+                  end case;
                end if;
             end if;
 

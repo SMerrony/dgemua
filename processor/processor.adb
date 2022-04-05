@@ -39,6 +39,7 @@ with Processor.Eagle_Decimal_P;
 with Processor.Eagle_FPU_P;
 with Processor.Eagle_IO_P;
 with Processor.Eagle_Mem_Ref_P;
+with Processor.Eagle_MP_P;
 with Processor.Eagle_Op_P;
 with Processor.Eagle_PC_P;
 with Processor.Eagle_Stack_P;
@@ -122,6 +123,7 @@ package body Processor is
          when EAGLE_MEMREF   => Processor.Eagle_Mem_Ref_P.Do_Eagle_Mem_Ref(Instr, CPU);
          when EAGLE_FPU      => Processor.Eagle_FPU_P.Do_Eagle_FPU(Instr, CPU);         
          when EAGLE_IO       => Processor.Eagle_IO_P.Do_Eagle_IO(Instr, CPU);
+         when EAGLE_MP       => Processor.Eagle_MP_P.Do_Eagle_MP (Instr, CPU);
          when EAGLE_OP       => Processor.Eagle_Op_P.Do_Eagle_Op(Instr, CPU);
          when EAGLE_PC       => Processor.Eagle_PC_P.Do_Eagle_PC(Instr, CPU);
          when EAGLE_STACK    => Processor.Eagle_Stack_P.Do_Eagle_Stack(Instr, CPU);

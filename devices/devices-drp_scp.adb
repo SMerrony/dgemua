@@ -62,6 +62,8 @@ package body Devices.DRP_SCP is
                     Loggers.Debug_Print (Debug_Log, "DEBUG: SCP got command #: " & 
                         Word_To_String (WD => Cmd, Base => Octal, Width => 4, Zero_Pad => True));
                 end if;
+                Ada.Text_IO.Put_Line ("INFO: Ignoring SCP subcommand #" &
+                                      Word_To_String (WD => Cmd, Base => Octal, Width => 4, Zero_Pad => True));
                 Devices.Bus.States.Set_Done (Devices.SCP, True); 
                 -- TODO send interrupt
             elsif ABC /= N then -- N for NIOC
