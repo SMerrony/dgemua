@@ -77,7 +77,7 @@ package body Processor.Nova_IO_P is
                   end if;
                else
                   case I.IO_Dev is
-                     when 0 | 1 | 2 | 10 | 11 =>
+                     when 0 | 1 | 2 | 3 | 10 | 11 =>
                         Loggers.Debug_Print(Debug_Log, "WARNING: Ignoring I/O to device " & I.IO_Dev'Image);
                         Put_Line("WARNING: Ignoring I/O to device " & I.IO_Dev'Image & ".");
                      when others =>

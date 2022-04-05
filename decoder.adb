@@ -623,7 +623,7 @@ package body Decoder is
                  Decoded.Ac'Image & " [2-Word Instruction]";
             end if;
 
-         when ONEACC_IMM_3_WORD_FMT => -- eg. WADDI, WUGTI, WXORI
+         when ONEACC_IMM_3_WORD_FMT => -- eg. WADDI, WSANA, WUGTI, WXORI
              Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
              Decoded.Imm_DW  := RAM.Read_Dword (PC + 1);
             if Disassemble then

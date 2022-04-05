@@ -235,7 +235,14 @@ package body Processor.Eagle_PC_P is
             end if;
             CPU.AC(1) := DW;
 
-
+         when I_WSANA =>
+            DW := CPU.AC(I.Ac) and I.Imm_DW;
+            if DW = 0 then
+               CPU.PC := CPU.PC + 3;
+            else
+               CPU.PC := CPU.PC + 4;
+            end if;
+            
          when I_WSEQI | I_WSGTI | I_WSLEI | I_WSNEI =>
             if I.Instruction = I_WSEQI then
                Skip := CPU.AC(I.Ac) = Sext_Word_To_Dword (I.Word_2);
