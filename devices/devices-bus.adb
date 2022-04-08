@@ -47,7 +47,7 @@ package body Devices.Bus is
             Bus.Devices(PWRFL) := (To_Unbounded_String("PWRFL"), 0, true,  false, false, null, null, null, false, To_Unbounded_String(""));
             Bus.Devices(WCS)   := (To_Unbounded_String("WCS"),  99, true,  false, false, null, null, null, false, To_Unbounded_String(""));
             Bus.Devices(MAP)   := (To_Unbounded_String("MAP"),  99, true,  false, false, null, null, null, false, To_Unbounded_String(""));
-            Bus.Devices(PSC)   := (To_Unbounded_String("PSC"),  13, false, false, false, null, null, null, false, To_Unbounded_String(""));
+            Bus.Devices(PSC)   := (To_Unbounded_String("PSC"),  13, true, false, false, null, null, null, false, To_Unbounded_String(""));
             Bus.Devices(BMC)   := (To_Unbounded_String("BMC"),  99, true,  false, false, null, null, null, false, To_Unbounded_String(""));
             Bus.Devices(TTI)   := (To_Unbounded_String("TTI"),  14, true,  false, false, null, null, null, false, To_Unbounded_String(""));
             Bus.Devices(TTO)   := (To_Unbounded_String("TTO"),  15, true,  false, false, null, null, null, false, To_Unbounded_String(""));

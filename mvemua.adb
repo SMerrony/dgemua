@@ -47,6 +47,7 @@ with Devices.Disk6061;
 with Devices.Disk6239;
 with Devices.Magtape6026;
 with Devices.PIT_P;
+with Devices.PSC_UPSC;
 with DG_Types;              use DG_Types;
 with Processor;
 with Memory;                use Memory;
@@ -598,6 +599,9 @@ begin
 
       Devices.Bus.Actions.Connect (Devices.PIT);
       Devices.PIT_P.Init;
+
+      Devices.Bus.Actions.Connect (Devices.PSC);
+      Devices.PSC_UPSC.Init (Debug_Logging);
 
       Devices.Bus.Actions.Connect (Devices.TTO);
       Devices.Console.TTOut.Init (Connection);

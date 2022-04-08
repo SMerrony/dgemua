@@ -567,8 +567,8 @@ package body Decoder is
                Decoded.Disassembly :=
                  Decoded.Disassembly & Char_IO_Flag (Decoded.IO_Flag) & " " &
                  Decoded.Ac'Image & "," & 
-                 -- Devices.Bus.Actions.Get_Device_Name_Or_Number (Dev_Num_T(Decoded.IO_Dev));
-                 Int_To_String (Int => Integer(Decoded.IO_Dev), Base => Radix, Width => 4, Zero_Pad => False, Truncate => True);
+                 Devices.Bus.Actions.Get_Device_Name_Or_Number (Dev_Num_T(Decoded.IO_Dev));
+                 -- Int_To_String (Int => Integer(Decoded.IO_Dev), Base => Radix, Width => 4, Zero_Pad => False, Truncate => True);
             end if;
 
          when NOVA_NOACC_EFF_ADDR_FMT => -- eg. DSZ, ISZ, JMP, JSR
