@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -64,6 +64,14 @@ package Memory_Channels is
     IOC_MR_MK5 : constant Word_T := 2#0000_0000_0000_0100#;
     IOC_MR_MK6 : constant Word_T := 2#0000_0000_0000_0010#;
 
+    -- These are from the S140 Prog Ref, not PARU...
+    SR_ERROR    : constant Word_T := 2#1000_0000_0000_0000#;
+    SR_DUMP     : constant Word_T := 2#0100_0000_0000_0000#;
+    SR_DIAG     : constant Word_T := 2#0010_0000_0000_0000#;
+    SR_VAL_ERR  : constant Word_T := 2#0001_0000_0000_0000#;
+    SR_ADDR_ERR : constant Word_T := 2#0000_0001_0000_0000#;    
+    SR_BMC      : constant Word_T := 2#0000_0000_0000_0001#;            
+
     type BMC_DCH_Regs_Array is array (0 .. Last_Reg) of Word_T;
 
     type BMC_Addr_T is record
@@ -81,6 +89,10 @@ package Memory_Channels is
     protected BMC_DCH is
         procedure Init (Debug_Logging : in Boolean);
         procedure Reset;
+        procedure Data_In  (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
+        -- Handle DIx instruction
+        -- procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
+        -- Handle DOx and NIOC instructions
         procedure Set_Logging (Debug_Logging : in Boolean);
         function  Read_Reg (Reg : in Integer) return Word_T;
         procedure Read_Word_BMC_Chan (Unmapped : in out Phys_Addr_T; Datum : out Word_T);
@@ -97,10 +109,12 @@ package Memory_Channels is
         function Resolve_DCH_Mapped_Addr (M_Addr : in Phys_Addr_T) return Phys_Addr_T;
 
         Registers  : BMC_DCH_Regs_Array;
+        Status_Reg : Word_T;
         Is_Logging : Boolean;
     end BMC_DCH;
 
-    Invalid_DCH_Slot       : exception;
+    Invalid_DCH_Slot,     
+    Not_Yet_Implemented,
     Unsupported_IO_Channel : exception;
 
 end Memory_Channels;

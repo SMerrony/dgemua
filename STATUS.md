@@ -2,7 +2,7 @@
 
 ## Physical Emulator - mvemua
 
-* Last status update: 3rd April 2022
+* Last status update: 15th April 2022
 * Last significant progress: DSKBT loads from type 6239 disk - 2nd April 2022
 
 ### What Works?
@@ -11,7 +11,7 @@
 * File 2 - DFMTR - Runs with surface analysis to completion on 6239 disk - 31st March 2022
 * File 3 - INSTL - Runs to completion on 6061 disk - 19th April 2021
 * File 3 - INSTL - Runs to completion on 6239 disk - 31st March 2022
-* B 24   - DSKBT - Displays Operating System Load Menu, crashes accessing PIT (NYI) - 2nd April 2022
+* B 24   - DSKBT - Displays Operating System Load Menu, crashes accessing mystery device - 12th April 2022
   
 ### What's Next?
 Initial milestones are to run from image of AOS/VS 7.73 system tape image...
@@ -21,6 +21,15 @@ Initial milestones are to run from image of AOS/VS 7.73 system tape image...
 * File 1 - FIXUP - Produces ERROR ~71231.~ 71199. - that's further than mvemg gets! - 18th March 2022
 * File 1 - PCOPY - Aborts with "Incorrect disk format revision number" - further than mvemg got! - 22nd March 2022
 * ~~Implement PIT~~ - 3rd April 2022
+
+### Missing Information and Assumptions
+As mentioned elsewhere, I have limited available documentation - some of which is of dubious accuracy.
+
+I do not know what 'reserved' devices No. 1, 2, and 3 were.  I am currently treating access to them as no-ops.
+
+Non-flagged PIO access to the (U)PSC is not documented.  I am currently treating them as no-ops.
+
+DIx and DOx instructions to the BMC/DCH controller seem to be undocumented for the MV-series, but see p.5-82 of the Eclipse S/140 Programmers Reference.  In fact, this may be a red herring - the MV/2500 DC did not support BMC... it had a special HIP bus instead.
 
 ## Virtual (AOS/VS) Emulator - vsemua
 

@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,10 @@
 -- SOFTWARE.
 
 with Ada.Text_IO;           use Ada.Text_IO;
--- with Ada.Strings;           use Ada.Strings;
--- with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
--- with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with Debug_Logs; use Debug_Logs;
+with Devices;
+with Devices.Bus;
 with Memory;     use Memory;
 
 package body Memory_Channels is
@@ -35,7 +34,10 @@ package body Memory_Channels is
       procedure Init (Debug_logging : in Boolean) is
       begin
          Is_Logging := Debug_logging;
-         Reset;
+         Devices.Bus.Actions.Set_Reset_Proc    (Devices.BMC, Reset'Access);
+         Devices.Bus.Actions.Set_Data_In_Proc  (Devices.BMC, Data_In'Access);
+         -- Devices.Bus.Actions.Set_Data_Out_Proc (Devices.BMC, Data_Out'Access);
+         -- Reset;
       end Init;
 
       procedure Reset is
@@ -48,6 +50,7 @@ package body Memory_Channels is
          Registers (IO_Chan_Mask_Reg)   :=
            IOC_MR_MK1 or IOC_MR_MK2 or IOC_MR_MK3 or IOC_MR_MK4 or
            IOC_MR_MK5 or IOC_MR_MK6;
+         Status_Reg := SR_BMC; 
          Put_Line ("INFO: BMC_DCH Registers Reset");
       end Reset;
 
@@ -55,6 +58,21 @@ package body Memory_Channels is
       begin
          Is_Logging := Debug_Logging;
       end Set_Logging;
+
+      procedure Data_In  (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
+      begin
+         case ABC is
+            when A => 
+               Datum := Read_Reg (IO_Chan_Status_Reg); -- FIXME this is a guess!
+            when B => 
+               Datum := Read_Reg (IO_Chan_Mask_Reg);   -- FIXME this is a guess!  
+            when C => 
+               Datum := Status_Reg;    -- FIXME this is a guess, but see p.5-82 of S140 Prog Ref.
+            when others =>
+               raise Not_Yet_Implemented with "DIB/C to BMC/DCH";
+         end case;
+      end Data_In;
+
 
       function Read_Reg (Reg : in Integer) return Word_T is (Registers (Reg));
 
