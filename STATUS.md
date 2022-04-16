@@ -59,7 +59,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | FOOBAR            | 'Error 11381. from line 15'                           | 28 Oct 2021 | Worse   :-( |
   | HANGMAN (IMSUTIL) | Bad comparison in WDCMP after displaying start screen | 28 May 2021 | Same    :-/ | 
   | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | Better  :-) |
-  | SCRABBLE          | Calling ?ERMSG after ?OPENing SEED file               | 19 Jun 2021 | Same    :-/ |
+  | SCRABBLE          | 'Error 71692' after ?OPENing SEED file                | 19 Jun 2021 | Same    :-/ |
   | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | Same    :-/ | 
   | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 | Better  :-) |
   | ZORK              | 'Error 71683. on file heap_ro'                        | 28 Oct 2021 | Same    :-/ |
@@ -73,5 +73,6 @@ Error Codes to Look-Up...
 * 11381
 * 71199
 * 71683
+* 71692
 * 71697
 

@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -142,15 +142,18 @@ package body AOSVS.Agent.Tasking is
                when 8#063# => Syscall_OK := AOSVS.Sys_Memory.Sys_SOPEN (CPU, Task_Data.PID,Task_Data.TID);
                when 8#072# => Syscall_OK := AOSVS.Process.Sys_GUNM     (CPU, Task_Data.PID);
                when 8#073# => Syscall_OK := AOSVS.Sys_Memory.Sys_GSHPT(CPU, Task_Data.PID, Task_Data.Ring_Mask);
+               -- when 8#102# => Syscall_OK := AOSVS.File_Management.Sys_GLIST (CPU, Task_Data.PID);
                when 8#111# => Syscall_OK := AOSVS.File_Management.Sys_GNAME (CPU, Task_Data.PID);
                when 8#113# => Syscall_OK := AOSVS.Process.Sys_SUSER (CPU, Task_Data.PID);
                when 8#116# => Syscall_OK := AOSVS.Process.Sys_PNAME (CPU, Task_Data.PID);
                when 8#127# => Syscall_OK := AOSVS.Process.Sys_DADID (CPU, Task_Data.PID);
                when 8#157# => Syscall_OK := AOSVS.System.Sys_SINFO  (CPU);
-               -- when 8#166# => Syscall_OK := AOSVS.File_Management.Sys_DACL (CPU, Task_Data.PID);
-               when 8#167# => Syscall_OK := AOSVS.Connection.Sys_CON (CPU, Task_Data.PID);
-               when 8#170# => Syscall_OK := AOSVS.Connection.Sys_DCON (CPU, Task_Data.PID);
+               -- when 8#161# => Syscall_OK := AOSVS.Sys_Memory.Sys_SCLOSE (CPU, Task_Data.PID,Task_Data.TID);
+               when 8#166# => Syscall_OK := AOSVS.File_Management.Sys_DACL (CPU, Task_Data.PID);
+               when 8#167# => Syscall_OK := AOSVS.Connection.Sys_CON   (CPU, Task_Data.PID);
+               when 8#170# => Syscall_OK := AOSVS.Connection.Sys_DCON  (CPU, Task_Data.PID);
                when 8#171# => Syscall_OK := AOSVS.Connection.Sys_SERVE (CPU, Task_Data.PID);
+               -- when 8#172# => Syscall_OK := AOSVS.Connection.Sys_RESIGN (CPU, Task_Data.PID);
                when 8#251# => Syscall_OK := AOSVS.Process.Sys_RNGPR    (CPU, Task_Data.PID);
                when 8#263# => Syscall_OK := AOSVS.Multitasking.Sys_WDELAY (CPU, Task_Data.PID, Task_Data.TID);
                when 8#300# => Syscall_OK := AOSVS.File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);

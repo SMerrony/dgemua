@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,7 @@ package AOSVS.Agent is
         Console             : GNAT.Sockets.Stream_Access;
         TIDs_In_Use         : TIDs_Arr;
 		Superuser_On        : Boolean;
+		Default_ACL         : Unbounded_String;
 	end record;
 	type PPD_Arr is array (PID_T) of Per_Process_Data_T;
 
@@ -132,6 +133,7 @@ package AOSVS.Agent is
 							 Chan_No : out Word_T;
 							 Err     : out Word_T);
 		procedure File_Close (Chan_No : in Natural; Err : out Word_T);
+		function  Get_Default_ACL (PID : in PID_T) return String;
 	    function  Get_Device_For_Channel(Chan_No : in Word_T) return Unbounded_String;
 		procedure File_Read (Chan_No : in Word_T;
                               Is_Extended,

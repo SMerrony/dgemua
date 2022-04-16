@@ -63,6 +63,18 @@ package body AOSVS.File_Management is
         return true;
     end Sys_CREATE;
 
+    function Sys_DACL (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+    begin
+        Loggers.Debug_Print (Sc_Log, "?DACL");
+        if CPU.AC(0) /= 0 then
+            raise AOSVS.Agent.Not_Yet_Implemented with "?DACL set or change mode";
+        end if;
+        RAM.Write_String_BA (CPU.AC(1), AOSVS.Agent.Actions.Get_Default_ACL (PID_T(PID)));
+        CPU.AC(0) := 1; -- Default ACL is ON
+        Loggers.Debug_Print (Sc_Log, "----- Returning: " & AOSVS.Agent.Actions.Get_Default_ACL (PID_T(PID)));
+        return True;
+    end Sys_DACL;
+
     function Sys_DELETE (CPU : in out CPU_T; PID : in Word_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?DELETE");

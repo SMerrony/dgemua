@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -84,6 +84,9 @@ package body AOSVS.Agent is
          Per_Process_Data(PID).Proc_Name           := Proc_Name;
          Per_Process_Data(PID).User_Name           := User_Name;
          Per_Process_Data(PID).Console             := Console;
+         Per_Process_Data(PID).Default_ACL         := User_Name & Character'Val(0) &
+                                                      "<?FACO+?FACW+?FACA+?FACR+?FACE>" & 
+                                                      Character'Val(0) & Character'Val(0);
          Device_Chars.Include ("@CONSOLE", Default_Chars);
          Device_Chars.Include ("@INPUT",   Default_Chars);
          Device_Chars.Include ("@OUTPUT",  Default_Chars);
@@ -229,6 +232,9 @@ package body AOSVS.Agent is
             end if;
          end if;
       end File_Close;
+
+      function Get_Default_ACL (PID : in PID_T) return String is
+         (To_String (Per_Process_Data(PID).Default_ACL));
       
       function Get_Device_For_Channel(Chan_No : in Word_T) return Unbounded_String is
          Dev : Unbounded_String;

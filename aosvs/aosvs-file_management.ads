@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ with Processor;     use Processor;
 package AOSVS.File_Management is
  
     function Sys_CREATE   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+    function Sys_DACL     (CPU : in out CPU_T; PID : in Word_T) return Boolean;
     function Sys_DELETE   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
     function Sys_GNAME    (CPU : in out CPU_T; PID : in Word_T) return Boolean;
     function Sys_RECREATE (CPU : in out CPU_T; PID : in Word_T) return Boolean;

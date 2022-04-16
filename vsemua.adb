@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -130,7 +130,7 @@ begin
    Loggers.Init;
    GNAT.Sockets.Accept_Socket (Server => Receiver, Socket => Connection, Address => Client);
    Con_Stream := GNAT.Sockets.Stream (Connection);
-   Put_String (Con_Stream, "Welcome to the VS/Emua AOS/VS Emulator" & Dasher_NL);
+   Put_String (Con_Stream, Dasher_NL & "Welcome to the VS/Emua AOS/VS Emulator" & Dasher_NL);
    Ada.Text_IO.Put_Line ("INFO: Console connected from " & GNAT.Sockets.Image (Client));
 
    Decoder.Init;
