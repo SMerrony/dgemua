@@ -56,6 +56,13 @@ package body AOSVS.Agent is
          end loop;
          Console := Cons;
          Virtual_Root := To_Unbounded_String(Virt_Root);
+         for C in Agent_Chans'Range loop
+            if C < 2 then
+               Agent_Chans(C).Opener_PID := 3; -- fake chans 0 & 1 in use
+            else 
+               Agent_Chans(C).Opener_PID := 0;
+            end if;
+         end loop;
       end Init;
       		
       procedure Allocate_PID (
@@ -135,7 +142,11 @@ package body AOSVS.Agent is
          -- Stream_File : Ada.Streams.Stream_IO.File_Type;
       begin
          Err := 0;
-         Chan_Num := Get_Free_Channel;
+         if Path = "@CONSOLE" then
+            Chan_Num := 0;
+         else
+            Chan_Num := Get_Free_Channel;
+         end if;
          Agent_Chans(Chan_Num).Opener_PID := 0; -- ensure set to zero so can be resused if open fails
          Agent_Chans(Chan_Num).Path := To_Unbounded_String (Path);
          Loggers.Debug_Print (Sc_Log,"----- ?ISTI: " & Word_To_String (Options, Binary, 16, true));
@@ -266,38 +277,43 @@ package body AOSVS.Agent is
             raise Channel_Not_Open with "?READ";
          end if;
          if Agent_Chans(Integer(Chan_No)).Is_Console then
-            loop
-               Byte_T'Read (Agent_Chans(Integer(Chan_No)).Con, Byte);
-               -- ECHO 
-               if Agent_Chans(Integer(Chan_No)).Echo then
-                   Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Byte);
-                   if Character'Val(Byte) = Dasher_CR then 
-                      Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Char_To_Byte(Dasher_NL));
-                  end if;
-               end if;
-               Bytes(Byte_Ix) := Byte;
-               Bytes(Byte_Ix+1) := 0;
-               if (Byte = Character'Pos(Dasher_NL)) or (Byte = Character'Pos(Dasher_CR)) then               
-                  Bytes(Byte_Ix) := 0;
-                  --Byte_Ix := Byte_Ix + 1;
-                  exit;
-               end if;
-               -- TODO Handle Delete char
 
-               Byte_Ix := Byte_Ix + 1;
-            end loop;
-            Transferred := Word_T(Byte_Ix) - 1;
-         else
-            if Is_Dynamic then
-               -- Rec_Len is the fixed # of Bytes to read
-               for B in 0 .. Rec_Len - 1 loop
-                  Direct_IO.Read(Agent_Chans(Integer(Chan_No)).File_Direct, Bytes(B));
+            if Is_Datasens then
+               Bytes(Byte_Ix) := 0;
+               loop
+                  Byte_T'Read (Agent_Chans(Integer(Chan_No)).Con, Byte);
+                  -- ECHO 
+                  if Agent_Chans(Integer(Chan_No)).Echo then
+                     Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Byte);
+                     if Character'Val(Byte) = Dasher_CR then 
+                        Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Char_To_Byte(Dasher_NL));
+                     end if;
+                  end if;
+                  Bytes(Byte_Ix) := Byte;
+                  Bytes(Byte_Ix+1) := 0;
+                  if Byte = Character'Pos(Dasher_NL) or Byte = Character'Pos(Dasher_CR) or Byte = Character'Pos(Dasher_FF) then               
+                     --Bytes(Byte_Ix) := 0;
+                     --Byte_Ix := Byte_Ix + 1;
+                     exit;
+                  end if;
+                  -- TODO Handle Delete char
+
+                  Transferred := Transferred + 1;
                end loop;
-               Transferred := Word_T(Rec_Len);
+
+            elsif Is_Dynamic then
+                  -- Rec_Len is the fixed # of Bytes to read
+                  for B in 0 .. Rec_Len - 1 loop
+                     Direct_IO.Read(Agent_Chans(Integer(Chan_No)).File_Direct, Bytes(B));
+                     Transferred := Transferred + 1;
+                  end loop;
 
             else
-               raise Not_Yet_Implemented with "NYI - non-Dynamic physical file reads";
+               raise Not_Yet_Implemented with "NYI - fixed or extended READ from CONSOLE";
             end if;
+
+         else
+            raise Not_Yet_Implemented with "real file READs";
          end if;
 
 
@@ -337,10 +353,10 @@ package body AOSVS.Agent is
                loop
                   Byte := RAM.Read_Byte_BA( Bytes_BA + Dword_T(DS_Len));
                   -- TODO handle custom delimiter tables
-                  exit when Byte = 0;
+                  -- exit when Byte = 0;
                   DS_Len := DS_Len + 1;
                   Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Byte);
-                  exit when Byte = 8#12# or Byte = 8#14# or Byte = 8#15#; 
+                  exit when Byte = 0 or Byte = 8#12# or Byte = 8#14# or Byte = 8#15#; 
                   exit when DS_Len = Max_Len;
                end loop;
                Transferred := Integer_16_To_Word(Integer_16(DS_Len));
@@ -354,7 +370,11 @@ package body AOSVS.Agent is
                   end loop;
                   Transferred := Word_T(Bytes'Length);
                end;
+               if Integer (Transferred) /= Rec_Len then
+                  raise IO_Error with "mismatch between requested and actual bytes written";
+               end if;
             end if;
+            Loggers.Debug_Print (Sc_Log,"----- Wrote: " & RAM.Read_String_BA (Bytes_BA, False));
          else
             raise Not_Yet_Implemented with "?WRITE to real file";
          end if;

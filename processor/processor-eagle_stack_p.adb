@@ -91,14 +91,31 @@ package body Processor.Eagle_Stack_P is
          RAM.Write_Dword (CPU.WSP, Dword_T(Datum));
       end WS_Push_QW;
 
+      function Dwords_Reserved (Instr : in Instr_Mnemonic_T) return Phys_Addr_T is
+         DW_Buffer : Phys_Addr_T;
+      begin
+         case Instr is 
+            when I_BKPT | I_WPOPB | I_WRTN | I_WSSVR | I_WSSVS => DW_Buffer := 12;
+            when I_LCALL | I_LPEF | I_LPEFB | I_LPSHJ | I_WPOPJ | I_XCALL | I_XPSHJ => DW_Buffer := 2;
+            when I_WFPOP | I_WFPSH => DW_Buffer := 20;
+            when I_WSAVR | I_WSAVS => DW_Buffer := 10;
+            when I_WMSP | I_WPOP | I_WPSH | I_XPEF | I_XPEFB => DW_Buffer := 0;
+            when others =>
+               raise Not_Yet_Implemented with "WS Bounds checking for this instruction";
+         end case; 
+         return DW_Buffer;
+      end Dwords_Reserved;
+
       -- WSP_Check_Bounds does a check to see if the intended change of WSP would cause a stack fault
       -- Is_Save must be set by WMSP, WSSVR, WSSVS, WSAVR & WSAVS
-      procedure WSP_Check_Bounds (Delta_Words : in Integer; Is_Save : in Boolean;
+      procedure WSP_Check_Bounds (Instr : in Instr_Mnemonic_T; Delta_Words : in Integer; Is_Save : in Boolean;
                                   OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
+         OOB_Buffer : Phys_Addr_T := Dwords_Reserved (Instr);
       begin
          OK := true;
+         -- see p.4-8 of 1988 PoP...
          if Delta_Words > 0 then
-            if CPU.WSP + Phys_Addr_T(Delta_Words) > (CPU.WSL - Out_Of_Bounds_Buffer) then
+            if CPU.WSP + Phys_Addr_T(Delta_Words) > (CPU.WSL - OOB_Buffer) then
                OK := false;
                Secondary_Fault := WSF_Overflow;
                if Is_Save then
@@ -120,10 +137,11 @@ package body Processor.Eagle_Stack_P is
          end if;
       end WSP_Check_Bounds;
 
-      procedure WSP_Check_Overflow (OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
+      procedure WSP_Check_Overflow (Instr : in Instr_Mnemonic_T; OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
+         OOB_Buffer : Phys_Addr_T := Dwords_Reserved (Instr);
       begin
          OK := true;
-         if CPU.WSP > (CPU.WSL - Out_Of_Bounds_Buffer) then
+         if CPU.WSP > (CPU.WSL - OOB_Buffer) then
             OK := false;
             Secondary_Fault := WSF_Overflow;
             Primary_Fault := WSF_Overflow; 
@@ -212,7 +230,8 @@ package body Processor.Eagle_Stack_P is
                   DW := RAM.Read_Dword (CPU.WSP) and 16#0000_7fff#;
                end if;
                DW := DW or Shift_Left(Dword_T(CPU.PSR), 16);
-               WSP_Check_Bounds (Delta_Words => 2, 
+               WSP_Check_Bounds (Instr => I_LCALL,
+                                 Delta_Words => 2, 
                                  Is_Save => false, 
                                  OK => OK, 
                                  Primary_Fault => Primary_Fault, 
@@ -250,6 +269,7 @@ package body Processor.Eagle_Stack_P is
                WS_Push (CPU, Dword_T(Addr));
                Set_OVR (false);
                WSP_Check_Overflow (
+                  I_LPEF,
                   OK => OK, 
                   Primary_Fault => Primary_Fault, 
                   Secondary_Fault => Secondary_Fault);
@@ -268,10 +288,7 @@ package body Processor.Eagle_Stack_P is
             end if;
             WS_Push (CPU, Dword_T(Addr));
             Set_OVR (false);
-            WSP_Check_Overflow ( 
-                           OK => OK, 
-                           Primary_Fault => Primary_Fault, 
-                           Secondary_Fault => Secondary_Fault);
+            WSP_Check_Overflow ( I_LPEFB, OK => OK, Primary_Fault => Primary_Fault, Secondary_Fault => Secondary_Fault);
             if not OK then
                Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by LPEFB");
                WSP_Handle_Fault (Ring, I.Instr_Len, Primary_Fault, Secondary_Fault);
@@ -325,6 +342,7 @@ package body Processor.Eagle_Stack_P is
             WS_Push_QW (Qword_T(CPU.FPAC(2)));
             WS_Push_QW (Qword_T(CPU.FPAC(3)));
             WSP_Check_Overflow ( 
+                           I_WFPSH,
                            OK => OK, 
                            Primary_Fault => Primary_Fault, 
                            Secondary_Fault => Secondary_Fault);
@@ -338,7 +356,8 @@ package body Processor.Eagle_Stack_P is
             declare
                DeltaWds : Integer := Integer(CPU.AC_I32(I.Ac)) * 2;
             begin
-               WSP_Check_Bounds (Delta_Words => DeltaWds, 
+               WSP_Check_Bounds (Instr => I_WMSP,
+                                 Delta_Words => DeltaWds, 
                                  Is_Save => false, 
                                  OK => OK, 
                                  Primary_Fault => Primary_Fault, 
@@ -372,7 +391,8 @@ package body Processor.Eagle_Stack_P is
             WS_Pop(CPU,DW);
             DW := (DW and 16#0fff_ffff#) or Dword_T(Ring);
             CPU.PC := Phys_Addr_T(DW);
-            WSP_Check_Bounds (Delta_Words => 0, 
+            WSP_Check_Bounds (Instr => I_WPOPJ,
+                              Delta_Words => 0, 
                               Is_Save => false, 
                               OK => OK, 
                               Primary_Fault => Primary_Fault, 
@@ -397,6 +417,7 @@ package body Processor.Eagle_Stack_P is
             end loop;
             Set_OVR (false);
             WSP_Check_Overflow ( 
+                           I_WPSH,
                            OK => OK, 
                            Primary_Fault => Primary_Fault, 
                            Secondary_Fault => Secondary_Fault);
@@ -423,7 +444,8 @@ package body Processor.Eagle_Stack_P is
 
          when I_WSAVR | I_WSAVS =>
             Req_Space := Integer(Word_To_Integer_16(I.Word_2));
-            WSP_Check_Bounds (Delta_Words => (Req_Space * 2) + 12, 
+            WSP_Check_Bounds (Instr => I_WSAVR,
+                              Delta_Words => (Req_Space * 2) + 12, 
                               Is_Save => true, 
                               OK => OK, 
                               Primary_Fault => Primary_Fault, 
@@ -456,7 +478,8 @@ package body Processor.Eagle_Stack_P is
 
          when I_WSSVR | I_WSSVS =>
             Req_Space := Integer(Word_To_Integer_16(I.Word_2));
-            WSP_Check_Bounds (Delta_Words => (Req_Space * 2) + 12, 
+            WSP_Check_Bounds (Instr => I_WSSVR,
+                              Delta_Words => (Req_Space * 2) + 12, 
                               Is_Save => true, 
                               OK => OK, 
                               Primary_Fault => Primary_Fault, 
@@ -496,6 +519,7 @@ package body Processor.Eagle_Stack_P is
             WS_Push (CPU, Dword_T(Addr));
             Set_OVR (false);
             WSP_Check_Overflow ( 
+                           I_XPEF,
                            OK => OK, 
                            Primary_Fault => Primary_Fault, 
                            Secondary_Fault => Secondary_Fault);
@@ -514,6 +538,7 @@ package body Processor.Eagle_Stack_P is
             WS_Push (CPU, Dword_T(Addr));
             Set_OVR (false);
             WSP_Check_Overflow ( 
+                           I_XPEFB,
                            OK => OK, 
                            Primary_Fault => Primary_Fault, 
                            Secondary_Fault => Secondary_Fault);
@@ -525,7 +550,9 @@ package body Processor.Eagle_Stack_P is
 
          when I_XPSHJ =>
             WS_Push (CPU, Dword_T(CPU.PC) + 2);
-            WSP_Check_Overflow (OK => OK, 
+            WSP_Check_Overflow (
+                              I_XPSHJ,
+                              OK => OK, 
                               Primary_Fault => Primary_Fault, 
                               Secondary_Fault => Secondary_Fault);
             if not OK then

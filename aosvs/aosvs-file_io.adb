@@ -59,6 +59,7 @@ package body AOSVS.File_IO is
         Err         : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?CLOSE - Chan. No:" & Chan_No'Image);
+        Loggers.Debug_Print (Debug_Log, "?CLOSE - Channel:" &Chan_No'Image);
         if Chan_No = 16#ffff# then
             Loggers.Debug_Print (Sc_Log, "------ Ignoring attempt to ?CLOSE -1");
             CPU.AC(0) := Dword_T(PARU_32.ERPRE);
@@ -116,7 +117,7 @@ package body AOSVS.File_IO is
             return false;
         end if;
         RAM.Write_Word(Pkt_Addr + IRLR, Txfrd);
-        for B in 0 .. Txfrd - 1 loop
+        for B in 0 .. Txfrd loop
             RAM.Write_Byte_BA(Dest + Dword_T(B), Bytes(Integer(B)));
         end loop;
         Loggers.Debug_Print (Sc_Log, "----- Bytes Read:" & Txfrd'Image);

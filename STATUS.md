@@ -2,7 +2,7 @@
 
 ## Physical Emulator - mvemua
 
-* Last status update: 15th April 2022
+* Last status update: 16th April 2022
 * Last significant progress: DSKBT loads from type 6239 disk - 2nd April 2022
 
 ### What Works?
@@ -33,14 +33,14 @@ DIx and DOx instructions to the BMC/DCH controller seem to be undocumented for t
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 10 Jun 2021
+* Last status update: 17 Apr 2022
   
-The following 32-bit sample programs copied from a physical machine are working...
+All of the following 32-bit sample programs copied from a physical machine are working...
 * HW.PR - Hello, World! (13 May 2021)
 * HW2.PR - Hello, World! using CLI return message (13 May 2021)
 * LOOPS1.PR - Basic looping constructs (13 May 2021)
 * LOOPS2.PR - Further loops (13 May 2021)
-* LOOPS3.PR - Loops with LWDO and -ve values (14 May 2021)#
+* LOOPS3.PR - Loops with LWDO and -ve values (14 May 2021)
 * LOOPS4.PR - As LOOPS3 with external subroutines (14 May 2021)
 * SPIGOT.PR - Calculate Pi to a thousand places using the spigot method (14 May 2021)
 * STRINGTESTS.PR - Various string-handling routines (14 May 2021)
@@ -52,17 +52,22 @@ The NADGUG library provides a good range of freely-available test targets...
 
   |    Game           |   Problem                                             |   Date      | cf. VS/Emug |
   |-------------------|-------------------------------------------------------|-------------|-------------|
-  | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | Same    :-/ | 
-  | DND               | 'Error 71697. on file CONSOLE'                        | 28 Oct 2021 | Same    :-/ |
-  | EMPIRE2T          | 'Error 71683. on file FILE_IN'                        | 22 Jun 2021 | Same    :-/ |
-  | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 | Better  :-) | 
-  | FOOBAR            | 'Error 11381. from line 15'                           | 28 Oct 2021 | Worse   :-( |
-  | HANGMAN (IMSUTIL) | Bad comparison in WDCMP after displaying start screen | 28 May 2021 | Same    :-/ | 
-  | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | Better  :-) |
-  | SCRABBLE          | 'Error 71692' after ?OPENing SEED file                | 19 Jun 2021 | Same    :-/ |
-  | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | Same    :-/ | 
-  | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 | Better  :-) |
-  | ZORK              | 'Error 71683. on file heap_ro'                        | 28 Oct 2021 | Same    :-/ |
+  | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | Same   :-/ | 
+  | CHESS             | Prompts for settings but won't accept choice          | 17 Apr 2022 | Better :-) |
+  | DND               | 'Error 71697. on file CONSOLE'                        | 28 Oct 2021 | Same   :-/ |
+  | EMPIRE            | 'Error 71683. on file FILE_IN'                        | 16 Apr 2022 | Worse  :-( |
+  | EMPIRE2T          | 'Error 71683. on file FILE_IN'                        | 22 Jun 2021 | Same   :-/ |
+  | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 | Better :-) |
+  | FISH              | Unimplemented sys call ?GLIST                         | 16 Apr 2022 | Same   :-/ |
+  | FOOBAR            | 'Error 11381. from line 15' maybe ?GCHR problem       | 28 Oct 2021 | Worse  :-( |
+  | HANGMAN (IMSUTIL) | 'Error 71231' - maybe doesn't like ?UIDSTAT response  | 17 Apr 2022 | Better :-) | 
+  | MMM               | 'Error 11381. from line...'                           | 16 Apr 2022 | Better :-) |
+  | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | Better :-) |
+  | QUEST             | Welcome message, prompt for initials, ?RETURN. (server was not running) | 16 Apr 2022 | Better :-) |
+  | SCRABBLE          | 'Error 71692' after ?OPENing SEED file                | 19 Jun 2021 | Same   :-/ |
+  | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | Same   :-/ | 
+  | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 | Better :-) |
+  | ZORK              | 'Error 71683. on file heap_ro'                        | 28 Oct 2021 | Same   :-/ |
   
 ### Reminders
 * ~~Check ?READ/WRITE/OPEN flag mode interpretation - it might be back-to-front~~

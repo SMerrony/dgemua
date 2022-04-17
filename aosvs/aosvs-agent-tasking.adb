@@ -90,6 +90,7 @@ package body AOSVS.Agent.Tasking is
       Syscall_Trap : Boolean;
       Syscall_OK   : Boolean;
       Return_Addr  : Phys_Addr_T;
+      Call_ID_Addr : Phys_Addr_T;
       Call_ID      : Word_T;
       Task_Data    : Task_Data_T;
       Error_Code   : Dword_T;
@@ -125,7 +126,8 @@ package body AOSVS.Agent.Tasking is
             if Task_Data.Sixteen_Bit then
                raise Processor.Not_Yet_Implemented with "16-bit task";
             else
-               Call_ID := RAM.Read_Word(Phys_Addr_T(RAM.Read_Dword (Phys_Addr_T (CPU.WSP - 2))));
+               Call_ID_Addr := Phys_Addr_T(RAM.Read_Dword (Phys_Addr_T (CPU.WSP - 2)));
+               Call_ID := RAM.Read_Word(Call_ID_Addr);
                Loggers.Debug_Print (Sc_Log, "System Call # is: " & Dword_To_String (Dword_T(Call_ID), Octal, 6));
             end if;
             case Call_ID is
