@@ -195,12 +195,11 @@ package body Decoder is
       if Mode = Absolute then
          return Integer_16 (D15 and 16#7fff#); -- zero extend
       end if;
-      if Test_W_Bit (D15, 1) then
-         return Word_To_Integer_16 (D15 or 2#1000_0000_0000_0000#);
+      if (D15 and 16#4000#) /= 0 then
+         return Word_To_Integer_16 (D15 or 16#8000#); -- sign extend if negative
       else
-         return Integer_16 (D15 and 2#0011_1111_1111_1111#);
+         return Word_To_Integer_16 (D15);
       end if;
-      -- return Word_To_Integer_16(Shift_Left(D15, 1)) / 2;
    end Decode_15bit_Disp; -- TODO Test/verify this
 
    procedure Decode_16bit_Byte_Disp (D16 : in Word_T; Disp_16 : out Integer_16; Lo_Byte : out Boolean) is
@@ -216,7 +215,7 @@ package body Decoder is
       Dw_1 := Shift_Left(Dword_T(W_1 and 16#7fff#), 16);
       Dw_2 := Dword_T(W_2);
       if Mode /= Absolute then
-         if Test_W_Bit (W_1, 1) then
+         if (W_1 and 16#4000#) /= 0 then
             Dw_1 := Dw_1 or 16#8000_0000#;
          end if;
       end if;
@@ -323,7 +322,7 @@ package body Decoder is
    begin
       Decoded.Disassembly := To_Unbounded_String ("; Unknown instruction");
       Instr               := Instruction_Lookup (Opcode, LEF_Mode);
-
+      Decoded.Word_1      := Opcode;
       Decoded.Instruction := Instr;
       Decoded.Mnemonic    := Instruction_Set (Instr).Mnemonic;
       Decoded.Disassembly := Instruction_Set (Instr).Mnemonic;
@@ -339,7 +338,7 @@ package body Decoder is
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
-            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2 and 16#7fff#, Decoded.Mode);
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " &
@@ -484,7 +483,7 @@ package body Decoder is
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 6, 2)));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
-            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2 and 16#7fff#, Decoded.Mode);
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " &
@@ -497,7 +496,7 @@ package body Decoder is
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
-            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2 and 16#7fff#, Decoded.Mode);
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " &
@@ -537,7 +536,7 @@ package body Decoder is
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
             Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
-            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2 and 16#7fff#, Decoded.Mode);
             Decoded.Arg_Count := Integer(Decoded.Word_3);
             if Disassemble then
                Decoded.Disassembly :=
@@ -684,7 +683,7 @@ package body Decoder is
             Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
-            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2 and 16#7fff#, Decoded.Mode);
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
@@ -698,13 +697,13 @@ package body Decoder is
             Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
-            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2 and 16#7fff#, Decoded.Mode);
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
                  Char_Indirect(Decoded.Ind) & 
-                 --Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & 
-                 Decoded.Disp_15'Image & "." &
+                 Int_To_String (Integer(Decoded.Disp_15), Radix, 8, false, true) & 
+                 -- Decoded.Disp_15'Image & "." &
                  String_Mode(Decoded.Mode) &
                  " [2-Word Instruction]";
             end if;

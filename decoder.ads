@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -60,6 +60,7 @@ package Decoder is
       Imm_DW       : Dword_T;
       Arg_Count    : Integer;
       Ac, Acs, Acd : AC_ID;           -- single, src, dest ACs
+      Word_1       : Word_T;          -- 1st word of instruction
       Word_2       : Word_T;          -- 2nd word of instruction
       Word_3       : Word_T;          -- 3rd word of instruction
       IO_Dir       : IO_Dir_T;

@@ -77,7 +77,7 @@ package body Processor.Eagle_Mem_Ref_P is
                    Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac))));
             CPU.Carry := (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16);
             Set_OVR (CPU.Carry);
-            CPU.AC(I.Ac) := Integer_32_To_Dword(I32);
+            CPU.AC_I32(I.Ac) := I32;
 
          when I_LNLDA =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
@@ -126,7 +126,7 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_LWSUB =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             I32 := Dword_To_Integer_32(CPU.AC(I.Ac)) - Dword_To_Integer_32(RAM.Read_Dword(Addr));
-            CPU.AC(I.Ac) := Integer_32_To_Dword(I32);
+            CPU.AC_I32(I.Ac) := I32;
 
          when I_WBLM =>
             -- AC0 - unused, AC1 - no. wds to move (if neg then descending order), AC2 - src, AC3 - dest
@@ -403,7 +403,7 @@ package body Processor.Eagle_Mem_Ref_P is
                CPU.Carry := true;
                Set_OVR (true);
             end if;
-            CPU.AC(I.Ac) := Integer_32_To_Dword(Integer_32(I16_Ac));
+            CPU.AC_I32(I.Ac) := Integer_32(I16_Ac);
 
          when I_XNADI =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -415,12 +415,11 @@ package body Processor.Eagle_Mem_Ref_P is
             RAM.Write_Dword (Addr, Integer_32_To_Dword(I32) and 16#0000_ffff#);
 
          when I_XNLDA =>
+            Loggers.Debug_Print (Debug_Log, "... Opcode 1: " & Word_To_String (WD => I.Word_1, Base => Binary, Width => 16, Zero_Pad => True));
+            Loggers.Debug_Print (Debug_Log, "... Opcode 2: " & Word_To_String (WD => I.Word_2, Base => Binary, Width => 16, Zero_Pad => True));
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
-            Word := RAM.Read_Word (Addr);
-            CPU.AC(I.Ac) := Dword_T(Word);
-            if Test_W_Bit (Word, 0) then
-               CPU.AC(I.Ac) := CPU.AC(I.Ac) or 16#ffff_0000#;
-            end if;
+            I16_Mem := Word_To_Integer_16 (RAM.Read_Word (Addr));
+            CPU.AC_I32(I.Ac) := Integer_32(I16_Mem);
 
          when I_XNMUL =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -432,7 +431,7 @@ package body Processor.Eagle_Mem_Ref_P is
                CPU.Carry := true;
                Set_OVR (true);
             end if;
-            CPU.AC(I.Ac) := Integer_32_To_Dword(Integer_32(I16_Ac));
+            CPU.AC_I32(I.Ac) := Integer_32(I16_Ac);
 
          when I_XNSBI =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -463,7 +462,7 @@ package body Processor.Eagle_Mem_Ref_P is
                CPU.Carry := true;
                Set_OVR (true);
             end if;
-            CPU.AC(I.Ac) := Integer_32_To_Dword(Integer_32(I16_Ac));
+            CPU.AC_I32(I.Ac) := Integer_32(I16_Ac);
 
          when I_XWADD =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);

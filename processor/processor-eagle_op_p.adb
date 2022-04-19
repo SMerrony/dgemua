@@ -73,7 +73,7 @@ package body Processor.Eagle_Op_P is
                      Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acs))));
             CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
             Set_OVR (CPU.Carry);
-            CPU.AC(I.Acd) := Integer_32_To_Dword(S32);
+            CPU.AC_I32(I.Acd) := S32;
 
          when I_NADDI =>
             Acd_S16 := DG_Types.Word_To_Integer_16(Lower_Word(CPU.AC(I.Ac)));
@@ -81,14 +81,14 @@ package body Processor.Eagle_Op_P is
             S32     := Integer_32(Acd_S16) + Integer_32(S16);
             CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
             Set_OVR (CPU.Carry);
-            CPU.AC(I.Ac) := Integer_32_To_Dword(S32); 
+            CPU.AC_I32(I.Ac) := S32; 
 
          when I_NADI =>
             S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)))) +
                      Integer_32(I.Imm_U16);
             CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
             Set_OVR (CPU.Carry);
-            CPU.AC(I.Ac) := Integer_32_To_Dword(S32); 
+            CPU.AC_I32(I.Ac) := S32; 
 
          when I_NDIV =>
             Acd_S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acd))));
@@ -100,7 +100,7 @@ package body Processor.Eagle_Op_P is
                S32 := Acd_S32 / Acs_S32;
                CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
                Set_OVR (CPU.Carry);
-               CPU.AC(I.Acd) := Integer_32_To_Dword(S32);   
+               CPU.AC_I32(I.Acd) := S32;   
             end if;
 
          when I_NLDAI =>
@@ -111,12 +111,12 @@ package body Processor.Eagle_Op_P is
                      Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acs))));
             CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
             Set_OVR (CPU.Carry);
-            CPU.AC(I.Acd) := Integer_32_To_Dword(S32); 
+            CPU.AC_I32(I.Acd) := S32; 
 
          when I_NNEG =>
             S32 := -Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acs))));
             Set_OVR (CPU.AC(I.Acs) = 8#100000#);
-            CPU.AC(I.Acd) := Integer_32_To_Dword(S32); 
+            CPU.AC_I32(I.Acd) := S32; 
 
          when I_NSBI =>
             S32 := Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)))) -
@@ -130,7 +130,7 @@ package body Processor.Eagle_Op_P is
                      Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Acs))));
             CPU.Carry := (S32 > Max_Pos_S16) or (S32 < Min_Neg_S16);
             Set_OVR (CPU.Carry);
-            CPU.AC(I.Acd) := Integer_32_To_Dword(S32);
+            CPU.AC_I32(I.Acd) := S32;
 
          when I_SEX =>
             CPU.AC(I.Acd) := CPU.AC(I.Acs) and 16#0000_ffff#;
@@ -197,7 +197,7 @@ package body Processor.Eagle_Op_P is
                else
                   S32 := S32 * (2 ** Shift);
                end if;
-               CPU.AC(I.Ac) := Integer_32_To_Dword(S32);
+               CPU.AC_I32(I.Ac) := S32;
             end if;
 
          when I_WCOM =>
@@ -240,7 +240,7 @@ package body Processor.Eagle_Op_P is
 
          when I_WHLV =>
             S32 := CPU.AC_I32(I.Ac) / 2;
-            CPU.AC(I.Ac) := Integer_32_To_Dword(S32);
+            CPU.AC_I32(I.Ac) := S32;
 
          when I_WINC =>
             CPU.Carry := CPU.AC(I.Acs) = 16#ffff_ffff#; -- TODO handle overflow flag
@@ -306,7 +306,7 @@ package body Processor.Eagle_Op_P is
             CPU.Carry := CPU.AC(I.Acs) = 16#8000_0000#; -- TODO Error in PoP?
             Set_OVR(CPU.Carry);
             S32 := (- CPU.AC_I32(I.Acs));
-            CPU.AC(I.Acd) := Integer_32_To_Dword(S32);
+            CPU.AC_I32(I.Acd) := S32;
 
          when I_WSBI =>
             S32 := Integer_32(Integer_16(I.Imm_U16));

@@ -84,6 +84,10 @@ package body Resolver is
         Ind_Addr : Dword_T;
         Indirection_Level : Integer := 0;
     begin
+        Loggers.Debug_Print (Debug_Log, "... Resolve_15 got - Indirect: "  & Indirect'Image &
+                                        ", Mode: " & Mode'Image &
+                                        ", Disp15:" & Disp15'Image &
+                                        "., Disp Offset:" & Disp_Offset'Image);
         if Mode /= Absolute then
             -- relative mode, sign-extend to 32-bits
             Disp32 := Integer_32(Disp15); -- Disp15 is already sexted by decoder
@@ -114,6 +118,8 @@ package body Resolver is
             end loop;
             Eff := Phys_Addr_T(Ind_Addr) or Ring;
             Loggers.Debug_Print (Debug_Log, "... Indirect addr resolves to   : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
+            Loggers.Debug_Print (Debug_Log, "... Which contains              : " & 
+                Word_To_String (WD => RAM.Read_Word (Eff), Base => Octal, Width => 9, Zero_Pad => False));
         end if;
 
         if not CPU.ATU then
