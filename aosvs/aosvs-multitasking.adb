@@ -27,30 +27,30 @@ with PARU_32;    use PARU_32;
 
 package body AOSVS.Multitasking is
 
-    function Sys_IFPU (CPU : in out CPU_T) return Boolean is
+    function Sys_IFPU (CPU : CPU_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?IFPU");
         -- STUB
         return true;
     end Sys_IFPU;
 
-    function Sys_KILAD (CPU : in out CPU_T; PID : in Word_T; Kill_Addr : out Phys_Addr_T) return Boolean is
+    function Sys_KILAD (CPU : CPU_T; PID : Word_T; Kill_Addr : out Phys_Addr_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?KILAD");
         Kill_Addr := Phys_Addr_T(RAM.Read_Dword(Phys_Addr_T(CPU.AC(0))));
         return true;
     end Sys_KILAD;
 
-    function Sys_REC (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
+    function Sys_REC (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?REC");
         raise Not_Yet_Implemented;
         return true;
     end Sys_REC;
 
-    function Sys_UIDSTAT (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
-        Req_TID  : Dword_T     := CPU.AC(1);
-        Pkt_Addr : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+    function Sys_UIDSTAT (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
+        Req_TID  : constant Dword_T     := CPU.AC(1);
+        Pkt_Addr : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
     begin
         Loggers.Debug_Print (Sc_Log, "?UIDSTAT");
         Loggers.Debug_Print (Sc_Log, "-------- Returning UTID: " & Word_To_String(Agent.Tasking.Get_Unique_TID(PID_T(PID), TID), Decimal, 2) &
@@ -65,9 +65,9 @@ package body AOSVS.Multitasking is
         return true;
     end Sys_UIDSTAT;
 
-    function Sys_WDELAY (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
-        Int_Delay : Integer := Integer(Dword_To_Integer_32(CPU.AC(0)));
-        Secs      : Duration   := Duration(0.001) * Int_Delay;
+    function Sys_WDELAY (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
+        Int_Delay : constant Integer := Integer(Dword_To_Integer_32(CPU.AC(0)));
+        Secs      : constant Duration   := Duration(0.001) * Int_Delay;
     begin
         Loggers.Debug_Print (Sc_Log, "?WDELAY");
         delay Secs;

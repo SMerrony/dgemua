@@ -23,11 +23,12 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;  use Debug_Logs;
+with Memory;      use Memory;
 with Resolver;    use Resolver;
 
 package body Processor.Eagle_Mem_Ref_P is 
 
-   procedure Do_Eagle_Mem_Ref (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Eagle_Mem_Ref (I : Decoded_Instr_T; CPU : CPU_T) is
       Addr : Phys_Addr_T;
       Word : Word_T;
       S64,
@@ -37,7 +38,7 @@ package body Processor.Eagle_Mem_Ref_P is
       I16_Ac, I16_Mem : Integer_16;
       Low_Byte: Boolean;
 
-      procedure Set_OVR (New_OVR : in Boolean) is
+      procedure Set_OVR (New_OVR : Boolean) is
       begin
          if New_OVR then
                Set_W_Bit(CPU.PSR, 1);
@@ -146,8 +147,8 @@ package body Processor.Eagle_Mem_Ref_P is
 
          when I_WBTO | I_WBTZ =>
             declare
-               Offset : Phys_Addr_T := Phys_Addr_T(Shift_Right(CPU.AC(I.Acd), 4));
-               Bit_Num : Integer := Integer(CPU.AC(I.Acd) and 16#0000_000f#);
+               Offset  : constant Phys_Addr_T := Phys_Addr_T(Shift_Right(CPU.AC(I.Acd), 4));
+               Bit_Num : constant Integer := Integer(CPU.AC(I.Acd) and 16#0000_000f#);
             begin
                if I.Acs = I.Acd then
                   Addr := CPU.PC and 16#7000_0000#;
@@ -167,7 +168,7 @@ package body Processor.Eagle_Mem_Ref_P is
             declare
                Str1_Dir, Str2_Dir : Integer_32;
                Str1_Char, Str2_Char : Byte_T;
-               function Get_Dir(AC : in Dword_T) return Integer_32 is
+               function Get_Dir(AC : Dword_T) return Integer_32 is
                begin
                   if AC = 0 then return 0; end if;
                   if Test_DW_Bit (AC, 0) then
@@ -246,7 +247,7 @@ package body Processor.Eagle_Mem_Ref_P is
                   Src_Cnt := Dword_To_Integer_32(CPU.AC(1));
                   Src_Ascend := Src_Cnt > 0;
                   Loggers.Debug_Print (Debug_Log, "... Source Count:" & Src_Cnt'Image & "., Dest. Count:" & Dest_Cnt'Image);
-                  CPU.Carry := (Abs Src_Cnt) > (Abs Dest_Cnt);
+                  CPU.Carry := (abs Src_Cnt) > (abs Dest_Cnt);
                   -- move Src_Cnt bytes
                   loop
                      Loggers.Debug_Print (Debug_Log, "... Copy from: " & Dword_To_String (CPU.AC(3),Octal,11,true) & 
@@ -291,9 +292,9 @@ package body Processor.Eagle_Mem_Ref_P is
                   type Delim_Tab_T is array (Byte_T range 0 .. 255) of Boolean;
                   Delim_Tab : Delim_Tab_T;
                   Wd        : Word_T;
-                  Src_Len   : Integer_32 := Dword_To_Integer_32(CPU.AC(1));
+                  Src_Len   : constant Integer_32 := Dword_To_Integer_32(CPU.AC(1));
                   Char_Ix   : Integer_32 := 0;
-                  Ascending : Boolean := (Src_Len > 0);
+                  Ascending : constant Boolean := (Src_Len > 0);
                   Char_Val  : Byte_T;
             begin
                if CPU.AC(1) = 0 then

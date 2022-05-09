@@ -27,8 +27,8 @@ with Devices;     use Devices;
 with Devices.Bus; use Devices.Bus;
 
 package body Processor.Nova_IO_P is 
-   procedure Do_Nova_IO (I : in Decoded_Instr_T; CPU : in out CPU_T) is
-      Seg_Num : Integer := Integer(Shift_Right(CPU.PC, 28) and 16#07#);
+   procedure Do_Nova_IO (I : Decoded_Instr_T; CPU : CPU_T) is
+      Seg_Num : constant Integer := Integer(Shift_Right(CPU.PC, 28) and 16#07#);
       Datum : Word_T;
       Busy, Done : Boolean;
    begin

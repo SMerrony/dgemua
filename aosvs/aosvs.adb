@@ -22,12 +22,10 @@
 
 with Ada.Directories;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
 with Interfaces;            use Interfaces;
 
-with DG_Types; use DG_Types;
 with PARU_32;  use PARU_32;
 
 with AOSVS.Agent;
@@ -38,7 +36,7 @@ package body AOSVS is
 
     type Word_Arr_T is array (Natural range <>) of Word_T;
 
-    function Resolve_AOSVS_Filename (Name, AOSVS_Dir : in String) return String is
+    function Resolve_AOSVS_Filename (Name, AOSVS_Dir : String) return String is
         Resolved_US : Unbounded_String;
     begin
         -- 1 - get the virtual root
@@ -57,10 +55,10 @@ package body AOSVS is
         return To_String(Resolved_US);
     end Resolve_AOSVS_Filename;
 
-    function Read_Whole_File (Name, Dir : in String) return Word_Arr_T is
-        Phys_Name     : String  := Resolve_AOSVS_Filename (Name, Dir);
-        File_ByteSize : Integer := Integer(Ada.Directories.Size (Phys_Name));
-        File_WordSize : Integer := File_ByteSize / 2;
+    function Read_Whole_File (Name, Dir : String) return Word_Arr_T is
+        Phys_Name     : constant String  := Resolve_AOSVS_Filename (Name, Dir);
+        File_ByteSize : constant Integer := Integer(Ada.Directories.Size (Phys_Name));
+        File_WordSize : constant Integer := File_ByteSize / 2;
         PR_File       : File_Type;
         PR_Stream     : Stream_Access;
         PR_Arr        : Word_Arr_T (0 .. File_WordSize - 1);
@@ -90,7 +88,7 @@ package body AOSVS is
            raise Invalid_PR_File;
     end Read_Whole_File;
 
-    function Load_UST (PR_Arr : in Word_Arr_T) return UST_T is
+    function Load_UST (PR_Arr : Word_Arr_T) return UST_T is
         Tmp_UST : UST_T;
     begin
         Tmp_UST.Ext_Var_Wd_Count := PR_Arr(Natural(UST + USTEZ));
@@ -112,7 +110,7 @@ package body AOSVS is
         return Tmp_UST;
     end Load_UST;
 
-    function Load_PR_Addresses (PR_Arr : in Word_Arr_T) return PR_Addrs_T is
+    function Load_PR_Addresses (PR_Arr : Word_Arr_T) return PR_Addrs_T is
         Addrs : PR_Addrs_T;
     begin
         Addrs.PR_Start := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(PC_In_Pr), PR_Arr(PC_In_Pr + 1)));
@@ -135,14 +133,14 @@ package body AOSVS is
         return Addrs;
     end Load_PR_Addresses;
 
-    procedure Start (PR_Name  : in String;
-                    Dir       : in String;
-                    Segment   : in Natural;
-                    Arg_Count : in Positive;
-                    Args      : in Args_Arr;
-                    Console   : in GNAT.Sockets.Stream_Access;
-                    Logging   : in Boolean) is
-        PR_Arr : Word_Arr_T := Read_Whole_File (PR_Name, Dir);
+    procedure Start (PR_Name  : String;
+                    Dir       : String;
+                    Segment   : Natural;
+                    Arg_Count : Positive;
+                    Args      : Args_Arr;
+                    Console   : GNAT.Sockets.Stream_Access;
+                    Logging   : Boolean) is
+        PR_Arr : constant Word_Arr_T := Read_Whole_File (PR_Name, Dir);
         PID    : PID_T;
         Sixteen_Bit : Boolean;
         PR_UST   : UST_T;
@@ -186,7 +184,7 @@ package body AOSVS is
 
     end Start;
 
-    function Encode_Global_Port (PID : in PID_T; Ring : in Natural; Local_Port : in Word_T) return Dword_T is
+    function Encode_Global_Port (PID : PID_T; Ring : Natural; Local_Port : Word_T) return Dword_T is
         Left_Word, Right_Word : Word_T;
     begin
         Left_Word  := Shift_Left(Integer_16_To_Word(Integer_16(PID)), 6);
@@ -194,7 +192,7 @@ package body AOSVS is
         return Dword_From_Two_Words(Left_Word, Right_Word);
     end Encode_Global_Port;
 
-    procedure Decode_Global_Port (Global_Port : in Dword_T; 
+    procedure Decode_Global_Port (Global_Port : Dword_T; 
                                   PID : out PID_T; Ring : out Natural; Local_Port : out Word_T) is
     begin
         PID        := PID_T(Get_DW_Bits(Global_Port, 0, 10));
@@ -202,7 +200,7 @@ package body AOSVS is
         Local_Port := Lower_Word(Get_DW_Bits(Global_Port, 20, 12));
     end Decode_Global_Port;
 
-    function Colonify_Path (In_Str : in String) return String is
+    function Colonify_Path (In_Str : String) return String is
         Out_Str : String (In_Str'First .. In_Str'Last);
     begin
         for Ix in In_Str'Range loop
@@ -211,7 +209,7 @@ package body AOSVS is
         return Out_Str;
     end Colonify_Path;
 
-    function Slashify_Path (In_Str : in String) return String is
+    function Slashify_Path (In_Str : String) return String is
         Out_Str : String (In_Str'First .. In_Str'Last);
     begin
         for Ix in In_Str'Range loop

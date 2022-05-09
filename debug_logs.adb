@@ -21,7 +21,6 @@
 -- SOFTWARE.
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with DG_Types;   use DG_Types;
 
@@ -37,7 +36,7 @@ package body Debug_Logs is
         end loop;
     end Init;
 
-    procedure Debug_Logs_Dump (Directory : in String) is
+    procedure Debug_Logs_Dump (Directory : String) is
         Write_Path : Unbounded_String;
         Write_File : File_Type;
         This_Line  : Positive;
@@ -65,7 +64,7 @@ package body Debug_Logs is
     -- Debug_Print doesn't print anything!  It stores the log message
     -- in array-backed circular arrays written out when debugLogsDump() is invoked.
     -- This proc can be called very often, KISS...
-    procedure Debug_Print (Log : in Logs; Msg : in String) is
+    procedure Debug_Print (Log : Logs; Msg : String) is
     begin
         Last_Line(Log) := Last_Line(Log) + 1;
 

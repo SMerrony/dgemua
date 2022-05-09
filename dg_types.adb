@@ -22,56 +22,55 @@
 
 with Ada.Strings;           use Ada.Strings;
 with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with Memory; use Memory;
 
 package body DG_Types is
 
-   procedure Clear_W_Bit (Word : in out Word_T; Bit_Num : in Integer) is
+   procedure Clear_W_Bit (Word : in out Word_T; Bit_Num : Integer) is
    begin
       Word := Word and not Shift_Left (1, 15 - Bit_Num);
    end Clear_W_Bit;
 
-   procedure Clear_QW_Bit (QW : in out Qword_T; Bit_Num : in Integer) is
+   procedure Clear_QW_Bit (QW : in out Qword_T; Bit_Num : Integer) is
    begin
       QW := QW and not Shift_Left (1, 63 - Bit_Num);
    end Clear_QW_Bit;
 
    -- Flip_W_Bit flips a single bit in a Word using DG numbering
-   procedure Flip_W_Bit (Word : in out Word_T; Bit_Num : in Integer) is
+   procedure Flip_W_Bit (Word : in out Word_T; Bit_Num : Integer) is
    begin
       Word := Word xor Shift_Left (1, 15 - Bit_Num);
    end Flip_W_Bit;
 
-   procedure Set_W_Bit (Word : in out Word_T; Bit_Num : in Integer) is
+   procedure Set_W_Bit (Word : in out Word_T; Bit_Num : Integer) is
    begin
       Word := Word or Shift_Left (1, 15 - Bit_Num);
    end Set_W_Bit;
 
-   procedure Set_QW_Bit (QW : in out Qword_T; Bit_Num : in Integer) is
+   procedure Set_QW_Bit (QW : in out Qword_T; Bit_Num : Integer) is
    begin
       QW := QW or Shift_Left (1, 63 - Bit_Num);
    end Set_QW_Bit;
 
    -- Does Word have bit <n> set?
-   function Test_W_Bit (Word : in Word_T; Bit_Num : in Integer) return Boolean
+   function Test_W_Bit (Word : Word_T; Bit_Num : Integer) return Boolean
    is ((Word and Shift_Left (1, 15 - Bit_Num)) /= 0);
 
    -- Does Dword have bit <n> set?
-   function Test_DW_Bit (DW : in Dword_T; Bit_Num : in Integer) return Boolean
+   function Test_DW_Bit (DW : Dword_T; Bit_Num : Integer) return Boolean
    is ((DW and Shift_Left (1, 31 - Bit_Num)) /= 0);
 
     -- Does Qword have bit <n> set?
-   function Test_QW_Bit (QW : in Qword_T; Bit_Num : in Integer) return Boolean
+   function Test_QW_Bit (QW : Qword_T; Bit_Num : Integer) return Boolean
    is ((QW and Shift_Left (1, 63 - Bit_Num)) /= 0);
 
    -- Get_W_Bits - in the DG world, the first (leftmost) bit is numbered zero...
    -- extract nbits from value starting at leftBit
    function Get_W_Bits
-     (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T
+     (Word : Word_T; First_Bit, Num_Bits : Natural) return Word_T
    is
-      Mask : Word_T := Shift_Left (1, Num_Bits) - 1;
+      Mask : constant Word_T := Shift_Left (1, Num_Bits) - 1;
    begin
       if First_Bit >= 16 then
          return 0;
@@ -79,8 +78,8 @@ package body DG_Types is
       return Shift_Right (Word, 16 - (First_Bit + Num_Bits)) and Mask;
    end Get_W_Bits;
 
-   function Get_DW_Bits (Dword : in Dword_T; First_Bit, Num_Bits : Natural) return Dword_T is
-      Mask : Dword_T := Shift_Left (1, Num_Bits) - 1;
+   function Get_DW_Bits (Dword : Dword_T; First_Bit, Num_Bits : Natural) return Dword_T is
+      Mask : constant Dword_T := Shift_Left (1, Num_Bits) - 1;
    begin
       if First_Bit >= 32 then
          return 0;
@@ -89,53 +88,53 @@ package body DG_Types is
    end Get_DW_Bits;
 
    -- return DG lower (RH) byte of a Word
-   function Get_Lower_Byte (Word : in Word_T) return Byte_T is
+   function Get_Lower_Byte (Word : Word_T) return Byte_T is
       (Byte_T (Word and 16#00ff#));
 
    -- return DG Upper (LH) byte of a Word
-   function Get_Upper_Byte (Word : in Word_T) return Byte_T is
+   function Get_Upper_Byte (Word : Word_T) return Byte_T is
       (Byte_T (Shift_Right (Word and 16#ff00#, 8)));
 
-   function Swap_Bytes (Word : in Word_T) return Word_T is
+   function Swap_Bytes (Word : Word_T) return Word_T is
       (Shift_Right (Word and 16#ff00#, 8) or
        Shift_Left (Word and 16#00ff#, 8));
 
-   function Lower_Word (DW : in Dword_T) return Word_T is
+   function Lower_Word (DW : Dword_T) return Word_T is
       (Word_T (DW and 16#0000_ffff#));
 
-   function Lower_Dword ( QW : in Qword_T) return Dword_T is
+   function Lower_Dword ( QW : Qword_T) return Dword_T is
       (Dword_T(QW and 16#ffff_ffff#));
 
-   function Upper_Word (DW : in Dword_T) return Word_T is
+   function Upper_Word (DW : Dword_T) return Word_T is
       (Word_T (Shift_Right (DW and 16#ffff_0000#, 16)));
 
-   function Upper_Dword (QW : in Qword_T) return Dword_T is
+   function Upper_Dword (QW : Qword_T) return Dword_T is
       (Dword_T (Shift_Right (QW, 32)));
 
    procedure Get_Bytes_From_Word
-     (Word : in Word_T; Low_Byte, High_Byte : out Byte_T)
+     (Word : Word_T; Low_Byte, High_Byte : out Byte_T)
    is
    begin
       Low_Byte  := Byte_T (Word and 16#00ff#);
       High_Byte := Byte_T (Shift_Right (Word and 16#ff00#, 8));
    end Get_Bytes_From_Word;
 
-   function Word_From_Bytes (Lo, Hi : in Byte_T) return Word_T is
+   function Word_From_Bytes (Lo, Hi : Byte_T) return Word_T is
       (Shift_Left (Word_T (Lo), 8) or Word_T (Hi));
 
-   function Dword_From_Two_Words (Word_1, Word_2 : in Word_T) return Dword_T is
+   function Dword_From_Two_Words (Word_1, Word_2 : Word_T) return Dword_T is
       (Shift_Left (Dword_T (Word_1), 16) or Dword_T (Word_2));
 
-   function Qword_From_Two_Dwords (Dword_1, Dword_2 : in Dword_T) return Qword_T is
+   function Qword_From_Two_Dwords (Dword_1, Dword_2 : Dword_T) return Qword_T is
       (Shift_Left (Qword_T(Dword_1), 32) or Qword_T(Dword_2));
 
    function Boolean_To_YN (B : Boolean) return Character is
       (if B then 'Y' else 'N');
 
-   function Low_Byte_To_Char (LB : in Boolean) return Character is
+   function Low_Byte_To_Char (LB : Boolean) return Character is
       (if LB then 'L' else 'H');
 
-   function Byte_Arr_To_Unbounded (B_Arr : in Byte_Arr_T) return Unbounded_String is
+   function Byte_Arr_To_Unbounded (B_Arr : Byte_Arr_T) return Unbounded_String is
       Res : Unbounded_String;
    begin
       for C in B_Arr'Range loop
@@ -144,8 +143,8 @@ package body DG_Types is
       return Res;
    end Byte_Arr_To_Unbounded;
 
-   procedure Get_Data_Sensitive_Portion (B_Arr     : in Byte_Arr_T;
-                                         Max_Len   : in Integer;
+   procedure Get_Data_Sensitive_Portion (B_Arr     : Byte_Arr_T;
+                                         Max_Len   : Integer;
                                          DS_Bytes  : out Integer) is
       Ix : Integer := B_Arr'First;
    begin
@@ -160,17 +159,14 @@ package body DG_Types is
    end Get_Data_Sensitive_Portion;
 
    function String_To_Integer
-     (Str : in String; Base : in Number_Base_T) return Integer
+     (Str : String; Base : Number_Base_T) return Integer
    is
-      Neg       : Boolean := False;
       Res       : Integer := 0;
       Num_Start : Integer := Str'First;
       Hex_I     : Integer;
-      Hexes     : String  := "0123456789ABCDEF";
       Val       : Integer;
    begin
       if Str (Str'First) = '-' then
-         Neg       := True;
          Num_Start := Num_Start + 1;
       elsif Str (Str'First) = '+' then
          Num_Start := Num_Start + 1;
@@ -187,7 +183,7 @@ package body DG_Types is
                Hex_I :=
                  Ada.Strings.Fixed.Index ("0123456789ABCDEF", Str (C)'Image) -
                  1;
-               Res := (Res * 16) + Integer (Hex_I);
+               Res := (Res * 16) + Hex_I;
             when others =>
                null;
          end case;
@@ -195,7 +191,7 @@ package body DG_Types is
       return Res;
    end String_To_Integer;
 
-   function String_To_Dword (Str : in String; Base : in Number_Base_T) return Dword_T is
+   function String_To_Dword (Str : String; Base : Number_Base_T) return Dword_T is
       -- Attempt to convert Str to a Dword, may raise CONSTRAINT_ERROR
       Res   : Dword_T := 0;
       Hex_I : Integer;
@@ -217,7 +213,7 @@ package body DG_Types is
       return Res;
    end String_To_Dword;
 
-   function Sext_Word_To_Dword (Wd : in Word_T) return Dword_T is
+   function Sext_Word_To_Dword (Wd : Word_T) return Dword_T is
       Dw : Dword_T;
    begin
       Dw := Dword_T (Wd);
@@ -228,18 +224,19 @@ package body DG_Types is
    end Sext_Word_To_Dword;
 
    -- Convert an (unsigned) Word to a String
-   function Word_To_String
-     (WD       : in Word_T; Base : in Number_Base_T; Width : in Integer;
-      Zero_Pad : in Boolean := False) return String
+   function Word_To_String (WD       : Word_T; 
+                            Base     : Number_Base_T; 
+                            Width    : Integer;
+                            Zero_Pad : Boolean := False) return String
    is
       Res       : String (1 .. Width);
       Tmp_WD    : Word_T           := WD;
       Bas_WD    : Word_T;
       Remainder : Integer;
-      Binaries  : String (1 .. 2)  := "01";
-      Octals    : String (1 .. 8)  := "01234567";
-      Decimals  : String (1 .. 10) := "0123456789";
-      Hexes     : String (1 .. 16) := "0123456789ABCDEF";
+      Binaries  : constant String (1 .. 2)  := "01";
+      Octals    : constant String (1 .. 8)  := "01234567";
+      Decimals  : constant String (1 .. 10) := "0123456789";
+      Hexes     : constant String (1 .. 16) := "0123456789ABCDEF";
       Col       : Integer          := Width;
    begin
       if Zero_Pad then
@@ -273,8 +270,6 @@ package body DG_Types is
                Res (Col) := Decimals (Remainder + 1);
             when Hex =>
                Res (Col) := Hexes (Remainder + 1);
-            when others =>
-               null;
          end case;
          Col := Col - 1;
          exit when Tmp_WD = 0 or Col = 0;
@@ -284,17 +279,17 @@ package body DG_Types is
 
    -- Convert an (unsigned) Double-Word to a String
    function Dword_To_String
-     (DW       : in Dword_T; Base : in Number_Base_T; Width : in Integer;
-      Zero_Pad : in Boolean := False) return String
+     (DW       : Dword_T; Base : Number_Base_T; Width : Integer;
+      Zero_Pad : Boolean := False) return String
    is
       Res       : String (1 .. Width);
       Tmp_DW    : Dword_T          := DW;
       Bas_DW    : Dword_T;
       Remainder : Integer;
-      Binaries  : String (1 .. 2)  := "01";
-      Octals    : String (1 .. 8)  := "01234567";
-      Decimals  : String (1 .. 10) := "0123456789";
-      Hexes     : String (1 .. 16) := "0123456789ABCDEF";
+      Binaries  : constant String (1 .. 2)  := "01";
+      Octals    : constant String (1 .. 8)  := "01234567";
+      Decimals  : constant String (1 .. 10) := "0123456789";
+      Hexes     : constant String (1 .. 16) := "0123456789ABCDEF";
       Col       : Integer          := Width;
    begin
       if Zero_Pad then
@@ -328,8 +323,6 @@ package body DG_Types is
                Res (Col) := Decimals (Remainder + 1);
             when Hex =>
                Res (Col) := Hexes (Remainder + 1);
-            when others =>
-               null;
          end case;
          Col := Col - 1;
          exit when Tmp_DW = 0 or Col = 0;
@@ -338,19 +331,19 @@ package body DG_Types is
    end Dword_To_String;
 
    function Int_To_String
-     (Int      : in Integer; Base : in Number_Base_T; Width : in Integer;
-      Zero_Pad : in Boolean := False; Truncate : in Boolean := False)
+     (Int      : Integer; Base : Number_Base_T; Width : Integer;
+      Zero_Pad : Boolean := False; Truncate : Boolean := False)
       return String
    is
       Res       : String (1 .. Width);
       Tmp_Int   : Integer          := Int;
       Bas_Int   : Integer;
       Remainder : Integer;
-      Octals    : String (1 .. 8)  := "01234567";
-      Decimals  : String (1 .. 10) := "0123456789";
-      Hexes     : String (1 .. 16) := "0123456789ABCDEF";
+      Octals    : constant String (1 .. 8)  := "01234567";
+      Decimals  : constant String (1 .. 10) := "0123456789";
+      Hexes     : constant String (1 .. 16) := "0123456789ABCDEF";
       Col       : Integer          := Width;
-      Negative  : Boolean          := Int < 0;
+      Negative  : constant Boolean := Int < 0;
    begin
       if Zero_Pad then
          for C in Res'Range loop
@@ -401,16 +394,16 @@ package body DG_Types is
 
    -- Convert an (unsigned) Byte to a String
    function Byte_To_String
-     (Byt      : in Byte_T; Base : in Number_Base_T; Width : in Integer;
-      Zero_Pad : in Boolean := False) return String
+     (Byt      : Byte_T; Base : Number_Base_T; Width : Integer;
+      Zero_Pad : Boolean := False) return String
    is
       Res       : String (1 .. Width);
       Tmp_Byt   : Byte_T           := Byt;
       Bas_Byt   : Byte_T;
       Remainder : Integer;
-      Octals    : String (1 .. 8)  := "01234567";
-      Decimals  : String (1 .. 10) := "0123456789";
-      Hexes     : String (1 .. 16) := "0123456789ABCDEF";
+      Octals    : constant String (1 .. 8)  := "01234567";
+      Decimals  : constant String (1 .. 10) := "0123456789";
+      Hexes     : constant String (1 .. 16) := "0123456789ABCDEF";
       Col       : Integer          := Width;
    begin
       if Zero_Pad then
@@ -453,7 +446,7 @@ package body DG_Types is
 
    -- Decimal (Commericial) routines...
 
-   procedure Decode_Dec_Data_Type (DTI          : in Dword_T; 
+   procedure Decode_Dec_Data_Type (DTI          : Dword_T; 
                                    Scale_Factor : out Integer_8;
                                    Dec_Type     : out Natural;
                                    Size         : out Natural) is
@@ -471,8 +464,8 @@ package body DG_Types is
       
    end Decode_Dec_Data_Type;
 
-   function Read_Decimal (BA : in Dword_T; Size : in Natural) return Unbounded_String is
-      B_Arr : Byte_Arr_T := RAM.Read_Bytes_BA (BA, Size);
+   function Read_Decimal (BA : Dword_T; Size : Natural) return Unbounded_String is
+      B_Arr  : constant Byte_Arr_T := RAM.Read_Bytes_BA (BA, Size);
       Res_US : Unbounded_String;
    begin
       for C in 0 .. Size - 1 loop
@@ -491,10 +484,10 @@ package body DG_Types is
 -- #define BITCOUNT_MAGIC ((npy_uint32)0x000055afU)
 -- #define TIES_TO_EVEN_RSHIFT3  ((npy_uint64)0x000000000000000bU)
 
-   function DG_Double_To_Long_Float (DG_Dbl : in Double_Overlay) return Long_Float is
+   function DG_Double_To_Long_Float (DG_Dbl : Double_Overlay) return Long_Float is
    -- decode a DG Double (64-bit) float - which was the same as IBM's format
    -- baSed on https://github.com/enthought/ibm2ieee/blob/main/ibm2ieee/_ibm2ieee.c
-      IBM : Unsigned_64 := Unsigned_64(DG_Dbl.Double_QW);
+      IBM : constant Unsigned_64 := Unsigned_64(DG_Dbl.Double_QW);
       IBM_Expt, IEEE_Expt, Leading_Zeros : Integer;
       IBM_Frac, Top_Digit                : Unsigned_64;
       IEEE_Sign, IEEE_Frac, Round_Up     : Unsigned_64;
@@ -513,7 +506,7 @@ package body DG_Types is
       IBM_Expt := Integer(Shift_Right((IBM and 16#7f00_0000_0000_0000#), 54));
 
       -- normalise mantissa, then count leading zeroes
-      Top_Digit := Unsigned_64(IBM and 16#00f0_0000_0000_0000#);
+      Top_Digit := IBM and 16#00f0_0000_0000_0000#;
       while Top_Digit = 0 loop
          IBM_Frac := Shift_Left(IBM_Frac, 4);
          IBM_Expt := IBM_Expt - 4;
@@ -532,14 +525,14 @@ package body DG_Types is
       return Long_Float(IEEE);
    end DG_Double_To_Long_Float;
 
-   function DG_Single_To_Long_Float (Single : in Dword_T) return Long_Float is
+   function DG_Single_To_Long_Float (Single : Dword_T) return Long_Float is
       DG_Dbl : Double_Overlay;
    begin
       DG_Dbl.Double_QW := Shift_Left(Qword_T(Single), 32);
       return DG_Double_To_Long_Float(DG_Dbl);
    end DG_Single_To_Long_Float;
 
-   function Long_Float_To_DG_Double (LF : in Long_Float) return Qword_T is
+   function Long_Float_To_DG_Double (LF : Long_Float) return Qword_T is
       IEEE : IEEE_Float_64 := IEEE_Float_64(LF);
       U_64 : Unsigned_64;
       for U_64'Address use IEEE'Address;
@@ -585,8 +578,8 @@ package body DG_Types is
       return Qword_T(IBM);
    end Long_Float_To_DG_Double;
 
-   function Long_Float_To_DG_Single (LF : in Long_Float) return Dword_T is
-      QW : Qword_T := Long_Float_To_DG_Double (LF);
+   function Long_Float_To_DG_Single (LF : Long_Float) return Dword_T is
+      QW : constant Qword_T := Long_Float_To_DG_Double (LF);
    begin
       return Upper_Dword (QW);
    end Long_Float_To_DG_Single;

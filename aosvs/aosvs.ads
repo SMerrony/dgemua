@@ -64,20 +64,20 @@ package AOSVS is
     end record;
 
 
-    procedure Start (PR_Name   : in String;
-                     Dir       : in String;
-                     Segment   : in Natural;
-                     Arg_Count : in Positive;
-                     Args      : in Args_Arr;
-                     Console   : in GNAT.Sockets.Stream_Access;
-                     Logging   : in Boolean);
+    procedure Start (PR_Name   : String;
+                     Dir       : String;
+                     Segment   : Natural;
+                     Arg_Count : Positive;
+                     Args      : Args_Arr;
+                     Console   : GNAT.Sockets.Stream_Access;
+                     Logging   : Boolean);
 
-    function Encode_Global_Port (PID : in PID_T; Ring : in Natural; Local_Port : in Word_T) return Dword_T;
-    procedure Decode_Global_Port (Global_Port : in Dword_T; 
+    function Encode_Global_Port (PID : PID_T; Ring : Natural; Local_Port : Word_T) return Dword_T;
+    procedure Decode_Global_Port (Global_Port : Dword_T; 
                                   PID : out PID_T; Ring : out Natural; Local_Port : out Word_T);
     
-    function Colonify_Path (In_Str : in String) return String;
-    function Slashify_Path (In_Str : in String) return String; 
+    function Colonify_Path (In_Str : String) return String;
+    function Slashify_Path (In_Str : String) return String; 
 
     Invalid_PR_File,
     Invalid_Directory,

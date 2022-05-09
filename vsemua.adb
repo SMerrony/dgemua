@@ -34,18 +34,15 @@ with Debug_Logs;   use Debug_Logs;
 with Decoder;
 with DG_Types;     use DG_Types;
 with Memory;       use Memory;
-with Processor;
 
 procedure VSEmua is
 
    Sem_Ver : constant String := "v0.0.0";
 
-   Debug_Logging : Boolean := True;
+   Debug_Logging : Boolean := True; -- FIXME
    Log_Dir       : constant String  := "logs/";
    Console_Port  : constant GNAT.Sockets.Port_Type := 10_000;
 
-   Command_Line  : Unbounded_String;
-   Command       : Unbounded_String;
    Arg_Num       : Positive := 1;
    PR_Arg_Num, 
    Root_Arg_Num,
@@ -60,7 +57,7 @@ procedure VSEmua is
    Client     : GNAT.Sockets.Sock_Addr_Type;
    Con_Stream : GNAT.Sockets.Stream_Access;
 
-   procedure Put_String(Con : in GNAT.Sockets.Stream_Access; S : in String) is
+   procedure Put_String(Con : GNAT.Sockets.Stream_Access; S : String) is
    begin
       for C of S loop
          Character'Output(Con, C);

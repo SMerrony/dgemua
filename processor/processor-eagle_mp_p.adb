@@ -20,13 +20,13 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Ada.Text_IO; use Ada.Text_IO;
+-- with Ada.Text_IO; use Ada.Text_IO;
 
-with Debug_Logs;      use Debug_Logs;
+-- with Debug_Logs;      use Debug_Logs;
 
 package body Processor.Eagle_MP_P is
 
-    procedure Do_Eagle_MP (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+    procedure Do_Eagle_MP (I : Decoded_Instr_T; CPU : CPU_T) is
     begin
         -- case I.Instruction is
             

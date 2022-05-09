@@ -24,9 +24,9 @@ package Processor.Eagle_Stack_P is
 
     -- Out_Of_Bounds_Buffer : constant Phys_Addr_T := 32; -- "16 Double Words - PoP 4-7"
 
-    procedure WS_Pop  (CPU : in out CPU_T; DW : out DWord_T);
-    procedure WS_Push (CPU : in out CPU_T; DW : in DWord_T);
+    procedure WS_Pop  (CPU : CPU_T; DW : out DWord_T);
+    procedure WS_Push (CPU : CPU_T; DW : DWord_T);
 
-    procedure Do_Eagle_Stack (I : in Decoded_Instr_T; CPU : in out CPU_T);
+    procedure Do_Eagle_Stack (I : Decoded_Instr_T; CPU : CPU_T);
 
 end Processor.Eagle_Stack_P;

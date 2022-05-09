@@ -153,89 +153,89 @@ package DG_Types is
     FP_Dec           : constant Natural := 7;
 
     Interrupted,
-    Not_Yet_Implemented : Exception;
+    Not_Yet_Implemented : exception;
 
     -- boolean routines
-    function Boolean_To_YN (B : in Boolean) return Character;
+    function Boolean_To_YN (B : Boolean) return Character;
 
     -- bit routines
-    procedure Clear_W_Bit (Word : in out Word_T; Bit_Num : in Integer);
-    procedure Flip_W_Bit  (Word : in out Word_T; Bit_Num : in Integer);
-    procedure Set_W_Bit   (Word : in out Word_T; Bit_Num : in Integer);
-    function  Test_W_Bit  (Word : in Word_T; Bit_Num : in Integer) return Boolean with Inline;
-    function  Get_W_Bits  (Word : in Word_T; First_Bit, Num_Bits : Natural) return Word_T;
-    function  Get_DW_Bits (Dword : in Dword_T; First_Bit, Num_Bits : Natural) return Dword_T;
-    function  Test_DW_Bit (DW: in Dword_T; Bit_Num : in Integer) return Boolean;
-    procedure Clear_QW_Bit (QW : in out Qword_T; Bit_Num : in Integer);
-    procedure Set_QW_Bit  (QW : in out Qword_T; Bit_Num : in Integer);
-    function  Test_QW_Bit (QW: in Qword_T; Bit_Num : in Integer) return Boolean;
+    procedure Clear_W_Bit (Word : in out Word_T; Bit_Num : Integer);
+    procedure Flip_W_Bit  (Word : in out Word_T; Bit_Num : Integer);
+    procedure Set_W_Bit   (Word : in out Word_T; Bit_Num : Integer);
+    function  Test_W_Bit  (Word : Word_T; Bit_Num : Integer) return Boolean with Inline;
+    function  Get_W_Bits  (Word : Word_T; First_Bit, Num_Bits : Natural) return Word_T;
+    function  Get_DW_Bits (Dword : Dword_T; First_Bit, Num_Bits : Natural) return Dword_T;
+    function  Test_DW_Bit (DW: Dword_T; Bit_Num : Integer) return Boolean;
+    procedure Clear_QW_Bit (QW : in out Qword_T; Bit_Num : Integer);
+    procedure Set_QW_Bit  (QW : in out Qword_T; Bit_Num : Integer);
+    function  Test_QW_Bit (QW: Qword_T; Bit_Num : Integer) return Boolean;
 
     -- byte routines
-    function Get_Lower_Byte (Word : in Word_T) return Byte_T;
-    function Get_Upper_Byte (Word : in Word_T) return Byte_T;
-    function Swap_Bytes (Word : In Word_T) return Word_T;
-    procedure Get_Bytes_From_Word (Word : in Word_T; Low_Byte, High_Byte : out Byte_T);
-    function Word_From_Bytes( Lo, Hi : in Byte_T) return Word_T;
+    function Get_Lower_Byte (Word : Word_T) return Byte_T;
+    function Get_Upper_Byte (Word : Word_T) return Byte_T;
+    function Swap_Bytes (Word : Word_T) return Word_T;
+    procedure Get_Bytes_From_Word (Word : Word_T; Low_Byte, High_Byte : out Byte_T);
+    function Word_From_Bytes( Lo, Hi : Byte_T) return Word_T;
     function Byte_To_String
-       (Byt      : in Byte_T; 
-        Base     : in Number_Base_T; 
-        Width    : in Integer;
-        Zero_Pad : in Boolean := False) 
+       (Byt      : Byte_T; 
+        Base     : Number_Base_T; 
+        Width    : Integer;
+        Zero_Pad : Boolean := False) 
         return String;  
-    function Low_Byte_To_Char (LB : in Boolean) return Character;
-    function Byte_Arr_To_Unbounded (B_Arr : in Byte_Arr_T) return Unbounded_String;
-    procedure Get_Data_Sensitive_Portion (B_Arr     : in Byte_Arr_T;
-                                          Max_Len   : in Integer;
+    function Low_Byte_To_Char (LB : Boolean) return Character;
+    function Byte_Arr_To_Unbounded (B_Arr : Byte_Arr_T) return Unbounded_String;
+    procedure Get_Data_Sensitive_Portion (B_Arr     : Byte_Arr_T;
+                                          Max_Len   : Integer;
                                           DS_Bytes  : out Integer);
     function Word_To_String
-       (WD       : in Word_T; 
-        Base     : in Number_Base_T; 
-        Width    : in Integer;
-        Zero_Pad : in Boolean := False) 
+       (WD       : Word_T; 
+        Base     : Number_Base_T; 
+        Width    : Integer;
+        Zero_Pad : Boolean := False) 
         return String;
     -- Dword routines
-    function Lower_Word( DW : in Dword_T) return Word_T with Inline;
-    function Upper_Word( DW : in Dword_T) return Word_T;
-    function Dword_From_Two_Words (Word_1, Word_2 : in Word_T) return Dword_T;
+    function Lower_Word( DW : Dword_T) return Word_T with Inline;
+    function Upper_Word( DW : Dword_T) return Word_T;
+    function Dword_From_Two_Words (Word_1, Word_2 : Word_T) return Dword_T;
     function Dword_To_String
-       (DW       : in Dword_T; 
-        Base     : in Number_Base_T; 
-        Width    : in Integer;
-        Zero_Pad : in Boolean := False) 
+       (DW       : Dword_T; 
+        Base     : Number_Base_T; 
+        Width    : Integer;
+        Zero_Pad : Boolean := False) 
         return String;
-    function String_To_Dword (Str : in String; Base : in Number_Base_T) return Dword_T;
+    function String_To_Dword (Str : String; Base : Number_Base_T) return Dword_T;
     -- Attempt to convert Str to a Dword, may raise CONSTRAINT_ERROR
 
-    function Sext_Word_To_Dword(Wd : in Word_T) return Dword_T;
+    function Sext_Word_To_Dword(Wd : Word_T) return Dword_T;
 
     -- Qword routines
-    function Lower_Dword ( QW : in Qword_T) return Dword_T;
-    function Upper_Dword ( QW : in Qword_T) return Dword_T;
-    function Qword_From_Two_Dwords (Dword_1, Dword_2 : in Dword_T) return Qword_T;
+    function Lower_Dword ( QW : Qword_T) return Dword_T;
+    function Upper_Dword ( QW : Qword_T) return Dword_T;
+    function Qword_From_Two_Dwords (Dword_1, Dword_2 : Dword_T) return Qword_T;
 
 
     -- string/integer routines
     function Int_To_String
-       (Int      : in Integer; 
-        Base     : in Number_Base_T; 
-        Width    : in Integer;
-        Zero_Pad : in Boolean := false;
-        Truncate : in Boolean := false) 
+       (Int      : Integer; 
+        Base     : Number_Base_T; 
+        Width    : Integer;
+        Zero_Pad : Boolean := false;
+        Truncate : Boolean := false) 
         return String;
-    function String_To_Integer(Str : in String; Base : in Number_Base_T) return Integer;
+    function String_To_Integer(Str : String; Base : Number_Base_T) return Integer;
 
     -- decimal routines
-    procedure Decode_Dec_Data_Type (DTI          : in Dword_T; 
+    procedure Decode_Dec_Data_Type (DTI          : Dword_T; 
                                     Scale_Factor : out Integer_8;
                                     Dec_Type     : out Natural;
                                     Size         : out Natural);
-    function Read_Decimal (BA : in Dword_T; Size : in Natural) return Unbounded_String;
+    function Read_Decimal (BA : Dword_T; Size : Natural) return Unbounded_String;
 
     -- floating point routines
-    function DG_Double_To_Long_Float (DG_Dbl : in Double_Overlay) return Long_Float;    
-    function DG_Single_To_Long_Float (Single : in Dword_T) return Long_Float;
-    function Long_Float_To_DG_Double (LF : in Long_Float) return Qword_T;
-    function Long_Float_To_DG_Single (LF : in Long_Float) return Dword_T;
+    function DG_Double_To_Long_Float (DG_Dbl : Double_Overlay) return Long_Float;    
+    function DG_Single_To_Long_Float (Single : Dword_T) return Long_Float;
+    function Long_Float_To_DG_Double (LF : Long_Float) return Qword_T;
+    function Long_Float_To_DG_Single (LF : Long_Float) return Dword_T;
                   
     -- unchecked conversions
     function Byte_To_Integer_8   is new Ada.Unchecked_Conversion(Byte_T, Integer_8);

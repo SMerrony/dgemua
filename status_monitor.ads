@@ -40,11 +40,11 @@ with Devices.Magtape6026;
 package Status_Monitor is
 
     task Monitor is
-        entry Start (Port : in GNAT.Sockets.Port_Type);
-        entry CPU_Update  (Stats : in Processor.CPU_Monitor_Rec);
-        entry DPF_Update  (Stats : in Devices.Disk6061.Status_Rec);
-        entry DSKP_Update (Stats : in Devices.Disk6239.Status_Rec);
-        entry MTB_Update  (Stats : in Devices.Magtape6026.Status_Rec);
+        entry Start (Port : GNAT.Sockets.Port_Type);
+        entry CPU_Update  (Stats : Processor.CPU_Monitor_Rec);
+        entry DPF_Update  (Stats : Devices.Disk6061.Status_Rec);
+        entry DSKP_Update (Stats : Devices.Disk6239.Status_Rec);
+        entry MTB_Update  (Stats : Devices.Magtape6026.Status_Rec);
         entry Stop;
     end Monitor;
 

@@ -24,11 +24,12 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;  use Debug_Logs;
 with Resolver;    use Resolver;
+with Memory;      use Memory;
 
 package body Processor.Eclipse_Stack_P is 
 
-   procedure Do_Eclipse_Stack (I : in Decoded_Instr_T; CPU : in out CPU_T) is
-      Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+   procedure Do_Eclipse_Stack (I : Decoded_Instr_T; CPU : CPU_T) is
+      Ring : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
       First, Last, This_Ac : Natural;
       Addr : Phys_Addr_T;
    begin

@@ -22,6 +22,6 @@
 
 package Processor.Nova_Op_P is
 
-    procedure Do_Nova_Op (I : in Decoded_Instr_T; CPU : in out CPU_T);
+    procedure Do_Nova_Op (I : Decoded_Instr_T; CPU : CPU_T);
 
 end Processor.Nova_Op_P;

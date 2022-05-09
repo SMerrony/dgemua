@@ -22,22 +22,18 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
-with Interfaces;  use Interfaces;
-
 with Debug_Logs;  use Debug_Logs;
-with DG_Types;    use DG_Types;
-with Resolver;    use Resolver;
 
 package body Processor.Eagle_Op_P is 
 
-   procedure Do_Eagle_Op (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Eagle_Op (I : Decoded_Instr_T; CPU : CPU_T) is
  
       Acd_S16, S16          : Integer_16;
       Acd_S32, Acs_S32, S32 : Integer_32;
       S64                   : Integer_64;
       Shift                 : Integer;
             
-      procedure Set_OVR (New_OVR : in Boolean) is
+      procedure Set_OVR (New_OVR : Boolean) is
       begin
         if New_OVR then
             Set_W_Bit(CPU.PSR, 1);

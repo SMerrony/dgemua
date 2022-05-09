@@ -31,7 +31,7 @@ with PARU_32;
 
 package body AOSVS.Sys_Memory is
 
-   function Sys_GSHPT (CPU : in out CPU_T; PID : in Word_T; Ring : in Phys_Addr_T) return Boolean is
+   function Sys_GSHPT (CPU : CPU_T; PID : Word_T; Ring : Phys_Addr_T) return Boolean is
    begin
       Loggers.Debug_Print (Sc_Log, "?GSHPT");
       CPU.AC(0) := RAM.Get_First_Shared_Page and 16#0003_ffff#;
@@ -41,8 +41,8 @@ package body AOSVS.Sys_Memory is
       return true;
    end Sys_GSHPT;
 
-   function Sys_MEM (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T; Ring_Mask : in Phys_Addr_T) return Boolean is
-      I32 : Integer_32 := Integer_32(RAM.Get_First_Shared_Page) - Integer_32(RAM.Get_Last_Unshared_Page) - 4;
+   function Sys_MEM (CPU : CPU_T; PID : Word_T; TID : Word_T; Ring_Mask : Phys_Addr_T) return Boolean is
+      I32 : constant Integer_32 := Integer_32(RAM.Get_First_Shared_Page) - Integer_32(RAM.Get_Last_Unshared_Page) - 4;
    begin
       Loggers.Debug_Print (Debug_Log, "?MEM"); Loggers.Debug_Print (Sc_Log, "?MEM");
       -- No. Unshared Pages Available
@@ -54,8 +54,8 @@ package body AOSVS.Sys_Memory is
       return true;
    end Sys_MEM;
 
-   function Sys_MEMI (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T; Ring_Mask : in Phys_Addr_T) return Boolean is
-      Change : Integer_32 := Dword_To_Integer_32(CPU.AC(0));
+   function Sys_MEMI (CPU : CPU_T; PID : Word_T; TID : Word_T; Ring_Mask : Phys_Addr_T) return Boolean is
+      Change : constant Integer_32 := Dword_To_Integer_32(CPU.AC(0));
       Last_Unshared : Dword_T := RAM.Get_Last_Unshared_Page;
    begin
       Loggers.Debug_Print (Debug_Log, "?MEMI"); Loggers.Debug_Print (Sc_Log, "?MEMI");
@@ -82,9 +82,9 @@ package body AOSVS.Sys_Memory is
       return true;
    end Sys_MEMI;
 
-   function Sys_SOPEN (CPU : in out CPU_T; PID, TID : in Word_T) return Boolean is
-      SO_Name : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
-      SO_Path : String := To_String(Agent.Actions.Get_Virtual_Root) &
+   function Sys_SOPEN (CPU : CPU_T; PID, TID : Word_T) return Boolean is
+      SO_Name : constant String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
+      SO_Path : constant String := To_String(Agent.Actions.Get_Virtual_Root) &
                            Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
                            ":" & SO_Name); 
       Chan_No, Err : Word_T;
@@ -104,13 +104,13 @@ package body AOSVS.Sys_Memory is
       return true;
    end Sys_Sopen;
 
-   function Sys_SPAGE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
-      Chan_No     : Natural     := Natural(Lower_Word (CPU.AC(1)));
-      Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-      Mem_Pages   : Natural     := Natural(RAM.Read_Word(Pkt_Addr + PARU_32.PSTI) and 16#00ff#) / 4;
+   function Sys_SPAGE (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
+      Chan_No     : constant Natural     := Natural(Lower_Word (CPU.AC(1)));
+      Pkt_Addr    : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+      Mem_Pages   : constant Natural     := Natural(RAM.Read_Word(Pkt_Addr + PARU_32.PSTI) and 16#00ff#) / 4;
       Page_Arr    : Page_Arr_T(1 .. Mem_Pages);
-      Start_Addr  : Phys_Addr_T := Phys_Addr_T(RAM.Read_Dword(Pkt_Addr + PARU_32.PCAD));
-      Start_Block : Natural     := Natural(RAM.Read_Dword(Pkt_Addr + PARU_32.PRNH)); -- Disk block addr (not page #)
+      Start_Addr  : constant Phys_Addr_T := Phys_Addr_T(RAM.Read_Dword(Pkt_Addr + PARU_32.PCAD));
+      Start_Block : constant Natural     := Natural(RAM.Read_Dword(Pkt_Addr + PARU_32.PRNH)); -- Disk block addr (not page #)
       Err         : Word_T;
    begin
       Loggers.Debug_Print (Sc_Log, "?SPAGE - Channel No." & Chan_No'Image);
@@ -126,7 +126,7 @@ package body AOSVS.Sys_Memory is
       return true;
    end Sys_SPAGE;
 
-   function Sys_SSHPT (CPU : in out CPU_T; PID : in Word_T; Ring : in Phys_Addr_T) return Boolean is
+   function Sys_SSHPT (CPU : CPU_T; PID : Word_T; Ring : Phys_Addr_T) return Boolean is
       Increase, Page_Num : Integer;
    begin
       Loggers.Debug_Print (Sc_Log, "?SSHPT");

@@ -25,8 +25,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Resolver; use Resolver;
 
 package body Processor.Nova_PC_P is 
-   procedure Do_Nova_PC (I : in Decoded_Instr_T; CPU : in out CPU_T) is
-      Ring_Mask : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+   procedure Do_Nova_PC (I : Decoded_Instr_T; CPU : CPU_T) is
+      Ring_Mask : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
    begin
       case I.Instruction is
          when I_JMP =>
@@ -34,7 +34,7 @@ package body Processor.Nova_PC_P is
 
          when I_JSR =>
             declare
-               Tmp_PC : Dword_T := Dword_T(CPU.PC) + 1;
+               Tmp_PC : constant Dword_T := Dword_T(CPU.PC) + 1;
             begin
                CPU.PC := (Resolve_8bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15) and 16#7fff#) or Ring_Mask;
                CPU.AC(3) := Tmp_PC;

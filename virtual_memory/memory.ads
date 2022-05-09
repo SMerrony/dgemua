@@ -22,7 +22,6 @@
 
 with Ada.Containers; use Ada.Containers;
 with Ada.Containers.Hashed_Maps;
-with Interfaces; use Interfaces;
 
 with DG_Types;   use DG_Types;
 
@@ -69,39 +68,39 @@ package Memory is
         Element_Type    => Page_T );
 
     protected RAM is
-        procedure Init (Debug_Logging : in Boolean);
-        procedure Map_Page (Page : in Natural; Is_Shared : in Boolean);
-        function  Page_Mapped (Page : in Natural) return Boolean;
+        procedure Init (Debug_Logging : Boolean);
+        procedure Map_Page (Page : Natural; Is_Shared : Boolean);
+        function  Page_Mapped (Page : Natural) return Boolean;
         function  Get_Last_Unshared_Page return Dword_T;
         function  Get_First_Shared_Page return Dword_T;
         function  Get_Num_Shared_Pages return Dword_T;
         function  Get_Num_Unshared_Pages return Dword_T;
         
-        procedure Map_Range (Start_Addr : in Phys_Addr_T;
-                             Region     : in Memory_Region;
-                             Is_Shared  : in Boolean);
-        procedure Map_Shared_Pages (Start_Addr : in Phys_Addr_T; Pages : in Page_Arr_T);
+        procedure Map_Range (Start_Addr : Phys_Addr_T;
+                             Region     : Memory_Region;
+                             Is_Shared  : Boolean);
+        procedure Map_Shared_Pages (Start_Addr : Phys_Addr_T; Pages : Page_Arr_T);
 
-        -- function Address_Mapped (Addr : in Phys_Addr_T) return Boolean;
-        function  Read_Word   (Word_Addr : in Phys_Addr_T) return Word_T with Inline;
-        function  Read_Dword  (Word_Addr : in Phys_Addr_T) return Dword_T;
-        function  Read_Qword  (Word_Addr : in Phys_Addr_T) return Qword_T;
-        procedure Write_Word  (Word_Addr : in Phys_Addr_T; Datum : Word_T);
-        procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T);
-        procedure Write_Qword (Word_Addr : in Phys_Addr_T; Datum : Qword_T);
+        -- function Address_Mapped (Addr : Phys_Addr_T) return Boolean;
+        function  Read_Word   (Word_Addr : Phys_Addr_T) return Word_T with Inline;
+        function  Read_Dword  (Word_Addr : Phys_Addr_T) return Dword_T;
+        function  Read_Qword  (Word_Addr : Phys_Addr_T) return Qword_T;
+        procedure Write_Word  (Word_Addr : Phys_Addr_T; Datum : Word_T);
+        procedure Write_Dword (Word_Addr : Phys_Addr_T; Datum : Dword_T);
+        procedure Write_Qword (Word_Addr : Phys_Addr_T; Datum : Qword_T);
 
-        function  Read_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T;
-        function  Read_Byte_BA (BA : in Dword_T) return Byte_T;
-        procedure Write_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean; Byt : in Byte_T);
-        procedure Write_Byte_BA (BA : in Dword_T; Datum : in Byte_T);
-        procedure Copy_Byte_BA (Src, Dest : in Dword_T);
-        function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T;
-        procedure Write_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T; Datum : in Byte_T);
-        function  Read_Bytes_BA (BA : in Dword_T; Num : in Natural) return Byte_Arr_T;
+        function  Read_Byte (Word_Addr : Phys_Addr_T; Low_Byte : Boolean) return Byte_T;
+        function  Read_Byte_BA (BA : Dword_T) return Byte_T;
+        procedure Write_Byte (Word_Addr : Phys_Addr_T; Low_Byte : Boolean; Byt : Byte_T);
+        procedure Write_Byte_BA (BA : Dword_T; Datum : Byte_T);
+        procedure Copy_Byte_BA (Src, Dest : Dword_T);
+        function  Read_Byte_Eclipse_BA (Segment : Phys_Addr_T; BA_16 : Word_T) return Byte_T;
+        procedure Write_Byte_Eclipse_BA (Segment : Phys_Addr_T; BA_16 : Word_T; Datum : Byte_T);
+        function  Read_Bytes_BA (BA : Dword_T; Num : Natural) return Byte_Arr_T;
 
         -- specific support for VS/Emua...
-        function  Read_String_BA (BA : in Dword_T; Keep_NUL : in Boolean) return String;
-        procedure Write_String_BA (BA : in Dword_T; Str : in String);
+        function  Read_String_BA (BA : Dword_T; Keep_NUL : Boolean) return String;
+        procedure Write_String_BA (BA : Dword_T; Str : String);
     private
         VRAM : VRAM_Map.Map;
         Logging : Boolean;
@@ -113,8 +112,8 @@ package Memory is
     end RAM;
 
     protected Narrow_Stack is
-        procedure Push (Segment : in Phys_Addr_T; Datum : in Word_T);
-        function  Pop  (Segment : in Phys_Addr_T) return Word_T;
+        procedure Push (Segment : Phys_Addr_T; Datum : Word_T);
+        function  Pop  (Segment : Phys_Addr_T) return Word_T;
     end Narrow_Stack;
 
     Page_Already_Mapped,

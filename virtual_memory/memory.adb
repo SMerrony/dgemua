@@ -30,7 +30,7 @@ package body Memory is
 
     protected body RAM is
 
-        procedure Init (Debug_Logging : in Boolean) is
+        procedure Init (Debug_Logging : Boolean) is
         begin
             Logging  := Debug_Logging;
             -- always need to map user page 0
@@ -40,8 +40,8 @@ package body Memory is
             Num_Unshared_Pages := 0;
         end Init;
 
-        procedure Map_Page (Page : in Natural; Is_Shared : in Boolean) is
-            New_Page : Page_T := (others => 0);
+        procedure Map_Page (Page : Natural; Is_Shared : Boolean) is
+            New_Page : constant Page_T := (others => 0);
         begin
             if Page_Mapped(Page) then
                raise Page_Already_Mapped with Page'Image;
@@ -62,14 +62,14 @@ package body Memory is
                                   " page " & Int_To_String(Page, Hex, 8));
         end Map_Page;
 
-        function Page_Mapped (Page : in Natural) return Boolean is (VRAM.Contains(Page));
+        function Page_Mapped (Page : Natural) return Boolean is (VRAM.Contains(Page));
         
-        function Address_Mapped (Addr : in Phys_Addr_T) return Boolean is
+        function Address_Mapped (Addr : Phys_Addr_T) return Boolean is
             (VRAM.Contains(Natural(Shift_Right(Addr, 10))));
 
-        procedure Map_Range (Start_Addr : in Phys_Addr_T;
-                             Region     : in Memory_Region;
-                             Is_Shared  : in Boolean) is
+        procedure Map_Range (Start_Addr : Phys_Addr_T;
+                             Region     : Memory_Region;
+                             Is_Shared  : Boolean) is
             Loc : Phys_Addr_T;
         begin
             for Offset in Region'Range loop
@@ -88,7 +88,7 @@ package body Memory is
             end loop;
         end Map_Range;
 
-        procedure Map_Shared_Pages (Start_Addr : in Phys_Addr_T; Pages : in Page_Arr_T) is
+        procedure Map_Shared_Pages (Start_Addr : Phys_Addr_T; Pages : Page_Arr_T) is
             Page_Start : Phys_Addr_T;
         begin
             for P in Pages'Range loop
@@ -114,9 +114,9 @@ package body Memory is
         function  Get_Num_Unshared_Pages return Dword_T is
             (Dword_T(Num_Unshared_Pages));    
 
-        function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
+        function Read_Word (Word_Addr : Phys_Addr_T) return Word_T is
             pragma Suppress (Index_Check);
-            Page : Natural := Natural(Shift_Right(Word_Addr, 10));
+            Page : constant Natural := Natural(Shift_Right(Word_Addr, 10));
         begin
             if not Page_Mapped(Page) then
                 raise Read_From_Unmapped_Page with Int_To_String(Page, Hex, 8) &
@@ -125,15 +125,15 @@ package body Memory is
             return VRAM(Page)(Integer(Word_Addr and 16#03ff#));
         end Read_Word;
 
-        function Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T is
-            Page : Natural := Natural(Shift_Right(Word_Addr, 10));
-            Hi_WD : Word_T := Read_Word(Word_Addr);
-            Lo_WD : Word_T := Read_Word(Word_Addr + 1);
+        function Read_Dword (Word_Addr : Phys_Addr_T) return Dword_T is
+            -- Page : Natural := Natural(Shift_Right(Word_Addr, 10));
+            Hi_WD : constant Word_T := Read_Word(Word_Addr);
+            Lo_WD : constant Word_T := Read_Word(Word_Addr + 1);
         begin
             return Dword_From_Two_Words(Hi_WD, Lo_WD);
         end Read_Dword;
 
-        function Read_Qword  (Word_Addr : in Phys_Addr_T) return Qword_T is
+        function Read_Qword  (Word_Addr : Phys_Addr_T) return Qword_T is
             DW_L, DW_R : Dword_T;
         begin
             DW_L := Read_Dword (Word_Addr);
@@ -141,8 +141,8 @@ package body Memory is
             return Shift_Left(Qword_T(DW_L), 32) or Qword_T(DW_R);
         end Read_Qword;
 
-        procedure Write_Word (Word_Addr : in Phys_Addr_T; Datum : Word_T) is
-            Page : Natural := Natural(Shift_Right(Word_Addr, 10));
+        procedure Write_Word (Word_Addr : Phys_Addr_T; Datum : Word_T) is
+            Page : constant Natural := Natural(Shift_Right(Word_Addr, 10));
         begin
             if not Page_Mapped(Page) then
                 raise Write_To_Unmapped_Page with Page'Image;
@@ -150,19 +150,19 @@ package body Memory is
             VRAM(Page)(Integer(Word_Addr and 16#03ff#)) := Datum;
         end Write_Word;
 
-        procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T) is
+        procedure Write_Dword (Word_Addr : Phys_Addr_T; Datum : Dword_T) is
         begin
             Write_Word(Word_Addr, Upper_Word(Datum));
             Write_Word(Word_Addr + 1, Lower_Word(Datum));
         end Write_Dword;
 
-        procedure Write_Qword (Word_Addr : in Phys_Addr_T; Datum : Qword_T) is
+        procedure Write_Qword (Word_Addr : Phys_Addr_T; Datum : Qword_T) is
         begin
             Write_Dword(Word_Addr, Dword_T(Shift_Right(Datum, 32)));
             Write_Dword(Word_Addr + 2, Dword_T(Datum and 16#0000_ffff#));
         end Write_Qword;
 
-        function Read_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T
+        function Read_Byte (Word_Addr : Phys_Addr_T; Low_Byte : Boolean) return Byte_T
         is
             W : Word_T;
         begin
@@ -173,13 +173,13 @@ package body Memory is
             return Byte_T (W and 16#00ff#);
         end Read_Byte;
 
-        function Read_Byte_BA (BA : in Dword_T) return Byte_T is
-            LB : Boolean := Test_DW_Bit (BA, 31);
+        function Read_Byte_BA (BA : Dword_T) return Byte_T is
+            LB : constant Boolean := Test_DW_Bit (BA, 31);
         begin
             return Read_Byte (Phys_Addr_T(Shift_Right(BA, 1)), LB);
         end Read_Byte_BA;
 
-        function  Read_Bytes_BA (BA : in Dword_T; Num : in Natural) return Byte_Arr_T is
+        function  Read_Bytes_BA (BA : Dword_T; Num : Natural) return Byte_Arr_T is
             Bytes : Byte_Arr_T (0 .. Num-1);
         begin
             for B in Bytes'Range loop
@@ -188,9 +188,8 @@ package body Memory is
             return Bytes;
         end Read_Bytes_BA;
 
-        function Read_String_BA (BA : in Dword_T; Keep_NUL : in Boolean) return String is
-            Is_Low_Byte    : Boolean := Test_DW_Bit (BA, 31);
-            Byte, Low_Byte : Byte_T;
+        function Read_String_BA (BA : Dword_T; Keep_NUL : Boolean) return String is
+            Byte           : Byte_T;
             Offset         : Dword_T := 0;
             U_Str          : Unbounded_String;
         begin
@@ -207,7 +206,7 @@ package body Memory is
             end if;
         end Read_String_BA;
 
-        procedure Write_String_BA (BA : in Dword_T; Str : in String) is
+        procedure Write_String_BA (BA : Dword_T; Str : String) is
         -- Write an AOS/VS "String" into memory, appending a NUL character
             Offset         : Dword_T := 0;
         begin
@@ -219,23 +218,23 @@ package body Memory is
         end Write_String_BA;
 
 
-        function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T is
-            Low_Byte : Boolean := Test_W_Bit(BA_16, 15);
+        function  Read_Byte_Eclipse_BA (Segment : Phys_Addr_T; BA_16 : Word_T) return Byte_T is
+            Low_Byte : constant Boolean := Test_W_Bit(BA_16, 15);
             Addr : Phys_Addr_T;
         begin
             Addr := Shift_Right(Phys_Addr_T(BA_16), 1) or Segment;
             return Read_Byte(Addr, Low_Byte);
         end Read_Byte_Eclipse_BA;
 
-        procedure Write_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T; Datum : in Byte_T) is
-            Low_Byte : Boolean := Test_W_Bit(BA_16, 15);
+        procedure Write_Byte_Eclipse_BA (Segment : Phys_Addr_T; BA_16 : Word_T; Datum : Byte_T) is
+            Low_Byte : constant Boolean := Test_W_Bit(BA_16, 15);
             Addr : Phys_Addr_T;
         begin
             Addr := Shift_Right(Phys_Addr_T(BA_16), 1) or Segment;
             Write_Byte (Addr, Low_Byte, Datum);
         end Write_Byte_Eclipse_BA;
 
-        procedure Write_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean; Byt : in Byte_T) is
+        procedure Write_Byte (Word_Addr : Phys_Addr_T; Low_Byte : Boolean; Byt : Byte_T) is
             Wd : Word_T := Read_Word(Word_Addr);
         begin
             if Low_Byte then
@@ -246,15 +245,15 @@ package body Memory is
             Write_Word(Word_Addr, Wd);
         end Write_Byte;
 
-        procedure Write_Byte_BA (BA : in Dword_T; Datum : in Byte_T) is
-            LB : Boolean := Test_DW_Bit (BA, 31);
+        procedure Write_Byte_BA (BA : Dword_T; Datum : Byte_T) is
+            LB : constant Boolean := Test_DW_Bit (BA, 31);
         begin
             Write_Byte (Phys_Addr_T(Shift_Right(BA, 1)), LB, Datum);
         end Write_Byte_BA;
 
-        procedure Copy_Byte_BA (Src, Dest : in Dword_T) is
-            Src_LB  : Boolean := Test_DW_Bit (Src, 31);
-            Dest_LB : Boolean := Test_DW_Bit (Dest, 31);
+        procedure Copy_Byte_BA (Src, Dest : Dword_T) is
+            Src_LB  : constant Boolean := Test_DW_Bit (Src, 31);
+            Dest_LB : constant Boolean := Test_DW_Bit (Dest, 31);
             Byt     : Byte_T;
         begin
             Byt := Read_Byte (Phys_Addr_T(Shift_Right(Src, 1)), Src_LB);
@@ -264,8 +263,8 @@ package body Memory is
     end RAM;
 
     protected body Narrow_Stack is
-      procedure Push (Segment : in Phys_Addr_T; Datum : in Word_T) is
-         New_NSP : Word_T := RAM.Read_Word (NSP_Loc or Segment) + 1;
+      procedure Push (Segment : Phys_Addr_T; Datum : Word_T) is
+         New_NSP : constant Word_T := RAM.Read_Word (NSP_Loc or Segment) + 1;
       begin
          RAM.Write_Word (NSP_Loc or Segment, New_NSP);
          RAM.Write_Word (Phys_Addr_T (New_NSP) or Segment, Datum);
@@ -275,9 +274,9 @@ package body Memory is
          -- end if;
       end Push;
 
-      function Pop (Segment : in Phys_Addr_T) return Word_T is
-         Old_NSP : Word_T := RAM.Read_Word (NSP_Loc or Segment);
-         Datum   : Word_T := RAM.Read_Word (Phys_Addr_T (Old_NSP) or Segment);
+      function Pop (Segment : Phys_Addr_T) return Word_T is
+         Old_NSP : constant Word_T := RAM.Read_Word (NSP_Loc or Segment);
+         Datum   : constant Word_T := RAM.Read_Word (Phys_Addr_T (Old_NSP) or Segment);
       begin
          RAM.Write_Word (NSP_Loc or Segment, Old_NSP - 1);
          -- if CPU.Debug_Logging then

@@ -20,13 +20,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Text_IO;           use Ada.Text_IO;
-
-with CPU_Instructions; use CPU_Instructions;
 with Debug_Logs;       use Debug_Logs;
-with DG_Types;         use DG_Types;
 with Devices;
 with Devices.Bus;      
 with Memory;           use Memory;
@@ -36,8 +30,7 @@ package body Decoder is
    -- Match_Instruction looks for a match for the opcode in the instruction set and returns
    -- the corresponding mnemonic.  It is used only by the decoderGenAllPossOpcodes() below when
    -- the emulator is initialising.
-   procedure Match_Instruction
-     (Opcode : in Word_T; Mnem : out Instr_Mnemonic_T; Found : out Boolean)
+   procedure Match_Instruction (Opcode : Word_T; Mnem : out Instr_Mnemonic_T; Found : out Boolean)
    is
       Instr_Char : Instr_Char_Rec;
       Tail       : Word_T;
@@ -105,7 +98,7 @@ package body Decoder is
 -- Instruction_Lookup looks up an opcode in the opcode lookup table and returns
 -- the corresponding mnemonic.  This needs to be as quick as possible
    function Instruction_Lookup
-     (Opcode : in Word_T; LEF_Mode : in Boolean) return Instr_Mnemonic_T is
+     (Opcode : Word_T; LEF_Mode : Boolean) return Instr_Mnemonic_T is
      Mnem : Instr_Mnemonic_T;
    begin
       -- special case, if LEF mode is enabled then ALL I/O instructions are interpreted as LEF
@@ -127,7 +120,7 @@ package body Decoder is
    procedure Init is
    begin
       Opcode_Lookup_Arr := Generate_All_Possible_Opcodes;
-   end;
+   end Init;
 
    function Char_Carry (Cr : Carry_T) return Character is
    begin
@@ -190,7 +183,7 @@ package body Decoder is
       end if;
    end Decode_8bit_Disp;
 
-   function Decode_15bit_Disp (D15 : in Word_T; Mode : in Mode_T) return Integer_16 is
+   function Decode_15bit_Disp (D15 : Word_T; Mode : Mode_T) return Integer_16 is
    begin
       if Mode = Absolute then
          return Integer_16 (D15 and 16#7fff#); -- zero extend
@@ -202,13 +195,13 @@ package body Decoder is
       end if;
    end Decode_15bit_Disp; -- TODO Test/verify this
 
-   procedure Decode_16bit_Byte_Disp (D16 : in Word_T; Disp_16 : out Integer_16; Lo_Byte : out Boolean) is
+   procedure Decode_16bit_Byte_Disp (D16 : Word_T; Disp_16 : out Integer_16; Lo_Byte : out Boolean) is
    begin
       Lo_Byte := Test_W_Bit (D16, 15);
       Disp_16 := Word_To_Integer_16(D16) / 2;
    end Decode_16bit_Byte_Disp;
 
-   function Decode_31bit_Disp (W_1, W_2 : in Word_T; Mode : in Mode_T) return Integer_32 is
+   function Decode_31bit_Disp (W_1, W_2 : Word_T; Mode : Mode_T) return Integer_32 is
       Dw_1, Dw_2 : Dword_T;
       Disp : Integer_32;
    begin
@@ -311,8 +304,8 @@ package body Decoder is
    end String_Skip;
 
    function Instruction_Decode
-     (Opcode : in Word_T; PC : Phys_Addr_T; LEF_Mode : Boolean;
-      IO_On  :    Boolean; ATU_On : Boolean; Disassemble : Boolean; 
+     (Opcode : Word_T; PC : Phys_Addr_T; LEF_Mode : Boolean;
+      IO_On, ATU_On, Disassemble : Boolean; 
       Radix  : Number_Base_T)
       return Decoded_Instr_T
    is
@@ -431,13 +424,13 @@ package body Decoder is
                when others =>
                   -- raise Decode_Failed with "unknown multiprocessor instruction #" & 
                   --    Word_To_String (WD => Decoded.Word_2, Base => Hex, Width => 4, Zero_Pad => True);
-                  NULL;
+                  null;
             end case;
             Decoded.Disassembly := Decoded.Mnemonic;
             if Disassemble then
                Decoded.Disassembly :=
                   Decoded.Disassembly & " x" &
-                  Word_To_String (WD => Decoded.Word_2, Base => Hex, Width => 4, Zero_Pad => True) &
+                  Word_To_String (WD => Decoded.Word_2, Base => Hex, Width => 4, Zero_Pad => true) &
                   " [2-Word Instruction] *** MULTIPROCESSOR ***";
             end if;
 
@@ -566,7 +559,7 @@ package body Decoder is
                Decoded.Disassembly :=
                  Decoded.Disassembly & Char_IO_Flag (Decoded.IO_Flag) & " " &
                  Decoded.Ac'Image & "," & 
-                 Devices.Bus.Actions.Get_Device_Name_Or_Number (Dev_Num_T(Decoded.IO_Dev));
+                 Devices.Bus.Actions.Get_Device_Name_Or_Number (Decoded.IO_Dev);
                  -- Int_To_String (Int => Integer(Decoded.IO_Dev), Base => Radix, Width => 4, Zero_Pad => False, Truncate => True);
             end if;
 

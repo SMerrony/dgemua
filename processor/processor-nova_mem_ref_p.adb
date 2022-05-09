@@ -21,12 +21,12 @@
 -- SOFTWARE.
 
 with Ada.Text_IO; use Ada.Text_IO;
-
-with Resolver;  use Resolver;
+with Memory;      use Memory;
+with Resolver;    use Resolver;
 
 package body Processor.Nova_Mem_Ref_P is 
-   procedure Do_Nova_Mem_Ref (I : in Decoded_Instr_T; CPU : in out CPU_T) is
-      Ring_Mask : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+   procedure Do_Nova_Mem_Ref (I : Decoded_Instr_T; CPU : CPU_T) is
+      Ring_Mask : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
       Addr : Phys_Addr_T;
       Word : Word_T;
    begin

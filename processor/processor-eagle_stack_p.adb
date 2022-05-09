@@ -23,11 +23,12 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;  use Debug_Logs;
+with Memory;      use Memory;
 with Resolver;    use Resolver;
 
 package body Processor.Eagle_Stack_P is 
 
-   procedure WS_Pop (CPU : in out CPU_T; DW : out Dword_T) is
+   procedure WS_Pop (CPU : CPU_T; DW : out Dword_T) is
    begin
       DW := RAM.Read_Dword (CPU.WSP);
       CPU.WSP := CPU.WSP - 2;
@@ -37,7 +38,7 @@ package body Processor.Eagle_Stack_P is
       end if;
    end WS_Pop;
 
-   procedure WS_Push (CPU : in out CPU_T; DW : in Dword_T) is
+   procedure WS_Push (CPU : CPU_T; DW : Dword_T) is
    begin
       CPU.WSP := CPU.WSP + 2;
       RAM.Write_Dword (CPU.WSP, DW);
@@ -47,7 +48,7 @@ package body Processor.Eagle_Stack_P is
       end if;
    end WS_Push;
 
-   procedure Do_Eagle_Stack (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Eagle_Stack (I : Decoded_Instr_T; CPU : CPU_T) is
       Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
       OK   : Boolean;
       DW, Primary_Fault, Secondary_Fault : Dword_T;
@@ -57,7 +58,7 @@ package body Processor.Eagle_Stack_P is
       Addr : Phys_Addr_T;
 
       -- Wide Stack Helper subprograms...
-      procedure Set_OVK (New_OVK : in Boolean) is
+      procedure Set_OVK (New_OVK : Boolean) is
       begin
         if New_OVK then
             Set_W_Bit(CPU.PSR, 0);
@@ -66,7 +67,7 @@ package body Processor.Eagle_Stack_P is
         end if;
       end Set_OVK;
 
-      procedure Set_OVR (New_OVR : in Boolean) is
+      procedure Set_OVR (New_OVR : Boolean) is
       begin
         if New_OVR then
             Set_W_Bit(CPU.PSR, 1);
@@ -83,7 +84,7 @@ package body Processor.Eagle_Stack_P is
          QW := Shift_Left(Qword_T(LHS), 32) or Qword_T(RHS);
       end WS_Pop_QW;
 
-      procedure WS_Push_QW (Datum : in Qword_T) is
+      procedure WS_Push_QW (Datum : Qword_T) is
       begin
          CPU.WSP := CPU.WSP + 2;
          RAM.Write_Dword (CPU.WSP, Dword_T( Shift_Right (Datum, 32)));
@@ -91,7 +92,7 @@ package body Processor.Eagle_Stack_P is
          RAM.Write_Dword (CPU.WSP, Dword_T(Datum));
       end WS_Push_QW;
 
-      function Dwords_Reserved (Instr : in Instr_Mnemonic_T) return Phys_Addr_T is
+      function Dwords_Reserved (Instr : Instr_Mnemonic_T) return Phys_Addr_T is
          DW_Buffer : Phys_Addr_T;
       begin
          case Instr is 
@@ -108,7 +109,7 @@ package body Processor.Eagle_Stack_P is
 
       -- WSP_Check_Bounds does a check to see if the intended change of WSP would cause a stack fault
       -- Is_Save must be set by WMSP, WSSVR, WSSVS, WSAVR & WSAVS
-      procedure WSP_Check_Bounds (Instr : in Instr_Mnemonic_T; Delta_Words : in Integer; Is_Save : in Boolean;
+      procedure WSP_Check_Bounds (Instr : Instr_Mnemonic_T; Delta_Words : Integer; Is_Save : Boolean;
                                   OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
          OOB_Buffer : Phys_Addr_T := Dwords_Reserved (Instr);
       begin
@@ -137,7 +138,7 @@ package body Processor.Eagle_Stack_P is
          end if;
       end WSP_Check_Bounds;
 
-      procedure WSP_Check_Overflow (Instr : in Instr_Mnemonic_T; OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
+      procedure WSP_Check_Overflow (Instr : Instr_Mnemonic_T; OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
          OOB_Buffer : Phys_Addr_T := Dwords_Reserved (Instr);
       begin
          OK := true;
@@ -158,7 +159,7 @@ package body Processor.Eagle_Stack_P is
          end if;
       end WSP_Check_Underflow;
 
-      procedure WSP_Handle_Fault (Ring : in Phys_Addr_T; I_Len : in Positive; Primary_Fault, Secondary_Fault : in Dword_T) is
+      procedure WSP_Handle_Fault (Ring : Phys_Addr_T; I_Len : Positive; Primary_Fault, Secondary_Fault : Dword_T) is
          DW : Dword_T;
          WSFH_Addr : Phys_Addr_T;
       begin

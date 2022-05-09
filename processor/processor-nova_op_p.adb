@@ -23,7 +23,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 package body Processor.Nova_Op_P is 
-   procedure Do_Nova_Op (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Nova_Op (I : Decoded_Instr_T; CPU : CPU_T) is
       Wide_Shifter           : Dword_T;
       Narrow_Shifter         : Word_T;
       Tmp_Acs, Tmp_Acd       : Word_T;

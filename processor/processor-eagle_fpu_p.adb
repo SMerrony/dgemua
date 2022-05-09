@@ -23,11 +23,12 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;      use Debug_Logs;
+with Memory;          use Memory;
 with Resolver;        use Resolver;
 
 package body Processor.Eagle_FPU_P is 
 
-   procedure Debug_FPACs (CPU : in CPU_T) is
+   procedure Debug_FPACs (CPU : CPU_T) is
    begin
       Loggers.Debug_Print (Debug_Log, "... FPAC0: " & CPU.FPAC(0)'Image & 
                                      " FPAC1: " & CPU.FPAC(1)'Image & 
@@ -35,7 +36,7 @@ package body Processor.Eagle_FPU_P is
                                      " FPAC3: " & CPU.FPAC(3)'Image);
    end Debug_FPACs;       
 
-   function Floor(X : in Long_Float) return Integer_32 is
+   function Floor(X : Long_Float) return Integer_32 is
       Answer : Integer_32 := Integer_32(X);
    begin
       if Long_Float(Answer) > X then
@@ -45,7 +46,7 @@ package body Processor.Eagle_FPU_P is
    end Floor;
 
 
-   procedure Do_Eagle_FPU (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Eagle_FPU (I : Decoded_Instr_T; CPU : CPU_T) is
       Scale_Factor : Integer_8;
       Dec_Type     : Natural;
       SSize        : Natural;
@@ -180,8 +181,8 @@ package body Processor.Eagle_FPU_P is
                when Unpacked_Dec_LS =>
                   declare
                      Converted : String(1 .. SSize);
-                     Int_Val   : Integer := Integer(CPU.FPAC(I.Ac));
-                     Str_Val   : String  := Int_Val'Image;
+                     Int_Val   : constant Integer := Integer(CPU.FPAC(I.Ac));
+                     Str_Val   : constant String  := Int_Val'Image;
                      Src_Ix    : Integer := Str_Val'Last;
                      Dest_Ix   : Integer := SSize;
                   begin
@@ -205,8 +206,8 @@ package body Processor.Eagle_FPU_P is
                when Unpacked_Dec_U =>
                   declare
                      Converted : String(1 .. SSize);
-                     Int_Val   : Integer := Integer(CPU.FPAC(I.Ac));
-                     Str_Val   : String  := Int_Val'Image;
+                     Int_Val   : constant Integer := Integer(CPU.FPAC(I.Ac));
+                     Str_Val   : constant String  := Int_Val'Image;
                      Src_Ix    : Integer := Str_Val'Last;
                      Dest_Ix   : Integer := SSize;
                   begin

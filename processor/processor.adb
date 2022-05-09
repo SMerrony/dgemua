@@ -20,19 +20,14 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;           use Ada.Text_IO;
 
-with CPU_Instructions;      use CPU_Instructions;
 with Debug_Logs;            use Debug_Logs;
-with Decoder;               use Decoder;
 with Devices;               -- use Devices;
 with Devices.Bus;           -- use Devices.Bus;
 with Devices.Console;
-with DG_Floats;             use DG_Floats;
-with DG_Types;              use DG_Types;
 with Memory;                use Memory;
-with Resolver;              use Resolver;
+with Resolver;              
 with Status_Monitor;
 
 with Processor.Eagle_Decimal_P;
@@ -64,7 +59,7 @@ package body Processor is
    end Make;
 
    
-   procedure Set_OVR (CPU : in out CPU_T; New_OVR : in Boolean) is
+   procedure Set_OVR (CPU : CPU_T; New_OVR : Boolean) is
    begin
       if New_OVR then
          Set_W_Bit(CPU.PSR, 1);
@@ -73,7 +68,7 @@ package body Processor is
       end if;
    end Set_OVR;
 
-   procedure Reset (CPU : in out CPU_T) is
+   procedure Reset (CPU : CPU_T) is
    begin
       CPU.PC := 0;
       for A in AC_ID loop
@@ -91,7 +86,7 @@ package body Processor is
    end Reset;
 
    -- Boot sets up the CPU to boot, it is NOT started
-   procedure Boot (CPU : in out CPU_T; Dev : Dev_Num_T; PC : Phys_Addr_T) is
+   procedure Boot (CPU : CPU_T; Dev : Dev_Num_T; PC : Phys_Addr_T) is
    begin
       CPU.SR := 16#8000# or Word_T(Dev);
       CPU.AC(0) := Dword_T(Dev); 
@@ -105,18 +100,18 @@ package body Processor is
    end Boot;
 
    -- Prepare_For_Running should be called prior to a normal run
-   procedure Prepare_For_Running (CPU : in out CPU_T) is
+   procedure Prepare_For_Running (CPU : CPU_T) is
    begin
       CPU.Instruction_Count := 0;
       CPU.XCT_Mode := false;
    end Prepare_For_Running;
 
-   procedure Set_Debug_Logging (CPU : in out CPU_T; OnOff : in Boolean) is
+   procedure Set_Debug_Logging (CPU : CPU_T; OnOff : Boolean) is
    begin
       CPU.Debug_Logging := OnOff;
    end Set_Debug_Logging;
 
-   procedure Execute (CPU : in out CPU_T; Instr : in Decoded_Instr_T) is
+   procedure Execute (CPU : CPU_T; Instr : Decoded_Instr_T) is
    begin
       case Instr.Instr_Type is
          when EAGLE_DECIMAL  => Processor.Eagle_Decimal_P.Do_Eagle_Decimal(Instr, CPU);
@@ -150,7 +145,7 @@ package body Processor is
 
    end Execute;
 
-   procedure Single_Step (CPU : in out CPU_T; Radix : in Number_Base_T; Disass : out Unbounded_String) is
+   procedure Single_Step (CPU : CPU_T; Radix : Number_Base_T; Disass : out Unbounded_String) is
       This_Op : Word_T;
       Instr   : Decoded_Instr_T;
       Segment : Integer;
@@ -169,7 +164,7 @@ package body Processor is
       Disass := Instr.Disassembly;
    end Single_Step;
 
-   function Get_Compact_Status (CPU : in CPU_T; Radix : Number_Base_T) return String is
+   function Get_Compact_Status (CPU : CPU_T; Radix : Number_Base_T) return String is
    begin
       return "AC0=" & Dword_To_String (CPU.AC(0), Radix, 11, true) &
                " AC1=" & Dword_To_String (CPU.AC(1), Radix, 11, true) &
@@ -180,24 +175,24 @@ package body Processor is
                " PC=" & Dword_To_String (Dword_T(CPU.PC), Radix, 11, true);
    end Get_Compact_Status;
 
-   function Get_ATU (CPU : in CPU_T) return Boolean is (CPU.ATU);
+   function Get_ATU (CPU : CPU_T) return Boolean is (CPU.ATU);
 
-   function  Get_Instruction_Count (CPU : in CPU_T) return Unsigned_64 is (CPU.Instruction_Count);
+   function  Get_Instruction_Count (CPU : CPU_T) return Unsigned_64 is (CPU.Instruction_Count);
 
-   function Get_IO (CPU : in CPU_T; Seg : in Natural) return Boolean is (CPU.SBR(Seg).IO);
+   function Get_IO (CPU : CPU_T; Seg : Natural) return Boolean is (CPU.SBR(Seg).IO);
 
-   function Get_ION (CPU : in CPU_T) return Boolean is (CPU.ION);
+   function Get_ION (CPU : CPU_T) return Boolean is (CPU.ION);
  
-   function Get_LEF (CPU : in CPU_T; Seg : in Natural) return Boolean is (CPU.SBR(Seg).LEF);
+   function Get_LEF (CPU : CPU_T; Seg : Natural) return Boolean is (CPU.SBR(Seg).LEF);
 
-   procedure Set_PC (CPU : in out CPU_T; PC : in Phys_Addr_T) is
+   procedure Set_PC (CPU : CPU_T; PC : Phys_Addr_T) is
    begin
       CPU.PC := PC;
    end Set_PC;
 
-   function Get_PC (CPU : in CPU_T) return Phys_Addr_T is (CPU.PC);
+   function Get_PC (CPU : CPU_T) return Phys_Addr_T is (CPU.PC);
 
-   function Get_Status (CPU : in CPU_T) return CPU_Monitor_Rec is
+   function Get_Status (CPU : CPU_T) return CPU_Monitor_Rec is
       Stats : CPU_Monitor_Rec;
    begin
       Stats.PC := CPU.PC;
@@ -209,24 +204,24 @@ package body Processor is
       return Stats;
    end Get_Status;
 
-   function Get_XCT_Mode (CPU : in CPU_T) return Boolean is (CPU.XCT_Mode);
+   function Get_XCT_Mode (CPU : CPU_T) return Boolean is (CPU.XCT_Mode);
 
-   procedure Set_XCT_Mode (CPU : in out CPU_T; YN : in Boolean) is
+   procedure Set_XCT_Mode (CPU : CPU_T; YN : Boolean) is
    begin
       CPU.XCT_Mode := YN;
    end Set_XCT_Mode;
 
-   function Get_XCT_Opcode (CPU : in CPU_T) return Word_T is (CPU.XCT_Opcode);
+   function Get_XCT_Opcode (CPU : CPU_T) return Word_T is (CPU.XCT_Opcode);
 
-   procedure Set_Ac (CPU : in out CPU_T; AC : in AC_ID; Datum : in Dword_T) is
+   procedure Set_Ac (CPU : CPU_T; AC : AC_ID; Datum : Dword_T) is
    begin
       CPU.AC(AC) := Datum;
    end Set_Ac;
 
-   function Get_N (CPU : in CPU_T) return Boolean is
+   function Get_N (CPU : CPU_T) return Boolean is
       (Test_QW_Bit (CPU.FPSR, FPSR_N));
 
-   procedure Set_N (CPU : in out CPU_T; N : in Boolean) is
+   procedure Set_N (CPU : CPU_T; N : Boolean) is
    begin
       if N then
          Set_QW_Bit (CPU.FPSR, FPSR_N);
@@ -235,10 +230,10 @@ package body Processor is
       end if;
    end Set_N;
 
-   function Get_Z (CPU : in CPU_T) return Boolean is
+   function Get_Z (CPU : CPU_T) return Boolean is
       (Test_QW_Bit (CPU.FPSR, FPSR_Z));
 
-   procedure Set_Z (CPU : in out CPU_T; Z : in Boolean) is
+   procedure Set_Z (CPU : CPU_T; Z : Boolean) is
    begin
       if Z then
          Set_QW_Bit (CPU.FPSR, FPSR_Z);
@@ -247,10 +242,10 @@ package body Processor is
       end if;
    end Set_Z;
 
-   procedure Run (CPU : in out CPU_T;
-                  Disassemble : in Boolean; 
-                  Radix : in Number_Base_T; 
-                  Breakpoints : in BP_Sets.Set;
+   procedure Run (CPU : CPU_T;
+                  Disassemble : Boolean; 
+                  Radix : Number_Base_T; 
+                  Breakpoints : BP_Sets.Set;
                   I_Counts : out Instr_Count_T) is
          use Ada.Containers;
          This_Op : Word_T;
@@ -321,9 +316,9 @@ package body Processor is
 
    end Run;
 
-   procedure VRun (CPU : in out CPU_T;
-                   Disassemble : in Boolean; 
-                   Radix : in Number_Base_T;
+   procedure VRun (CPU : CPU_T;
+                   Disassemble : Boolean; 
+                   Radix : Number_Base_T;
                    I_Counts : in out Instr_Count_T; 
                    Syscall_Trap : out Boolean) is
       use Ada.Containers;
@@ -427,7 +422,7 @@ package body Processor is
       SS_CPU   : CPU_T;
       Stats : CPU_Monitor_Rec;
    begin
-      accept Start (CPU : in CPU_T) do
+      accept Start (CPU : CPU_T) do
          SS_CPU := CPU;
          Put_line ("INFO: CPU Status Sender started");
       end Start;

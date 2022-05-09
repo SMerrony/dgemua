@@ -22,6 +22,6 @@
 
 package Processor.Eagle_FPU_P is
 
-    procedure Do_Eagle_FPU (I : in Decoded_Instr_T; CPU : in out CPU_T);
+    procedure Do_Eagle_FPU (I : Decoded_Instr_T; CPU : CPU_T);
 
 end Processor.Eagle_FPU_P;

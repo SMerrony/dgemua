@@ -27,7 +27,7 @@ with Resolver;    use Resolver;
 
 package body Processor.Eclipse_FPU_P is 
 
-   procedure Debug_FPACs (CPU : in CPU_T) is
+   procedure Debug_FPACs (CPU : CPU_T) is
    begin
       Loggers.Debug_Print (Debug_Log, "FPAC0: " & CPU.FPAC(0)'Image & 
                                      " FPAC1: " & CPU.FPAC(1)'Image & 
@@ -39,7 +39,7 @@ package body Processor.Eclipse_FPU_P is
       --                                " FPAC3: " & CPU.FPAC(3)'Image);
    end Debug_FPACs;   
 
-   procedure Do_Eclipse_FPU (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Eclipse_FPU (I : Decoded_Instr_T; CPU : CPU_T) is
       QW : Qword_T;
       --LF : Long_Float;
       DG_Dbl : Double_Overlay;

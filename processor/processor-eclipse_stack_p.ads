@@ -22,6 +22,6 @@
 
 package Processor.Eclipse_Stack_P is
 
-    procedure Do_Eclipse_Stack (I : in Decoded_Instr_T; CPU : in out CPU_T);
+    procedure Do_Eclipse_Stack (I : Decoded_Instr_T; CPU : CPU_T);
 
 end Processor.Eclipse_Stack_P;

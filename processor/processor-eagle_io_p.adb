@@ -23,12 +23,13 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;      use Debug_Logs;
+with Memory;          use Memory;
 with Memory_Channels; use Memory_Channels;
 with Resolver;        use Resolver;
 
 package body Processor.Eagle_IO_P is 
 
-   procedure Do_Eagle_IO (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Eagle_IO (I : Decoded_Instr_T; CPU : CPU_T) is
       -- Addr : Phys_Addr_T;
       Word : Word_T;
       Dwd : Dword_T;

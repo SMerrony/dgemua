@@ -22,6 +22,6 @@
 
 package Processor.Nova_Mem_Ref_P is
 
-    procedure Do_Nova_Mem_Ref (I : in Decoded_Instr_T; CPU : in out CPU_T);
+    procedure Do_Nova_Mem_Ref (I : Decoded_Instr_T; CPU : CPU_T);
 
 end Processor.Nova_Mem_Ref_P;

@@ -22,6 +22,6 @@
 
 package Processor.Eclipse_Mem_Ref_P is
 
-    procedure Do_Eclipse_Mem_Ref (I : in Decoded_Instr_T; CPU : in out CPU_T);
+    procedure Do_Eclipse_Mem_Ref (I : Decoded_Instr_T; CPU : CPU_T);
 
 end Processor.Eclipse_Mem_Ref_P;

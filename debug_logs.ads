@@ -53,8 +53,8 @@ package Debug_Logs is
 
     protected Loggers is
         procedure Init;
-        procedure Debug_Logs_Dump (Directory : in String);
-        procedure Debug_Print (Log : in Logs; Msg : in String);
+        procedure Debug_Logs_Dump (Directory : String);
+        procedure Debug_Print (Log : Logs; Msg : String);
     private
         Log_Array : Log_Arr_T;
         First_Line, Last_Line : Log_Ptr_T;

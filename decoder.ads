@@ -27,9 +27,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Interfaces; use Interfaces;
 
 with CPU_Instructions; use CPU_Instructions;
-with Devices;
 with DG_Types;         use DG_Types;
-with Memory;           use Memory;
 
 package Decoder is
 
@@ -82,12 +80,14 @@ package Decoder is
    end record;
    type Opcode_Lookup_T is array (0 .. 65_535) of Opcode_Rec;
 
-   procedure Match_Instruction
-     (Opcode : in Word_T; Mnem : out Instr_Mnemonic_T; Found : out Boolean);
+   procedure Match_Instruction (Opcode : Word_T; 
+                                Mnem : out Instr_Mnemonic_T; 
+                                Found : out Boolean);
    function Generate_All_Possible_Opcodes return Opcode_Lookup_T;
-   function Instruction_Decode
-     (Opcode : in Word_T; PC : Phys_Addr_T; LEF_Mode : Boolean;
-      IO_On  :    Boolean; ATU_On : Boolean; Disassemble : Boolean;
+   function Instruction_Decode (Opcode : Word_T; 
+                                PC     : Phys_Addr_T;
+                                LEF_Mode, IO_On, ATU_On : Boolean; 
+                                Disassemble : Boolean;
       Radix  :    Number_Base_T) return Decoded_Instr_T;
    procedure Init;
 

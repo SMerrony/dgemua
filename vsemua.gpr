@@ -12,7 +12,13 @@ project vsemua is
    package Compiler is
       case Mode is
          when "debug" =>
-            for Switches ("Ada") use ("-g");
+            for Switches ("Ada") use ( "-fstack-check", 
+                                       "-g", 
+                                       "-gnata", 
+                                       "-gnateE", 
+                                       "-gnatwa", 
+                                       "-O0" 
+                                       );
          when "profile" =>
             for Switches ("Ada") use ("-O2", "-pg");
          when "release" =>
@@ -22,6 +28,7 @@ project vsemua is
    end Compiler;
 
    package Builder is
+      for Global_Configuration_Pragmas use "gnat.adc";
       case Mode is
          when "debug" =>
             for Switches ("ada") use ("-j4", "-g");

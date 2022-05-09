@@ -23,7 +23,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 package body Processor.Nova_Math_P is 
- procedure Do_Nova_Math (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+ procedure Do_Nova_Math (I : Decoded_Instr_T; CPU : CPU_T) is
          DW : Dword_T;
       begin
          case I.Instruction is

@@ -23,13 +23,14 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;  use Debug_Logs;
+with Memory;      use Memory;
 with Resolver;    use Resolver;
 
 package body Processor.Eclipse_PC_P is 
 
-   procedure Do_Eclipse_PC (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Eclipse_PC (I : Decoded_Instr_T; CPU : CPU_T) is
       Addr : Phys_Addr_T;
-      Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+      Ring : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
       Word : Word_T;
       Bit_Num : Natural;
    begin
@@ -107,8 +108,8 @@ package body Processor.Eclipse_PC_P is
 
          when I_SGT =>
             declare
-               Acd : Integer_16 := Integer_16(CPU.AC_Wd(I.Acd));
-               Acs : Integer_16 := Integer_16(CPU.AC_Wd(I.Acs));
+               Acd : constant Integer_16 := Integer_16(CPU.AC_Wd(I.Acd));
+               Acs : constant Integer_16 := Integer_16(CPU.AC_Wd(I.Acs));
             begin
                if Acs > Acd then 
                   CPU.PC := CPU.PC + 2;

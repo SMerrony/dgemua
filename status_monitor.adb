@@ -21,25 +21,19 @@
 -- SOFTWARE.
 
 with Ada.Real_Time;         use Ada.Real_Time;
-with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Integer_Text_IO;   use Ada.Integer_Text_IO;
 with Ada.Text_IO;
-with Ada.Text_IO.Editing;
 
 with Interfaces; use Interfaces;
 
 with DG_Types; use DG_Types;
-with Memory;   use Memory;
-
 
 package body Status_Monitor is
 
    type MIPS_T is delta 0.01 digits 5;
 
-   package MIPS_IO is new Ada.Text_IO.Editing.Decimal_Output ( MIPS_T );
-
-   MIPS_Format : constant Ada.Text_IO.Editing.Picture := Ada.Text_IO.Editing.To_Picture ("ZZ9.99");
+   -- package MIPS_IO is new Ada.Text_IO.Editing.Decimal_Output ( MIPS_T );
+   -- MIPS_Format : constant Ada.Text_IO.Editing.Picture := Ada.Text_IO.Editing.To_Picture ("ZZ9.99");
 
    function To_Float(TS : Time_Span) return Float is
       SC1, SC2, SC3 : Seconds_Count;
@@ -63,7 +57,7 @@ package body Status_Monitor is
       Connection            : GNAT.Sockets.Socket_Type;
       Client                : GNAT.Sockets.Sock_Addr_Type;
       Channel               : GNAT.Sockets.Stream_Access;
-      Radix                 : Number_Base_T := Octal;
+      Radix                 : constant Number_Base_T := Octal;
       CPU_Stats             : Processor.CPU_Monitor_Rec;
       DPF_Stats             : Devices.Disk6061.Status_Rec;
       DSKP_Stats            : Devices.Disk6239.Status_Rec;
@@ -91,7 +85,7 @@ package body Status_Monitor is
    begin
       loop
          select
-            accept Start (Port : in GNAT.Sockets.Port_Type) do
+            accept Start (Port : GNAT.Sockets.Port_Type) do
                GNAT.Sockets.Create_Socket (Socket => Receiver);
                GNAT.Sockets.Set_Socket_Option
                  (Socket => Receiver, Level => GNAT.Sockets.Socket_Level,
@@ -119,7 +113,7 @@ package body Status_Monitor is
             Last_DPF_Time  := Clock;
             Last_DSKP_Time := Clock;
          or
-            accept CPU_Update (Stats : in Processor.CPU_Monitor_Rec) do
+            accept CPU_Update (Stats : Processor.CPU_Monitor_Rec) do
                CPU_Stats := Stats;
             end CPU_Update;
             Now := Clock;
@@ -146,7 +140,7 @@ package body Status_Monitor is
                                     "  AC2: " &  Dword_To_String (CPU_Stats.AC(2), Radix, 11, true) &
                                     "  AC3: " &  Dword_To_String (CPU_Stats.AC(3), Radix, 11, true));
          or
-            accept DPF_Update (Stats : in Devices.Disk6061.Status_Rec) do
+            accept DPF_Update (Stats : Devices.Disk6061.Status_Rec) do
                DPF_Stats := Stats;
             end DPF_Update;    
             Now := Clock;
@@ -175,7 +169,7 @@ package body Status_Monitor is
                (Channel,
                "               Image file: " & To_String(DPF_Stats.Image_Filename));   
          or
-            accept DSKP_Update (Stats : in Devices.Disk6239.Status_Rec) do
+            accept DSKP_Update (Stats : Devices.Disk6239.Status_Rec) do
                DSKP_Stats := Stats;
             end DSKP_Update;
             Now := Clock;
@@ -202,7 +196,7 @@ package body Status_Monitor is
                (Channel,
                "               Image file: " & To_String(DSKP_Stats.Image_Filename));   
          or
-            accept MTB_Update (Stats : in Devices.Magtape6026.Status_Rec) do
+            accept MTB_Update (Stats : Devices.Magtape6026.Status_Rec) do
                MTB_Stats := Stats;
             end MTB_Update;               
             String'Write

@@ -21,7 +21,6 @@
 -- SOFTWARE.
 
 with Ada.Exceptions;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
 with GNAT.Traceback.Symbolic;
@@ -44,11 +43,11 @@ with Processor.Eagle_Stack_P;
 package body AOSVS.Agent.Tasking is
 
    procedure Create_Task
-     (PID : in PID_T;
-      -- TID : in Word_T;
-      Priority : in Word_T; PR_Addrs : in PR_Addrs_T;
-      Console  : in GNAT.Sockets.Stream_Access;
-      Logging  : in Boolean)
+     (PID : PID_T;
+      -- TID : Word_T;
+      Priority : Word_T; PR_Addrs : PR_Addrs_T;
+      Console  : GNAT.Sockets.Stream_Access;
+      Logging  : Boolean)
    is
       Task_Data    : Task_Data_T;
       TID          : Word_T;
@@ -80,7 +79,7 @@ package body AOSVS.Agent.Tasking is
 
    end Create_Task;
 
-   function Get_Unique_TID (PID : in PID_T; TID : in Word_T) return Word_T is
+   function Get_Unique_TID (PID : PID_T; TID : Word_T) return Word_T is
       (TID);
 
    task body VS_Task is
@@ -101,7 +100,7 @@ package body AOSVS.Agent.Tasking is
       Dummy        : Dword_T;
    begin
       CPU := Processor.Make;
-      accept Start (TD : in Task_Data_T; Console : in GNAT.Sockets.Stream_Access) do
+      accept Start (TD : Task_Data_T; Console : GNAT.Sockets.Stream_Access) do
          Set_PC (CPU, TD.Start_Addr);
          CPU.WFP  := TD.WFP;
          CPU.WSP  := TD.WSP;
@@ -165,7 +164,7 @@ package body AOSVS.Agent.Tasking is
                when 8#307# => Syscall_OK := AOSVS.System.Sys_GTMES  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#310# => -- ?RETURN - handled differently
                   Loggers.Debug_Print (Sc_Log, "?RETURN");
-                  Error_Code  := CPU.AC(0);
+                  Error_Code  := CPU.AC(0); -- FIXME using this?
                   Flags       := Byte_T(Get_DW_Bits(CPU.AC(2), 16, 8));
                   Msg_Len     := Integer(Unsigned_8(Get_DW_Bits(CPU.AC(2), 24, 8)));
                   if Msg_Len > 0 then

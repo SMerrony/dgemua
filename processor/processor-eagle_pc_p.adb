@@ -23,11 +23,12 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;  use Debug_Logs;
+with Memory;      use Memory;
 with Resolver;    use Resolver;
 
 package body Processor.Eagle_PC_P is 
 
-   procedure Do_Eagle_PC (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Eagle_PC (I : Decoded_Instr_T; CPU : CPU_T) is
          Addr : Phys_Addr_T;
          Word : Word_T;
          DW   : Dword_T;
@@ -35,13 +36,13 @@ package body Processor.Eagle_PC_P is
          S32_S, S32_D : Integer_32;
          Bit_Num : Natural;
          
-         procedure WS_Push (Datum : in Dword_T) is
+         procedure WS_Push (Datum : Dword_T) is
          begin
             CPU.WSP := CPU.WSP + 2;
             RAM.Write_Dword (CPU.WSP, Datum);
          end WS_Push;
 
-         procedure Set_OVR (New_OVR : in Boolean) is
+         procedure Set_OVR (New_OVR : Boolean) is
          begin
          if New_OVR then
                Set_W_Bit(CPU.PSR, 1);
@@ -75,7 +76,7 @@ package body Processor.Eagle_PC_P is
          when I_LDSP =>
             declare
                Hi, Lo, Offset : Integer_32;
-               Val            : Integer_32 := CPU.AC_I32(I.Ac);
+               Val            : constant Integer_32 := CPU.AC_I32(I.Ac);
                Table_Addr     : Phys_Addr_T;
                Table_Ix       : Phys_Addr_T;
             begin
@@ -135,9 +136,9 @@ package body Processor.Eagle_PC_P is
 
          when I_LWDO => 
             declare
-               Count : Integer_32 := Integer_32(CPU.AC(I.Ac));
-               Mem_Var_Addr : Phys_Addr_T := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
-               Mem_Var : Integer_32 := Dword_To_Integer_32(RAM.Read_Dword (Mem_Var_Addr)) + 1;
+               Count        : constant Integer_32 := Integer_32(CPU.AC(I.Ac));
+               Mem_Var_Addr : constant Phys_Addr_T := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+               Mem_Var      : constant Integer_32 := Dword_To_Integer_32(RAM.Read_Dword (Mem_Var_Addr)) + 1;
             begin
                RAM.Write_Dword (Mem_Var_Addr, Integer_32_To_Dword(Mem_Var));
                CPU.AC(I.Ac) := Integer_32_To_Dword(Mem_Var);
@@ -204,7 +205,7 @@ package body Processor.Eagle_PC_P is
          when I_WCLM =>
             declare
                Hi, Lo : Integer_32;
-               Val    : Integer_32 := CPU.AC_I32(I.Acs);
+               Val    : constant Integer_32 := CPU.AC_I32(I.Acs);
             begin
                if I.Acs /= I.Acd then
                   Lo := Dword_To_Integer_32(RAM.Read_Dword (Phys_Addr_T(CPU.AC(I.Acs))));

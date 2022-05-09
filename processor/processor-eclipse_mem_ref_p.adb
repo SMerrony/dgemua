@@ -24,11 +24,12 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;  use Debug_Logs;
+with Memory;      use Memory;
 with Resolver;    use Resolver;
 
 package body Processor.Eclipse_Mem_Ref_P is 
 
-   procedure Do_Eclipse_Mem_Ref (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Eclipse_Mem_Ref (I : Decoded_Instr_T; CPU : CPU_T) is
       Addr : Phys_Addr_T;
       Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
       Bit_Num : Natural;

@@ -26,11 +26,11 @@ with Memory;        use Memory;
 package body Resolver is
 
     function Resolve_8bit_Disp
-       (CPU    : in CPU_T; Indirect : in Boolean; Mode : in Mode_T;
-        Disp15 : in Integer_16) return Phys_Addr_T
+       (CPU    : CPU_T; Indirect : Boolean; Mode : Mode_T;
+        Disp15 : Integer_16) return Phys_Addr_T
     is
         Eff               : Phys_Addr_T;
-        Ring              : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+        Ring              : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
         Ind_Addr          : Word_T;
         Indirection_Level : Integer     := 0;
     begin
@@ -73,13 +73,13 @@ package body Resolver is
         return Eff;
     end Resolve_8bit_Disp;
 
-    function Resolve_15bit_Disp (CPU        : in CPU_T;
-                                Indirect    : in Boolean; 
-                                Mode        : in Mode_T;
-                                Disp15      : in Integer_16;
-                                Disp_Offset : in Integer_32) return Phys_Addr_T is
+    function Resolve_15bit_Disp (CPU        : CPU_T;
+                                Indirect    : Boolean; 
+                                Mode        : Mode_T;
+                                Disp15      : Integer_16;
+                                Disp_Offset : Integer_32) return Phys_Addr_T is
         Eff    : Phys_Addr_T;
-        Ring   : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+        Ring   : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
         Disp32 : Integer_32;
         Ind_Addr : Dword_T;
         Indirection_Level : Integer := 0;
@@ -114,7 +114,7 @@ package body Resolver is
                     raise Indirection_Failure with "Too many levels of indirection";
                 end if;
                 Ind_Addr := RAM.Read_Dword (Phys_Addr_T(Ind_Addr) and 16#7fff_ffff#);
-                Loggers.Debug_Print (Debug_Log, "... Nested Indirect addr resolves to : " & Dword_To_String (Dword_T(Ind_Addr), Octal, 11, true));
+                Loggers.Debug_Print (Debug_Log, "... Nested Indirect addr resolves to : " & Dword_To_String (Ind_Addr, Octal, 11, true));
             end loop;
             Eff := Phys_Addr_T(Ind_Addr) or Ring;
             Loggers.Debug_Print (Debug_Log, "... Indirect addr resolves to   : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
@@ -130,13 +130,13 @@ package body Resolver is
         return Eff;
     end Resolve_15bit_Disp;
 
-    function Resolve_31bit_Disp (CPU         : in CPU_T;
-                                 Indirect    : in Boolean; 
-                                 Mode        : in Mode_T;
-                                 Disp        : in Integer_32;
-                                 Disp_Offset : in Integer_32) return Phys_Addr_T is
+    function Resolve_31bit_Disp (CPU         : CPU_T;
+                                 Indirect    : Boolean; 
+                                 Mode        : Mode_T;
+                                 Disp        : Integer_32;
+                                 Disp_Offset : Integer_32) return Phys_Addr_T is
          Eff    : Phys_Addr_T;
-         Ring   : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+         Ring   : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
          Ind_Addr : Dword_T;
          Indirection_Level : Integer := 0;
       begin
@@ -173,8 +173,7 @@ package body Resolver is
          return Eff and 16#7fff_ffff#;
     end Resolve_31bit_Disp;
 
-    function Resolve_32bit_Indirectable_Addr
-       (ATU : in Boolean; I_Addr : in Dword_T) return Phys_Addr_T
+    function Resolve_32bit_Indirectable_Addr (ATU : Boolean; I_Addr : Dword_T) return Phys_Addr_T
     is
         Eff : Dword_T := I_Addr;
     begin
@@ -187,8 +186,8 @@ package body Resolver is
         return Phys_Addr_T (Eff);
     end Resolve_32bit_Indirectable_Addr;
 
-    procedure Resolve_Eagle_Bit_Addr (CPU       : in CPU_T; 
-                                      Acd, Acs  : in AC_ID; 
+    procedure Resolve_Eagle_Bit_Addr (CPU       : CPU_T; 
+                                      Acd, Acs  : AC_ID; 
                                       Word_Addr : out Phys_Addr_T; 
                                       Bit_Num   : out Natural) is
     begin
@@ -205,8 +204,8 @@ package body Resolver is
         Bit_Num := Natural(CPU.AC(Acd) and 16#000f#);
     end Resolve_Eagle_Bit_Addr;
 
-    procedure Resolve_Eclipse_Bit_Addr (CPU       : in CPU_T; 
-                                        Acd, Acs  : in AC_ID; 
+    procedure Resolve_Eclipse_Bit_Addr (CPU       : CPU_T; 
+                                        Acd, Acs  : AC_ID; 
                                         Word_Addr : out Phys_Addr_T; 
                                         Bit_Num   : out Natural) is
     begin

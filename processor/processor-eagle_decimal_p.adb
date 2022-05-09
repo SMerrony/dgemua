@@ -23,17 +23,16 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;  use Debug_Logs;
-with Resolver;    use Resolver;
 
 package body Processor.Eagle_Decimal_P is 
 
-   procedure Do_Eagle_Decimal (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Eagle_Decimal (I : Decoded_Instr_T; CPU : CPU_T) is
     begin
       case I.Word_2 is
          when 0 => raise Execution_Failure with "ERROR: WDMOV Not Yet Implemented";
          when 1 => -- WDCMP
             -- Short-circuit certain equality
-            if (CPU.AC(0) = CPU.AC(1) and (CPU.AC(2) = CPU.AC(3))) then
+            if (CPU.AC(0) = CPU.AC(1)) and (CPU.AC(2) = CPU.AC(3)) then
                CPU.AC(1) := 0;
             else
                declare

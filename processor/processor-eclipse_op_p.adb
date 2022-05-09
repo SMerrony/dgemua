@@ -22,10 +22,8 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
-with Resolver;    use Resolver;
-
 package body Processor.Eclipse_Op_P is 
-   procedure Do_Eclipse_Op (I : in Decoded_Instr_T; CPU : in out CPU_T) is
+   procedure Do_Eclipse_Op (I : Decoded_Instr_T; CPU : CPU_T) is
            Word : Word_T;
          Dword : Dword_T;
          S16   : Integer_16;
