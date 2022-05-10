@@ -20,11 +20,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
-
-with DG_Types;    use DG_Types;
-with Memory;
 
 package body Devices.Bus is
     protected body Actions is
@@ -81,7 +77,7 @@ package body Devices.Bus is
             Put_Line ("INFO: Bus initialised");
         end Init;
 
-       procedure Connect (Dev : in Dev_Num_T) is
+       procedure Connect (Dev : Dev_Num_T) is
        begin
           Bus.Devices(Dev).Connected := True;
           if Bus.Devices(Dev).PMB < 16 then
@@ -90,7 +86,7 @@ package body Devices.Bus is
           Put_Line ("INFO: " & To_String(Bus.Devices(Dev).Mnemonic) & " connected to bus");
        end Connect;
 
-       procedure Reset_IO_Device(Dev : in Dev_Num_T) is
+       procedure Reset_IO_Device(Dev : Dev_Num_T) is
        begin
           if Bus.Devices(Dev).Connected and Bus.Devices(Dev).IO_Device and (Bus.Devices(Dev).Reset_Proc /= null) then
              Bus.Devices(Dev).Reset_Proc.all;
@@ -109,67 +105,66 @@ package body Devices.Bus is
           end loop;
        end Reset_All_IO_Devices;
 
-       procedure Set_Reset_Proc (Dev : in Dev_Num_T; Reset_Proc : in Reset_Proc_T) is
+       procedure Set_Reset_Proc (Dev : Dev_Num_T; Reset_Proc : Reset_Proc_T) is
        begin
           Bus.Devices(Dev).Reset_Proc := Reset_Proc;
        end Set_Reset_Proc;
 
-       procedure Set_Data_Out_Proc (Dev : in Dev_Num_T; Data_Out_Proc : in Data_Out_Proc_T) is
+       procedure Set_Data_Out_Proc (Dev : Dev_Num_T; Data_Out_Proc : Data_Out_Proc_T) is
        begin
           Bus.Devices(Dev).Data_Out_Proc := Data_Out_Proc;
        end Set_Data_Out_Proc;
 
-       procedure Data_Out (Dev : in Dev_Num_T; Datum : in Word_T; ABC : in IO_Reg_T; Flag : in IO_Flag_T) is
+       procedure Data_Out (Dev : Dev_Num_T; Datum : Word_T; ABC : IO_Reg_T; Flag : IO_Flag_T) is
        begin
           Bus.Devices(Dev).Data_Out_Proc (Datum, ABC, Flag);
        end Data_Out;
 
-       procedure Data_In  (Dev : in Dev_Num_T; ABC : in IO_Reg_T; Flag : in IO_Flag_T; Datum : out Word_T) is
+       procedure Data_In  (Dev : Dev_Num_T; ABC : IO_Reg_T; Flag : IO_Flag_T; Datum : out Word_T) is
        begin
           Bus.Devices(Dev).Data_In_Proc(ABC, Flag, Datum);
        end Data_In;
 
-       procedure Set_Data_In_Proc (Dev : in Dev_Num_T; Data_In_Proc : in Data_In_Proc_T) is
+       procedure Set_Data_In_Proc (Dev : Dev_Num_T; Data_In_Proc : Data_In_Proc_T) is
        begin
           Bus.Devices(Dev).Data_In_Proc := Data_In_Proc;
        end Set_Data_In_Proc;
 
-       function Is_Attached (Dev : in Dev_Num_T) return Boolean is
+       function Is_Attached (Dev : Dev_Num_T) return Boolean is
        begin
           return Bus.Devices(Dev).Sim_Image_Attached;
        end Is_Attached;
 
-       function Is_Bootable (Dev : in Dev_Num_T) return Boolean is
+       function Is_Bootable (Dev : Dev_Num_T) return Boolean is
        begin
           return Bus.Devices(Dev).Bootable;
        end Is_Bootable;
 
-       function Is_Connected (Dev : in Dev_Num_T) return Boolean is
+       function Is_Connected (Dev : Dev_Num_T) return Boolean is
        begin
           return Bus.Devices(Dev).Connected;
        end Is_Connected;
 
 
 
-       function Is_IO_Dev (Dev : in Dev_Num_T) return Boolean is
+       function Is_IO_Dev (Dev : Dev_Num_T) return Boolean is
        begin
           return Bus.Devices(Dev).IO_Device;
        end Is_IO_Dev;
 
-       procedure Set_Image_Attached (Dev : in Dev_Num_T; Image_Name : String) is
+       procedure Set_Image_Attached (Dev : Dev_Num_T; Image_Name : String) is
        begin
          Bus.Devices(Dev).Sim_Image_Attached := true;
          Bus.Devices(Dev).Sim_Image_Name := To_Unbounded_String (Image_Name);
        end Set_Image_Attached;
 
-       procedure Set_Image_Detached (Dev : in Dev_Num_T) is
+       procedure Set_Image_Detached (Dev : Dev_Num_T) is
        begin
          Bus.Devices(Dev).Sim_Image_Attached := false;
          Bus.Devices(Dev).Sim_Image_Name := Null_Unbounded_String;
        end Set_Image_Detached;
 
        function  Get_Printable_Device_List return String is
-         use Memory;
          Lst : Unbounded_String := To_Unbounded_String (" #   Mnem     PMB  I/O  Busy Done         Status") & Dasher_NL;
        begin
          for D in Dev_Num_T'Range loop
@@ -190,7 +185,7 @@ package body Devices.Bus is
          return To_String (Lst);
        end Get_Printable_Device_List;
 
-       function  Get_Device_Name_Or_Number (Dev : in Dev_Num_T) return String is
+       function  Get_Device_Name_Or_Number (Dev : Dev_Num_T) return String is
        begin
           if Bus.Devices(Dev).Mnemonic /= "" then 
             return To_String(Bus.Devices(Dev).Mnemonic);
@@ -198,7 +193,7 @@ package body Devices.Bus is
           return Dev'Image;
        end Get_Device_Name_Or_Number;
        
-       function Get_PMB (Dev : in Dev_Num_T) return Integer is
+       function Get_PMB (Dev : Dev_Num_T) return Integer is
        begin
          return Bus.Devices(Dev).PMB;
        end Get_PMB;
@@ -216,22 +211,22 @@ package body Devices.Bus is
          end loop;
        end Init;
 
-       function Get_Busy (Dev : in Dev_Num_T) return Boolean is
+       function Get_Busy (Dev : Dev_Num_T) return Boolean is
        begin
          return State.Statuses(Dev).Busy;
        end Get_Busy;
 
-       procedure Set_Busy (Dev : in Dev_Num_T; Busy_State : in Boolean) is
+       procedure Set_Busy (Dev : Dev_Num_T; Busy_State : Boolean) is
        begin
           State.Statuses(Dev).Busy := Busy_State;
        end Set_Busy;
 
-       function Get_Done (Dev : in Dev_Num_T) return Boolean is
+       function Get_Done (Dev : Dev_Num_T) return Boolean is
        begin
          return State.Statuses(Dev).Done;
        end Get_Done;
 
-       procedure Set_Done (Dev : in Dev_Num_T; Done_State : in Boolean) is
+       procedure Set_Done (Dev : Dev_Num_T; Done_State : Boolean) is
        begin
           State.Statuses(Dev).Done := Done_State;
        end Set_Done;
@@ -241,24 +236,24 @@ package body Devices.Bus is
          return State.IRQ;
        end Get_IRQ;
 
-       procedure Set_IRQ_Mask (Mask : in Word_T) is
+       procedure Set_IRQ_Mask (Mask : Word_T) is
        begin
          State.IRQ_Mask := Mask;
       end Set_IRQ_Mask;
 
-       function Is_Dev_Masked (PMB : in Integer) return Boolean is
+       function Is_Dev_Masked (PMB : Integer) return Boolean is
        begin
           return Test_W_Bit (State.IRQ_Mask, PMB);
        end Is_Dev_Masked;
 
-       procedure Send_Interrupt (Dev : in Dev_Num_T) is
+       procedure Send_Interrupt (Dev : Dev_Num_T) is
        begin
           State.Interrupting_Dev(Dev) := true;
           State.IRQs_By_Priority(PMBs(Dev)) := true;
           State.IRQ := true;
        end Send_Interrupt;
 
-       procedure Clear_Interrupt (Dev : in Dev_Num_T) is
+       procedure Clear_Interrupt (Dev : Dev_Num_T) is
        begin
           State.Interrupting_Dev(Dev) := false;
           State.IRQs_By_Priority(PMBs(Dev)) := false;

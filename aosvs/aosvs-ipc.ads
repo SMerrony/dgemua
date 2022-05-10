@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright (c) 2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -20,11 +20,10 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with DG_Types;      use DG_Types;
 with Processor;     use Processor;
 
 package AOSVS.IPC is
 
-    function Sys_ILKUP  (CPU : in out CPU_T; PID, TID : in Word_T) return Boolean;
+    function Sys_ILKUP  (CPU : CPU_T; PID, TID : Word_T) return Boolean;
 
 end AOSVS.IPC;

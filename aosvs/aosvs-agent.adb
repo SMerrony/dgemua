@@ -21,13 +21,11 @@
 -- SOFTWARE.
 
 with Ada.Directories;
-with Ada.Streams.Stream_IO;
 with Ada.Text_IO;
 
 with Interfaces;  use Interfaces;
 
 with Debug_Logs; use Debug_Logs;
-with PARU_32;
 
 package body AOSVS.Agent is
 
@@ -48,7 +46,7 @@ package body AOSVS.Agent is
          return Natural(Chan_No);
       end Get_Free_Channel;
 
-      Procedure Init (Cons : in GNAT.Sockets.Stream_Access; Virt_Root : in String) is
+      procedure Init (Cons : GNAT.Sockets.Stream_Access; Virt_Root : String) is
       begin
          -- Fake some in-use PIDs 
          for P in PID_T'Range loop
@@ -66,13 +64,13 @@ package body AOSVS.Agent is
       end Init;
       		
       procedure Allocate_PID (
-         PR_Name         : in Unbounded_String;
-         Num_Invocation_Args : in Natural;
-         Invocation_Args : in Args_Arr;
-         Working_Dir     : in Unbounded_String;
-			Sixteen_Bit     : in Boolean;
-			Proc_Name       : in Unbounded_String;
-         User_Name       : in Unbounded_String;
+         PR_Name         : Unbounded_String;
+         Num_Invocation_Args : Natural;
+         Invocation_Args : Args_Arr;
+         Working_Dir     : Unbounded_String;
+			Sixteen_Bit     : Boolean;
+			Proc_Name       : Unbounded_String;
+         User_Name       : Unbounded_String;
 			PID             : out PID_T) is
       begin
          -- get 1st unused PID
@@ -103,7 +101,7 @@ package body AOSVS.Agent is
          Loggers.Debug_Print (Sc_Log,"-----  Working Dir : " & To_String (Working_Dir));
       end Allocate_PID;
 
-      procedure Allocate_TID (PID : in PID_T; 
+      procedure Allocate_TID (PID : PID_T; 
                               TID : out Word_T) is
       begin
          for T in Per_Process_Data(PID).TIDs_In_Use'Range loop
@@ -117,7 +115,7 @@ package body AOSVS.Agent is
          end loop;
       end Allocate_TID;
 
-      function Get_Proc_Name (PID : in PID_T) return String is
+      function Get_Proc_Name (PID : PID_T) return String is
          (To_String(Per_Process_Data(PID).Proc_Name));
 
        function Get_Virtual_Root return Unbounded_String is
@@ -127,18 +125,17 @@ package body AOSVS.Agent is
 
       -- File I/O...
 
-		procedure File_Open (PID     : in Word_T; 
-                           Path    : in String;
+		procedure File_Open (PID     : Word_T; 
+                           Path    : String;
                            Options,               -- ?ISTI
-                           File_Type : in Word_T; -- ?ISTO
-                           Rec_Len : in Integer;
+                           File_Type : Word_T; -- ?ISTO
+                           Rec_Len : Integer;
                            Chan_No : out Word_T;
                            Err     : out Word_T) is
-         Chan_Num : Natural;
-         Format_Bits : Word_T := Options and 7;
+         Chan_Num    : Natural;
+         Format_Bits : constant Word_T := Options and 7;
          Create, Create_Or_Error, Create_If_Reqd, Recreate, Read_Only : Boolean;
-         F_New  : Ada.Text_IO.File_Type;
-         Local_Path : Unbounded_String;
+         F_New       : Ada.Text_IO.File_Type;
          -- Stream_File : Ada.Streams.Stream_IO.File_Type;
       begin
          Err := 0;
@@ -227,7 +224,7 @@ package body AOSVS.Agent is
 
       end File_Open;
 
-      procedure File_Close (Chan_No : in Natural; Err : out Word_T) is
+      procedure File_Close (Chan_No : Natural; Err : out Word_T) is
       begin
          Err := 0;
          if Chan_No /= 0 then
@@ -244,10 +241,10 @@ package body AOSVS.Agent is
          end if;
       end File_Close;
 
-      function Get_Default_ACL (PID : in PID_T) return String is
+      function Get_Default_ACL (PID : PID_T) return String is
          (To_String (Per_Process_Data(PID).Default_ACL));
       
-      function Get_Device_For_Channel(Chan_No : in Word_T) return Unbounded_String is
+      function Get_Device_For_Channel(Chan_No : Word_T) return Unbounded_String is
          Dev : Unbounded_String;
       begin
          if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
@@ -258,16 +255,16 @@ package body AOSVS.Agent is
          return Dev;
       end Get_Device_For_Channel;
 
-      procedure File_Read (Chan_No : in Word_T;
+      procedure File_Read (Chan_No : Word_T;
                               Is_Extended,
                               Is_Absolute,
                               Is_Dynamic,
-                              Is_DataSens : in Boolean;
-                              Rec_Len     : in Integer;
-                              Bytes       : in out Byte_Arr_T;
+                              Is_DataSens : Boolean;
+                              Rec_Len     : Integer;
+                              Bytes       : out Byte_Arr_T;
                               Transferred : out Word_T;
                               Err         : out Word_T) is
-         Byte_Ix : Integer := Bytes'First;
+         Byte_Ix : constant Integer := Bytes'First;
          Byte    : Byte_T;
       begin
          Loggers.Debug_Print (Sc_Log,"----- Record Length:" & Rec_Len'Image);
@@ -319,20 +316,19 @@ package body AOSVS.Agent is
 
       end File_Read;
 
-      procedure File_Write (Chan_No : in Word_T;
+      procedure File_Write (Chan_No : Word_T;
                               Defaults,
                               Is_Extended,
                               Is_Absolute,
                               Is_Dynamic,
-                              Is_DataSens : in Boolean;
-                              Rec_Len     : in Integer;
-                              Bytes_BA    : in Dword_T;
-                              Position    : in Integer;
+                              Is_DataSens : Boolean;
+                              Rec_Len     : Integer;
+                              Bytes_BA    : Dword_T;
+                              Position    : Integer;
                               Transferred : out Word_T;
                               Err         : out Word_T) is
-         Too_Long : Boolean := false;
          DS_Len   : Integer := 0;
-         Max_Len  : Integer := (if Rec_Len = (-1) then Agent_Chans(Integer(Chan_No)).Rec_Len else Rec_Len);
+         Max_Len  : constant Integer := (if Rec_Len = (-1) then Agent_Chans(Integer(Chan_No)).Rec_Len else Rec_Len);
          Byte     : Byte_T;
          T_Dyn, T_DS : Boolean;
       begin
@@ -363,7 +359,7 @@ package body AOSVS.Agent is
                -- Loggers.Debug_Print (Sc_Log,"----- No of D/S bytes written:" & Transferred'Image);
             else
                declare
-                  Bytes : Byte_Arr_T := RAM.Read_Bytes_BA(Bytes_BA, Rec_Len);
+                  Bytes : constant Byte_Arr_T := RAM.Read_Bytes_BA(Bytes_BA, Rec_Len);
                begin
                   for B in Bytes'Range loop
                      Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Bytes(B));
@@ -383,8 +379,8 @@ package body AOSVS.Agent is
 
       -- CLI environment...
 
-		function Get_Nth_Arg (PID : in Word_T; Arg_Num : in Word_T) return Unbounded_String is
-         Nth : Integer := Integer(Arg_Num);
+		function Get_Nth_Arg (PID : Word_T; Arg_Num : Word_T) return Unbounded_String is
+         Nth : constant Integer := Integer(Arg_Num);
       begin
          if Nth > Per_Process_Data(PID_T(PID)).Invocation_Args'Last then
             raise No_Such_Argument with Arg_Num'Image;
@@ -392,28 +388,28 @@ package body AOSVS.Agent is
          return Per_Process_Data(PID_T(PID)).Invocation_Args(Nth);
       end Get_Nth_Arg;
 
-      function Get_Num_Args (PID : in Word_T) return Natural is
-         (Per_Process_Data(PID_T(PID_T(PID))).Num_Invocation_Args);
+      function Get_Num_Args (PID : Word_T) return Natural is
+         (Per_Process_Data(PID_T(PID)).Num_Invocation_Args);
 
-      function Get_PR_Name (PID : in Word_T) return Unbounded_String is
+      function Get_PR_Name (PID : Word_T) return Unbounded_String is
          (Per_Process_Data(PID_T(PID)).PR_Name);
 
-	   function Get_User_Name (PID : in Word_T) return Unbounded_String is
+	   function Get_User_Name (PID : Word_T) return Unbounded_String is
          (Per_Process_Data(PID_T(PID)).User_Name);
 
-      function Get_Working_Directory (PID : in Word_T) return String is 
+      function Get_Working_Directory (PID : Word_T) return String is 
          (To_String(Per_Process_Data(PID_T(PID)).Working_Directory));
 
-      function Get_Superuser (PID : in Word_T) return Boolean is
+      function Get_Superuser (PID : Word_T) return Boolean is
          (Per_Process_Data(PID_T(PID)).Superuser_On);
 
-      procedure Set_Superuser (PID : in Word_T; SU : in Boolean) is
+      procedure Set_Superuser (PID : Word_T; SU : Boolean) is
       begin
          Per_Process_Data(PID_T(PID)).Superuser_On := SU;
       end Set_Superuser;
 
       -- Terminal I/O...
-      procedure Get_Default_Chars (Device : in Unbounded_String;
+      procedure Get_Default_Chars (Device : Unbounded_String;
 									        WD_1, WD_2, WD_3 : out Word_T) is
       -- for the moment, we return the same basic defaults for any device...
       begin
@@ -422,16 +418,16 @@ package body AOSVS.Agent is
          WD_3 := Default_Chars(3);
       end Get_Default_Chars;
 
-      procedure Get_Current_Chars (Device : in Unbounded_String;
+      procedure Get_Current_Chars (Device : Unbounded_String;
 									        WD_1, WD_2, WD_3 : out Word_T) is
-         Chars : Chars_Arr := Device_Chars(To_String(Device));
+         Chars : constant Chars_Arr := Device_Chars(To_String(Device));
       begin
          WD_1 := Chars(1);
          WD_2 := Chars(2);
          WD_3 := Chars(3);
       end Get_Current_Chars;
 
-      function Get_Console_For_PID (PID : in PID_T) return GNAT.Sockets.Stream_Access is
+      function Get_Console_For_PID (PID : PID_T) return GNAT.Sockets.Stream_Access is
          Console : GNAT.Sockets.Stream_Access;
       begin
          for AC in Agent_Chans'Range loop
@@ -444,15 +440,15 @@ package body AOSVS.Agent is
          return Console;
       end Get_Console_For_PID;
 
-      procedure Send_Msg (Dest_PID : in Word_T; Msg : in String; Send_PID : in Word_T) is
-         Out_Msg : String := Dasher_NL & "From PID" & Send_PID'Image & ": " & Msg & Dasher_NL;
-         Con     : GNAT.Sockets.Stream_Access := Get_Console_For_PID(PID_T(Dest_PID));
+      procedure Send_Msg (Dest_PID : Word_T; Msg : String; Send_PID : Word_T) is
+         Out_Msg : constant String := Dasher_NL & "From PID" & Send_PID'Image & ": " & Msg & Dasher_NL;
+         Con     : constant GNAT.Sockets.Stream_Access := Get_Console_For_PID(PID_T(Dest_PID));
       begin
          String'Write (Con, Out_Msg);
       end Send_Msg;
 
       -- IPCs...
-      procedure I_Lookup (PID : in Word_T; Filename : in String;
+      procedure I_Lookup (PID : Word_T; Filename : String;
 							Glob_Port : out Dword_T; 
 							F_Type : out Word_T;
 							Err    : out Word_T) is
@@ -468,7 +464,7 @@ package body AOSVS.Agent is
          end if;
       end I_Lookup;
 
-      procedure I_Create (PID : in Word_T; Filename : in String; Local_Port : in Word_T;
+      procedure I_Create (PID : Word_T; Filename : String; Local_Port : Word_T;
 		                    Err : out Word_T) is
          I_New_F  : Ada.Text_IO.File_Type;
          New_IPC  : Agent_IPC_T;
@@ -492,10 +488,9 @@ package body AOSVS.Agent is
       end I_Create;
 
       -- Shared Files...
-      procedure Shared_Open (PID : in PID_T; S_Path : in String; Read_Only : in Boolean;
+      procedure Shared_Open (PID : PID_T; S_Path : String; Read_Only : Boolean;
 							        Chan_No : out Word_T; Err : out Word_T) is
          C      : Natural;
-         SFile  : Block_IO.File_Type;
       begin
          Err := 0;
          if not Ada.Directories.Exists (S_Path) then
@@ -519,15 +514,15 @@ package body AOSVS.Agent is
             Err := PARU_32.ERFAD;
       end Shared_Open;
 
-      procedure Shared_Read (PID         : in PID_T;
-                             Chan_No     : in Natural;
-                             Base_Addr   : in Phys_Addr_T;
-                             Num_Pages   : in Natural;
-                             Start_Block : in Natural;
-                             Page_Arr    : in out Page_Arr_T;
+      procedure Shared_Read (PID         : PID_T;
+                             Chan_No     : Natural;
+                             Base_Addr   : Phys_Addr_T;
+                             Num_Pages   : Natural;
+                             Start_Block : Natural;
+                             Page_Arr    : out Page_Arr_T;
                              Err         : out Word_T) is
-         Num_Blocks : Natural := Num_Pages * 4; -- 4 disk blocks per memory page
-         Blocks : Block_Arr_T(1..Num_Blocks);
+         Num_Blocks : constant Natural := Num_Pages * 4; -- 4 disk blocks per memory page
+         Blocks     : Block_Arr_T(1..Num_Blocks);
          for Blocks'Address use Page_Arr'Address;
       begin
          Err := 0;

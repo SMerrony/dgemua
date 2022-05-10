@@ -31,7 +31,7 @@ package body Processor.Eclipse_Mem_Ref_P is
 
    procedure Do_Eclipse_Mem_Ref (I : Decoded_Instr_T; CPU : CPU_T) is
       Addr : Phys_Addr_T;
-      Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+      Ring : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
       Bit_Num : Natural;
       Word : Word_T;
    begin
@@ -144,7 +144,7 @@ package body Processor.Eclipse_Mem_Ref_P is
                   Dest_Ascend := Dest_Cnt > 0;
                   Src_Cnt := Word_To_Integer_16(CPU.AC_Wd(1));
                   Src_Ascend := Src_Cnt > 0;
-                  CPU.Carry := (Abs Src_Cnt) > (Abs Dest_Cnt);
+                  CPU.Carry := (abs Src_Cnt) > (abs Dest_Cnt);
                   -- move Src_Cnt bytes
                   loop
                      RAM.Write_Byte_Eclipse_BA(Ring, CPU.AC_Wd(2), 
@@ -202,7 +202,7 @@ package body Processor.Eclipse_Mem_Ref_P is
 
          when I_STB =>
             declare
-               Low_Byte : Boolean := Test_DW_Bit(CPU.AC(I.Acs), 31);
+               Low_Byte : constant Boolean := Test_DW_Bit(CPU.AC(I.Acs), 31);
             begin
                Addr := Shift_Right (Phys_Addr_T(CPU.AC_Wd(I.Acs)), 1);
                Addr := (Addr and 16#7fff#) or Ring;

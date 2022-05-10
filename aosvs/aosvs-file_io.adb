@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright (c)2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -29,15 +29,15 @@ with PARU_32;     use PARU_32;
 
 package body AOSVS.File_IO is
 
-    function Sys_OPEN (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
+    function Sys_OPEN (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
         Chan_No, Err : Word_T;
-        Pkt_Addr  : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        File_Opts : Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
-        File_Type : Word_T      := RAM.Read_Word(Pkt_Addr + ISTO);
-        Rec_Len   : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
-        Path_Name : Dword_T     := RAM.Read_Dword(Pkt_Addr + IFNP);
-        Name      : String      := Ada.Characters.Handling.To_Upper(RAM.Read_String_BA(Path_Name, false));
-        Path      : String      := (if Name(Name'First) = '@' then Name else To_String(Agent.Actions.Get_Virtual_Root) &
+        Pkt_Addr  : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        File_Opts : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
+        File_Type : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTO);
+        Rec_Len   : constant Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
+        Path_Name : constant Dword_T     := RAM.Read_Dword(Pkt_Addr + IFNP);
+        Name      : constant String      := Ada.Characters.Handling.To_Upper(RAM.Read_String_BA(Path_Name, false));
+        Path      : constant String      := (if Name(Name'First) = '@' then Name else To_String(Agent.Actions.Get_Virtual_Root) &
                                    Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
                                    ":" & Name)); 
     begin
@@ -53,9 +53,9 @@ package body AOSVS.File_IO is
         return true;
     end Sys_OPEN;
 
-    function Sys_CLOSE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
-        Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        Chan_No     : Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
+    function Sys_CLOSE (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
+        Pkt_Addr    : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        Chan_No     : constant Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
         Err         : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?CLOSE - Chan. No:" & Chan_No'Image);
@@ -73,17 +73,17 @@ package body AOSVS.File_IO is
         return true;
     end Sys_Close;
 
-    function Sys_READ (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
-        Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        Chan_No     : Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
-        File_Spec   : Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
-        Defaults    : Boolean     := (File_Spec = 0);
-        Is_Extd     : Boolean     := ((File_Spec and IPKL) /= 0);
-        Is_Abs      : Boolean     := ((File_Spec and IPST) /= 0);
-        Is_DataSens : Boolean     := ((File_Spec and 7) = RTDS); -- ((File_Spec and Word_T(RTDS)) /= 0);
-        Is_Dynamic  : Boolean     := ((File_Spec and 7) = RTDY); -- overrides Data Sens
-        Rec_Len     : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
-        Dest        : Dword_T     := RAM.Read_Dword(Pkt_Addr + IBAD);
+    function Sys_READ (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
+        Pkt_Addr    : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        Chan_No     : constant Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
+        File_Spec   : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
+        Defaults    : constant Boolean     := (File_Spec = 0);
+        Is_Extd     : constant Boolean     := ((File_Spec and IPKL) /= 0);
+        Is_Abs      : constant Boolean     := ((File_Spec and IPST) /= 0);
+        Is_DataSens : constant Boolean     := ((File_Spec and 7) = RTDS); -- ((File_Spec and Word_T(RTDS)) /= 0);
+        Is_Dynamic  : constant Boolean     := ((File_Spec and 7) = RTDY); -- overrides Data Sens
+        Rec_Len     : constant Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
+        Dest        : constant Dword_T     := RAM.Read_Dword(Pkt_Addr + IBAD);
         -- Read_Line   : Boolean     := (RAM.Read_Word(Pkt_Addr + IBIN) = 0);
         Bytes       : Byte_Arr_T(0 .. Rec_Len-1);
         Position    : Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
@@ -124,18 +124,18 @@ package body AOSVS.File_IO is
         return true;
     end Sys_READ;
 
-    function Sys_WRITE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T; Logging : in Boolean) return Boolean is
-        Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        Chan_No     : Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
-        File_Spec   : Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
-        Defaults    : Boolean     := (File_Spec = 0);
-        Is_Extd     : Boolean     := ((File_Spec and IPKL) /= 0);
-        Is_Abs      : Boolean     := ((File_Spec and IPST) /= 0);
-        Is_DataSens : Boolean     := ((File_Spec and 7) = RTDS); -- ((File_Spec and Word_T(RTDS)) /= 0);
-        Is_Dynamic  : Boolean     := ((File_Spec and 7) = RTDY); -- overrides Data Sens
-        Rec_Len     : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
-        Bytes_BA    : Dword_T     := RAM.Read_Dword(Pkt_Addr + IBAD);
-        Position    : Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
+    function Sys_WRITE (CPU : CPU_T; PID : Word_T; TID : Word_T; Logging : Boolean) return Boolean is
+        Pkt_Addr    : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        Chan_No     : constant Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
+        File_Spec   : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
+        Defaults    : constant Boolean     := (File_Spec = 0);
+        Is_Extd     : constant Boolean     := ((File_Spec and IPKL) /= 0);
+        Is_Abs      : constant Boolean     := ((File_Spec and IPST) /= 0);
+        Is_DataSens : constant Boolean     := ((File_Spec and 7) = RTDS); -- ((File_Spec and Word_T(RTDS)) /= 0);
+        Is_Dynamic  : constant Boolean     := ((File_Spec and 7) = RTDY); -- overrides Data Sens
+        Rec_Len     : constant Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
+        Bytes_BA    : constant Dword_T     := RAM.Read_Dword(Pkt_Addr + IBAD);
+        Position    : constant Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
         Txfrd, Err  : Word_T;
     begin
         if Logging then
@@ -183,11 +183,11 @@ package body AOSVS.File_IO is
         return true;
     end Sys_Write;
 
-    function Sys_GCHR (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+    function Sys_GCHR (CPU : CPU_T; PID : Word_T) return Boolean is
         Device_Name  : Unbounded_String;
-        Get_Defaults : Boolean := Test_DW_Bit (CPU.AC(1), 1);
+        Get_Defaults : constant Boolean := Test_DW_Bit (CPU.AC(1), 1);
         WD_1, WD_2, WD_3 : Word_T;
-        Num_Chars    : Dword_T := Get_DW_Bits (CPU.AC(1), 28, 4);
+        Num_Chars    : constant Dword_T := Get_DW_Bits (CPU.AC(1), 28, 4);
     begin
         Loggers.Debug_Print (Sc_Log, "?GCHR"); Loggers.Debug_Print (Debug_Log, "?GCHR");
         if Test_DW_Bit (CPU.AC(1), 0) then
@@ -218,12 +218,12 @@ package body AOSVS.File_IO is
         return true;
     end Sys_GCHR;
 
-    function Sys_SCHR (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+    function Sys_SCHR (CPU : CPU_T; PID : Word_T) return Boolean is
         Device_Name  : Unbounded_String;
         Set_Defaults : Boolean := Test_DW_Bit (CPU.AC(1), 1);
-        WD_1 : Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2)));
-        WD_2 : Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2))+1);
-        WD_3 : Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2))+2);
+        WD_1 : constant Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2)));
+        WD_2 : constant Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2))+1);
+        WD_3 : constant Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2))+2);
         Old_WD_1, Old_Wd_2, Old_Wd_3 : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?SCHR");
@@ -252,11 +252,11 @@ package body AOSVS.File_IO is
         return true;
     end Sys_SCHR;
 
-    function Sys_SEND  (CPU : in out CPU_T; PID : in Word_T) return Boolean is
-        Msg_BA    : Dword_T := CPU.AC(1);
-        Dest_Type : Dword_T := Get_DW_Bits (CPU.AC(3), 22, 2);
+    function Sys_SEND  (CPU : CPU_T; PID : Word_T) return Boolean is
+        Msg_BA    : constant Dword_T := CPU.AC(1);
+        Dest_Type : constant Dword_T := Get_DW_Bits (CPU.AC(3), 22, 2);
         Msg_Len   : Natural := Dword_To_Integer(CPU.AC(2) and 16#0000_00ff#);
-        Msg_Str   : String  := RAM.Read_String_BA (Msg_BA, true); -- TODO should we use length?
+        Msg_Str   : constant String  := RAM.Read_String_BA (Msg_BA, true); -- TODO should we use length?
         Dest_PID  : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?SEND");

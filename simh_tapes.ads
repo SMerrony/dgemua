@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright (c) 2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -39,11 +39,11 @@ package Simh_Tapes is
 
     type Mt_Rec is array (Natural range <>) of Byte_T;
 
-    procedure Read_Meta_Data    (Img_Stream : in out Stream_Access; Meta_Data : out Dword_T);
-    procedure Write_Meta_Data   (Img_Stream : in out Stream_Access; Meta_Data : in Dword_T);
-    procedure Read_Record_Data  (Img_Stream : in out Stream_Access; Num_Bytes : in Natural; Rec : out Mt_Rec);
-    procedure Write_Record_Data (Img_Stream : in out Stream_Access; Rec : in Mt_Rec);
-    procedure Rewind            (Img_File : in out File_Type);
-    function  Space_Forward     (Img_Stream : in out Stream_Access; Num_Recs : in Integer) return Mt_Stat;
-    function  Scan_Image        (Img_Filename : in  String) return String; 
+    procedure Read_Meta_Data    (Img_Stream : Stream_Access; Meta_Data : out Dword_T);
+    procedure Write_Meta_Data   (Img_Stream : Stream_Access; Meta_Data : Dword_T);
+    procedure Read_Record_Data  (Img_Stream : Stream_Access; Num_Bytes : Natural; Rec : out Mt_Rec);
+    procedure Write_Record_Data (Img_Stream : Stream_Access; Rec : Mt_Rec);
+    procedure Rewind            (Img_File   : in out File_Type);
+    function  Space_Forward     (Img_Stream : Stream_Access; Num_Recs : Integer) return Mt_Stat;
+    function  Scan_Image        (Img_Filename : String) return String; 
 end Simh_Tapes;

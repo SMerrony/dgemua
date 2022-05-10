@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright (c) 2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -26,18 +26,18 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 package body Simh_Tapes is
 
-   function Reverse_Dword_Bytes (In_Dw : in Dword_T) return Dword_T is
-   begin
-      return  Shift_Left (In_Dw and 16#0000_00ff#, 24) or
-        Shift_Left (In_Dw and 16#0000_ff00#, 8) or
-        Shift_Right (In_Dw and 16#00ff_0000#, 8) or
-        Shift_Right (In_Dw and 16#ff00_0000#, 24);
-   end Reverse_Dword_Bytes;
+   -- function Reverse_Dword_Bytes (In_Dw : Dword_T) return Dword_T is
+   -- begin
+   --    return  Shift_Left (In_Dw and 16#0000_00ff#, 24) or
+   --      Shift_Left (In_Dw and 16#0000_ff00#, 8) or
+   --      Shift_Right (In_Dw and 16#00ff_0000#, 8) or
+   --      Shift_Right (In_Dw and 16#ff00_0000#, 24);
+   -- end Reverse_Dword_Bytes;
 
    -- Read_Meta_Data reads a four byte (one doubleword) header, trailer, or other metadata record
    -- from the supplied tape image file
    procedure Read_Meta_Data
-     (Img_Stream : in out Stream_Access; Meta_Data : out Dword_T)
+     (Img_Stream : Stream_Access; Meta_Data : out Dword_T)
    is
       Tmp_Dw : Dword_T;
    begin
@@ -47,7 +47,7 @@ package body Simh_Tapes is
    end Read_Meta_Data;
 
    -- Write_Meta_Data writes a 4-byte header/trailer or other metadata
-   procedure Write_Meta_Data (Img_Stream : in out Stream_Access; Meta_Data : in Dword_T) is
+   procedure Write_Meta_Data (Img_Stream : Stream_Access; Meta_Data : Dword_T) is
       -- Tmp_Dw : Dword_T;
    begin
       -- Tmp_Dw := Reverse_Dword_Bytes (Meta_Data);
@@ -57,7 +57,7 @@ package body Simh_Tapes is
 
    -- Read_Record_Data attempts to read a data record from SimH tape image, fails if wrong number of bytes read
    -- N.B. does not read the header and trailer
-   procedure Read_Record_Data  (Img_Stream : in out Stream_Access; Num_Bytes : in Natural; Rec : out Mt_Rec) is
+   procedure Read_Record_Data  (Img_Stream : Stream_Access; Num_Bytes : Natural; Rec : out Mt_Rec) is
       Tmp_Rec : Mt_Rec (1..Num_Bytes);
       Out_Rec_Ix : Integer := Rec'First;
    begin
@@ -69,7 +69,7 @@ package body Simh_Tapes is
    end Read_Record_Data;
 
    -- Write_Record_Data writes the actual data - not the header/trailer
-   procedure Write_Record_Data (Img_Stream : in out Stream_Access; Rec : in Mt_Rec) is
+   procedure Write_Record_Data (Img_Stream : Stream_Access; Rec : Mt_Rec) is
    begin
       for C in Rec'Range loop
          Byte_T'Write( Img_Stream, Rec(C));
@@ -82,7 +82,7 @@ package body Simh_Tapes is
    end Rewind;
 
    -- internal function
-   function Space_Forward_1_Rec (Img_Stream : in out Stream_Access) return Mt_Stat is
+   function Space_Forward_1_Rec (Img_Stream : Stream_Access) return Mt_Stat is
       Hdr, Trailer : Dword_T;
    begin
       Read_Meta_Data (Img_Stream , Hdr);
@@ -104,7 +104,7 @@ package body Simh_Tapes is
    end Space_Forward_1_Rec;
 
    -- SpaceFwd advances the virtual tape by the specified amount (N.B. 0 means 1 whole file)
-   function Space_Forward (Img_Stream : in out Stream_Access; Num_Recs : in Integer) return Mt_Stat is
+   function Space_Forward (Img_Stream : Stream_Access; Num_Recs : Integer) return Mt_Stat is
       Simh_Stat    : Mt_Stat := IOerr;
       Done         : Boolean := false;
       Hdr, Trailer : Dword_T;
@@ -146,7 +146,7 @@ package body Simh_Tapes is
 
    -- Scan_Image - attempt to read a whole tape image ensuring headers, record sizes, and trailers match
    -- TODO if csv is true then output is in CSV format
-   function Scan_Image (Img_Filename : in  String) return String is
+   function Scan_Image (Img_Filename : String) return String is
       Result : Unbounded_String;
       Img_File : File_Type;
       Img_Stream : Stream_Access;

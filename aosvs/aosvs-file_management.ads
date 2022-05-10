@@ -20,15 +20,14 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with DG_Types;      use DG_Types;
 with Processor;     use Processor;
 
 package AOSVS.File_Management is
  
-    function Sys_CREATE   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_DACL     (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_DELETE   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_GNAME    (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_RECREATE (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+    function Sys_CREATE   (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_DACL     (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_DELETE   (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_GNAME    (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_RECREATE (CPU : CPU_T; PID : Word_T) return Boolean;
 
 end AOSVS.File_Management;

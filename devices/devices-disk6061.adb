@@ -26,7 +26,6 @@ with Ada.Text_IO;
 with Debug_Logs;      use Debug_Logs;
 with Devices;
 with Devices.Bus;
-with Memory;          use Memory;
 with Memory_Channels; use Memory_Channels;
 with Status_Monitor;
 
@@ -34,7 +33,7 @@ package body Devices.Disk6061 is
 
     protected body Drives is
 
-        procedure Init (Debug_Logging : in Boolean) is
+        procedure Init (Debug_Logging : Boolean) is
         begin
             State.Debug_Logging := Debug_Logging;
             Devices.Bus.Actions.Set_Reset_Proc (Devices.DPF, Reset'Access);
@@ -46,7 +45,7 @@ package body Devices.Disk6061 is
             Status_Sender.Start;
         end Init;
 
-        procedure Set_Logging (Log : in Boolean) is
+        procedure Set_Logging (Log : Boolean) is
         begin
             State.Debug_Logging := Log;
         end Set_Logging;
@@ -76,7 +75,7 @@ package body Devices.Disk6061 is
         end Reset;
 
         procedure Attach
-           (Unit : in Natural; Image_Name : in String; OK : out Boolean)
+           (Unit : Natural; Image_Name : String; OK : out Boolean)
         is
         begin
             if Unit /= 0 then
@@ -223,7 +222,7 @@ package body Devices.Disk6061 is
             end case;
         end Do_Command;
 
-        procedure Handle_Flag (IO_Flag : in IO_Flag_T) is
+        procedure Handle_Flag (IO_Flag : IO_Flag_T) is
         begin
             case IO_Flag is
                 when S =>
@@ -252,7 +251,7 @@ package body Devices.Disk6061 is
 
         -- Data_In services the DIA/B/C I/O instructions
         procedure Data_In
-           (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T)
+           (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T)
         is
         begin
             case ABC is
@@ -295,7 +294,7 @@ package body Devices.Disk6061 is
 
         -- Data_Out implements the DOA/B/C instructions
         -- NIO is also routed here with a dummy abc flag value of N
-        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T) is
+        procedure Data_Out (Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T) is
         begin
            case ABC is
                 when A =>
@@ -418,7 +417,7 @@ package body Devices.Disk6061 is
     end Drives;
 
     -- Create_Blank creates an empty disk file of the correct size for the disk6061 emulator to use
-    procedure Create_Blank (Image_Name : in String; OK : out Boolean) is
+    procedure Create_Blank (Image_Name : String; OK : out Boolean) is
         Tmp_File     : Sector_IO.File_Type;
         Empty_Sector : constant Sector := (others => 0);
     begin

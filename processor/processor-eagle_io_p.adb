@@ -25,7 +25,6 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Debug_Logs;      use Debug_Logs;
 with Memory;          use Memory;
 with Memory_Channels; use Memory_Channels;
-with Resolver;        use Resolver;
 
 package body Processor.Eagle_IO_P is 
 
@@ -39,8 +38,8 @@ package body Processor.Eagle_IO_P is
          when I_CIO =>
             Word := DG_Types.Lower_Word (CPU.AC(I.Acs));
             declare
-               IO_Chan : Word_T := Get_W_Bits (Word, 1, 3);
-               Map_Reg_Addr : Integer := Integer(Word and 16#0fff#);
+               IO_Chan      : constant Word_T := Get_W_Bits (Word, 1, 3);
+               Map_Reg_Addr : constant Integer := Integer(Word and 16#0fff#);
             begin
                if IO_Chan /= 0 and IO_Chan /= 7 then
                   raise Unsupported_IO_Channel with "Attempt to use CIO on channel " & IO_Chan'Image;
@@ -88,7 +87,7 @@ package body Processor.Eagle_IO_P is
             --    -- return default I/O channel if -1 passed in
             --    CPU.AC(0) := 0;
             -- end if;
-            NULL;
+            null; -- TODO Long this?
 
          when I_WLMP =>
             if CPU.AC(0) = 0 then

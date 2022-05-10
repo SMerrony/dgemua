@@ -21,7 +21,6 @@
 -- SOFTWARE.
 
 with Ada.Calendar;
-with Ada.Characters.Handling;
 
 with GNAT.Calendar;
 
@@ -34,10 +33,10 @@ with PARU_32;     use PARU_32;
 
 package body AOSVS.System is
 
-    function Sys_ERMSG  (CPU : in out CPU_T) return Boolean is
-        Supplied_Buf_Len : Unsigned_8 := Unsigned_8(Get_DW_Bits(CPU.AC(1), 16, 8));
-        ERMES_Chan       : Unsigned_8 := Unsigned_8(Get_DW_Bits(CPU.AC(1), 24, 8));
-        Default_Response : String := "UNKNOWN ERROR CODE " & CPU.AC(0)'Image;
+    function Sys_ERMSG  (CPU : CPU_T) return Boolean is
+        Supplied_Buf_Len : constant Unsigned_8 := Unsigned_8(Get_DW_Bits(CPU.AC(1), 16, 8));
+        ERMES_Chan       : constant Unsigned_8 := Unsigned_8(Get_DW_Bits(CPU.AC(1), 24, 8));
+        Default_Response : constant String := "UNKNOWN ERROR CODE " & CPU.AC(0)'Image;
     begin
         Loggers.Debug_Print (Sc_Log, "?ERMSG - Octal code: " & Dword_To_String (CPU.AC(0), Octal, 8));
         if ERMES_Chan /= 255 then
@@ -49,9 +48,9 @@ package body AOSVS.System is
         return true;
     end Sys_ERMSG;
 
-    function Sys_EXEC (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
-        Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        XRFNC       : Word_T      := RAM.Read_Word (Pkt_Addr);
+    function Sys_EXEC (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
+        Pkt_Addr    : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        XRFNC       : constant Word_T      := RAM.Read_Word (Pkt_Addr);
         BP          : DWord_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?EXEC");
@@ -68,8 +67,8 @@ package body AOSVS.System is
         return true;
     end Sys_EXEC;
 
-    function Sys_GDAY (CPU : in out CPU_T) return Boolean is
-        Now : Ada.Calendar.Time := Ada.Calendar.Clock; 
+    function Sys_GDAY (CPU : CPU_T) return Boolean is
+        Now : constant Ada.Calendar.Time := Ada.Calendar.Clock; 
     begin
         Loggers.Debug_Print (Sc_Log, "?GDAY");
         CPU.AC(0) := Dword_T(Ada.Calendar.Day(Now));
@@ -78,10 +77,10 @@ package body AOSVS.System is
         return true;
     end Sys_GDAY;
 
-    function Sys_GTMES (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean is
-        Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        P_Greq      : Word_T      := RAM.Read_Word (Pkt_Addr + GREQ);
-        P_Gnum      : Word_T      := RAM.Read_Word (Pkt_Addr + GNUM);
+    function Sys_GTMES (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
+        Pkt_Addr    : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        P_Greq      : constant Word_T      := RAM.Read_Word (Pkt_Addr + GREQ);
+        P_Gnum      : constant Word_T      := RAM.Read_Word (Pkt_Addr + GNUM);
         P_Gres      : Dword_T;
         Err         : Word_T;
         Res_US      : Unbounded_String;
@@ -137,7 +136,7 @@ package body AOSVS.System is
 
         when GARG =>
             declare
-               Arg_US  : Unbounded_String := AOSVS.Agent.Actions.Get_Nth_Arg(PID, P_Gnum);
+               Arg_US  : constant Unbounded_String := AOSVS.Agent.Actions.Get_Nth_Arg(PID, P_Gnum);
                Arg_Int : Integer;
             begin
                Loggers.Debug_Print (Sc_Log, "------ Req. Type: ?GARG");
@@ -163,8 +162,8 @@ package body AOSVS.System is
         return true;
     end Sys_GTMES;
 
-    function Sys_GTOD (CPU : in out CPU_T) return Boolean is
-        Now : Ada.Calendar.Time := Ada.Calendar.Clock; 
+    function Sys_GTOD (CPU : CPU_T) return Boolean is
+        Now : constant Ada.Calendar.Time := Ada.Calendar.Clock; 
     begin
         Loggers.Debug_Print (Sc_Log, "?GTOD");
         Loggers.Debug_Print (Debug_Log, "?GTOD");
@@ -174,9 +173,9 @@ package body AOSVS.System is
         return true;
     end Sys_GTOD;
 
-    function Sys_SINFO  (CPU : in out CPU_T) return Boolean is
-        Pkt_Addr    : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        P_SIRS      : Word_T := RAM.Read_Word (Pkt_Addr + SIRS);
+    function Sys_SINFO  (CPU : CPU_T) return Boolean is
+        Pkt_Addr    : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        P_SIRS      : constant Word_T := RAM.Read_Word (Pkt_Addr + SIRS);
     begin
         Loggers.Debug_Print (Sc_Log, "?SINFO");
         RAM.Write_Word (Pkt_Addr + SIRN, 16#07_49#); -- AOS/VS Version faked to 7.73

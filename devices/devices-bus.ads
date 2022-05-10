@@ -23,8 +23,6 @@
 with Ada.Containers; use Ada.Containers;
 with Ada.Containers.Vectors;
 
-with DG_Types;   use DG_Types;
-
 package Devices.Bus is
 
     type IRQ_Prio_Arr is array(0..15) of Boolean;
@@ -57,37 +55,37 @@ package Devices.Bus is
 
     protected Actions is
         procedure Init;
-        procedure Connect (Dev : in Dev_Num_T);
-        procedure Reset_IO_Device(Dev : in Dev_Num_T);
+        procedure Connect (Dev : Dev_Num_T);
+        procedure Reset_IO_Device(Dev : Dev_Num_T);
         procedure Reset_All_IO_Devices;
-        procedure Set_Reset_Proc (Dev : in Dev_Num_T; Reset_Proc : in Reset_Proc_T);
-        procedure Set_Data_Out_Proc (Dev : in Dev_Num_T; Data_Out_Proc : in Data_Out_Proc_T);
-        procedure Data_Out (Dev : in Dev_Num_T; Datum : in Word_T; ABC : in IO_Reg_T; Flag : in IO_Flag_T); 
-        procedure Set_Data_In_Proc (Dev : in Dev_Num_T; Data_In_Proc : in Data_In_Proc_T);
-        procedure Data_In  (Dev : in Dev_Num_T; ABC : in IO_Reg_T; Flag : in IO_Flag_T; Datum : out Word_T);
-        function  Is_Attached (Dev : in Dev_Num_T) return Boolean;
-        function  Is_Bootable (Dev : in Dev_Num_T) return Boolean;
-        function  Is_Connected (Dev : in Dev_Num_T) return Boolean;
-        function  Is_IO_Dev (Dev : in Dev_Num_T) return Boolean;
-        procedure Set_Image_Attached (Dev : in Dev_Num_T; Image_Name : String);
-        procedure Set_Image_Detached (Dev : in Dev_Num_T);
+        procedure Set_Reset_Proc (Dev : Dev_Num_T; Reset_Proc : Reset_Proc_T);
+        procedure Set_Data_Out_Proc (Dev : Dev_Num_T; Data_Out_Proc : Data_Out_Proc_T);
+        procedure Data_Out (Dev : Dev_Num_T; Datum : Word_T; ABC : IO_Reg_T; Flag : IO_Flag_T); 
+        procedure Set_Data_In_Proc (Dev : Dev_Num_T; Data_In_Proc : Data_In_Proc_T);
+        procedure Data_In  (Dev : Dev_Num_T; ABC : IO_Reg_T; Flag : IO_Flag_T; Datum : out Word_T);
+        function  Is_Attached (Dev : Dev_Num_T) return Boolean;
+        function  Is_Bootable (Dev : Dev_Num_T) return Boolean;
+        function  Is_Connected (Dev : Dev_Num_T) return Boolean;
+        function  Is_IO_Dev (Dev : Dev_Num_T) return Boolean;
+        procedure Set_Image_Attached (Dev : Dev_Num_T; Image_Name : String);
+        procedure Set_Image_Detached (Dev : Dev_Num_T);
         function  Get_Printable_Device_List return String;
-        function  Get_Device_Name_Or_Number (Dev : in Dev_Num_T) return String;
+        function  Get_Device_Name_Or_Number (Dev : Dev_Num_T) return String;
     private
         Bus : Bus_T;
     end Actions;
 
     protected States is
         procedure Init;
-        function  Get_Busy (Dev : in Dev_Num_T) return Boolean;
-        function  Get_Done (Dev : in Dev_Num_T) return Boolean;
-        procedure Set_Busy (Dev : in Dev_Num_T; Busy_State : in Boolean);
-        procedure Set_Done (Dev : in Dev_Num_T; Done_State : in Boolean);
+        function  Get_Busy (Dev : Dev_Num_T) return Boolean;
+        function  Get_Done (Dev : Dev_Num_T) return Boolean;
+        procedure Set_Busy (Dev : Dev_Num_T; Busy_State : Boolean);
+        procedure Set_Done (Dev : Dev_Num_T; Done_State : Boolean);
         function  Get_IRQ return Boolean;
-        procedure Set_IRQ_Mask (Mask : in Word_T);
-        function  Is_Dev_Masked (PMB : in Integer) return Boolean;
-        procedure Send_Interrupt (Dev : in Dev_Num_T);
-        procedure Clear_Interrupt (Dev : in Dev_Num_T); 
+        procedure Set_IRQ_Mask (Mask : Word_T);
+        function  Is_Dev_Masked (PMB : Integer) return Boolean;
+        procedure Send_Interrupt (Dev : Dev_Num_T);
+        procedure Clear_Interrupt (Dev : Dev_Num_T); 
     private 
         State : State_T;
     end States;

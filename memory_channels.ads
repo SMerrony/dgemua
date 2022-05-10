@@ -20,8 +20,6 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Interfaces; use Interfaces;
-
 with DG_Types;   use DG_Types;
 
 package Memory_Channels is
@@ -87,26 +85,26 @@ package Memory_Channels is
     end record;
 
     protected BMC_DCH is
-        procedure Init (Debug_Logging : in Boolean);
+        procedure Init (Debug_Logging : Boolean);
         procedure Reset;
-        procedure Data_In  (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
+        procedure Data_In  (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T);
         -- Handle DIx instruction
-        -- procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
+        -- procedure Data_Out (Datum : Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
         -- Handle DOx and NIOC instructions
-        procedure Set_Logging (Debug_Logging : in Boolean);
-        function  Read_Reg (Reg : in Integer) return Word_T;
+        procedure Set_Logging (Debug_Logging : Boolean);
+        function  Read_Reg (Reg : Integer) return Word_T;
         procedure Read_Word_BMC_Chan (Unmapped : in out Phys_Addr_T; Datum : out Word_T);
         procedure Read_Word_BMC_16 (Unmapped : in out Word_T; Datum : out Word_T);
-        procedure Write_Reg (Reg : in Integer; Datum : in Word_T); 
-        procedure Write_Slot (Slot : in Integer; Datum : in Dword_T);
-        procedure Write_Word_BMC_Chan (Unmapped : in out Phys_Addr_T; Datum : in Word_T);
-        procedure Write_Word_DCH_Chan (Unmapped : in out Phys_Addr_T; Datum : in Word_T);
-        procedure Write_Word_BMC_16 (Unmapped : in out Word_T; Datum : in Word_T);
+        procedure Write_Reg (Reg : Integer; Datum : Word_T); 
+        procedure Write_Slot (Slot : Integer; Datum : Dword_T);
+        procedure Write_Word_BMC_Chan (Unmapped : in out Phys_Addr_T; Datum : Word_T);
+        procedure Write_Word_DCH_Chan (Unmapped : in out Phys_Addr_T; Datum : Word_T);
+        procedure Write_Word_BMC_16 (Unmapped : in out Word_T; Datum : Word_T);
     private
-        function Decode_BMC_Addr (Unmapped : in Phys_Addr_T) return BMC_Addr_T;
+        function Decode_BMC_Addr (Unmapped : Phys_Addr_T) return BMC_Addr_T;
         function Get_DCH_Mode return Boolean;
-        function Resolve_BMC_Mapped_Addr (M_Addr : in Phys_Addr_T) return Phys_Addr_T;
-        function Resolve_DCH_Mapped_Addr (M_Addr : in Phys_Addr_T) return Phys_Addr_T;
+        function Resolve_BMC_Mapped_Addr (M_Addr : Phys_Addr_T) return Phys_Addr_T;
+        function Resolve_DCH_Mapped_Addr (M_Addr : Phys_Addr_T) return Phys_Addr_T;
 
         Registers  : BMC_DCH_Regs_Array;
         Status_Reg : Word_T;

@@ -21,12 +21,8 @@
 -- SOFTWARE.
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with Interfaces;       use Interfaces; 
-
-with DG_Types;   use DG_Types;
-with Simh_Tapes; use Simh_Tapes;
 
 package Devices.Magtape6026 is
 
@@ -128,11 +124,11 @@ package Devices.Magtape6026 is
         procedure Init;
         procedure Reset;
         procedure Attach
-           (Unit : in Natural; Image_Name : in String; OK : out Boolean);
-        procedure Detach (Unit : in Natural);
-        procedure Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
-        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
-        function  Get_Image_Name (Unit : in Natural) return String;
+           (Unit : Natural; Image_Name : String; OK : out Boolean);
+        procedure Detach (Unit : Natural);
+        procedure Data_In (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T);
+        procedure Data_Out (Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T);
+        function  Get_Image_Name (Unit : Natural) return String;
         function  Get_Status return Status_Rec;
         procedure Load_TBOOT;
     private

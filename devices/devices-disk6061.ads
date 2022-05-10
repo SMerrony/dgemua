@@ -21,11 +21,8 @@
 -- SOFTWARE.
 
 with Ada.Direct_IO;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with Interfaces;       use Interfaces; 
-
-with DG_Types;   use DG_Types;
 
 package Devices.Disk6061 is
 
@@ -120,19 +117,19 @@ package Devices.Disk6061 is
 	end record;
 
 	protected Drives is
-		procedure Init (Debug_Logging : in Boolean);
+		procedure Init (Debug_Logging : Boolean);
 		procedure Reset;
-		procedure Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean);
-		procedure Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
-        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
-		procedure Set_Logging (Log : in Boolean);
+		procedure Attach (Unit : Natural; Image_Name : String; OK : out Boolean);
+		procedure Data_In (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T);
+        procedure Data_Out (Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T);
+		procedure Set_Logging (Log : Boolean);
 		function  Get_Status return Status_Rec;
 		procedure Load_DKBT;
 	private
 		State : State_Rec;
 	end Drives;
 
-	procedure Create_Blank (Image_Name : in String; OK : out Boolean);
+	procedure Create_Blank (Image_Name : String; OK : out Boolean);
 	-- Simply creates an empty disk file of the correct size for the disk6061 emulator to use
 
     task Status_Sender is

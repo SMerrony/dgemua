@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright (c) 2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +20,18 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with DG_Types;      use DG_Types;
 with Processor;     use Processor;
 
 package AOSVS.File_IO is
 
-    function Sys_OPEN  (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
-    function Sys_CLOSE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
-    function Sys_READ  (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
-    function Sys_WRITE (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T; Logging : in Boolean) return Boolean;
+    function Sys_OPEN  (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean;
+    function Sys_CLOSE (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean;
+    function Sys_READ  (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean;
+    function Sys_WRITE (CPU : CPU_T; PID : Word_T; TID : Word_T; Logging : Boolean) return Boolean;
 
-    function Sys_GCHR  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_SCHR  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+    function Sys_GCHR  (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_SCHR  (CPU : CPU_T; PID : Word_T) return Boolean;
 
-    function Sys_SEND  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+    function Sys_SEND  (CPU : CPU_T; PID : Word_T) return Boolean;
 
 end AOSVS.File_IO;

@@ -28,6 +28,7 @@ with Devices;
 with Devices.Bus;
 with Memory;
 with Memory_Channels; use Memory_Channels;
+with Simh_Tapes;      use Simh_Tapes;
 with Status_Monitor;
 
 package body Devices.Magtape6026 is
@@ -60,7 +61,7 @@ package body Devices.Magtape6026 is
             Loggers.Debug_Print (Mt_Log, "Unit reset via bus Reset call");
         end Reset;
 
-        procedure Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean) is
+        procedure Attach (Unit : Natural; Image_Name : String; OK : out Boolean) is
         begin
             -- Open (File => Img_File, Mode => In_File, Name => Image_Name);
             Open (File => State.SIMH_File(Unit), Mode => In_File, Name => Image_Name);
@@ -77,7 +78,7 @@ package body Devices.Magtape6026 is
                 OK := false;
         end Attach;
 
-        procedure Detach (Unit : in Natural) is
+        procedure Detach (Unit : Natural) is
         begin
             Close (File => State.SIMH_File(Unit));
             State.Image_Filename(Unit) := Null_Unbounded_String;
@@ -196,7 +197,7 @@ package body Devices.Magtape6026 is
         end Handle_Flag;
 
         -- Data_In is called from Bus to implement DIx from the mt device
-        procedure  Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
+        procedure  Data_In (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T) is
         begin
             case ABC is
                 when A => -- Read status register 1 - see p.IV-18 of Peripherals guide
@@ -213,7 +214,7 @@ package body Devices.Magtape6026 is
             Handle_Flag (IO_Flag);
         end Data_In;
 
-        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T) is
+        procedure Data_Out (Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T) is
         begin
             case ABC is
                 when A => -- specify Command and Drive - p.IV-17
@@ -235,13 +236,12 @@ package body Devices.Magtape6026 is
                     State.Neg_Word_Count := Word_To_Integer_16(Datum);
                     Loggers.Debug_Print (Mt_Log, "INFO: DOC - Neg. Word Count set to : " & State.Neg_Word_Count'Image);
                 when N => -- TODO
-                    Loggers.Debug_Print (Mt_Log, "WARNING: NIO - Flag is : " & Datum'Image );
-                when others => null;    
+                    Loggers.Debug_Print (Mt_Log, "WARNING: NIO - Flag is : " & Datum'Image ); 
             end case;
             Handle_Flag (IO_Flag);
         end Data_Out;
 
-        function Get_Image_Name (Unit : in Natural) return String is
+        function Get_Image_Name (Unit : Natural) return String is
         begin
            return To_String (State.Image_Filename(Unit));
         end Get_Image_Name;

@@ -20,13 +20,12 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with DG_Types;      use DG_Types;
 with Processor;     use Processor;
 
 package AOSVS.Connection is
    
-   function Sys_CON   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-   function Sys_DCON  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-   function Sys_SERVE (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+   function Sys_CON   (CPU : CPU_T; PID : Word_T) return Boolean;
+   function Sys_DCON  (CPU : CPU_T; PID : Word_T) return Boolean;
+   function Sys_SERVE (CPU : CPU_T; PID : Word_T) return Boolean;
 
 end AOSVS.Connection;

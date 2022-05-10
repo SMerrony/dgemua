@@ -31,7 +31,7 @@ with Status_Monitor;
 
 package body Devices.Disk6239 is
 
-    procedure Create_Blank (Image_Name : in String; OK : out Boolean) is
+    procedure Create_Blank (Image_Name : String; OK : out Boolean) is
         Tmp_File     : Sector_IO.File_Type;
         Empty_Sector : constant Sector := (others => 0);
     begin
@@ -50,7 +50,7 @@ package body Devices.Disk6239 is
             OK := False;
     end Create_Blank;
 
-    procedure Init (Debug_Logging : in Boolean) is
+    procedure Init (Debug_Logging : Boolean) is
     begin
         Drives.Set_Debug_Logging (Debug_Logging);
         Devices.Bus.Actions.Set_Reset_Proc (Devices.DSKP, Drives.Reset'Access);
@@ -65,7 +65,7 @@ package body Devices.Disk6239 is
 
     protected body Drives is
 
-        procedure Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
+        procedure Data_In (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T) is
         -- Data_In services the DIA/B/C I/O instructions
         begin
             case ABC is
@@ -81,7 +81,7 @@ package body Devices.Disk6239 is
             Handle_Flag (IO_Flag);
         end Data_In;
 
-        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T) is
+        procedure Data_Out (Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T) is
         -- Data_Out services the DOA/B/C I/O instructions
         begin
             if State.Debug_Logging then
@@ -98,7 +98,7 @@ package body Devices.Disk6239 is
         end Data_Out;
 
         procedure Do_PIO_Command is
-            Pio_Cmd : Word_T := Extract_PIO_Command (State.Command_Reg_C);
+            Pio_Cmd : constant Word_T := Extract_PIO_Command (State.Command_Reg_C);
             Addr    : Phys_Addr_T;
         begin
             case Pio_Cmd is
@@ -253,7 +253,7 @@ package body Devices.Disk6239 is
 
         end Do_PIO_Command;
 
-        function Extract_PIO_Command (Wd : in Word_T) return Word_T is
+        function Extract_PIO_Command (Wd : Word_T) return Word_T is
             (Shift_Right (Wd and 16#3FE#, 1));
 
         function Get_Extended_Status_Size return Natural is
@@ -267,7 +267,7 @@ package body Devices.Disk6239 is
         -- function Get_Sector_No return Dword_T is
         --     (State.Sector_No);
 
-        procedure Handle_Flag (IO_Flag : in IO_Flag_T) is
+        procedure Handle_Flag (IO_Flag : IO_Flag_T) is
         begin
             case IO_Flag is
                 when C =>
@@ -345,13 +345,13 @@ package body Devices.Disk6239 is
         end Reset;
 
 
-        procedure Set_Debug_Logging (TF : in Boolean) is
+        procedure Set_Debug_Logging (TF : Boolean) is
         begin
             State.Debug_Logging := TF;
         end Set_Debug_Logging;
 
 
-        procedure Set_PIO_Status_Reg_C (Status, CCS : in Byte_T; Cmd_Echo : in Word_T; RR : in Boolean) is
+        procedure Set_PIO_Status_Reg_C (Status, CCS : Byte_T; Cmd_Echo : Word_T; RR : Boolean) is
         -- Set the SYNCHRONOUS standard refturn as per p.3-22
             Stat : Byte_T := Status;
         begin
@@ -372,7 +372,7 @@ package body Devices.Disk6239 is
             end if;
         end Set_PIO_Status_Reg_C;
 
-        procedure Set_Status_Reg (Reg : in Stat_Reg_T; Contents : Word_T) is
+        procedure Set_Status_Reg (Reg : Stat_Reg_T; Contents : Word_T) is
         begin
             case Reg is
                 when A => State.Status_Reg_A := Contents;
@@ -418,8 +418,8 @@ package body Devices.Disk6239 is
             end if;  
         end Set_OK;
 
-        procedure Position_Image (New_DG_Sector_No : in Dword_T) is
-            Offset : Positive_Count := Positive_Count(1 + Dword_To_Integer (New_DG_Sector_No) );
+        procedure Position_Image (New_DG_Sector_No : Dword_T) is
+            Offset : constant Positive_Count := Positive_Count(1 + Dword_To_Integer (New_DG_Sector_No) );
         begin
             Sector_IO.Set_Index (Image_File, Sector_IO.Count(Offset));
             DG_Sector_No := New_DG_Sector_No;
@@ -429,25 +429,25 @@ package body Devices.Disk6239 is
             end if;
         end Position_Image;
 
-        procedure Read_Sector (Buffer : in out Sector) is
+        procedure Read_Sector (Buffer : out Sector) is
         begin
             Sector_IO.Read(Image_File, Buffer);
             Reads := Reads + 1;
         end Read_Sector;
 
-        procedure Write_Sector (Buffer : in Sector) is
+        procedure Write_Sector (Buffer : Sector) is
         begin
             Sector_IO.Write(Image_File, Buffer);
             Writes := Writes + 1;
         end Write_Sector;
 
     begin
-        accept Start (Debug_Logging : in Boolean) do
+        accept Start (Debug_Logging : Boolean) do
             Logging := Debug_Logging;
         end Start;
         loop
             select
-                accept Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean) do
+                accept Attach (Unit : Natural; Image_Name : String; OK : out Boolean) do
                     if Unit /= 0 then
                         raise Not_Yet_Implemented
                         with "DSKP - Multiple disks not yet supported";
@@ -465,7 +465,7 @@ package body Devices.Disk6239 is
                         OK := False;
                 end Attach;
             or
-                accept Get_Stats (S : in out Status_Rec) do
+                accept Get_Stats (S : out Status_Rec) do
                     S.Image_Attached := Image_Attached;
                     S.Image_Filename := Image_Filename;
                     S.Sector_No      := DG_Sector_No;
@@ -493,7 +493,7 @@ package body Devices.Disk6239 is
                     end if; 
                 end Program_Load;
             or
-                accept Process (Start_CB_Addr : in Phys_Addr_T) do
+                accept Process (Start_CB_Addr : Phys_Addr_T) do
                     This_CB_Addr := Start_CB_Addr;
                 end Process;
                 loop                        

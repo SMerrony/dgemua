@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;  use Debug_Logs;
-with Resolver;    use Resolver;
 
 package body Processor.Eclipse_FPU_P is 
 

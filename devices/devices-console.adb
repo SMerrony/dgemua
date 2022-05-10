@@ -26,10 +26,7 @@ with GNAT.OS_Lib;
 
 use type Ada.Streams.Stream_Element_Count;
 
-with Processor;
 with Devices.Bus;
-with DG_Types;    use DG_Types;
-with Memory;
 
 package body Devices.Console is
 
@@ -49,7 +46,7 @@ package body Devices.Console is
         end Reset;
 
         -- Insert_Byte places one byte in the TTI buffer fr handling by the Processor
-        procedure Insert_Byte (B : in Byte_T) is
+        procedure Insert_Byte (B : Byte_T) is
         begin
             TTI_Dev.One_Char_Buff := B;
             Devices.Bus.States.Set_Done( Devices.TTI, true);
@@ -59,7 +56,7 @@ package body Devices.Console is
             end if;
         end Insert_Byte;
 
-        procedure  Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
+        procedure  Data_In (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T) is
         begin
             Datum := Word_T(TTI_Dev.One_Char_Buff);
             if ABC = A then
@@ -84,7 +81,7 @@ package body Devices.Console is
         end Data_In;
 
         -- Data_Out is only here to support NIO commands to TTI
-        procedure Data_Out( Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T) is
+        procedure Data_Out( Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T) is
         begin
             case ABC is
                 when N =>
@@ -110,12 +107,12 @@ package body Devices.Console is
 
     protected body TTOut is
 
-        procedure Init (Sock : in GNAT.Sockets.Socket_Type) is
+        procedure Init (Sock : GNAT.Sockets.Socket_Type) is
         begin
             Devices.Bus.Actions.Set_Reset_Proc (Devices.TTO, Reset'Access);
             Devices.Bus.Actions.Set_Data_Out_Proc (Devices.TTO, Data_Out'Access);
             SCP_Chan := GNAT.Sockets.Stream (Sock);
-        end;
+        end Init;
 
         -- Reset simply clears the screen or throws a page
         procedure Reset is
@@ -124,24 +121,24 @@ package body Devices.Console is
             Ada.Text_IO.Put_Line ("INFO: TTO Reset");
         end Reset;
         
-        procedure Put_Byte (B : in Byte_T) is
+        procedure Put_Byte (B : Byte_T) is
         begin
                Byte_T'Output (SCP_Chan, B);
         end Put_Byte;
  
-        procedure Put_Char (C : in Character) is
+        procedure Put_Char (C : Character) is
         begin
             Character'Output (SCP_Chan, C);
         end Put_Char;
 
-        procedure Put_String (S : in String) is
+        procedure Put_String (S : String) is
         begin
             for C of S loop
                 Character'Output (SCP_Chan, C);
             end loop;
         end Put_String;
 
-        procedure Data_Out( Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T) is
+        procedure Data_Out( Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T) is
             ASCII_Byte : Byte_T;
         begin
             case ABC is
@@ -186,7 +183,7 @@ package body Devices.Console is
     begin
       loop
          select
-            accept Set_SCP_Line_Ready (Buffer : in Unbounded_String) do  
+            accept Set_SCP_Line_Ready (Buffer : Unbounded_String) do  
                 SCP_Buffer := Buffer;  
                 SCP_Line_Ready := true;
             end Set_SCP_Line_Ready;
@@ -198,7 +195,7 @@ package body Devices.Console is
                SCP_Buffer := Null_Unbounded_String;
                SCP_Line_Ready := false;
          or
-            accept Set_SCP_IO (SCP : in Boolean) do
+            accept Set_SCP_IO (SCP : Boolean) do
                SCP_IO := SCP;
             end Set_SCP_IO;   
          or
@@ -213,12 +210,11 @@ package body Devices.Console is
 
    task body Console_Handler is
       SCP_Buffer : Unbounded_String;
-      SCP_Line_Ready : Boolean := false;
       SCP_Chan    : GNAT.Sockets.Stream_Access;
       One_Char : Character;
       SCP_IO : Boolean;
    begin
-      accept Start (Sock : in GNAT.Sockets.Socket_Type) do
+      accept Start (Sock : GNAT.Sockets.Socket_Type) do
          SCP_Chan := GNAT.Sockets.Stream (Sock);
          SCP_Handler.Set_SCP_IO (true);
       end Start;

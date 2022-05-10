@@ -31,7 +31,7 @@ package body Memory_Channels is
 
    protected body BMC_DCH is
 
-      procedure Init (Debug_logging : in Boolean) is
+      procedure Init (Debug_logging : Boolean) is
       begin
          Is_Logging := Debug_logging;
          Devices.Bus.Actions.Set_Reset_Proc    (Devices.BMC, Reset'Access);
@@ -54,12 +54,12 @@ package body Memory_Channels is
          Put_Line ("INFO: BMC_DCH Registers Reset");
       end Reset;
 
-      procedure Set_Logging (Debug_Logging : in Boolean) is
+      procedure Set_Logging (Debug_Logging : Boolean) is
       begin
          Is_Logging := Debug_Logging;
       end Set_Logging;
 
-      procedure Data_In  (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
+      procedure Data_In  (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T) is
       begin
          case ABC is
             when A => 
@@ -74,11 +74,11 @@ package body Memory_Channels is
       end Data_In;
 
 
-      function Read_Reg (Reg : in Integer) return Word_T is (Registers (Reg));
+      function Read_Reg (Reg : Integer) return Word_T is (Registers (Reg));
 
       -- Write_Reg populates a given 16-bit register with the supplied data
       -- N.B. Addressed by REGISTER not slot
-      procedure Write_Reg (Reg : in Integer; Datum : in Word_T) is
+      procedure Write_Reg (Reg : Integer; Datum : Word_T) is
       begin
          if Is_Logging then
             Loggers.Debug_Print
@@ -109,7 +109,7 @@ package body Memory_Channels is
 
       -- Write_Slot populates a whole SLOT (pair of registers) with the supplied doubleword
       -- N.B. Addressed by SLOT not register
-      procedure Write_Slot (Slot : in Integer; Datum : in Dword_T) is
+      procedure Write_Slot (Slot : Integer; Datum : Dword_T) is
       begin
          if Is_Logging then
             Loggers.Debug_Print
@@ -124,8 +124,8 @@ package body Memory_Channels is
       function Get_DCH_Mode return Boolean is
          (Test_W_Bit (Registers (IO_Chan_Def_Reg), 14));
 
-      function Resolve_BMC_Mapped_Addr (M_Addr : in Phys_Addr_T) return Phys_Addr_T is
-         Slot           : Integer := Integer(Shift_Right(M_Addr, 10));
+      function Resolve_BMC_Mapped_Addr (M_Addr : Phys_Addr_T) return Phys_Addr_T is
+         Slot           : constant Integer := Integer(Shift_Right(M_Addr, 10));
          P_Addr, P_Page : Phys_Addr_T;
       begin
          -- N.B. at some point between 1980 and 1987 the lower 5 bits of the odd word were
@@ -136,9 +136,7 @@ package body Memory_Channels is
          return P_Addr;
       end Resolve_BMC_Mapped_Addr;
 
-      function Resolve_DCH_Mapped_Addr
-        (M_Addr : in Phys_Addr_T) return Phys_Addr_T
-      is
+      function Resolve_DCH_Mapped_Addr (M_Addr : Phys_Addr_T) return Phys_Addr_T is
          P_Addr, P_Page : Phys_Addr_T;
          Slot           : Integer;
          Offset         : Phys_Addr_T;
@@ -168,9 +166,9 @@ package body Memory_Channels is
          return P_Addr;
       end Resolve_DCH_Mapped_Addr;
 
-      procedure Write_Word_BMC_Chan (Unmapped : in out Phys_Addr_T; Datum : in Word_T) is
+      procedure Write_Word_BMC_Chan (Unmapped : in out Phys_Addr_T; Datum : Word_T) is
          P_Addr : Phys_Addr_T;
-         Decoded : BMC_Addr_T := Decode_BMC_Addr (Unmapped);
+         Decoded : constant BMC_Addr_T := Decode_BMC_Addr (Unmapped);
       begin
          if Decoded.Is_Logical then
             P_Addr := Resolve_BMC_Mapped_Addr (Unmapped); -- FIXME
@@ -182,7 +180,7 @@ package body Memory_Channels is
       end Write_Word_BMC_Chan;
 
       procedure Write_Word_DCH_Chan
-        (Unmapped : in out Phys_Addr_T; Datum : in Word_T)
+        (Unmapped : in out Phys_Addr_T; Datum : Word_T)
       is
          P_Addr : Phys_Addr_T;
       begin
@@ -196,8 +194,8 @@ package body Memory_Channels is
          Unmapped := Unmapped + 1;
       end Write_Word_DCH_Chan;
 
-      function Decode_BMC_Addr (Unmapped : in Phys_Addr_T) return BMC_Addr_T is
-         In_Addr : Phys_Addr_T := Shift_Left(Unmapped, 10);
+      function Decode_BMC_Addr (Unmapped : Phys_Addr_T) return BMC_Addr_T is
+         In_Addr : constant Phys_Addr_T := Shift_Left(Unmapped, 10);
          Res : BMC_Addr_T;
       begin
          Res.Is_Logical := Test_DW_Bit (Dword_T(In_Addr), 0);
@@ -215,7 +213,7 @@ package body Memory_Channels is
 
       procedure Read_Word_BMC_Chan (Unmapped : in out Phys_Addr_T; Datum : out Word_T) is
          P_Addr : Phys_Addr_T;
-         Decoded : BMC_Addr_T := Decode_BMC_Addr (Unmapped);
+         Decoded : constant BMC_Addr_T := Decode_BMC_Addr (Unmapped);
       begin
          if Decoded.Is_Logical then
             P_Addr := Resolve_BMC_Mapped_Addr (Unmapped); -- FIXME
@@ -228,7 +226,7 @@ package body Memory_Channels is
 
       procedure Read_Word_BMC_16 (Unmapped : in out Word_T; Datum : out Word_T) is
          P_Addr : Phys_Addr_T;
-         Decoded : BMC_Addr_T := Decode_BMC_Addr (Phys_Addr_T(Unmapped));
+         Decoded : constant BMC_Addr_T := Decode_BMC_Addr (Phys_Addr_T(Unmapped));
       begin
          if Decoded.Is_Logical then
             P_Addr := Resolve_BMC_Mapped_Addr (Phys_Addr_T(Unmapped)); -- FIXME
@@ -239,9 +237,9 @@ package body Memory_Channels is
          Unmapped := Unmapped + 1;
       end Read_Word_BMC_16;
 
-      procedure Write_Word_BMC_16 (Unmapped : in out Word_T; Datum : in Word_T) is
+      procedure Write_Word_BMC_16 (Unmapped : in out Word_T; Datum : Word_T) is
          P_Addr : Phys_Addr_T;
-         Decoded : BMC_Addr_T := Decode_BMC_Addr (Phys_Addr_T(Unmapped));
+         Decoded : constant BMC_Addr_T := Decode_BMC_Addr (Phys_Addr_T(Unmapped));
       begin
          if Decoded.Is_Logical then
             P_Addr := Resolve_BMC_Mapped_Addr (Phys_Addr_T(Unmapped)); -- FIXME

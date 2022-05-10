@@ -20,8 +20,6 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with Ada.Text_IO; use Ada.Text_IO;
-
 with AOSVS.Agent;
 with Debug_Logs; use Debug_Logs;
 with Memory;     use Memory;
@@ -29,7 +27,7 @@ with PARU_32;    use PARU_32;
 
 package body AOSVS.Process is
 
-    function Sys_DADID (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+    function Sys_DADID (CPU : CPU_T; PID : Word_T) return Boolean is
     begin
         -- TODO fake response....
         Loggers.Debug_Print (Sc_Log, "?DADID (Faking response)");
@@ -37,8 +35,7 @@ package body AOSVS.Process is
         return True;
     end Sys_DADID;
 
-    function Sys_GUNM (CPU : in out CPU_T; PID : in Word_T) return Boolean is
-        Pkt_Addr  : Phys_Addr_T := Phys_Addr_T (CPU.AC (2));
+    function Sys_GUNM (CPU : CPU_T; PID : Word_T) return Boolean is
         User_Name : Unbounded_String;
     begin
         Loggers.Debug_Print (Sc_Log, "?GUNM");
@@ -71,8 +68,8 @@ package body AOSVS.Process is
         return True;
     end Sys_GUNM;
 
-    function Sys_PNAME  (CPU : in out CPU_T; PID : in Word_T) return Boolean is
-        Pname_BA : Dword_T := CPU.AC(0);
+    function Sys_PNAME  (CPU : CPU_T; PID : Word_T) return Boolean is
+        Pname_BA : constant Dword_T := CPU.AC(0);
     begin
         Loggers.Debug_Print (Sc_Log, "?PNAME");
         case CPU.AC(1) is
@@ -89,18 +86,18 @@ package body AOSVS.Process is
         return true;
     end Sys_PNAME;
 
-    function Sys_RNGPR  (CPU : in out CPU_T; PID : in Word_T) return Boolean is
-        Pkt_Addr  : Phys_Addr_T := Phys_Addr_T (CPU.AC (2));
-        Buff_BA   : Dword_T     := RAM.Read_Dword (Pkt_Addr + RNGBP);
-        Ring_Num  : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word (Pkt_Addr + RNGNM)));
-        Buff_Len  : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word (Pkt_Addr + RNGLB)));
+    function Sys_RNGPR  (CPU : CPU_T; PID : Word_T) return Boolean is
+        Pkt_Addr  : constant Phys_Addr_T := Phys_Addr_T (CPU.AC (2));
+        Buff_BA   : constant Dword_T     := RAM.Read_Dword (Pkt_Addr + RNGBP);
+        Ring_Num  : constant Integer     := Integer(Word_To_Integer_16(RAM.Read_Word (Pkt_Addr + RNGNM)));
+        Buff_Len  : constant Integer     := Integer(Word_To_Integer_16(RAM.Read_Word (Pkt_Addr + RNGLB)));
     begin
         Loggers.Debug_Print (Sc_Log, "?RNGPR - Ring: " & Ring_Num'Image);
         if CPU.AC(0) /= 16#ffff_ffff# then
             raise Not_Yet_Implemented with "?RNGPR for other/named procs";
         end if;
         declare 
-            PR_S : Unbounded_String := ':' & AOSVS.Agent.Actions.Get_PR_Name(PID);
+            PR_S : constant Unbounded_String := ':' & AOSVS.Agent.Actions.Get_PR_Name(PID);
         begin
             if Length(PR_S) > Buff_Len then
                 CPU.AC(0) := Dword_T(ERIRB);
@@ -113,7 +110,7 @@ package body AOSVS.Process is
         return true;
     end Sys_RNGPR;
 
-    function Sys_SUSER (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+    function Sys_SUSER (CPU : CPU_T; PID : Word_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?SUSER");
         case CPU.AC(0) is
@@ -132,9 +129,9 @@ package body AOSVS.Process is
         return true;
     end Sys_SUSER;
 
-    function Sys_SYSPRV (CPU : in out CPU_T; PID : in Word_T) return Boolean is
-        Pkt_Addr : Phys_Addr_T := Phys_Addr_T (CPU.AC (2));
-        P_FUNC   : Word_T      := RAM.Read_Word (Pkt_Addr + 2);
+    function Sys_SYSPRV (CPU : CPU_T; PID : Word_T) return Boolean is
+        Pkt_Addr : constant Phys_Addr_T := Phys_Addr_T (CPU.AC (2));
+        P_FUNC   : constant Word_T      := RAM.Read_Word (Pkt_Addr + 2);
     begin
         Loggers.Debug_Print (Sc_Log, "?SYSPRV");
         -- TODO

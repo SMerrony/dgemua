@@ -20,16 +20,15 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with DG_Types;      use DG_Types;
 with Processor;     use Processor;
 
 package AOSVS.Process is
 
-    function Sys_DADID  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_GUNM   (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_PNAME  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_RNGPR  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_SUSER  (CPU : in out CPU_T; PID : in Word_T) return Boolean;
-    function Sys_SYSPRV (CPU : in out CPU_T; PID : in Word_T) return Boolean;
+    function Sys_DADID  (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_GUNM   (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_PNAME  (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_RNGPR  (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_SUSER  (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_SYSPRV (CPU : CPU_T; PID : Word_T) return Boolean;
 
 end AOSVS.Process;

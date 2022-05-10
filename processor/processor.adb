@@ -26,8 +26,7 @@ with Debug_Logs;            use Debug_Logs;
 with Devices;               -- use Devices;
 with Devices.Bus;           -- use Devices.Bus;
 with Devices.Console;
-with Memory;                use Memory;
-with Resolver;              
+with Memory;                use Memory;      
 with Status_Monitor;
 
 with Processor.Eagle_Decimal_P;
@@ -52,12 +51,11 @@ with Processor.Nova_PC_P;
 package body Processor is
 
    function Make return CPU_T is
-      CPU : CPU_T := new CPU_Rec;
+      CPU : constant CPU_T := new CPU_Rec;
    begin
       Reset (CPU);
       return CPU;
    end Make;
-
    
    procedure Set_OVR (CPU : CPU_T; New_OVR : Boolean) is
    begin
@@ -133,13 +131,13 @@ package body Processor is
          when NOVA_OP        => Processor.Nova_Op_P.Do_Nova_Op(Instr, CPU);
          when NOVA_PC        => Processor.Nova_PC_P.Do_Nova_PC(Instr, CPU);
 
-         when others =>
-            Put_Line ("ERROR: Unimplemented instruction type in Execute function " & 
-                        Instr.Instr_Type'Image & " for instruction " &
-                        To_String(Instr.Mnemonic));
-            raise Execution_Failure with "ERROR: Unimplemented instruction type in Execute function " & 
-                        Instr.Instr_Type'Image & " for instruction " &
-                        To_String(Instr.Mnemonic);      
+         -- when others =>
+         --    Put_Line ("ERROR: Unimplemented instruction type in Execute function " & 
+         --                Instr.Instr_Type'Image & " for instruction " &
+         --                To_String(Instr.Mnemonic));
+         --    raise Execution_Failure with "ERROR: Unimplemented instruction type in Execute function " & 
+         --                Instr.Instr_Type'Image & " for instruction " &
+         --                To_String(Instr.Mnemonic);      
       end case;
       CPU.Instruction_Count := CPU.Instruction_Count + 1;
 
@@ -253,7 +251,7 @@ package body Processor is
          Segment : Integer;
          PC      : Phys_Addr_T;
          XCT     : Boolean;
-         Any_Breakpoints : Boolean := Breakpoints.Length /= 0;
+         Any_Breakpoints : constant Boolean := Breakpoints.Length /= 0;
       begin
          I_Counts := (others => 0);
       Run_Loop:
@@ -321,7 +319,6 @@ package body Processor is
                    Radix : Number_Base_T;
                    I_Counts : in out Instr_Count_T; 
                    Syscall_Trap : out Boolean) is
-      use Ada.Containers;
       This_Op : Word_T;
       Instr   : Decoded_Instr_T;
       Segment : Integer;

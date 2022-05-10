@@ -49,7 +49,7 @@ package body Processor.Eagle_Stack_P is
    end WS_Push;
 
    procedure Do_Eagle_Stack (I : Decoded_Instr_T; CPU : CPU_T) is
-      Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
+      Ring : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
       OK   : Boolean;
       DW, Primary_Fault, Secondary_Fault : Dword_T;
       QW : Qword_T;
@@ -111,7 +111,7 @@ package body Processor.Eagle_Stack_P is
       -- Is_Save must be set by WMSP, WSSVR, WSSVS, WSAVR & WSAVS
       procedure WSP_Check_Bounds (Instr : Instr_Mnemonic_T; Delta_Words : Integer; Is_Save : Boolean;
                                   OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
-         OOB_Buffer : Phys_Addr_T := Dwords_Reserved (Instr);
+         OOB_Buffer : constant Phys_Addr_T := Dwords_Reserved (Instr);
       begin
          OK := true;
          -- see p.4-8 of 1988 PoP...
@@ -139,7 +139,7 @@ package body Processor.Eagle_Stack_P is
       end WSP_Check_Bounds;
 
       procedure WSP_Check_Overflow (Instr : Instr_Mnemonic_T; OK : out boolean; Primary_Fault, Secondary_Fault : out Dword_T) is
-         OOB_Buffer : Phys_Addr_T := Dwords_Reserved (Instr);
+         OOB_Buffer : constant Phys_Addr_T := Dwords_Reserved (Instr);
       begin
          OK := true;
          if CPU.WSP > (CPU.WSL - OOB_Buffer) then
@@ -221,8 +221,8 @@ package body Processor.Eagle_Stack_P is
             declare
                OK : Boolean;
                Primary_Fault, Secondary_Fault : Dword_T;
-               Ring : Phys_Addr_T := CPU.PC and 16#7000_0000#;
-               PC_4 : Dword_T := Dword_T(CPU.PC) + 4;
+               Ring : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
+               PC_4 : constant Dword_T := Dword_T(CPU.PC) + 4;
             begin
                Set_OVR (false);
                if I.Arg_Count >= 0 then
@@ -355,7 +355,7 @@ package body Processor.Eagle_Stack_P is
 
          when I_WMSP =>
             declare
-               DeltaWds : Integer := Integer(CPU.AC_I32(I.Ac)) * 2;
+               DeltaWds : constant Integer := Integer(CPU.AC_I32(I.Ac)) * 2;
             begin
                WSP_Check_Bounds (Instr => I_WMSP,
                                  Delta_Words => DeltaWds, 

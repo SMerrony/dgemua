@@ -38,8 +38,6 @@ with Ada.Direct_IO;
 
 with Interfaces;    use Interfaces;
 
-with DG_Types;      use DG_Types;
-
 package Devices.Disk6239 is
 
     -- Disk characteristics
@@ -198,29 +196,29 @@ package Devices.Disk6239 is
 	   Reads, Writes    : Unsigned_64;
     end record;
 
-    procedure Create_Blank (Image_Name : in String; OK : out Boolean);
+    procedure Create_Blank (Image_Name : String; OK : out Boolean);
 	-- Simply creates an empty disk file of the correct size for the disk6239 emulator to use
-    procedure Init (Debug_Logging : in Boolean);
+    procedure Init (Debug_Logging : Boolean);
 
     protected Drives is
-        procedure Data_In (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
+        procedure Data_In (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T);
         -- Data_In services the DIA/B/C I/O instructions
-        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
+        procedure Data_Out (Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T);
         -- Data_Out services the DOA/B/C I/O instructions
 		function  Get_Extended_Status_Size return Natural;
-		procedure Set_Debug_Logging (TF : in Boolean);
-		procedure Set_Status_Reg (Reg : in Stat_Reg_T; Contents : Word_T);
-		-- procedure Write_Sector (Buffer : in Sector);
+		procedure Set_Debug_Logging (TF : Boolean);
+		procedure Set_Status_Reg (Reg : Stat_Reg_T; Contents : Word_T);
+		-- procedure Write_Sector (Buffer : Sector);
         procedure Reset;
 
     private
-        function  Extract_PIO_Command (Wd : in Word_T) return Word_T;
-        procedure Handle_Flag (IO_Flag : in IO_Flag_T);
+        function  Extract_PIO_Command (Wd : Word_T) return Word_T;
+        procedure Handle_Flag (IO_Flag : IO_Flag_T);
         -- Handle the flag or Pulse
         procedure Do_PIO_Command;
-		-- procedure Process_CB_Chain (CB_Addr : in Phys_Addr_T);
+		-- procedure Process_CB_Chain (CB_Addr : Phys_Addr_T);
 
-		procedure Set_PIO_Status_Reg_C (Status, CCS : in Byte_T; Cmd_Echo : in Word_T; RR : in Boolean);
+		procedure Set_PIO_Status_Reg_C (Status, CCS : Byte_T; Cmd_Echo : Word_T; RR : Boolean);
         -- Set the SYNCHRONOUS standard refturn as per p.3-22
 
         State : State_Rec;
@@ -228,12 +226,12 @@ package Devices.Disk6239 is
     end Drives;
 
 	task CB_Processor is
-		entry Start (Debug_Logging : in Boolean);
-		entry Attach (Unit : in Natural; Image_Name : in String; OK : out Boolean);
-		entry Get_Stats (S : in out Status_Rec);
+		entry Start (Debug_Logging : Boolean);
+		entry Attach (Unit : Natural; Image_Name : String; OK : out Boolean);
+		entry Get_Stats (S : out Status_Rec);
 		entry Program_Load;
 		-- Read the 1st sector off the disk and put at the start of physical memory
-		entry Process (Start_CB_Addr : in Phys_Addr_T);
+		entry Process (Start_CB_Addr : Phys_Addr_T);
 	end CB_Processor;
 
     task Status_Sender is

@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright (c) 2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -31,13 +31,13 @@ with PARU_32;
 
 package body AOSVS.File_Management is
 
-    function Sys_CREATE (CPU : in out CPU_T; PID : in Word_T) return Boolean is
-        C_Name     : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
-        C_Path     : String := To_String(Agent.Actions.Get_Virtual_Root) &
+    function Sys_CREATE (CPU : CPU_T; PID : Word_T) return Boolean is
+        C_Name     : constant String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
+        C_Path     : constant String := To_String(Agent.Actions.Get_Virtual_Root) &
                                Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
                                ":" & C_Name); 
-        Pkt_Addr   : Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        File_Type  : Word_T := RAM.Read_Word (Pkt_Addr + PARU_32.CFTYP) and 16#00ff#;
+        Pkt_Addr   : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        File_Type  : constant Word_T := RAM.Read_Word (Pkt_Addr + PARU_32.CFTYP) and 16#00ff#;
         Err        : Word_T := 0;
     begin
         Loggers.Debug_Print (Sc_Log, "?CREATE - filename: " & C_Name & " Type No." & File_Type'Image);
@@ -45,7 +45,7 @@ package body AOSVS.File_Management is
         case File_Type is
             when PARU_32.FIPC =>
                 declare
-                   Local_Port : Word_T := RAM.Read_Word (Pkt_Addr + PARU_32.CPOR);
+                   Local_Port : constant Word_T := RAM.Read_Word (Pkt_Addr + PARU_32.CPOR);
                 begin
                    if Local_Port = 0 then
                       CPU.AC(0) := Dword_T(PARU_32.ERIVP);
@@ -63,7 +63,7 @@ package body AOSVS.File_Management is
         return true;
     end Sys_CREATE;
 
-    function Sys_DACL (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+    function Sys_DACL (CPU : CPU_T; PID : Word_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?DACL");
         if CPU.AC(0) /= 0 then
@@ -75,15 +75,15 @@ package body AOSVS.File_Management is
         return True;
     end Sys_DACL;
 
-    function Sys_DELETE (CPU : in out CPU_T; PID : in Word_T) return Boolean is
+    function Sys_DELETE (CPU : CPU_T; PID : Word_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?DELETE");
         if CPU.AC(0) = 0 then
             raise AOSVS.Agent.Not_Yet_Implemented with "?DELETE via channel";
         end if;
         declare
-            D_Name : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
-            D_Path : String := Agent.Actions.Get_Working_Directory(PID) & "/" & D_Name; 
+            D_Name : constant String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
+            D_Path : constant String := Agent.Actions.Get_Working_Directory(PID) & "/" & D_Name; 
         begin
             if not Ada.Directories.Exists(D_Path) then
                 CPU.AC(0) := Dword_T(PARU_32.ERFDE);
@@ -99,17 +99,17 @@ package body AOSVS.File_Management is
         return true;
     end Sys_DELETE;
 
-    function Sys_GNAME (CPU : in out CPU_T; PID : in Word_T) return Boolean is
-        In_Name_BA  : Dword_T := CPU.AC(0);
-        Out_Name_BA : Dword_T := CPU.AC(1);
-        Out_Buflen  : Natural := Natural(CPU.AC(2));
-        In_Name_Str : String  := RAM.Read_String_BA(In_Name_BA, false);
+    function Sys_GNAME (CPU : CPU_T; PID : Word_T) return Boolean is
+        In_Name_BA  : constant Dword_T := CPU.AC(0);
+        Out_Name_BA : constant Dword_T := CPU.AC(1);
+        Out_Buflen  : constant Natural := Natural(CPU.AC(2));
+        In_Name_Str : constant String  := RAM.Read_String_BA(In_Name_BA, false);
         Tmp_US      : Unbounded_String;
     begin
         Loggers.Debug_Print (Sc_Log, "?GNAME for: '" & In_Name_Str & "'");
         if In_Name_Str = "=" then
             declare
-               CWD : String := Colonify_Path (Agent.Actions.Get_Working_Directory (PID));
+               CWD : constant String := Colonify_Path (Agent.Actions.Get_Working_Directory (PID));
             begin
                if CWD'Length > Out_Buflen then
                   CPU.AC(0) := Dword_T(PARU_32.ERIRB);
@@ -146,9 +146,9 @@ package body AOSVS.File_Management is
         return true;
     end Sys_GNAME;
 
-    function Sys_RECREATE (CPU : in out CPU_T; PID : in Word_T) return Boolean is
-        R_Name : String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
-        R_Path : String := To_String(Agent.Actions.Get_Virtual_Root) &
+    function Sys_RECREATE (CPU : CPU_T; PID : Word_T) return Boolean is
+        R_Name : constant String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
+        R_Path : constant String := To_String(Agent.Actions.Get_Virtual_Root) &
                            Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
                            ":" & R_Name); 
         R_New  : Ada.Text_IO.File_Type;

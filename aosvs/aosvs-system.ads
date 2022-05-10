@@ -20,16 +20,15 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-with DG_Types;      use DG_Types;
 with Processor;     use Processor;
 
 package AOSVS.System is
 
-    function Sys_ERMSG  (CPU : in out CPU_T) return Boolean;
-    function Sys_EXEC   (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
-    function Sys_GDAY   (CPU : in out CPU_T) return Boolean;
-    function Sys_GTMES  (CPU : in out CPU_T; PID : in Word_T; TID : in Word_T) return Boolean;
-    function Sys_GTOD   (CPU : in out CPU_T) return Boolean;
-    function Sys_SINFO  (CPU : in out CPU_T) return Boolean;
+    function Sys_ERMSG  (CPU : CPU_T) return Boolean;
+    function Sys_EXEC   (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean;
+    function Sys_GDAY   (CPU : CPU_T) return Boolean;
+    function Sys_GTMES  (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean;
+    function Sys_GTOD   (CPU : CPU_T) return Boolean;
+    function Sys_SINFO  (CPU : CPU_T) return Boolean;
 
 end AOSVS.System;

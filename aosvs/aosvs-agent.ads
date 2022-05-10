@@ -23,8 +23,7 @@
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Direct_IO;
 with Ada.Strings.Hash;
-with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+-- with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 
 with GNAT.Sockets;
 
@@ -107,88 +106,88 @@ package AOSVS.Agent is
 		Equivalent_Keys => "=");
 
 	protected Actions is
-		procedure Init (Cons       : in GNAT.Sockets.Stream_Access;
-						Virt_Root  : in String);
+		procedure Init (Cons       : GNAT.Sockets.Stream_Access;
+						Virt_Root  : String);
 
 		-- Process and Task supporting subprograms...
 
-		procedure Allocate_PID (PR_Name         : in Unbounded_String;
-								Num_Invocation_Args : in Natural;
-								Invocation_Args : in Args_Arr;
-								Working_Dir     : in Unbounded_String;
-								Sixteen_Bit     : in Boolean;
-								Proc_Name       : in Unbounded_String;
-								User_Name       : in Unbounded_String;
+		procedure Allocate_PID (PR_Name         : Unbounded_String;
+								Num_Invocation_Args : Natural;
+								Invocation_Args : Args_Arr;
+								Working_Dir     : Unbounded_String;
+								Sixteen_Bit     : Boolean;
+								Proc_Name       : Unbounded_String;
+								User_Name       : Unbounded_String;
 								PID             : out PID_T);
-	    procedure Allocate_TID (PID : in PID_T; TID : out Word_T);
-		function Get_Proc_Name (PID : in PID_T) return String;
+	    procedure Allocate_TID (PID : PID_T; TID : out Word_T);
+		function Get_Proc_Name (PID : PID_T) return String;
 		function Get_Virtual_Root return Unbounded_String;
 
 		-- System Call supporting subprograms...
         -- file I/O...
-		procedure File_Open (PID     : in Word_T; 
-							 Path    : in String;
-							 Options, File_Type : in Word_T;
-							 Rec_Len : in Integer;
+		procedure File_Open (PID     : Word_T; 
+							 Path    : String;
+							 Options, File_Type : Word_T;
+							 Rec_Len : Integer;
 							 Chan_No : out Word_T;
 							 Err     : out Word_T);
-		procedure File_Close (Chan_No : in Natural; Err : out Word_T);
-		function  Get_Default_ACL (PID : in PID_T) return String;
-	    function  Get_Device_For_Channel(Chan_No : in Word_T) return Unbounded_String;
-		procedure File_Read (Chan_No : in Word_T;
+		procedure File_Close (Chan_No : Natural; Err : out Word_T);
+		function  Get_Default_ACL (PID : PID_T) return String;
+	    function  Get_Device_For_Channel(Chan_No : Word_T) return Unbounded_String;
+		procedure File_Read (Chan_No : Word_T;
                               Is_Extended,
                               Is_Absolute,
                               Is_Dynamic,
-                              Is_DataSens : in Boolean;
-                              Rec_Len     : in Integer;
-                              Bytes       : in out Byte_Arr_T;
+                              Is_DataSens : Boolean;
+                              Rec_Len     : Integer;
+                              Bytes       : out Byte_Arr_T;
                               Transferred : out Word_T;
                               Err         : out Word_T); 
-		procedure File_Write (Chan_No : in Word_T;
+		procedure File_Write (Chan_No : Word_T;
 							  Defaults,
 							  Is_Extended,
 							  Is_Absolute,
 							  Is_Dynamic,
-							  Is_DataSens : in Boolean;
-							  Rec_Len     : in Integer;
-							  Bytes_BA    : in Dword_T;
-							  Position    : in Integer;
+							  Is_DataSens : Boolean;
+							  Rec_Len     : Integer;
+							  Bytes_BA    : Dword_T;
+							  Position    : Integer;
 							  Transferred : out Word_T;
 							  Err         : out Word_T);
 		-- CLI environment...
-		function Get_Nth_Arg   (PID : in Word_T; Arg_Num : in Word_T) return Unbounded_String;
-		function Get_Num_Args  (PID : in Word_T) return Natural;
-		function Get_PR_Name   (PID : in Word_T) return Unbounded_String;
-		function Get_User_Name (PID : in Word_T) return Unbounded_String;
-		function Get_Working_Directory (PID : in Word_T) return String;
-		function Get_Superuser (PID : in Word_T) return Boolean;
-		procedure Set_Superuser (PID : in Word_T; SU : in Boolean);
+		function Get_Nth_Arg   (PID : Word_T; Arg_Num : Word_T) return Unbounded_String;
+		function Get_Num_Args  (PID : Word_T) return Natural;
+		function Get_PR_Name   (PID : Word_T) return Unbounded_String;
+		function Get_User_Name (PID : Word_T) return Unbounded_String;
+		function Get_Working_Directory (PID : Word_T) return String;
+		function Get_Superuser (PID : Word_T) return Boolean;
+		procedure Set_Superuser (PID : Word_T; SU : Boolean);
 
 		-- terminal I/O...
-		procedure Get_Default_Chars (Device : in Unbounded_String;
+		procedure Get_Default_Chars (Device : Unbounded_String;
 									 WD_1, WD_2, WD_3 : out Word_T);
-		procedure Get_Current_Chars (Device : in Unbounded_String;
+		procedure Get_Current_Chars (Device : Unbounded_String;
 									 WD_1, WD_2, WD_3 : out Word_T);
-		procedure Send_Msg (Dest_PID : in Word_T; Msg : in String; Send_PID : in Word_T);
+		procedure Send_Msg (Dest_PID : Word_T; Msg : String; Send_PID : Word_T);
 
 		-- IPCs...
-		procedure I_Lookup (PID : in Word_T; Filename : in String;
+		procedure I_Lookup (PID : Word_T; Filename : String;
 							Glob_Port : out Dword_T; 
 							F_Type : out Word_T;
 							Err    : out Word_T);
-		procedure I_Create (PID : in Word_T; Filename : in String; Local_Port : in Word_T;
+		procedure I_Create (PID : Word_T; Filename : String; Local_Port : Word_T;
 		                    Err : out Word_T);
 							
 		-- Shared Files...
-		procedure Shared_Open (PID : in PID_T; S_Path : in String; Read_Only : in Boolean;
+		procedure Shared_Open (PID : PID_T; S_Path : String; Read_Only : Boolean;
 							   Chan_No : out Word_T;
 							   Err     : out Word_T);
-		procedure Shared_Read (PID : in PID_T;
-							   Chan_No : in Natural;
-							   Base_Addr : in Phys_Addr_T;
-							   Num_Pages : in Natural;
-							   Start_Block : in Natural;
-							   Page_Arr    : in out Page_Arr_T;
+		procedure Shared_Read (PID : PID_T;
+							   Chan_No : Natural;
+							   Base_Addr : Phys_Addr_T;
+							   Num_Pages : Natural;
+							   Start_Block : Natural;
+							   Page_Arr    : out Page_Arr_T;
 							   Err         : out Word_T);
 
 	private
