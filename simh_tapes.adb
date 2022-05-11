@@ -91,9 +91,9 @@ package body Simh_Tapes is
       end if;
       -- read and discard 1 record
       declare
-         Rec : Mt_Rec(1..Natural(Hdr));
+         Dummy_Rec : Mt_Rec(1..Natural(Hdr));
       begin
-          Read_Record_Data (Img_Stream , Natural(Hdr), Rec);
+          Read_Record_Data (Img_Stream , Natural(Hdr), Dummy_Rec);
       end;
       -- check trailer
       Read_Meta_Data (Img_Stream , Trailer);

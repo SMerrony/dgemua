@@ -22,7 +22,7 @@
 
 with Ada.Command_Line;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Text_IO;
+with Ada.Text_IO;           use Ada.Text_IO;
 
 with GNAT.Ctrl_C;
 with GNAT.OS_Lib;
@@ -39,7 +39,7 @@ procedure VSEmua is
 
    Sem_Ver : constant String := "v0.0.0";
 
-   Debug_Logging : Boolean := True; -- FIXME
+   Debug_Logging : Boolean := True; 
    Log_Dir       : constant String  := "logs/";
    Console_Port  : constant GNAT.Sockets.Port_Type := 10_000;
 
@@ -85,16 +85,29 @@ begin
          Dir_Arg_Num := Arg_Num;       
       elsif Ada.Command_Line.Argument (Arg_num) = "-args" then
          Arg_Num := Arg_Num + 1;
-         Args_Arg_Num := Arg_Num;     
+         Args_Arg_Num := Arg_Num; 
+      elsif Ada.Command_Line.Argument (Arg_num) = "-fast" then
+         Debug_Logging := False;
       elsif Ada.Command_Line.Argument (Arg_num) = "-version" then
          Ada.Text_IO.Put_Line ("VS/Emua version " & Sem_Ver);
+         GNAT.OS_Lib.OS_Exit (0);
+      elsif Ada.Command_Line.Argument (Arg_num) = "-h" or Ada.Command_Line.Argument (Arg_num) = "-help" then   
+         Put_Line ("Usage: vsemua [-h|-help|-version] | -pr <pr_name> -root <virtual root dir> -dir <AOS/VS working dir> [-args ...] ");
+         Put_Line ("Where -h or -help prints this help");
+         Put_Line ("      -version    prints the version number and exits");
+         Put_Line ("      -pr         specifies the AOS/VS .PR file name");
+         Put_Line ("      -root       the local location of the virtual AOS/VS filesystem root");
+         Put_Line ("      -dir        the AOS/VS working directory");
+         Put_Line ("      -fast       deactivates detailled logging");
+         Put_Line ("      -args       any arguments to pass to the program");
+         Put_Line ("Eg. ./vsemua -pr SPIGOT.PR -root /home/steve/Ada/dgemua/FILESYSTEM -dir :SAMPLES");
          GNAT.OS_Lib.OS_Exit (0);
       end if;
       Arg_Num := Arg_Num + 1;
    end loop;
 
    if (PR_Arg_Num = 0) or (Root_Arg_Num = 0) or (Dir_Arg_Num = 0) then
-      Ada.Text_IO.Put_Line ("ERROR: You must specify -pr, -root, and -dir");
+      Put_Line ("ERROR: You must specify -pr, -root, and -dir");
       GNAT.OS_Lib.OS_Exit (0);
    end if;
 
@@ -108,12 +121,12 @@ begin
       -- we have a single argument...
       VS_Args_Arr(1) := To_Unbounded_String(Ada.Command_Line.Argument (Args_Arg_num));
       VS_Num_Args := 2;
-      Ada.Text_IO.Put_Line ("INFO: Program argument: " & To_String(VS_Args_Arr(1)));
+      Put_Line ("INFO: Program argument: " & To_String(VS_Args_Arr(1)));
    end if;
 
    GNAT.Ctrl_C.Install_Handler(Clean_Exit'Unrestricted_Access);
 
-   Ada.Text_IO.Put_Line ("INFO: Will not start until console connects...");
+   Put_Line ("INFO: Will not start until console connects...");
    GNAT.Sockets.Create_Socket (Socket => Receiver);
    GNAT.Sockets.Set_Socket_Option
      (Socket => Receiver, Level => GNAT.Sockets.Socket_Level,
@@ -128,13 +141,13 @@ begin
    GNAT.Sockets.Accept_Socket (Server => Receiver, Socket => Connection, Address => Client);
    Con_Stream := GNAT.Sockets.Stream (Connection);
    Put_String (Con_Stream, Dasher_NL & "Welcome to the VS/Emua AOS/VS Emulator" & Dasher_NL);
-   Ada.Text_IO.Put_Line ("INFO: Console connected from " & GNAT.Sockets.Image (Client));
+   Put_Line ("INFO: Console connected from " & GNAT.Sockets.Image (Client));
 
    Decoder.Init;
    RAM.Init (Debug_Logging);
 
    AOSVS.Agent.Actions.Init(Con_Stream, Ada.Command_Line.Argument (Root_Arg_num));
-   Ada.Text_IO.Put_Line ("INFO: Psuedo-AGENT initialised");
+   Put_Line ("INFO: Psuedo-AGENT initialised");
 
    AOSVS.Start (PR_Name   => Ada.Command_Line.Argument (PR_Arg_num),
                 Dir       => Ada.Command_Line.Argument (Dir_Arg_num),
