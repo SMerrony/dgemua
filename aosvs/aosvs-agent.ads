@@ -61,8 +61,8 @@ package AOSVS.Agent is
 		Equivalent_Keys => "=");
 
 	Default_Chars : constant Chars_Arr := (
-		PARU_32.CEB0, -- 8-col tabs, Form-feeds, default echoing
-		PARU_32.CULC or PARU_32.CDT2 or PARU_32.CDT3 or PARU_32.cfkt,  -- Upper and lower case, D200 style, wraparound, Fn keys are delimiters
+		PARU_32.CST or PARU_32.CEB0 or PARU_32.COTT, -- 8-col tabs, Form-feeds, default echoing
+		PARU_32.CULC or PARU_32.CRT3 or PARU_32.cfkt or PARU_32.CWRP,  -- Upper and lower case, D200 style, wraparound, Fn keys are delimiters
 		16#18_50# 	 -- 24x80 chars
 	);
 
@@ -88,7 +88,7 @@ package AOSVS.Agent is
 	   File_Direct : Direct_IO.File_Type;
 	   File_Shared : Block_IO.File_Type;
 	end record;
-	type Agent_Channel_Arr is array (0 .. 122) of Agent_Channel_T;
+	type Agent_Channel_Arr is array (1 .. 122) of Agent_Channel_T;
 
 	-- IPCs
 	type Agent_IPC_T is record

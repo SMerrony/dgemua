@@ -387,10 +387,10 @@ package PARU_32 is
 	IBLT : constant Phys_Addr_T := ENEL + 1; -- LENGTH OF EXTENDED PACKET
 
 	--  isti FLAGS: BIT DEFINITIONS
-	IPLB : constant Natural := 0; -- PACKET LENGTH BIT (0 : constant Natural :=> SHORT PACKET)
-	ICFB : constant Natural := 1; -- CHANGE FORMAT BIT (0 : constant Natural :=> DEFAULT)
+	IPLB : constant Natural := 0; -- PACKET LENGTH BIT (0 => SHORT PACKET)
+	ICFB : constant Natural := 1; -- CHANGE FORMAT BIT (0 => DEFAULT)
 	ICDM : constant Natural := 1; -- DUMP MODE BIT (ON close ONLY)
-	IPTB : constant Natural := 2; -- POSITIONING TYPE (0 : constant Natural :=> RELATIVE)
+	IPTB : constant Natural := 2; -- POSITIONING TYPE (0 => RELATIVE)
 	IBIB : constant Natural := 3; -- BINARY I-O
 	IFOB : constant Natural := 4; -- FORCE OUTPUT
 	IOEX : constant Natural := 5; -- EXCLUSIVE OPEN

@@ -75,9 +75,10 @@ The NADGUG library provides a good range of freely-available test targets...
 * We have the FORTRAN source for FOOBAR
 
 Error Codes to Look-Up...
-* 11381
-* 71199
-* 71683
-* 71692
-* 71697
+* 11381 - 0165?
+* 71199 - 037?
+* 71231 - 077?
+* 71683 - 3?
+* 71692 - 014?
+* 71697 - 021?
 

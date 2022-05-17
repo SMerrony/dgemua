@@ -68,9 +68,6 @@ package body AOSVS.Agent.Tasking is
       Task_Data.Debug_Logging := Logging;
 
       AOSVS.Agent.Actions.Allocate_TID (PID, TID);
-      if TID = 0 then
-         raise NO_MORE_TIDS with "PID: " & PID'Image;
-      end if;
       Task_Data.TID  := TID;
       Task_Data.UTID := 1; -- FIXME UTID vs. TID
       Loggers.Debug_Print (Sc_Log, "... got TID:" & TID'Image);
@@ -80,7 +77,7 @@ package body AOSVS.Agent.Tasking is
    end Create_Task;
 
    function Get_Unique_TID (PID : PID_T; TID : Word_T) return Word_T is
-      (TID);
+      (Shift_Left (Word_T(PID), 8) or TID);
 
    task body VS_Task is
       CPU          : Processor.CPU_T;

@@ -41,7 +41,8 @@ package body AOSVS.File_IO is
                                    Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
                                    ":" & Name)); 
     begin
-        Loggers.Debug_Print (Sc_Log, "?OPEN Pathname: " & Name); Loggers.Debug_Print (Debug_Log, "?OPEN Pathname: " & Name);
+        Loggers.Debug_Print (Sc_Log, "?OPEN Pathname: " & Name & " for PID:" & PID'Image & " TID:" & TID'Image); 
+        Loggers.Debug_Print (Debug_Log, "?OPEN Pathname: " & Name);
         Loggers.Debug_Print (Sc_Log, "----- Resolved to local file: " & Path);
         AOSVS.Agent.Actions.File_Open (PID, Path, File_Opts, File_Type, Rec_Len, Chan_No, Err);
         if Err /= 0 then
@@ -58,7 +59,7 @@ package body AOSVS.File_IO is
         Chan_No     : constant Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
         Err         : Word_T;
     begin
-        Loggers.Debug_Print (Sc_Log, "?CLOSE - Chan. No:" & Chan_No'Image);
+        Loggers.Debug_Print (Sc_Log, "?CLOSE - Chan. No:" & Chan_No'Image & " for PID:" & PID'Image & " TID:" & TID'Image);
         Loggers.Debug_Print (Debug_Log, "?CLOSE - Channel:" &Chan_No'Image);
         if Chan_No = 16#ffff# then
             Loggers.Debug_Print (Sc_Log, "------ Ignoring attempt to ?CLOSE -1");
@@ -89,7 +90,7 @@ package body AOSVS.File_IO is
         Position    : Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
         Txfrd, Err  : Word_T;
     begin
-        Loggers.Debug_Print (Sc_Log, "?READ - Channel:" &Chan_No'Image);
+        Loggers.Debug_Print (Sc_Log, "?READ - Channel:" &Chan_No'Image & " for PID:" & PID'Image & " TID:" & TID'Image);
         Loggers.Debug_Print (Debug_Log, "?READ - Channel:" &Chan_No'Image);
         if Defaults then
             Loggers.Debug_Print (Sc_Log, "------ Default Type from ?Open");
@@ -129,6 +130,7 @@ package body AOSVS.File_IO is
         Chan_No     : constant Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
         File_Spec   : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
         Defaults    : constant Boolean     := (File_Spec = 0);
+        Change_Fmt  : constant Boolean     := ((File_Spec and ICRF) /= 0);
         Is_Extd     : constant Boolean     := ((File_Spec and IPKL) /= 0);
         Is_Abs      : constant Boolean     := ((File_Spec and IPST) /= 0);
         Is_DataSens : constant Boolean     := ((File_Spec and 7) = RTDS); -- ((File_Spec and Word_T(RTDS)) /= 0);
@@ -139,10 +141,14 @@ package body AOSVS.File_IO is
         Txfrd, Err  : Word_T;
     begin
         if Logging then
-            Loggers.Debug_Print (Sc_Log, "?WRITE - Channel:" & Chan_No'Image);
+            Loggers.Debug_Print (Sc_Log, "?WRITE - Channel:" & Chan_No'Image & " for PID:" & PID'Image & " TID:" & TID'Image);
             Loggers.Debug_Print (Debug_Log, "?WRITE - Channel:" & Chan_No'Image);
-             if Defaults then
+            Loggers.Debug_Print (Sc_Log, "------ ?ISTI: " & Word_To_String (File_Spec, Binary, 16, true));
+            if Defaults then
                 Loggers.Debug_Print (Sc_Log, "------ Default Type from ?Open");
+            end if;
+            if Change_Fmt then
+                Loggers.Debug_Print (Sc_Log, "------ ?ICRF - Change Format!");
             end if;
             if Is_DataSens then
                 Loggers.Debug_Print (Sc_Log, "------ Data Sensitive");
@@ -186,12 +192,12 @@ package body AOSVS.File_IO is
     function Sys_GCHR (CPU : CPU_T; PID : Word_T) return Boolean is
         Device_Name  : Unbounded_String;
         Get_Defaults : constant Boolean := Test_DW_Bit (CPU.AC(1), 1);
-        WD_1, WD_2, WD_3 : Word_T;
-        Num_Chars    : constant Dword_T := Get_DW_Bits (CPU.AC(1), 28, 4);
+        WD_1, WD_2, WD_3 : Word_T := 0;
     begin
         Loggers.Debug_Print (Sc_Log, "?GCHR"); Loggers.Debug_Print (Debug_Log, "?GCHR");
         if Test_DW_Bit (CPU.AC(1), 0) then
            -- ACO should contain a channel number which should already be open
+           Loggers.Debug_Print (Sc_Log, "----- for channel no. " & CPU.AC(0)'Image);
            Device_Name := AOSVS.Agent.Actions.Get_Device_For_Channel(Lower_Word(CPU.AC(0)));
            if Device_Name = "***ERROR***" then
               CPU.AC(0) := Dword_T(ERICN); -- Illegal Channel No.

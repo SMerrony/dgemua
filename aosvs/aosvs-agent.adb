@@ -110,8 +110,7 @@ package body AOSVS.Agent is
                TID := Word_T(T);
                exit;
             end if;
-            -- exhausted, return 0 which is invalid
-            TID := 0;
+            raise NO_MORE_TIDS;
          end loop;
       end Allocate_TID;
 
@@ -139,11 +138,12 @@ package body AOSVS.Agent is
          -- Stream_File : Ada.Streams.Stream_IO.File_Type;
       begin
          Err := 0;
-         if Path = "@CONSOLE" then
-            Chan_Num := 0;
-         else
-            Chan_Num := Get_Free_Channel;
-         end if;
+         -- if Path = "@CONSOLE" then
+         --    Chan_Num := 0;
+         -- else
+         --    Chan_Num := Get_Free_Channel;
+         -- end if;
+         Chan_Num := Get_Free_Channel;
          Agent_Chans(Chan_Num).Opener_PID := 0; -- ensure set to zero so can be resused if open fails
          Agent_Chans(Chan_Num).Path := To_Unbounded_String (Path);
          Loggers.Debug_Print (Sc_Log,"----- ?ISTI: " & Word_To_String (Options, Binary, 16, true));

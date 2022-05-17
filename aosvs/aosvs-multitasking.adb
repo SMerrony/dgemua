@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright (c)2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ package body AOSVS.Multitasking is
     function Sys_IFPU (CPU : CPU_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?IFPU");
+        Loggers.Debug_Print (Debug_Log, "?IFPU");
         -- STUB
         return true;
     end Sys_IFPU;
@@ -37,6 +38,7 @@ package body AOSVS.Multitasking is
     function Sys_KILAD (CPU : CPU_T; PID : Word_T; Kill_Addr : out Phys_Addr_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?KILAD");
+        Loggers.Debug_Print (Debug_Log, "?KILAD");
         Kill_Addr := Phys_Addr_T(RAM.Read_Dword(Phys_Addr_T(CPU.AC(0))));
         return true;
     end Sys_KILAD;
@@ -53,6 +55,7 @@ package body AOSVS.Multitasking is
         Pkt_Addr : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
     begin
         Loggers.Debug_Print (Sc_Log, "?UIDSTAT");
+        Loggers.Debug_Print (Debug_Log, "?UIDSTAT");
         Loggers.Debug_Print (Sc_Log, "-------- Returning UTID: " & Word_To_String(Agent.Tasking.Get_Unique_TID(PID_T(PID), TID), Decimal, 2) &
             ", STID: " & Word_To_String(TID, Decimal, 2));
         if Req_TID /= 16#ffff_ffff# then
@@ -70,6 +73,7 @@ package body AOSVS.Multitasking is
         Secs      : constant Duration   := Duration(0.001) * Int_Delay;
     begin
         Loggers.Debug_Print (Sc_Log, "?WDELAY");
+        Loggers.Debug_Print (Debug_Log, "?WDELAY");
         delay Secs;
         return true;
     end Sys_WDELAY;

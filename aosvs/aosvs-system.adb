@@ -39,6 +39,7 @@ package body AOSVS.System is
         Default_Response : constant String := "UNKNOWN ERROR CODE " & CPU.AC(0)'Image;
     begin
         Loggers.Debug_Print (Sc_Log, "?ERMSG - Octal code: " & Dword_To_String (CPU.AC(0), Octal, 8));
+        Loggers.Debug_Print (Debug_Log, "?ERMSG - Octal code: " & Dword_To_String (CPU.AC(0), Octal, 8));
         if ERMES_Chan /= 255 then
             raise Not_Yet_Implemented with "Custom ERMES files";
         end if;
