@@ -66,7 +66,7 @@ package body Processor.Eclipse_Stack_P is
 
          when I_PSHJ =>
             Narrow_Stack.Push (Ring, DG_Types.Lower_Word(DWord_T(CPU.PC)) + 2);
-            Addr := (Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+            Addr := (Resolve_Eclipse_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
             CPU.PC := Addr;
             return; -- because PC has been set
 

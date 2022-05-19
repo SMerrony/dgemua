@@ -72,7 +72,7 @@ package body Processor.Eclipse_PC_P is
                Table_Start, Offset, Table_Entry,
                Low_Limit, High_Limit : Phys_Addr_T;
             begin
-               Table_Start := (Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+               Table_Start := (Resolve_Eclipse_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
                Offset     := Phys_Addr_T(CPU.AC(I.Ac));
                Low_Limit  := Phys_Addr_T(RAM.Read_Word(Table_Start - 2));
                High_Limit := Phys_Addr_T(RAM.Read_Word(Table_Start - 1));
@@ -95,11 +95,11 @@ package body Processor.Eclipse_PC_P is
             end;
 
          when I_EJMP =>
-            Addr := (Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+            Addr := (Resolve_Eclipse_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
             CPU.PC := Addr;
 
          when I_EJSR =>
-            Addr := (Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+            Addr := (Resolve_Eclipse_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
             CPU.AC(3) := Dword_T(CPU.PC) + 2;
             CPU.PC := Addr;
 

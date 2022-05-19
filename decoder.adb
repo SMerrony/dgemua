@@ -184,16 +184,24 @@ package body Decoder is
    end Decode_8bit_Disp;
 
    function Decode_15bit_Disp (D15 : Word_T; Mode : Mode_T) return Integer_16 is
+      -- on entry D15 is held in a Word_T (which is an Unsigned_16)
+      Disp : Integer_16;
    begin
       if Mode = Absolute then
-         return Integer_16 (D15 and 16#7fff#); -- zero extend
-      end if;
-      if (D15 and 16#4000#) /= 0 then
-         return Word_To_Integer_16 (D15 or 16#8000#); -- sign extend if negative
+         -- in this case, the displacement is handled as an unsigned 15-bit value
+         -- so we can just zero-extend it
+         Disp := Word_To_Integer_16 (D15 and 16#7fff#); -- zero extend
       else
-         return Word_To_Integer_16 (D15);
+         -- we are in one of the relative moded, the displacement must be
+         -- treated as a 15-bit SIGNED number
+         if (D15 and 16#4000#) = 16#4000# then -- check the 2nd bit
+            Disp := Word_To_Integer_16 (D15 or 16#8000#); -- sign extend 
+         else
+            Disp := Word_To_Integer_16 (D15 and 16#7fff#); -- zero extend
+         end if;
       end if;
-   end Decode_15bit_Disp; -- TODO Test/verify this
+      return Disp;
+   end Decode_15bit_Disp; 
 
    procedure Decode_16bit_Byte_Disp (D16 : Word_T; Disp_16 : out Integer_16; Lo_Byte : out Boolean) is
    begin

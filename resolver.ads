@@ -32,6 +32,12 @@ package Resolver is
                                 Indirect : Boolean; Mode : Mode_T;
                                 Disp15   : Integer_16)  return Phys_Addr_T;
 
+    function Resolve_Eclipse_15bit_Disp (CPU         : CPU_T;
+                                         Indirect    : Boolean; 
+                                         Mode        : Mode_T;
+                                         Disp15      : Integer_16;
+                                         Disp_Offset : Integer_32) return Phys_Addr_T; 
+                                         
     function Resolve_15bit_Disp (CPU         : CPU_T;
                                  Indirect    : Boolean; 
                                  Mode        : Mode_T;

@@ -73,6 +73,58 @@ package body Resolver is
         return Eff;
     end Resolve_8bit_Disp;
 
+    function Resolve_Eclipse_15bit_Disp (CPU        : CPU_T;
+                                Indirect    : Boolean; 
+                                Mode        : Mode_T;
+                                Disp15      : Integer_16;
+                                Disp_Offset : Integer_32) return Phys_Addr_T is
+        Eff    : Phys_Addr_T;
+        Ring   : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
+        Ind_Addr : Word_T;
+        Indirection_Level : Integer := 0;
+    begin
+        Loggers.Debug_Print (Debug_Log, "... Resolve_15 got - Indirect: "  & Indirect'Image &
+                                        ", Mode: " & Mode'Image &
+                                        ", Disp15:" & Disp15'Image &
+                                        "., Disp Offset:" & Disp_Offset'Image);
+        case Mode is
+        when Absolute =>
+            -- Just force to current ring
+            Eff := (Phys_Addr_T(Disp15) and 16#0000_7fff#) or Ring;
+        when PC =>
+            Eff := Integer_32_To_Phys(Phys_To_Integer_32(CPU.PC) + Integer_32(Disp15) + Disp_Offset);
+        when AC2 =>
+            Eff := Integer_32_To_Phys(CPU.AC_I32(2) + Integer_32(Disp15)) or Ring;
+        when AC3 =>
+            Eff := Integer_32_To_Phys(CPU.AC_I32(3) + Integer_32(Disp15)) or Ring;
+        end case;
+
+        if Indirect then
+            Loggers.Debug_Print (Debug_Log, "... Indirect addr resolving from : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
+
+            Ind_Addr := RAM.Read_Word (Eff);
+            while (Ind_Addr and 16#8000#) = 16#8000# loop
+                Indirection_Level := Indirection_Level + 1;
+                if Indirection_Level > 15 then
+                    raise Indirection_Failure with "Too many levels of indirection";
+                end if;
+                Ind_Addr := RAM.Read_Word (Phys_Addr_T(Ind_Addr and 16#7fff#) or Ring);
+                Loggers.Debug_Print (Debug_Log, "... Nested Indirect addr resolves to : " & Word_To_String (Ind_Addr, Octal, 11, true));
+            end loop;
+            Eff := Phys_Addr_T(Ind_Addr) or Ring;
+
+            Loggers.Debug_Print (Debug_Log, "... Indirect addr resolves to    : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
+        end if;
+
+        if not CPU.ATU then
+            -- constrain to 1st 32MB
+            Loggers.Debug_Print (Debug_Log, "... ATU is OFF so constrained to to 1st 32MB");
+            Eff := Eff and 16#01ff_ffff#;
+        end if;
+
+        return Eff;
+    end Resolve_Eclipse_15bit_Disp;
+
     function Resolve_15bit_Disp (CPU        : CPU_T;
                                 Indirect    : Boolean; 
                                 Mode        : Mode_T;
@@ -80,7 +132,6 @@ package body Resolver is
                                 Disp_Offset : Integer_32) return Phys_Addr_T is
         Eff    : Phys_Addr_T;
         Ring   : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
-        Disp32 : Integer_32;
         Ind_Addr : Dword_T;
         Indirection_Level : Integer := 0;
     begin
@@ -88,27 +139,23 @@ package body Resolver is
                                         ", Mode: " & Mode'Image &
                                         ", Disp15:" & Disp15'Image &
                                         "., Disp Offset:" & Disp_Offset'Image);
-        if Mode /= Absolute then
-            -- relative mode, sign-extend to 32-bits
-            Disp32 := Integer_32(Disp15); -- Disp15 is already sexted by decoder
-        end if;
         case Mode is
         when Absolute =>
-            -- Zero-extend to 28 bits, force to current ring
+            -- Just force to current ring
             Eff := (Phys_Addr_T(Disp15) and 16#0000_7fff#) or Ring;
         when PC =>
-            Eff := Integer_32_To_Phys(Integer_32(CPU.PC) + Disp32 + Disp_Offset);
+            Eff := Integer_32_To_Phys(Phys_To_Integer_32(CPU.PC) + Integer_32(Disp15) + Disp_Offset);
         when AC2 =>
-            Eff := Phys_Addr_T(CPU.AC_I32(2) + Disp32) or Ring;
+            Eff := Integer_32_To_Phys(CPU.AC_I32(2) + Integer_32(Disp15)) or Ring;
         when AC3 =>
-            Eff := Phys_Addr_T(CPU.AC_I32(3) + Disp32) or Ring;   
+            Eff := Integer_32_To_Phys(CPU.AC_I32(3) + Integer_32(Disp15)) or Ring;
         end case;
 
         if Indirect then
-            Eff := Eff or Ring;
-            Loggers.Debug_Print (Debug_Log, "... Indirect addr resolves from : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
+            Loggers.Debug_Print (Debug_Log, "... Indirect addr resolving from : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
+
             Ind_Addr := RAM.Read_Dword (Eff);
-            while (Ind_Addr and 16#8000_0000#) /= 0 loop
+            while (Ind_Addr and 16#8000_0000#) = 16#8000_0000# loop
                 Indirection_Level := Indirection_Level + 1;
                 if Indirection_Level > 15 then
                     raise Indirection_Failure with "Too many levels of indirection";
@@ -117,13 +164,13 @@ package body Resolver is
                 Loggers.Debug_Print (Debug_Log, "... Nested Indirect addr resolves to : " & Dword_To_String (Ind_Addr, Octal, 11, true));
             end loop;
             Eff := Phys_Addr_T(Ind_Addr) or Ring;
-            Loggers.Debug_Print (Debug_Log, "... Indirect addr resolves to   : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
-            Loggers.Debug_Print (Debug_Log, "... Which contains              : " & 
-                Word_To_String (WD => RAM.Read_Word (Eff), Base => Octal, Width => 9, Zero_Pad => False));
+
+            Loggers.Debug_Print (Debug_Log, "... Indirect addr resolves to    : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
         end if;
 
         if not CPU.ATU then
             -- constrain to 1st 32MB
+            Loggers.Debug_Print (Debug_Log, "... ATU is OFF so constrained to to 1st 32MB");
             Eff := Eff and 16#01ff_ffff#;
         end if;
 

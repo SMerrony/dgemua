@@ -181,15 +181,15 @@ package body Processor.Eclipse_Mem_Ref_P is
                end if;                  
             end;
          when I_ELDA =>
-            Addr := (Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+            Addr := (Resolve_Eclipse_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
             CPU.AC(I.Ac) := Dword_T(RAM.Read_Word(Addr));
 
          when I_ELEF =>
-            Addr := (Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+            Addr := (Resolve_Eclipse_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
             CPU.AC(I.Ac) := Dword_T(Addr);
 
          when I_ESTA =>
-            Addr := (Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
+            Addr := (Resolve_Eclipse_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset) and 16#7fff#) or Ring;
             RAM.Write_Word (Addr, CPU.AC_Wd(I.Ac));
 
          when I_LDB =>
