@@ -57,15 +57,6 @@ package body Processor is
       return CPU;
    end Make;
    
-   procedure Set_OVR (CPU : CPU_T; New_OVR : Boolean) is
-   begin
-      if New_OVR then
-         Set_W_Bit(CPU.PSR, 1);
-      else
-         Clear_W_Bit(CPU.PSR, 1);
-      end if;
-   end Set_OVR;
-
    procedure Reset (CPU : CPU_T) is
    begin
       CPU.PC := 0;
@@ -239,6 +230,24 @@ package body Processor is
          Clear_QW_Bit (CPU.FPSR, FPSR_Z);
       end if;
    end Set_Z;
+
+   procedure Set_OVK (CPU : CPU_T; New_OVK : Boolean) is
+   begin
+      if New_OVK then
+         Set_W_Bit(CPU.PSR, PSR_OVK);
+      else
+         Clear_W_Bit(CPU.PSR, PSR_OVK);
+      end if;
+   end Set_OVK;
+
+   procedure Set_OVR (CPU : CPU_T; New_OVR : Boolean) is
+      begin
+      if New_OVR then
+         Set_W_Bit(CPU.PSR, PSR_OVR);
+      else
+         Clear_W_Bit(CPU.PSR, PSR_OVR);
+      end if;
+   end Set_OVR;  
 
    procedure Run (CPU : CPU_T;
                   Disassemble : Boolean; 

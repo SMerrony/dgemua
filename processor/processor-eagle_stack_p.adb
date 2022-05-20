@@ -48,6 +48,22 @@ package body Processor.Eagle_Stack_P is
       end if;
    end WS_Push;
 
+   procedure WS_Pop_QW (CPU : CPU_T; QW : out Qword_T) is
+      RHS, LHS : Dword_T;
+   begin
+      WS_Pop(CPU,RHS);
+      WS_Pop(CPU,LHS);
+      QW := Shift_Left(Qword_T(LHS), 32) or Qword_T(RHS);
+   end WS_Pop_QW;
+
+   procedure WS_Push_QW (CPU : CPU_T; Datum : Qword_T) is
+   begin
+      CPU.WSP := CPU.WSP + 2;
+      RAM.Write_Dword (CPU.WSP, Dword_T( Shift_Right (Datum, 32)));
+      CPU.WSP := CPU.WSP + 2;
+      RAM.Write_Dword (CPU.WSP, Dword_T(Datum));
+   end WS_Push_QW;
+
    procedure Do_Eagle_Stack (I : Decoded_Instr_T; CPU : CPU_T) is
       Ring : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
       OK   : Boolean;
@@ -58,39 +74,6 @@ package body Processor.Eagle_Stack_P is
       Addr : Phys_Addr_T;
 
       -- Wide Stack Helper subprograms...
-      procedure Set_OVK (New_OVK : Boolean) is
-      begin
-        if New_OVK then
-            Set_W_Bit(CPU.PSR, 0);
-        else
-            Clear_W_Bit(CPU.PSR, 0);
-        end if;
-      end Set_OVK;
-
-      procedure Set_OVR (New_OVR : Boolean) is
-      begin
-        if New_OVR then
-            Set_W_Bit(CPU.PSR, 1);
-        else
-            Clear_W_Bit(CPU.PSR, 1);
-        end if;
-      end Set_OVR;
-
-      procedure WS_Pop_QW (QW : out Qword_T) is
-         RHS, LHS : Dword_T;
-      begin
-         WS_Pop(CPU,RHS);
-         WS_Pop(CPU,LHS);
-         QW := Shift_Left(Qword_T(LHS), 32) or Qword_T(RHS);
-      end WS_Pop_QW;
-
-      procedure WS_Push_QW (Datum : Qword_T) is
-      begin
-         CPU.WSP := CPU.WSP + 2;
-         RAM.Write_Dword (CPU.WSP, Dword_T( Shift_Right (Datum, 32)));
-         CPU.WSP := CPU.WSP + 2;
-         RAM.Write_Dword (CPU.WSP, Dword_T(Datum));
-      end WS_Push_QW;
 
       function Dwords_Reserved (Instr : Instr_Mnemonic_T) return Phys_Addr_T is
          DW_Buffer : Phys_Addr_T;
@@ -224,7 +207,7 @@ package body Processor.Eagle_Stack_P is
                Ring : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
                PC_4 : constant Dword_T := Dword_T(CPU.PC) + 4;
             begin
-               Set_OVR (false);
+               Set_OVR (CPU, false);
                if I.Arg_Count >= 0 then
                   DW := Dword_T(I.Arg_Count) and 16#0000_ffff#;
                else
@@ -251,24 +234,24 @@ package body Processor.Eagle_Stack_P is
 
          when I_LDAFP =>
             CPU.AC(I.Ac) := Dword_T(CPU.WFP);
-            Set_OVR (false);
+            Set_OVR (CPU, false);
          when I_LDASB =>
             CPU.AC(I.Ac) := Dword_T(CPU.WSB);
-            Set_OVR (false); 
+            Set_OVR (CPU, false); 
          when I_LDASL =>
             CPU.AC(I.Ac) := Dword_T(CPU.WSL);
-            Set_OVR (false);
+            Set_OVR (CPU, false);
          when I_LDASP =>
             CPU.AC(I.Ac) := Dword_T(CPU.WSP);
-            Set_OVR (false); 
+            Set_OVR (CPU, false); 
          when I_LDATS =>
             CPU.AC(I.Ac) := RAM.Read_Dword (CPU.WSP);
-            Set_OVR (false);
+            Set_OVR (CPU, false);
 
          when I_LPEF =>
                Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
                WS_Push (CPU, Dword_T(Addr));
-               Set_OVR (false);
+               Set_OVR (CPU, false);
                WSP_Check_Overflow (
                   I_LPEF,
                   OK => OK, 
@@ -288,7 +271,7 @@ package body Processor.Eagle_Stack_P is
                Addr := Addr + 1;
             end if;
             WS_Push (CPU, Dword_T(Addr));
-            Set_OVR (false);
+            Set_OVR (CPU, false);
             WSP_Check_Overflow ( I_LPEFB, OK => OK, Primary_Fault => Primary_Fault, Secondary_Fault => Secondary_Fault);
             if not OK then
                Loggers.Debug_Print(Debug_Log, "Stack Fault trapped by LPEFB");
@@ -300,34 +283,34 @@ package body Processor.Eagle_Stack_P is
             -- TODO Segment handling here?
             CPU.WFP := Phys_Addr_T(CPU.AC(I.Ac));
             -- according the PoP does not write through to page zero...
-            Set_OVR (false);
+            Set_OVR (CPU, false);
          
          when I_STASB =>
             CPU.WSB := Phys_Addr_T(CPU.AC(I.Ac));
             RAM.Write_Dword (Ring or WSB_Loc, CPU.AC(I.Ac));
-            Set_OVR (false);
+            Set_OVR (CPU, false);
 
          when I_STASL =>
             CPU.WSL := Phys_Addr_T(CPU.AC(I.Ac));
             RAM.Write_Dword (Ring or WSL_Loc, CPU.AC(I.Ac));
-            Set_OVR (false);
+            Set_OVR (CPU, false);
 
          when I_STASP =>
             -- TODO Segment handling here?
             CPU.WSP := Phys_Addr_T(CPU.AC(I.Ac));
             -- according the PoP does not write through to page zero...
-            Set_OVR (false);
+            Set_OVR (CPU, false);
 
          when I_STATS =>
             RAM.Write_Dword (CPU.WSP, CPU.AC(I.Ac));
-            Set_OVR (false);
+            Set_OVR (CPU, false);
 
          when I_WFPOP =>
-            WS_Pop_QW (QW);   CPU.FPAC(3) := Long_Float(QW);
-            WS_Pop_QW (QW);   CPU.FPAC(2) := Long_Float(QW);
-            WS_Pop_QW (QW);   CPU.FPAC(1) := Long_Float(QW);
-            WS_Pop_QW (QW);   CPU.FPAC(0) := Long_Float(QW);
-            WS_Pop_QW (QW);
+            WS_Pop_QW (CPU, QW);   CPU.FPAC(3) := Long_Float(QW);
+            WS_Pop_QW (CPU, QW);   CPU.FPAC(2) := Long_Float(QW);
+            WS_Pop_QW (CPU, QW);   CPU.FPAC(1) := Long_Float(QW);
+            WS_Pop_QW (CPU, QW);   CPU.FPAC(0) := Long_Float(QW);
+            WS_Pop_QW (CPU, QW);
             -- CPU.FPSR := 0;
             CPU.FPSR := QW and 16#7ff0_0000_0000_0000#; -- copy bits 1..11
             if (QW and 16#7800_0000_0000_0000#)  /= 0 then
@@ -337,11 +320,11 @@ package body Processor.Eagle_Stack_P is
             end if;
 
          when I_WFPSH =>
-            WS_Push_QW (CPU.FPSR); -- TODO Is this right?
-            WS_Push_QW (Qword_T(CPU.FPAC(0))); -- FIXME WRONG!
-            WS_Push_QW (Qword_T(CPU.FPAC(1)));
-            WS_Push_QW (Qword_T(CPU.FPAC(2)));
-            WS_Push_QW (Qword_T(CPU.FPAC(3)));
+            WS_Push_QW (CPU, CPU.FPSR); -- TODO Is this right?
+            WS_Push_QW (CPU, Qword_T(CPU.FPAC(0))); -- FIXME WRONG!
+            WS_Push_QW (CPU, Qword_T(CPU.FPAC(1)));
+            WS_Push_QW (CPU, Qword_T(CPU.FPAC(2)));
+            WS_Push_QW (CPU, Qword_T(CPU.FPAC(3)));
             WSP_Check_Overflow ( 
                            I_WFPSH,
                            OK => OK, 
@@ -369,7 +352,7 @@ package body Processor.Eagle_Stack_P is
                   Have_Set_PC := true; -- We have set the PC
                else
                   CPU.WSP := CPU.WSP + Phys_Addr_T(DeltaWds);
-                  Set_OVR (false);
+                  Set_OVR (CPU, false);
                end if;
             end;
 
@@ -416,7 +399,7 @@ package body Processor.Eagle_Stack_P is
                end if;   
                WS_Push (CPU, CPU.AC(AC_Circle(This_AC)));
             end loop;
-            Set_OVR (false);
+            Set_OVR (CPU, false);
             WSP_Check_Overflow ( 
                            I_WPSH,
                            OK => OK, 
@@ -471,9 +454,9 @@ package body Processor.Eagle_Stack_P is
                   CPU.WSP := CPU.WSP + Phys_Addr_T(Req_Space * 2);
                end if;
                if I.Instruction = I_WSAVR then
-                  Set_OVK (false);
+                  Set_OVK (CPU, false);
                else
-                  Set_OVK (true);
+                  Set_OVK (CPU, true);
                end if;
             end if;
 
@@ -507,18 +490,18 @@ package body Processor.Eagle_Stack_P is
                   CPU.WSP := CPU.WSP + Phys_Addr_T(Req_Space * 2);
                end if;
                if I.Instruction = I_WSSVR then
-                  Set_OVK(false);
-                  Set_OVR(false);
+                  Set_OVK (CPU, false);
+                  Set_OVR (CPU, false);
                else
-                  Set_OVK(true);
-                  Set_OVR(false);
+                  Set_OVK (CPU, true);
+                  Set_OVR (CPU, false);
                end if;
             end if;
 
          when I_XPEF =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             WS_Push (CPU, Dword_T(Addr));
-            Set_OVR (false);
+            Set_OVR (CPU, false);
             WSP_Check_Overflow ( 
                            I_XPEF,
                            OK => OK, 
@@ -537,7 +520,7 @@ package body Processor.Eagle_Stack_P is
                Addr := Addr + 1;
             end if;
             WS_Push (CPU, Dword_T(Addr));
-            Set_OVR (false);
+            Set_OVR (CPU, false);
             WSP_Check_Overflow ( 
                            I_XPEFB,
                            OK => OK, 

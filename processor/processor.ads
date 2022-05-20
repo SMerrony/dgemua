@@ -151,6 +151,8 @@ package Processor is
    procedure Set_Z          (CPU : CPU_T; Z : Boolean);
    function  Get_N          (CPU : CPU_T) return Boolean;
    function  Get_Z          (CPU : CPU_T) return Boolean;
+   procedure Set_OVK        (CPU : CPU_T; New_OVK : Boolean);
+   procedure Set_OVR        (CPU : CPU_T; New_OVR : Boolean);
 
    Status_Period_S : constant Duration := 1.0;
 
