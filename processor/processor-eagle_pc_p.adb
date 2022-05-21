@@ -24,6 +24,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with Debug_Logs;  use Debug_Logs;
 with Memory;      use Memory;
+with Processor.Eagle_Stack_P;   use Processor.Eagle_Stack_P;
 with Resolver;    use Resolver;
 
 package body Processor.Eagle_PC_P is 
@@ -36,21 +37,6 @@ package body Processor.Eagle_PC_P is
          S32_S, S32_D : Integer_32;
          Bit_Num : Natural;
          
-         procedure WS_Push (Datum : Dword_T) is
-         begin
-            CPU.WSP := CPU.WSP + 2;
-            RAM.Write_Dword (CPU.WSP, Datum);
-         end WS_Push;
-
-         procedure Set_OVR (New_OVR : Boolean) is
-         begin
-         if New_OVR then
-               Set_W_Bit(CPU.PSR, 1);
-         else
-               Clear_W_Bit(CPU.PSR, 1);
-         end if;
-         end Set_OVR;
-
    begin
       case I.Instruction is
 
@@ -65,7 +51,7 @@ package body Processor.Eagle_PC_P is
                end if;
                RAM.Write_Dword (CPU.WSP, Integer_32_To_Dword(S32));
                Loggers.Debug_Print(Debug_Log, "... @WSP now: " & Dword_To_String (RAM.Read_Dword(CPU.WSP), Octal, 11, true));
-               Set_OVR (false);
+               Set_OVR (CPU, false);
                if S32 = 0 then
                   CPU.PC := CPU.PC + 2;
                else
@@ -131,7 +117,7 @@ package body Processor.Eagle_PC_P is
             end if;  
 
          when I_LPSHJ =>
-            WS_Push (Dword_T(CPU.PC) + 3);
+            WS_Push (CPU, Dword_T(CPU.PC) + 3);
             CPU.PC := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
 
          when I_LWDO => 
@@ -245,14 +231,15 @@ package body Processor.Eagle_PC_P is
             end if;
             
          when I_WSEQI | I_WSGTI | I_WSLEI | I_WSNEI =>
+            S32_S := Dword_To_Integer_32(Sext_Word_To_Dword (I.Word_2));
             if I.Instruction = I_WSEQI then
-               Skip := CPU.AC(I.Ac) = Sext_Word_To_Dword (I.Word_2);
+               Skip := CPU.AC_I32(I.Ac) = S32_S;
             elsif I.Instruction = I_WSGTI then
-               Skip := CPU.AC_I32(I.Ac) >= Dword_To_Integer_32(Sext_Word_To_Dword (I.Word_2));
+               Skip := CPU.AC_I32(I.Ac) >= S32_S;
             elsif I.Instruction = I_WSLEI then
-               Skip := CPU.AC_I32(I.Ac) <= Dword_To_Integer_32(Sext_Word_To_Dword (I.Word_2));
+               Skip := CPU.AC_I32(I.Ac) <= S32_S;
             else
-               Skip := CPU.AC(I.Ac) /= Sext_Word_To_Dword (I.Word_2);
+               Skip := CPU.AC_I32(I.Ac) /= S32_S;
             end if;
             if Skip then
                CPU.PC := CPU.PC + 3;
@@ -364,7 +351,7 @@ package body Processor.Eagle_PC_P is
             else
                DW := Dword_T(I.Arg_Count) and 16#0000_7fff#;
             end if;
-            WS_Push (DW);
+            WS_Push (CPU, DW);
             CPU.PC := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             CPU.AC(3) := Dword_T(Addr);
 

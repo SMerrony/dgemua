@@ -326,7 +326,8 @@ package body Decoder is
       Decoded.Word_1      := Opcode;
       Decoded.Instruction := Instr;
       Decoded.Mnemonic    := Instruction_Set (Instr).Mnemonic;
-      Decoded.Disassembly := Instruction_Set (Instr).Mnemonic;
+      Decoded.Disassembly := To_Unbounded_String (Word_To_String (WD => Opcode, Base => Binary, Width => 16, Zero_Pad => true)) &
+                             " " & Instruction_Set (Instr).Mnemonic;
       Decoded.Format      := Instruction_Set (Instr).Instr_Fmt;
       Decoded.Instr_Type  := Instruction_Set (Instr).Instr_Class;
       Decoded.Instr_Len   := Instruction_Set (Instr).Instr_Len;

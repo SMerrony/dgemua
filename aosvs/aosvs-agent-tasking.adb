@@ -192,6 +192,11 @@ package body AOSVS.Agent.Tasking is
             end if;
          else
             -- VRun has stopped, but we're not at a system call...
+            for I in I_Counts'Range loop
+               if I_Counts(I) > 0 then
+                  Ada.Text_IO.Put(I'Image & ASCII.HT & I_Counts(I)'Image & Dasher_NL);
+               end if;
+            end loop;
             exit;
          end if;
       end loop;
@@ -209,7 +214,11 @@ package body AOSVS.Agent.Tasking is
             Loggers.Debug_Logs_Dump ("logs/");
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message(E));
             Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-
+            for I in I_Counts'Range loop
+               if I_Counts(I) > 0 then
+                  Ada.Text_IO.Put(I'Image & ASCII.HT & I_Counts(I)'Image & Dasher_NL);
+               end if;
+            end loop;
    end VS_Task;
 
 end AOSVS.Agent.Tasking;

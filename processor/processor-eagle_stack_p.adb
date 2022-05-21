@@ -31,11 +31,11 @@ package body Processor.Eagle_Stack_P is
    procedure WS_Pop (CPU : CPU_T; DW : out Dword_T) is
    begin
       DW := RAM.Read_Dword (CPU.WSP);
-      CPU.WSP := CPU.WSP - 2;
       if CPU.Debug_Logging then
          Loggers.Debug_Print (Debug_Log, "... Popped " & Dword_To_String (DW, Octal, 11) &
-                                         " from: " & Dword_To_String (Dword_T(CPU.WSP + 2), Octal, 11));
+                                         " from: " & Dword_To_String (Dword_T(CPU.WSP), Octal, 11));
       end if;
+      CPU.WSP := CPU.WSP - 2;
    end WS_Pop;
 
    procedure WS_Push (CPU : CPU_T; DW : Dword_T) is
@@ -49,19 +49,19 @@ package body Processor.Eagle_Stack_P is
    end WS_Push;
 
    procedure WS_Pop_QW (CPU : CPU_T; QW : out Qword_T) is
-      RHS, LHS : Dword_T;
+      High_DW, Low_DW : Dword_T;
    begin
-      WS_Pop(CPU,RHS);
-      WS_Pop(CPU,LHS);
-      QW := Shift_Left(Qword_T(LHS), 32) or Qword_T(RHS);
+      WS_Pop (CPU, Low_DW);
+      WS_Pop (CPU, High_DW);
+      QW := Qword_From_Two_Dwords (High_DW, Low_DW);
    end WS_Pop_QW;
 
    procedure WS_Push_QW (CPU : CPU_T; Datum : Qword_T) is
+      High_DW : constant Dword_T := Upper_Dword (Datum);
+      Low_DW  : constant Dword_T := Lower_Dword (Datum);
    begin
-      CPU.WSP := CPU.WSP + 2;
-      RAM.Write_Dword (CPU.WSP, Dword_T( Shift_Right (Datum, 32)));
-      CPU.WSP := CPU.WSP + 2;
-      RAM.Write_Dword (CPU.WSP, Dword_T(Datum));
+      WS_Push (CPU, High_DW);
+      WS_Push (CPU, Low_DW);
    end WS_Push_QW;
 
    procedure Do_Eagle_Stack (I : Decoded_Instr_T; CPU : CPU_T) is
@@ -280,9 +280,9 @@ package body Processor.Eagle_Stack_P is
             end if;
 
          when I_STAFP =>
-            -- TODO Segment handling here?
             CPU.WFP := Phys_Addr_T(CPU.AC(I.Ac));
-            -- according the PoP does not write through to page zero...
+            -- FIXME according the PoP does not write through to page zero...
+            RAM.Write_Dword (Ring or WFP_Loc, CPU.AC(I.Ac));
             Set_OVR (CPU, false);
          
          when I_STASB =>
@@ -296,9 +296,9 @@ package body Processor.Eagle_Stack_P is
             Set_OVR (CPU, false);
 
          when I_STASP =>
-            -- TODO Segment handling here?
             CPU.WSP := Phys_Addr_T(CPU.AC(I.Ac));
-            -- according the PoP does not write through to page zero...
+            -- FIXME according the PoP does not write through to page zero...
+            RAM.Write_Dword (Ring or WSP_Loc, CPU.AC(I.Ac));
             Set_OVR (CPU, false);
 
          when I_STATS =>
@@ -320,8 +320,14 @@ package body Processor.Eagle_Stack_P is
             end if;
 
          when I_WFPSH =>
-            WS_Push_QW (CPU, CPU.FPSR); -- TODO Is this right?
-            WS_Push_QW (CPU, Qword_T(CPU.FPAC(0))); -- FIXME WRONG!
+            DW := Upper_Dword (CPU.FPSR) and 16#FFFF_0000#;
+            if Test_QW_Bit (CPU.FPSR, FPSR_Any) then
+               DW := DW or (Upper_Dword (CPU.FPSR) and 16#0000_000F#);
+            end if;
+            WS_Push (CPU, DW);
+            WS_Push (CPU, Lower_Dword (CPU.FPSR) and 16#7fff_ffff#);
+
+            WS_Push_QW (CPU, Qword_T(CPU.FPAC(0))); 
             WS_Push_QW (CPU, Qword_T(CPU.FPAC(1)));
             WS_Push_QW (CPU, Qword_T(CPU.FPAC(2)));
             WS_Push_QW (CPU, Qword_T(CPU.FPAC(3)));
@@ -411,7 +417,7 @@ package body Processor.Eagle_Stack_P is
                Have_Set_PC := true; -- We have set the PC
             end if;
           
-         when I_WRTN => -- FIXME: WRTN incomplete, handle PSR and Rings
+         when I_WRTN => 
             CPU.WSP := CPU.WFP;
             WS_Pop (CPU, DW);                  -- 1
             CPU.Carry := Test_DW_Bit (DW, 0);

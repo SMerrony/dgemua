@@ -155,10 +155,10 @@ package body Processor is
 
    function Get_Compact_Status (CPU : CPU_T; Radix : Number_Base_T) return String is
    begin
-      return "AC0=" & Dword_To_String (CPU.AC(0), Radix, 11, true) &
-               " AC1=" & Dword_To_String (CPU.AC(1), Radix, 11, true) &
-               " AC2=" & Dword_To_String (CPU.AC(2), Radix, 11, true) &
-               " AC3=" & Dword_To_String (CPU.AC(3), Radix, 11, true) &
+      return "0=" & Dword_To_String (CPU.AC(0), Radix, 11, true) &
+               " 1=" & Dword_To_String (CPU.AC(1), Radix, 11, true) &
+               " 2=" & Dword_To_String (CPU.AC(2), Radix, 11, true) &
+               " 3=" & Dword_To_String (CPU.AC(3), Radix, 11, true) &
                " C:" & Boolean_To_YN (CPU.Carry) &
                " I:" & Boolean_To_YN (CPU.ION) &
                " PC=" & Dword_To_String (Dword_T(CPU.PC), Radix, 11, true);

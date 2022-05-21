@@ -416,7 +416,6 @@ package body Processor.Eagle_Mem_Ref_P is
             RAM.Write_Dword (Addr, Integer_32_To_Dword(I32) and 16#0000_ffff#);
 
          when I_XNLDA =>
-            Loggers.Debug_Print (Debug_Log, "... Opcode 1: " & Word_To_String (WD => I.Word_1, Base => Binary, Width => 16, Zero_Pad => True));
             Loggers.Debug_Print (Debug_Log, "... Opcode 2: " & Word_To_String (WD => I.Word_2, Base => Binary, Width => 16, Zero_Pad => True));
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             I16_Mem := Word_To_Integer_16 (RAM.Read_Word (Addr));
