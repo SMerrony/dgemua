@@ -1,0 +1,7 @@
+Date Display
+
+   There are three dates associated with each file: the date of creation, the
+   date last accessed, and the date last modified. FILEMNGR only shows one of
+   these dates on the screen at a time. The date is displayed in the file
+   information section. The date can be changed by pressing Ctrl <F5>. This
+   will rotate the dates.

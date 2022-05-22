@@ -1,0 +1,9 @@
+Mark Files
+
+   Files can be marked so an operation can be performed on more than one file
+   at a time. <F6> will mark the current file and advance the current file
+   pointer to the next file. An asterisk (*) just to the left of the
+   filename indicates a file is marked. Shift <F6> or space will
+   unmark the current file. Operations capable of being performed on marked
+   files are copy, move, delete, and printing a list. See help on these
+   operations for details.

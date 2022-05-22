@@ -1,0 +1,22 @@
+
+                        SPACE INVADERS
+
+            /*\  10 points                ___
+            /#\  20 points              /_*_*_\
+            /@\  30 points
+                                    ???   (50-300)
+
+
+        commands:                                   fire
+                                                      |
+                                        single        V         single
+                                        step     --- --- ---    step
+ A: abort the game                      left  ->| 7 | 8 | 9 |<- right
+ R: redraw the screen                            --- --- ---
+ F: fire                                left  ->| 4 | 5 | 6 |<- right
+ C: push to CLI                                  --- --- ---
+ anything else: stop base's movement            | 1 | 2 | 3 |
+                                                 --- --- ---
+                                                |   0   | . |
+Hans Spiller, Westboro                           ------- ---
+617-366-8911 x3042

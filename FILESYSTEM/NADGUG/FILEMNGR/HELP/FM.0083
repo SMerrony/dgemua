@@ -1,0 +1,10 @@
+Sort File
+
+   When FILEMNGR is executed, the filenames are displayed in alphabetical
+   order by name. This order can be changed. The list of files can be sorted by
+   name, date created, date last accessed, date last modified, in decending
+   order by size. Pressing S will prompt the user for the method to sort
+   the files. If one of the dates is used for sorting, it will then become the
+   date displayed in the file information section. This date can be changed by
+   pressing Shift <F5>. Under the directory information is a message
+   telling how the file list is currently sorted.

@@ -1,0 +1,9 @@
+Retrieve Key Definition File
+
+   The function keys <F11> thru <F14> and programmable for quick execution
+   commonly used commands or command combination. These definitions can be
+   saved to a file for future use. Pressing Shift-<F10> will allow the
+   user to retrieve a previously saved key definition file. An initial key
+   definition file can also be specified when FILEMNGR is executed with the
+   /I=filename switch. If unsaved key definitions exist when the retrieve key
+   is used, the user will be asked to save the old definitions first.

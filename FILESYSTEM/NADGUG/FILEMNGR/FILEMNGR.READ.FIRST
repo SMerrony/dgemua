@@ -1,0 +1,37 @@
+   FILEMNGR is offered to the user community as a shareware program. It
+was written on an MV/8000 and (presumably) can be used only on AOS/VS. If you
+like this program and it is useful to you, send me $30.00 or whatever you think
+this program is worth. If you have suggestions, comments, enhancement ideas,
+questions, or ridicule, please feel free to drop me a line or give me a call.
+
+        Kim D. Geiger
+        P.O. Box 1030
+        Lindale, TX 75771
+
+        (214) 963-8671
+
+   The program is limited to 1500 files in a directory. If there are more than
+1500 files in the directory, it will only read in the first 1500. This is an
+arbitrary limitation and can be expanded if needed. Besides, if you have more
+than 1500 files in a directory, you should consider the performance impact of
+that number of files.
+
+FILEMNGR can be moved to any directory, but the help files (contained in the
+subdirectory HELP) need to be moved to :HELP.  Help files can be defined for
+the defined function keys.  The name of the help file for each function key
+would be FM.0XXX, XXX being the decimal value of the second code sent by the
+key plus 128.  For best results in creating new help files, follow the
+structure of the original help files.  For instructs on how to use the
+program, read the on-line help by pressing function key 3.
+
+FILEMNGR can be started with the macro FM.CLI.  Three switches are available:
+
+/I=filename will give the name of the initial defined keys file.
+
+/SUB will allow the user to only move into subdirectories of the initial
+    directory.
+
+/SEC will give the system manager a little rest from worrying what his users
+    will do next. It included the subdirectories only switch, totally disables
+    CTRL-F1 (go to shell or CLI), and prefixes all initial IPC messages with
+    'FM.'.

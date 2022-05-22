@@ -1,0 +1,7 @@
+Printing a List
+
+   Pressing the letter P will prompt the user for the name of the file
+   which will receive a list of all the files in the current directory. The
+   list will have the filename, file type, size, date created, date last
+   accessed, and date last modified. Ctrl-P will print a list of only
+   the marked files.

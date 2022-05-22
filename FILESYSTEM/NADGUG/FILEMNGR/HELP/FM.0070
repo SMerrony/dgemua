@@ -1,0 +1,5 @@
+Reread Files from Directory
+
+   Pressing the letter F will reread the names of the files of the
+   current directory into FILEMNGR. This is useful when other programs have
+   been run as subordinates of FILEMNGR and they have created new files.

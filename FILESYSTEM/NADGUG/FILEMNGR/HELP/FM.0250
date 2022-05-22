@@ -1,0 +1,5 @@
+Save Key Definitions
+
+   Pressing <F10> will prompt the user for the name of the file to which
+   to save the current key definitions. If the file already exists, the user
+   will be asked if overwrite is ok.

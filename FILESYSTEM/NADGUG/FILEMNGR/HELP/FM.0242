@@ -1,0 +1,10 @@
+Search
+
+   The search function allows you to search for a file by using all or part of
+   the filename. After hitting the search key, you will be asked for a 'string'
+   of characters for which to search. After typing your characters, hit <NL>
+   to begin the search. Search forward <F2> will start at the current file and
+   look forward for the string. Search backward Shift <F2> will start at the
+   current file and look backward for the string. If the string is found, the
+   filename is which the string is found becomes the current file. Otherwise,
+   the current file remains the same.

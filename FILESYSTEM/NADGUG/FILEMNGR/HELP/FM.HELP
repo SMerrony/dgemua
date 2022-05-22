@@ -1,0 +1,22 @@
+Help
+
+     Press any key to get information about the use of the key.
+
+Cursor keys & Home key                D - Delete File
+Ctrl <F1> - Go To Shell or CLI        Ctrl D - Delete Marked Files
+<C4> - Page Down                      I - Toggle File Info Display
+<C2> - Page Up                        R - Rename File
+<F6> - Mark File                      Shift <F6> or space - Unmark File
+Ctrl <F3> - Redisplay Screen          P or Shift <F7> - Print List of Files
+<F2> - Search                         Ctrl P - Print List of Marked Files
+Shift <F2> - Reverse Search           L - Look at Contents of File
+Shift <F5> - Switch Date              M - Move File to other Directory
+S - Sort Filenames                    Ctrl M - Move Marked Files
+Shift <F3> - Change Directory         C - Copy File to other Directory
+<F7> - Exit                           Ctrl C - Copy Marked Files
+<F10> - Save Key Definitions          X - Execute CLI with Initial IPC
+F - Reread Filenames From Directory   Ctrl <F10> - Define Programmable Keys
+Shift <F10> - Retrieve Key Definition File
+
+                  Press NEWLINE or Space Bar to exit Help.
+                       <ESC> for General Information

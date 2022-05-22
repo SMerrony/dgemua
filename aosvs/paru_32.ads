@@ -341,6 +341,14 @@ package PARU_32 is
 	USTEN : constant Word_T := USTPR + 8#021#; -- END OF USER UST
 	USTPL : constant Word_T := USTEN + 6;   -- PROGRAM LOCALITY
 
+	-- USTPR FLAGS
+	UST16 : constant Word_T := 16#8000#; 	-- 16 BIT PROGRAM TYPE
+	-- UST32 : constant Word_T := 0            ; 32 BIT PROGRAM TYPE
+
+	-- USTPA : constant Word_T := 0B15    ; PID SIZE TYPE 'SMALLPID' (<256)
+	-- USTPB : constant Word_T := 2B15    ; PID SIZE TYPE 'HYBRID' (<256)
+	-- USTPC : constant Word_T := 3B15    ; PID SIZE TYPE 'ANYPID' (>256)
+
 	--  LOGICAL RECORD FORMAT TYPES
 	ORDY : constant Word_T := 1; -- DYNAMIC
 	ORDS : constant Word_T := 2; -- DATA SENSITIVE

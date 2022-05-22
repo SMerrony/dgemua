@@ -1,0 +1,10 @@
+Change Directory
+
+   When FILEMNGR is first executed, the working directory is the directory
+   displayed on the screen (the current directory). The current directory can
+   be changed in one of two ways. Pressing Shift <F3> will allow you to change
+   the current directory. At the bottom of the screen, you will be asked for
+   the name of the new directory. The current directory can also be changed by
+   moving the cursor to the filename of a subdirectory or the parent directory
+   (bolded for easy location) and pressing the newline key. After confirmation,
+   the current directory will be changed to that directory.

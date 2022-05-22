@@ -1,0 +1,21 @@
+
+This is SERPENT, a new version of a previous game called SNAKE.   Its principal
+differences from SNAKE are:
+
+    (a)  it runs considerably faster, and
+    (b)  it has only one skill level so that competing players listed in
+         the log ("SERPENT_SCORERS") are compared at the same level.
+
+The  game is played by using the cursor control keys on the terminal to control
+the direction of motion of a snake which runs around on the screen.   The snake
+steadily grows longer, so that it becomes increasingly difficult to prevent the
+snake from colliding with itself  or with the  walls.   When that happens,  the
+game is over.
+
+The  object of  the game is  to accumulate points by running into targets which
+appear and disappear at random times and locations.  The targets may or may not
+be marked with their point values.  In the latter case a value may be negative,
+although the average of many such targets is positive.
+
+Should the screen get blitzed, it can be refreshed by pressing "erase page".
+

@@ -1,0 +1,10 @@
+Shell
+
+   FILEMNGR was written specifically to interface with Word Perfect
+   Corporation's office automation system WP Library (which is an excellent
+   system). FILEMNGR will interface with the shell menu in two ways. Pressing
+   Ctrl <F1> will take you directly to the shell menu (provided the program
+   was called through the shell). Pressing the home key and a letter will take
+   you directly to the program corresponding to the letter in the shell menu.
+   If you are not interfacing with WP Library, Ctrl <F1> will execute a CLI
+   process.  To exit CLI and return to FILEMNGR, just type bye.

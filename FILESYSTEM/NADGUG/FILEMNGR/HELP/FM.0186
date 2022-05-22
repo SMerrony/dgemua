@@ -1,0 +1,16 @@
+Define Programmable Keys
+
+   The function keys <F11> thru <F14> and programmable for quick execution
+   commonly used commands or command combination. These keys can be defined
+   by pressing Ctrl-<F10>, selecting the key to be defined, and giving the
+   text string definition. Any control character can be inserted into the
+   definition by coding it as an up arrow (^ or Shift-6) and an uppercase
+   letter. Thus, ^J would be a newline, ^M a carriage return, etc. These
+   programmable keys were designed primarily to be used in conjunction with
+   the execute CLI with initial IPC command. Some examples of key definitions
+   might be:
+
+        XTYPE %^J    Type the current file on the screen
+        XSED %^J     Call the current file into SED
+        XLOAD/V @MTC0:0^J F     Load files in from the tape drive and
+                                reread the filename into FILEMNGR

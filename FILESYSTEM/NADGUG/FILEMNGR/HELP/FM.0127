@@ -1,0 +1,17 @@
+Text Entry
+
+   For several operations (copy, change directory, move, rename, search), you
+   will be asked to enter some kind of text at the bottom of the screen. While
+   entering this text, there are several editing keys available for your use.
+
+If you type:                This will happen...
+
+[Right arrow]               Cursor moves to the right one character
+[Left arrow]                Cursor moves to the left one character
+[Home][Right arrow]         Cursor moves to the end of the text
+[Home][Left arrow]          Cursor moves to the beginning of the text
+[Erase EOL]                 Deletes everything from the cursor to the end
+                            of the text
+[Erase Page]                Deletes the whole text
+[Del]                       Deletes the character to the left of the cursor
+[C1]                        Deletes the character beneath the cursor

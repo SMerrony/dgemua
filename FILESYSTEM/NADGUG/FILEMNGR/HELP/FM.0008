@@ -1,0 +1,16 @@
+Cursor Movement
+
+   The file the cursor is currently resting on (the current file) is indicated
+   by the name of the file in reverse video or underlined. The cursor may be
+   moved through the list of files by several different methods.
+
+     If you type:                   The cursor will move to...
+
+[Home][Up arrow] or [C2]            The first file on the screen
+[Home][Down arrow] or [C4]          The last file on the screen
+[Home][Home][Up arrow]              The first file in the directory
+[Home][Home][Down arrow]            The last file in the directory
+[Right arrow]                       Right to left, top to bottom
+[Left arrow]                        Left to right, bottom to top
+[Up arrow]                          The previous file in the directory
+[Down arrow]                        The next file in the directory

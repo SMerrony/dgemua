@@ -77,7 +77,8 @@ package body AOSVS.Agent.Tasking is
    end Create_Task;
 
    function Get_Unique_TID (PID : PID_T; TID : Word_T) return Word_T is
-      (Shift_Left (Word_T(PID), 8) or TID);
+      -- (Shift_Left (Word_T(PID), 8) or TID);
+      ( 0 );
 
    task body VS_Task is
       CPU          : Processor.CPU_T;

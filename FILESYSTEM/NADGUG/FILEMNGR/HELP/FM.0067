@@ -1,0 +1,6 @@
+Copy
+
+   After hitting 'C', you will be asked for the destination directory and
+   the file will be copied (two copies--one in current directory and one in
+   destination directory) to the destination directory. Pressing Ctrl-C will
+   copy all of the marked files to the destination directory you specify.

@@ -1,0 +1,6 @@
+Move
+
+   After hitting 'M', you will be asked for the destination directory and
+   the file will be moved (copied to destination directory and deleted from 
+   current directory) to the destination directory. Pressing Ctrl-M will
+   move all of the marked files to the destination directory you specify.

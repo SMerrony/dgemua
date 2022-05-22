@@ -1,0 +1,8 @@
+Look
+
+   Shows the contents of the current file. The remainder of the file can be
+   seen by pressing the down arrow or page down (<C4> or home down arrow).
+   Only displayable characters will show up on the screen. Other characters
+   (non-displayable characters) will show up as a period. If the file being
+   looked at is a LNK type file, instead of the contents of the file being
+   displayed, the name of the file linked to will be shown.

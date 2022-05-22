@@ -1,0 +1,5 @@
+Unmark Files
+
+   Files marked with <F6> can be unmarked using the unmark feature.
+   An asterisk (*) just to the left of the filename indicates a file is
+   marked. Pressing Shift <F6> or space will unmark the current file.

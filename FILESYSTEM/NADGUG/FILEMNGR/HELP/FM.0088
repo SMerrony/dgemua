@@ -1,0 +1,8 @@
+Execute CLI with initial IPC
+
+   Pressing X will prompt the user for a string to be used as the initial
+   IPC message for CLI. When the string is entered, CLI will be executed with
+   the string as the initial IPC. The percent sign (%) is used as a place
+   holder for the name of the current file. The percent sign will be expanded
+   to the name of the current file before execution of CLI. Thus, the initial
+   IPC message 'X %' would execute the current file.

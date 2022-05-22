@@ -53,7 +53,10 @@ package AOSVS is
         Shared_Start_Block      : Dword_T; -- this seems to be a page #, not a block #
         Int_Addr                : Phys_Addr_T;
         Shared_Block_Count      : Word_T; -- this seems to be a page count, not blocks
-        PR_Type                 : Word_T;
+        Sixteen_Bit,
+        Small_PID,
+        Hybrid,
+        Any_PID                 : Boolean;
         Shared_Start_Page_In_PR : Dword_T;
     end record;
 

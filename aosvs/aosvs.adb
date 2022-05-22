@@ -103,10 +103,12 @@ package body AOSVS is
         Tmp_UST.Int_Addr         := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(Natural(UST + USTIT)), PR_Arr(Natural(UST + USTIT+1))));
         Tmp_UST.Shared_Block_Count := PR_Arr(Natural(UST + USTSZ));
         Tmp_UST.Shared_Start_Page_In_PR := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSH)), PR_Arr(Natural(UST + USTSH+1)));
-        Tmp_UST.PR_Type          := PR_Arr(Natural(UST + USTPR));
+        Tmp_UST.Sixteen_Bit      := (PR_Arr(Natural(UST + USTPR)) and UST16) = UST16;
+        -- TODO PID stuff
         Ada.Text_IO.Put_Line ("UST: Shared - start block: " & Dword_To_String(Tmp_UST.Shared_Start_Block, Hex, 8) &
                               ", # blocks: " & Dword_To_String(Dword_T(Tmp_UST.Shared_Block_Count), Hex, 8) &
-                              ", start page in .PR: " & Dword_To_String(Tmp_UST.Shared_Start_Page_In_PR, Hex, 8));
+                              ", start page in .PR: " & Dword_To_String(Tmp_UST.Shared_Start_Page_In_PR, Hex, 8) &
+                              ", program type is: " & (if Tmp_UST.Sixteen_Bit then "16-bit" else "32-bit"));
         return Tmp_UST;
     end Load_UST;
 
@@ -142,7 +144,6 @@ package body AOSVS is
                     Logging   : Boolean) is
         PR_Arr : constant Word_Arr_T := Read_Whole_File (PR_Name, Dir);
         PID    : PID_T;
-        Sixteen_Bit : Boolean;
         PR_UST   : UST_T;
         PR_Addrs : PR_Addrs_T;
         Segment_Base : Phys_Addr_T;
@@ -150,7 +151,6 @@ package body AOSVS is
     begin
         Ada.Text_IO.Put_Line ("INFO: Loaded PR file: " & PR_Name);
         PR_UST := Load_UST (PR_Arr);
-        Sixteen_Bit := Test_W_Bit (PR_UST.PR_Type, 0);
         for C in PR_Name'First .. PR_Name'Last loop
             if PR_Name(C) = '/' then
                 PR_Name_US := PR_Name_US & ":";
@@ -162,7 +162,7 @@ package body AOSVS is
                                           Arg_Count,
                                           Args,
                                           To_Unbounded_String(Dir),
-                                          Sixteen_Bit,
+                                          PR_UST.Sixteen_Bit,
                                           To_Unbounded_String("DUMMY"), -- fake proc name
                                           To_Unbounded_String("STEVE"), -- fake user name
                                           PID);
