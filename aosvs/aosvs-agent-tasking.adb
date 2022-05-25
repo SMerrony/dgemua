@@ -78,7 +78,7 @@ package body AOSVS.Agent.Tasking is
 
    function Get_Unique_TID (PID : PID_T; TID : Word_T) return Word_T is
       -- (Shift_Left (Word_T(PID), 8) or TID);
-      ( 0 );
+      ( 1 );
 
    task body VS_Task is
       CPU          : Processor.CPU_T;
@@ -106,8 +106,8 @@ package body AOSVS.Agent.Tasking is
          CPU.WSL  := TD.WSL;
          Adj_WSFH := (CPU.PC and 16#7000_0000#) or Memory.WSFH_Loc;
          RAM.Write_Word (Adj_WSFH, Word_T (TD.WSFH)); -- FIXME is this right???
-         Loggers.Debug_Print (Sc_Log, "Adjusted WSFH set to: " & Dword_To_String (Dword_T(Adj_WSFH), Hex, 8, true) &
-                                      " Containing: " &Dword_To_String (RAM.Read_Dword(Adj_WSFH), Hex, 8, true));
+         Loggers.Debug_Print (Sc_Log, "Adjusted WSFH set to: " & Dword_To_String (Dword_T(Adj_WSFH), Octal, 11, true) &
+                                      " Containing: " &Word_To_String (RAM.Read_Word(Adj_WSFH), Octal, 6, true));
          CPU.ATU := True;
          Set_Debug_Logging (CPU, TD.Debug_Logging);
          Task_Data := TD;
@@ -141,7 +141,7 @@ package body AOSVS.Agent.Tasking is
                when 8#063# => Syscall_OK := AOSVS.Sys_Memory.Sys_SOPEN (CPU, Task_Data.PID,Task_Data.TID);
                when 8#072# => Syscall_OK := AOSVS.Process.Sys_GUNM     (CPU, Task_Data.PID);
                when 8#073# => Syscall_OK := AOSVS.Sys_Memory.Sys_GSHPT(CPU, Task_Data.PID, Task_Data.Ring_Mask);
-               -- when 8#102# => Syscall_OK := AOSVS.File_Management.Sys_GLIST (CPU, Task_Data.PID);
+               when 8#102# => Syscall_OK := AOSVS.Process.Sys_GLIST (CPU, Task_Data.PID);
                when 8#111# => Syscall_OK := AOSVS.File_Management.Sys_GNAME (CPU, Task_Data.PID);
                when 8#113# => Syscall_OK := AOSVS.Process.Sys_SUSER (CPU, Task_Data.PID);
                when 8#116# => Syscall_OK := AOSVS.Process.Sys_PNAME (CPU, Task_Data.PID);
@@ -181,6 +181,7 @@ package body AOSVS.Agent.Tasking is
                when 8#525# => Syscall_OK := AOSVS.Multitasking.Sys_REC   (CPU, Task_Data.PID, Task_Data.TID);
                when 8#542# => Syscall_OK := AOSVS.Multitasking.Sys_IFPU  (CPU); 
                when 8#573# => Syscall_OK := AOSVS.Process.Sys_SYSPRV     (CPU, Task_Data.PID);
+               -- when 8#576# => Syscall_OK := ?XPSTAT
                when others =>
                   raise System_Call_Not_Implemented with "Octal call #:" & Word_To_String(Call_ID, Octal, 5);
             end case;

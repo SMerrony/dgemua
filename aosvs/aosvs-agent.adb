@@ -32,7 +32,7 @@ package body AOSVS.Agent is
    protected body Actions is
 
       function Get_Free_Channel return Natural is
-         Chan_No : Integer := 0;
+         Chan_No : Integer := -1;
       begin
          for C in Agent_Chans'Range loop
             if Agent_Chans(C).Opener_PID = 0 then
@@ -40,7 +40,7 @@ package body AOSVS.Agent is
                exit;
             end if;
          end loop;
-         if Chan_No = 0 then
+         if Chan_No = -1 then
             raise NO_MORE_CHANNELS;
          end if;
          return Natural(Chan_No);
@@ -56,7 +56,8 @@ package body AOSVS.Agent is
          Virtual_Root := To_Unbounded_String(Virt_Root);
          for C in Agent_Chans'Range loop
             if C < 2 then
-               Agent_Chans(C).Opener_PID := 3; -- fake chans 0 & 1 in use
+               -- Agent_Chans(C).Opener_PID := 3; -- fake chans 0 & 1 in use
+               NULL;
             else 
                Agent_Chans(C).Opener_PID := 0;
             end if;
@@ -85,6 +86,7 @@ package body AOSVS.Agent is
          Per_Process_Data(PID).Num_Invocation_Args := Num_Invocation_Args;
          Per_Process_Data(PID).Invocation_Args     := Invocation_Args;
          Per_Process_Data(PID).Working_Directory   := Working_Dir;
+         Per_Process_Data(PID).Searchlist          := Working_Dir & Dasher_Null & Dasher_Null;
          Per_Process_Data(PID).Sixteen_Bit         := Sixteen_Bit;
          Per_Process_Data(PID).Proc_Name           := Proc_Name;
          Per_Process_Data(PID).User_Name           := User_Name;
@@ -119,6 +121,9 @@ package body AOSVS.Agent is
 
        function Get_Virtual_Root return Unbounded_String is
          (Virtual_Root);
+
+      function Get_Searchlist (PID : PID_T) return Unbounded_String is
+			(Per_Process_Data(PID).Searchlist);   
    
       -- Sys Call Support below...
 
@@ -146,8 +151,8 @@ package body AOSVS.Agent is
          Chan_Num := Get_Free_Channel;
          Agent_Chans(Chan_Num).Opener_PID := 0; -- ensure set to zero so can be resused if open fails
          Agent_Chans(Chan_Num).Path := To_Unbounded_String (Path);
-         Loggers.Debug_Print (Sc_Log,"----- ?ISTI: " & Word_To_String (Options, Binary, 16, true));
-         Loggers.Debug_Print (Sc_Log,"----- ?ISTO: " & Word_To_String (File_Type, Binary, 16, true));
+         Loggers.Debug_Print (Sc_Log,"----- ?ISTI: " & Word_To_String (Options, Binary, 16, true) & " " & Word_To_String (Options, Octal, 6, true));
+         Loggers.Debug_Print (Sc_Log,"----- ?ISTO: " & Word_To_String (File_Type, Binary, 16, true) & " " & Word_To_String (File_Type, Octal, 6, true));
 
          -- parse creation options
          Create_If_Reqd  := Test_W_Bit (Options, PARU_32.OF1B);

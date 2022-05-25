@@ -1,0 +1,12 @@
+; position page next
+40 store-macro
+	1 forward-character
+	search-forward ""
+[end]
+bind-to-key execute-macro-40 FNu
+; position page prev
+39 store-macro
+	1 backward-character
+	search-reverse ""
+[end]
+bind-to-key execute-macro-39 FNt

@@ -33,7 +33,7 @@ DIx and DOx instructions to the BMC/DCH controller seem to be undocumented for t
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 17 Apr 2022
+* Last status update: 25 May 2022
   
 All of the following 32-bit sample programs copied from a physical machine are working...
 * HW.PR - Hello, World! (13 May 2021)
@@ -55,11 +55,11 @@ The NADGUG library provides a good range of freely-available test targets...
   | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | Same   :-/ | 
   | CHESS             | Prompts for settings but won't accept choice          | 17 Apr 2022 | Better :-) |
   | DND               | 'Error 71697. on file CONSOLE'                        | 28 Oct 2021 | Same   :-/ |
-  | EMPIRE            | 'Error 71683. on file FILE_IN'                        | 16 Apr 2022 | Worse  :-( |
+  | EMPIRE            | 'Error 71683. on file FILE_IN'                        | 16 Apr 2022 | Same   :-/ |
   | EMPIRE2T          | 'Error 71683. on file FILE_IN'                        | 22 Jun 2021 | Same   :-/ |
   | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 | Better :-) |
   | FISH              | Unimplemented sys call ?GLIST                         | 16 Apr 2022 | Same   :-/ |
-  | FOOBAR            | 'Error 11381. from line 15' maybe ?GCHR problem       | 28 Oct 2021 | Worse  :-( |
+  | FOOBAR            | 'ERROR 11357. from line 205                           | 25 May 2022 | Same   :-/ |
   | HANGMAN (IMSUTIL) | 'Error 71231' - maybe doesn't like ?UIDSTAT response  | 17 Apr 2022 | Better :-) | 
   | MMM               | 'Error 11381. from line...'                           | 16 Apr 2022 | Better :-) |
   | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | Better :-) |
@@ -73,6 +73,7 @@ The NADGUG library provides a good range of freely-available test targets...
 * ~~Check ?READ/WRITE/OPEN flag mode interpretation - it might be back-to-front~~
 * Is there an off-by-one in byte handling somewhere - could explain display glitches
 * We have the FORTRAN source for FOOBAR
+* For the moment, the initial searchlist is set to the working directory
 
 Error Codes to Look-Up...
 * 11381 - 0165?

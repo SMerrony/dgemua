@@ -42,6 +42,7 @@ package AOSVS.Agent is
         Num_Invocation_Args : Natural;
         Invocation_Args     : Args_Arr;
 		Working_Directory   : Unbounded_String;
+		Searchlist			: Unbounded_String;
         Sixteen_Bit         : Boolean;
         Proc_Name           : Unbounded_String;
 		User_Name           : Unbounded_String;
@@ -88,7 +89,7 @@ package AOSVS.Agent is
 	   File_Direct : Direct_IO.File_Type;
 	   File_Shared : Block_IO.File_Type;
 	end record;
-	type Agent_Channel_Arr is array (1 .. 122) of Agent_Channel_T;
+	type Agent_Channel_Arr is array (0 .. 122) of Agent_Channel_T;
 
 	-- IPCs
 	type Agent_IPC_T is record
@@ -160,6 +161,7 @@ package AOSVS.Agent is
 		function Get_PR_Name   (PID : Word_T) return Unbounded_String;
 		function Get_User_Name (PID : Word_T) return Unbounded_String;
 		function Get_Working_Directory (PID : Word_T) return String;
+		function Get_Searchlist (PID : PID_T) return Unbounded_String; 
 		function Get_Superuser (PID : Word_T) return Boolean;
 		procedure Set_Superuser (PID : Word_T; SU : Boolean);
 

@@ -1,0 +1,169 @@
+add-mode                 ^XM
+add-global-mode          M-M
+backward-character       ^B
+begin-macro              ^X(
+begining-of-file         M-<
+begining-of-line         ^A
+bind-to-key              M-K
+buffer-position          ^X=
+case-region-lower        ^X^L
+case-region-upper        ^X^U
+case-word-capitalize     M-C
+case-word-lower          M-L
+case-word-upper          M-U
+change-file-name         ^XN
+clear-and-redraw         ^L
+clear-message-line
+copy-region              M-W
+count-words              M-^C
+ctlx-prefix              ^X
+delete-blank-lines       ^X^O
+delete-buffer            ^XK
+                         FNx
+delete-mode              ^X^M
+delete-global-mode       M-^M
+delete-next-character    ^D
+delete-next-word         M-D
+delete-other-windows     ^X1
+                         FNt
+delete-previous-character^H
+                         
+delete-previous-word     M-^H
+                         M-
+delete-window            ^X0
+describe-bindings
+describe-key             ^X?
+end-macro                ^X)
+end-of-file              M->
+end-of-line              ^E
+exchange-point-and-mark  ^X^X
+                         FNs
+execute-buffer
+execute-command-line
+execute-file
+execute-macro            ^XE
+execute-macro-1
+execute-macro-2
+execute-macro-3
+execute-macro-4
+execute-macro-5
+execute-macro-6
+execute-macro-7
+execute-macro-8
+execute-macro-9
+execute-macro-10
+execute-macro-11
+execute-macro-12
+execute-macro-13
+execute-macro-14
+execute-macro-15
+execute-macro-16
+execute-macro-17
+execute-macro-18
+execute-macro-19
+execute-macro-20
+execute-macro-21
+execute-macro-22
+execute-macro-23
+execute-macro-24
+execute-macro-25
+execute-macro-26
+execute-macro-27
+execute-macro-28
+execute-macro-29
+execute-macro-30
+execute-macro-31
+execute-macro-32
+execute-macro-33
+execute-macro-34
+execute-macro-35
+execute-macro-36
+execute-macro-37
+execute-macro-38
+execute-macro-39
+execute-macro-40
+execute-named-command    M-X
+exit-emacs               ^X^C
+fill-paragraph           M-Q
+filter-buffer            ^X#
+find-file                ^X^F
+forward-character        ^F
+goto-line                M-G
+grow-window              ^X^
+                         ^XZ
+handle-tab               ^I
+hunt-forward
+hunt-backward
+help                     M-?
+i-shell                  ^XC
+incremental-search       ^XS
+insert-file              ^X^I
+insert-space             ^C
+insert-string
+kill-paragraph           M-^W
+kill-region              ^W
+kill-to-end-of-line      ^K
+list-buffers             ^X^B
+meta-prefix              ^]
+move-window-down         ^X^N
+move-window-up           ^X^P
+name-buffer              M-^N
+newline                  ^M
+newline-and-indent       ^J
+next-buffer              ^XX
+next-line                ^N
+next-page                ^V
+                         FNr
+next-paragraph           M-N
+                         FNb
+next-window              ^XO
+next-word                M-F
+open-line                ^O
+                         FNf
+pipe-command             ^X@
+previous-line            ^P
+previous-page            ^Z
+                         M-V
+                         FNq
+previous-paragraph       M-P
+                         FNa
+previous-window          ^XP
+previous-word            M-B
+query-replace-string     M-^R
+quick-exit               M-Z
+quote-character          ^Q
+read-file                ^X^R
+redraw-display           M-^L
+                         M-!
+resize-window            ^XW
+restore-window
+replace-string           M-R
+reverse-incremental-search^XR
+save-file                ^X^S
+save-window
+scroll-next-up           M-^Z
+scroll-next-down         M-^V
+search-forward           ^S
+                         FNv
+                         FNw
+search-reverse           ^R
+                         FNg
+select-buffer            ^XB
+set-fill-column          ^XF
+set-mark                 M- 
+                         M-.
+shell-command            ^X!
+shrink-window            ^X^Z
+split-current-window     ^X2
+                         FNu
+store-macro
+transpose-characters     ^T
+unbind-key               M-^K
+unmark-buffer            M-~
+update-screen
+view-file                ^X^V
+write-file               ^X^W
+write-message
+yank                     ^Y
+
+

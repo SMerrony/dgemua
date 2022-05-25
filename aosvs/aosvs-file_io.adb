@@ -50,6 +50,7 @@ package body AOSVS.File_IO is
             return false;
         end if;
         RAM.Write_Word(Pkt_Addr + ICH, Chan_No);
+        Dump_Packet (Pkt_Addr, IOSZ);
         Loggers.Debug_Print (Sc_Log, "----- Returned channel No. " & Chan_No'Image);
         return true;
     end Sys_OPEN;
@@ -143,7 +144,7 @@ package body AOSVS.File_IO is
         if Logging then
             Loggers.Debug_Print (Sc_Log, "?WRITE - Channel:" & Chan_No'Image & " for PID:" & PID'Image & " TID:" & TID'Image);
             Loggers.Debug_Print (Debug_Log, "?WRITE - Channel:" & Chan_No'Image);
-            Loggers.Debug_Print (Sc_Log, "------ ?ISTI: " & Word_To_String (File_Spec, Binary, 16, true));
+            Loggers.Debug_Print (Sc_Log, "------ ?ISTI: " & Word_To_String (File_Spec, Binary, 16, true) & " " & Word_To_String (File_Spec, Octal, 6, true));
             if Defaults then
                 Loggers.Debug_Print (Sc_Log, "------ Default Type from ?Open");
             end if;
@@ -182,7 +183,7 @@ package body AOSVS.File_IO is
             return false;
         end if;
         RAM.Write_Word(Pkt_Addr + IRLR, Txfrd);
-
+        Dump_Packet (Pkt_Addr, IOSZ);
         if Logging then
             Loggers.Debug_Print (Sc_Log, "------ Bytes Written:" & Txfrd'Image);
         end if;
@@ -195,26 +196,26 @@ package body AOSVS.File_IO is
         WD_1, WD_2, WD_3 : Word_T := 0;
     begin
         Loggers.Debug_Print (Sc_Log, "?GCHR"); Loggers.Debug_Print (Debug_Log, "?GCHR");
-        if Test_DW_Bit (CPU.AC(1), 0) then
-           -- ACO should contain a channel number which should already be open
-           Loggers.Debug_Print (Sc_Log, "----- for channel no. " & CPU.AC(0)'Image);
-           Device_Name := AOSVS.Agent.Actions.Get_Device_For_Channel(Lower_Word(CPU.AC(0)));
-           if Device_Name = "***ERROR***" then
-              CPU.AC(0) := Dword_T(ERICN); -- Illegal Channel No.
-              return false;
-           end if;
-        else
-           -- AC0 should be a BP to the target device name
-           Device_Name := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0), false));
-        end if;
-        Loggers.Debug_Print (Sc_Log, "----- for device: " & To_String(Device_Name));
-        if Get_Defaults then
-            Loggers.Debug_Print (Sc_Log, "----- Fetching Default characteristics");
-            AOSVS.Agent.Actions.Get_Default_Chars(Device_Name, WD_1, WD_2, WD_3);
-        else
-            Loggers.Debug_Print (Sc_Log, "----- Fetching Current characteristics");
-            AOSVS.Agent.Actions.Get_Current_Chars(Device_Name, WD_1, WD_2, WD_3);
-        end if;
+        -- if Test_DW_Bit (CPU.AC(1), 0) then
+        --    -- ACO should contain a channel number which should already be open
+        --    Loggers.Debug_Print (Sc_Log, "----- for channel no. " & CPU.AC(0)'Image);
+        --    Device_Name := AOSVS.Agent.Actions.Get_Device_For_Channel(Lower_Word(CPU.AC(0)));
+        --    if Device_Name = "***ERROR***" then
+        --       CPU.AC(0) := Dword_T(ERICN); -- Illegal Channel No.
+        --       return false;
+        --    end if;
+        -- else
+        --    -- AC0 should be a BP to the target device name
+        --    Device_Name := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0), false));
+        -- end if;
+        -- Loggers.Debug_Print (Sc_Log, "----- for device: " & To_String(Device_Name));
+        -- if Get_Defaults then
+        --     Loggers.Debug_Print (Sc_Log, "----- Fetching Default characteristics");
+        --     AOSVS.Agent.Actions.Get_Default_Chars(Device_Name, WD_1, WD_2, WD_3);
+        -- else
+        --     Loggers.Debug_Print (Sc_Log, "----- Fetching Current characteristics");
+        --     AOSVS.Agent.Actions.Get_Current_Chars(Device_Name, WD_1, WD_2, WD_3);
+        -- end if;
         Loggers.Debug_Print (Sc_Log, "----- Word 1: " & Word_To_String (WD_1, Binary, 16, True));
         Loggers.Debug_Print (Sc_Log, "----- Word 2: " & Word_To_String (WD_2, Binary, 16, True));
         Loggers.Debug_Print (Sc_Log, "----- Word 3: " & Word_To_String (WD_3, Binary, 16, True));

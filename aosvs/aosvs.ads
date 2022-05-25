@@ -56,7 +56,7 @@ package AOSVS is
         Sixteen_Bit,
         Small_PID,
         Hybrid,
-        Any_PID                 : Boolean;
+        Any_PID                 : Boolean := false;
         Shared_Start_Page_In_PR : Dword_T;
     end record;
 
@@ -81,9 +81,11 @@ package AOSVS is
     
     function Colonify_Path (In_Str : String) return String;
     function Slashify_Path (In_Str : String) return String; 
+    procedure Dump_Packet (Addr, Len : Phys_Addr_T);
 
     Invalid_PR_File,
     Invalid_Directory,
-    Not_Yet_Implemented : exception;
+    Not_Yet_Implemented,
+    Unknown_PID_Type      : exception;
 
 end AOSVS;

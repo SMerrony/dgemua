@@ -1,0 +1,27 @@
+  ccl emacs =ANSI.ob &
+  =BASIC.ob &
+  =BIND.ob &
+  =BUFFER.ob &
+  =DG10.ob &
+  =DGVT.ob &
+  =DISPLAY.ob &
+  =EXEC.ob &
+  =FILE.ob &
+  =FILEIO.ob &
+  =HP150.ob &
+  =IBMPC.ob &
+  =INPUT.ob &
+  =ISEARCH.ob &
+  =LINE.ob &
+  =LOCK.ob &
+  =RANDOM.ob &
+  =REGION.ob &
+  =SEARCH.ob &
+  =SPAWN.ob &
+  =TCAP.ob &
+  =TERMIO.ob &
+  =VMSVT.ob &
+  =VT52.ob &
+  =WINDOW.ob &
+  =WORD.ob
+acl emacs.pr toebes oware + re

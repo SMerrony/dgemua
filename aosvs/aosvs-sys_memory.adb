@@ -43,6 +43,7 @@ package body AOSVS.Sys_Memory is
 
    function Sys_MEM (CPU : CPU_T; PID : Word_T; TID : Word_T; Ring_Mask : Phys_Addr_T) return Boolean is
       I32 : constant Integer_32 := Integer_32(RAM.Get_First_Shared_Page) - Integer_32(RAM.Get_Last_Unshared_Page) - 4;
+      Max_Unsh_Addr : Phys_Addr_T;
    begin
       Loggers.Debug_Print (Debug_Log, "?MEM"); Loggers.Debug_Print (Sc_Log, "?MEM");
       -- No. Unshared Pages Available
@@ -50,15 +51,20 @@ package body AOSVS.Sys_Memory is
       -- No. Unshared Pages currently in use
       CPU.AC(1) := RAM.Get_Num_Unshared_Pages;
       -- Hignest Unshared addr in logical addr space 
-      CPU.AC(2) := ((RAM.Get_Last_Unshared_Page - 1) * Dword_T(Memory.Words_Per_Page)) or Dword_T(Ring_Mask); 
+      Max_Unsh_Addr := (Phys_Addr_T (Shift_Left (RAM.Get_Last_Unshared_Page + 1, 10)) - 1) or Ring_Mask;
+      CPU.AC(2) := Dword_T(Max_Unsh_Addr);
       return true;
    end Sys_MEM;
 
    function Sys_MEMI (CPU : CPU_T; PID : Word_T; TID : Word_T; Ring_Mask : Phys_Addr_T) return Boolean is
       Change : constant Integer_32 := Dword_To_Integer_32(CPU.AC(0));
       Last_Unshared : Dword_T := RAM.Get_Last_Unshared_Page;
+      Max_Unsh_Addr : Phys_Addr_T;
    begin
-      Loggers.Debug_Print (Debug_Log, "?MEMI"); Loggers.Debug_Print (Sc_Log, "?MEMI");
+      Loggers.Debug_Print (Debug_Log, "?MEMI" & Change'Image); 
+      Loggers.Debug_Print (Sc_Log, "?MEMI" & Change'Image);
+      Loggers.Debug_Print (Sc_Log, "----- Before: Last Unshared page: " &  Dword_To_String (RAM.Get_Last_Unshared_Page, Hex, 8) &
+                           " 1st shared page: " & Dword_To_String (RAM.Get_First_Shared_Page, Hex, 8));
       if Change > 0 then
          -- adding pages
          if Dword_T(Change) > (RAM.Get_First_Shared_Page - RAM.Get_Last_Unshared_Page) then
@@ -69,9 +75,14 @@ package body AOSVS.Sys_Memory is
          for P in 1 .. Integer(Change) loop
             Last_Unshared := Last_Unshared + 1;
             RAM.Map_Page (Natural(Last_Unshared), false);  
-            Loggers.Debug_Print (Sc_Log, "----- Mapped page : " & Dword_To_String (Last_Unshared, Hex, 8));
+            -- Loggers.Debug_Print (Sc_Log, "----- Mapped page : " & Dword_To_String (Last_Unshared, Hex, 8));
          end loop;
-         CPU.AC(1) := ((RAM.Get_Last_Unshared_Page * Dword_T(Memory.Words_Per_Page)) - 1) or Dword_T(Ring_Mask); 
+         Max_Unsh_Addr := (Phys_Addr_T (Shift_Left (RAM.Get_Last_Unshared_Page + 1, 10)) - 1) or Ring_Mask;
+         -- CPU.AC(1) := ((RAM.Get_Last_Unshared_Page * Dword_T(Memory.Words_Per_Page)) - 1) or Dword_T(Ring_Mask); 
+         CPU.AC(1) := Dword_T (Max_Unsh_Addr);
+         Loggers.Debug_Print (Sc_Log, "----- After:  Last Unshared page: " &  Dword_To_String (RAM.Get_Last_Unshared_Page, Hex, 8) &
+                           " 1st shared page: " & Dword_To_String (RAM.Get_First_Shared_Page, Hex, 8));
+         -- Loggers.Debug_Print (Sc_Log, "----- Mapped for addresses up to " & Dword_To_String (Dword_T(Max_Unsh_Addr), Octal, 11));                  
          Loggers.Debug_Print (Sc_Log, "----- Mapped for addresses up to " & Dword_To_String (CPU.AC(1), Octal, 11));
       elsif Change < 0 then
          -- removing pages

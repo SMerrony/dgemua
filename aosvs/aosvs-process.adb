@@ -35,6 +35,15 @@ package body AOSVS.Process is
         return True;
     end Sys_DADID;
 
+    function Sys_GLIST  (CPU : CPU_T; PID : Word_T) return Boolean is
+    begin
+        Loggers.Debug_Print (Sc_Log, "?GLIST");
+        Loggers.Debug_Print (Debug_Log, "?GLIST");
+        RAM.Write_String_BA (CPU.AC(1), To_String (AOSVS.Agent.Actions.Get_Searchlist (PID_T(PID))));
+        Loggers.Debug_Print (Sc_Log, "------ Returning: " & To_String (AOSVS.Agent.Actions.Get_Searchlist (PID_T(PID))));
+        return True;
+    end Sys_GLIST;
+
     function Sys_GUNM (CPU : CPU_T; PID : Word_T) return Boolean is
         User_Name : Unbounded_String;
     begin

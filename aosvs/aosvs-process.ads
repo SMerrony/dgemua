@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@ with Processor;     use Processor;
 package AOSVS.Process is
 
     function Sys_DADID  (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_GLIST  (CPU : CPU_T; PID : Word_T) return Boolean;
     function Sys_GUNM   (CPU : CPU_T; PID : Word_T) return Boolean;
     function Sys_PNAME  (CPU : CPU_T; PID : Word_T) return Boolean;
     function Sys_RNGPR  (CPU : CPU_T; PID : Word_T) return Boolean;

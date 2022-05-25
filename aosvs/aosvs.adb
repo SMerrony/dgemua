@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright ©2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,15 @@
 
 with Ada.Directories;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-with Ada.Text_IO;
+with Ada.Text_IO;           use Ada.Text_IO;
 
 with Interfaces;            use Interfaces;
 
-with PARU_32;  use PARU_32;
-
 with AOSVS.Agent;
 with AOSVS.Agent.Tasking;
-with Memory;        use Memory;
+with Debug_Logs;            use Debug_Logs;
+with Memory;                use Memory;
+with PARU_32;               use PARU_32;
 
 package body AOSVS is
 
@@ -51,7 +51,7 @@ package body AOSVS is
         end if;
         -- 3 - append PR filename
         Resolved_US := Resolved_US & Slashify_Path (Name);
-        Ada.Text_IO.Put_Line("DEBUG: Resolved PR file to: " & To_String(Resolved_US));
+        Put_Line("DEBUG: Resolved PR file to: " & To_String(Resolved_US));
         return To_String(Resolved_US);
     end Resolve_AOSVS_Filename;
 
@@ -59,12 +59,12 @@ package body AOSVS is
         Phys_Name     : constant String  := Resolve_AOSVS_Filename (Name, Dir);
         File_ByteSize : constant Integer := Integer(Ada.Directories.Size (Phys_Name));
         File_WordSize : constant Integer := File_ByteSize / 2;
-        PR_File       : File_Type;
+        PR_File       : Ada.Streams.Stream_IO.File_Type;
         PR_Stream     : Stream_Access;
         PR_Arr        : Word_Arr_T (0 .. File_WordSize - 1);
         Low_Byte, High_Byte : Byte_T;
     begin
-        Ada.Text_IO.Put_Line("DEBUG: Read_Whole_File called for: " & Phys_Name);
+        Put_Line("DEBUG: Read_Whole_File called for: " & Phys_Name);
         if (File_ByteSize mod 2) /= 0 then
             raise Invalid_PR_File with "Size must be even";
         end if;
@@ -90,6 +90,7 @@ package body AOSVS is
 
     function Load_UST (PR_Arr : Word_Arr_T) return UST_T is
         Tmp_UST : UST_T;
+        PID_Type : Word_T;
     begin
         Tmp_UST.Ext_Var_Wd_Count := PR_Arr(Natural(UST + USTEZ));
         Tmp_UST.Ext_Var_P0_Start := PR_Arr(Natural(UST + USTES));
@@ -104,11 +105,18 @@ package body AOSVS is
         Tmp_UST.Shared_Block_Count := PR_Arr(Natural(UST + USTSZ));
         Tmp_UST.Shared_Start_Page_In_PR := Dword_From_Two_Words (PR_Arr(Natural(UST + USTSH)), PR_Arr(Natural(UST + USTSH+1)));
         Tmp_UST.Sixteen_Bit      := (PR_Arr(Natural(UST + USTPR)) and UST16) = UST16;
-        -- TODO PID stuff
-        Ada.Text_IO.Put_Line ("UST: Shared - start block: " & Dword_To_String(Tmp_UST.Shared_Start_Block, Hex, 8) &
+        Put_Line ("UST: Shared - start block: " & Dword_To_String(Tmp_UST.Shared_Start_Block, Hex, 8) &
                               ", # blocks: " & Dword_To_String(Dword_T(Tmp_UST.Shared_Block_Count), Hex, 8) &
                               ", start page in .PR: " & Dword_To_String(Tmp_UST.Shared_Start_Page_In_PR, Hex, 8) &
                               ", program type is: " & (if Tmp_UST.Sixteen_Bit then "16-bit" else "32-bit"));
+        PID_Type := PR_Arr(Natural(UST + USTPR)) and 16#0003#; -- last 2 bits
+        case PID_Type is
+            when 0 => Tmp_UST.Small_PID := true; Put_Line ("...  Small PID");
+            when 2 => Tmp_UST.Hybrid    := true; Put_Line ("...  Hybrid PID");
+            when 3 => Tmp_UST.Any_PID   := true; Put_Line ("...  Any PID");
+            when others => raise Unknown_PID_Type;
+        end case;
+        
         return Tmp_UST;
     end Load_UST;
 
@@ -121,19 +129,31 @@ package body AOSVS is
         Addrs.WSFH     := Phys_Addr_T(PR_Arr(WSFH_In_Pr)); 
         Addrs.WSL      := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(WSL_In_Pr), PR_Arr(WSL_In_Pr + 1)));
         Addrs.WSP      := Phys_Addr_T(Dword_From_Two_Words (PR_Arr(WSP_In_Pr), PR_Arr(WSP_In_Pr + 1)));
-        Ada.Text_IO.Put_Line ("Page 8 - PC   :" & Dword_To_String (Dword_T(Addrs.PR_Start), Octal, 11, true));
-        Ada.Text_IO.Put_Line ("Page 8 - WFP  :" & Dword_To_String (Dword_T(Addrs.WFP), Octal, 11, true));
-        Ada.Text_IO.Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#20#), Octal, 11, true));
-        Ada.Text_IO.Put_Line ("Page 8 - WSB  :" & Dword_To_String (Dword_T(Addrs.WSB), Octal, 11, true));
-        Ada.Text_IO.Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#26#), Octal, 11, true));
-        Ada.Text_IO.Put_Line ("Page 8 - WSL  :" & Dword_To_String (Dword_T(Addrs.WSL), Octal, 11, true));
-        Ada.Text_IO.Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#24#), Octal, 11, true));
-        Ada.Text_IO.Put_Line ("Page 8 - WSP  :" & Dword_To_String (Dword_T(Addrs.WSP), Octal, 11, true));
-        Ada.Text_IO.Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#22#), Octal, 11, true));
-        Ada.Text_IO.Put_Line ("Page 8 - WSFH :" & Dword_To_String (Dword_T(Addrs.WSFH), Octal, 11, true));  
-        Ada.Text_IO.Put_Line (" - Page 0     :" & Word_To_String (RAM.Read_Word(16#7000_0000# or 8#14#), Octal, 11, true));                                 
+        Put_Line ("Page 8 - PC   :" & Dword_To_String (Dword_T(Addrs.PR_Start), Octal, 11, true));
+        Put_Line ("Page 8 - WFP  :" & Dword_To_String (Dword_T(Addrs.WFP), Octal, 11, true));
+        Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#20#), Octal, 11, true));
+        Put_Line ("Page 8 - WSB  :" & Dword_To_String (Dword_T(Addrs.WSB), Octal, 11, true));
+        Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#26#), Octal, 11, true));
+        Put_Line ("Page 8 - WSL  :" & Dword_To_String (Dword_T(Addrs.WSL), Octal, 11, true));
+        Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#24#), Octal, 11, true));
+        Put_Line ("Page 8 - WSP  :" & Dword_To_String (Dword_T(Addrs.WSP), Octal, 11, true));
+        Put_Line (" - Page 0     :" & Dword_To_String (RAM.Read_Dword(16#7000_0000# or 8#22#), Octal, 11, true));
+        Put_Line ("Page 8 - WSFH :" & Dword_To_String (Dword_T(Addrs.WSFH), Octal, 11, true));  
+        Put_Line (" - Page 0     :" & Word_To_String (RAM.Read_Word(16#7000_0000# or 8#14#), Octal, 11, true));                                 
         return Addrs;
     end Load_PR_Addresses;
+
+    procedure Dump_Packet (Addr, Len : Phys_Addr_T) is
+        Offset : Phys_Addr_T := 0;
+    begin
+        while Offset < Len loop
+            Loggers.Debug_Print (Sc_Log, 
+                                 Word_To_String (RAM.Read_Word (Addr + Offset), Octal, 6, true ) & "  " &
+                                 Word_To_String (RAM.Read_Word (Addr + Offset + 1), Octal, 6, true ) & "  DW: " &
+                                 Dword_To_String (RAM.Read_Dword (Addr + Offset), Octal, 11, true));
+            Offset := Offset + 2;
+        end loop;
+    end Dump_Packet;
 
     procedure Start (PR_Name  : String;
                     Dir       : String;
@@ -149,7 +169,7 @@ package body AOSVS is
         Segment_Base : Phys_Addr_T;
         PR_Name_US : Unbounded_String;
     begin
-        Ada.Text_IO.Put_Line ("INFO: Loaded PR file: " & PR_Name);
+        Put_Line ("INFO: Loaded PR file: " & PR_Name);
         PR_UST := Load_UST (PR_Arr);
         for C in PR_Name'First .. PR_Name'Last loop
             if PR_Name(C) = '/' then
@@ -166,8 +186,8 @@ package body AOSVS is
                                           To_Unbounded_String("DUMMY"), -- fake proc name
                                           To_Unbounded_String("STEVE"), -- fake user name
                                           PID);
-        Ada.Text_IO.Put_Line ("INFO: Obtained PID" & PID'Image & " for process");
-        Ada.Text_IO.Put_Line ("INFO: Preparing Ring" & Segment'Image & " process with up to" &
+        Put_Line ("INFO: Obtained PID" & PID'Image & " for process");
+        Put_Line ("INFO: Preparing Ring" & Segment'Image & " process with up to" &
                               PR_UST.Task_Count'Image & " tasks");
         Segment_Base := Shift_Left( Phys_Addr_T(Segment), 28);
 
