@@ -75,7 +75,7 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_LNADD =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             I32 := Integer_32(Word_To_Integer_16(RAM.Read_Word(Addr))) + 
-                   Integer_32(Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac))));
+                   Integer_32(Word_To_Integer_16(CPU.AC_Wd(I.Ac)));
             CPU.Carry := (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16);
             Set_OVR (CPU.Carry);
             CPU.AC_I32(I.Ac) := I32;
@@ -92,7 +92,7 @@ package body Processor.Eagle_Mem_Ref_P is
 
          when I_LNSTA =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
-            RAM.Write_Word (Addr, DG_Types.Lower_Word(CPU.AC(I.Ac)));
+            RAM.Write_Word (Addr, CPU.AC_Wd(I.Ac));
 
          when I_LSTB =>
             I32 := I.Disp_31 / 2;
@@ -102,7 +102,7 @@ package body Processor.Eagle_Mem_Ref_P is
 
          when I_LWADD =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
-            S64 := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr))) + Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac)));
+            S64 := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr))) + Integer_64(CPU.AC_I32(I.Ac));
             if S64 < Min_Neg_S32 or S64 > Max_Pos_S32 then
                Set_OVR (true);
             end if;
@@ -114,7 +114,7 @@ package body Processor.Eagle_Mem_Ref_P is
 
          when I_LWMUL =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
-            S64 := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr))) * Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac)));
+            S64 := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr))) * Integer_64(CPU.AC_I32(I.Ac));
             if S64 < Min_Neg_S32 or S64 > Max_Pos_S32 then
                Set_OVR (true);
             end if;
@@ -244,7 +244,7 @@ package body Processor.Eagle_Mem_Ref_P is
                   CPU.Carry := false;
                else
                   Dest_Ascend := Dest_Cnt > 0;
-                  Src_Cnt := Dword_To_Integer_32(CPU.AC(1));
+                  Src_Cnt := CPU.AC_I32(1);
                   Src_Ascend := Src_Cnt > 0;
                   Loggers.Debug_Print (Debug_Log, "... Source Count:" & Src_Cnt'Image & "., Dest. Count:" & Dest_Cnt'Image);
                   CPU.Carry := (abs Src_Cnt) > (abs Dest_Cnt);
@@ -292,7 +292,7 @@ package body Processor.Eagle_Mem_Ref_P is
                   type Delim_Tab_T is array (Byte_T range 0 .. 255) of Boolean;
                   Delim_Tab : Delim_Tab_T;
                   Wd        : Word_T;
-                  Src_Len   : constant Integer_32 := Dword_To_Integer_32(CPU.AC(1));
+                  Src_Len   : constant Integer_32 := CPU.AC_I32(1);
                   Char_Ix   : Integer_32 := 0;
                   Ascending : constant Boolean := (Src_Len > 0);
                   Char_Val  : Byte_T;
@@ -397,7 +397,7 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_XNADD =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             I16_Mem := Word_To_Integer_16(RAM.Read_Word(Addr));
-            I16_Ac  := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)));
+            I16_Ac  := Word_To_Integer_16(CPU.AC_Wd(I.Ac));
             I16_Ac := I16_Ac + I16_Mem;
             I32 := Integer_32(I16_Ac) + Integer_32(I16_Mem);
             if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
@@ -413,7 +413,7 @@ package body Processor.Eagle_Mem_Ref_P is
                CPU.Carry := true;
                Set_OVR (true);
             end if;
-            RAM.Write_Dword (Addr, Integer_32_To_Dword(I32) and 16#0000_ffff#);
+            RAM.Write_Word (Addr, Integer_16_To_Word(Integer_16(I32)));
 
          when I_XNLDA =>
             Loggers.Debug_Print (Debug_Log, "... Opcode 2: " & Word_To_String (WD => I.Word_2, Base => Binary, Width => 16, Zero_Pad => True));
@@ -424,7 +424,7 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_XNMUL =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             I16_Mem := Word_To_Integer_16(RAM.Read_Word(Addr));
-            I16_Ac  := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)));
+            I16_Ac  := Word_To_Integer_16(CPU.AC_Wd(I.Ac));
             I16_Ac := I16_Ac * I16_Mem;
             I32 := Integer_32(I16_Ac) * Integer_32(I16_Mem);
             if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
@@ -444,7 +444,7 @@ package body Processor.Eagle_Mem_Ref_P is
 
          when I_XNSTA =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
-            RAM.Write_Word (Addr, DG_Types.Lower_Word(CPU.AC(I.Ac)));
+            RAM.Write_Word (Addr, CPU.AC_Wd(I.Ac));
 
          when I_XSTB =>
             Addr := Resolve_15bit_Disp (CPU, false, I.Mode, I.Disp_15, I.Disp_Offset); -- TODO 'Long' resolve???
@@ -455,7 +455,7 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_XNSUB =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             I16_Mem := Word_To_Integer_16(RAM.Read_Word(Addr));
-            I16_Ac  := Word_To_Integer_16(DG_Types.Lower_Word(CPU.AC(I.Ac)));
+            I16_Ac  := Word_To_Integer_16(CPU.AC_Wd(I.Ac));
             I16_Ac := I16_Ac - I16_Mem;
             I32 := Integer_32(I16_Ac) - Integer_32(I16_Mem);
             if (I32 > Max_Pos_S16) or (I32 < Min_Neg_S16) then
@@ -467,7 +467,7 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_XWADD =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             S64_Mem := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr)));
-            S64_Ac  := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac)));
+            S64_Ac  := Integer_64(CPU.AC_I32(I.Ac));
             S64 := S64_Ac + S64_Mem;
             if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
                CPU.Carry := true;
@@ -492,7 +492,7 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_XWMUL =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             S64_Mem := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr)));
-            S64_Ac  := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac)));
+            S64_Ac  := Integer_64(CPU.AC_I32(I.Ac));
             S64 := S64_Ac * S64_Mem;
             if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
                CPU.Carry := true;
@@ -517,7 +517,7 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_XWSUB =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             S64_Mem := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr)));
-            S64_Ac  := Integer_64(Dword_To_Integer_32(CPU.AC(I.Ac)));
+            S64_Ac  := Integer_64(CPU.AC_I32(I.Ac));
             S64 := S64_Ac - S64_Mem;
             if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
                CPU.Carry := true;
