@@ -60,7 +60,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 | Better :-) |
   | FISH              | Unimplemented sys call ?GLIST                         | 16 Apr 2022 | Same   :-/ |
   | FOOBAR            | 'ERROR 11357. from line 205                           | 25 May 2022 | Same   :-/ |
-  | HANGMAN (IMSUTIL) | 'Error 71231' - maybe doesn't like ?UIDSTAT response  | 17 Apr 2022 | Better :-) | 
+  | HANGMAN (IMSUTIL) | ERROR: WDCMP not fully implemented                    | 26 May 2022 | Better :-) | 
   | MMM               | 'Error 11381. from line...'                           | 16 Apr 2022 | Better :-) |
   | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | Better :-) |
   | QUEST             | Welcome message, prompt for initials, ?RETURN. (server was not running) | 16 Apr 2022 | Better :-) |
@@ -68,11 +68,15 @@ The NADGUG library provides a good range of freely-available test targets...
   | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | Same   :-/ | 
   | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 | Better :-) |
   | ZORK              | 'Error 71683. on file heap_ro'                        | 28 Oct 2021 | Same   :-/ |
+
+* Other 32-bit NADGUG Programs
+
+  | Program     | Problem                                                     | Date        |
+  |-------------|-------------------------------------------------------------|-------------|
+  | EMACS.PR    | 'ERROR 71187'                                               | 26 May 2022 |
   
 ### Reminders
-* ~~Check ?READ/WRITE/OPEN flag mode interpretation - it might be back-to-front~~
-* Is there an off-by-one in byte handling somewhere - could explain display glitches
-* We have the FORTRAN source for FOOBAR
+* We have the FORTRAN source for FOOBAR and the C code for EMACS
 * For the moment, the initial searchlist is set to the working directory
 
 Error Codes to Look-Up...

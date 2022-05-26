@@ -1,24 +1,17 @@
--- MIT License
-
--- Copyright (c)2021,2022 Stephen Merrony
-
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
+-- Copyright ©2021,2022 Stephen Merrony
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 with Ada.Characters.Handling;
 
@@ -196,26 +189,26 @@ package body AOSVS.File_IO is
         WD_1, WD_2, WD_3 : Word_T := 0;
     begin
         Loggers.Debug_Print (Sc_Log, "?GCHR"); Loggers.Debug_Print (Debug_Log, "?GCHR");
-        -- if Test_DW_Bit (CPU.AC(1), 0) then
-        --    -- ACO should contain a channel number which should already be open
-        --    Loggers.Debug_Print (Sc_Log, "----- for channel no. " & CPU.AC(0)'Image);
-        --    Device_Name := AOSVS.Agent.Actions.Get_Device_For_Channel(Lower_Word(CPU.AC(0)));
-        --    if Device_Name = "***ERROR***" then
-        --       CPU.AC(0) := Dword_T(ERICN); -- Illegal Channel No.
-        --       return false;
-        --    end if;
-        -- else
-        --    -- AC0 should be a BP to the target device name
-        --    Device_Name := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0), false));
-        -- end if;
-        -- Loggers.Debug_Print (Sc_Log, "----- for device: " & To_String(Device_Name));
-        -- if Get_Defaults then
-        --     Loggers.Debug_Print (Sc_Log, "----- Fetching Default characteristics");
-        --     AOSVS.Agent.Actions.Get_Default_Chars(Device_Name, WD_1, WD_2, WD_3);
-        -- else
-        --     Loggers.Debug_Print (Sc_Log, "----- Fetching Current characteristics");
-        --     AOSVS.Agent.Actions.Get_Current_Chars(Device_Name, WD_1, WD_2, WD_3);
-        -- end if;
+        if Test_DW_Bit (CPU.AC(1), 0) then
+           -- ACO should contain a channel number which should already be open
+           Loggers.Debug_Print (Sc_Log, "----- for channel no. " & CPU.AC(0)'Image);
+           Device_Name := AOSVS.Agent.Actions.Get_Device_For_Channel(Lower_Word(CPU.AC(0)));
+           if Device_Name = "***ERROR***" then
+              CPU.AC(0) := Dword_T(ERICN); -- Illegal Channel No.
+              return false;
+           end if;
+        else
+           -- AC0 should be a BP to the target device name
+           Device_Name := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0), false));
+        end if;
+        Loggers.Debug_Print (Sc_Log, "----- for device: " & To_String(Device_Name));
+        if Get_Defaults then
+            Loggers.Debug_Print (Sc_Log, "----- Fetching Default characteristics");
+            AOSVS.Agent.Actions.Get_Default_Chars(Device_Name, WD_1, WD_2, WD_3);
+        else
+            Loggers.Debug_Print (Sc_Log, "----- Fetching Current characteristics");
+            AOSVS.Agent.Actions.Get_Current_Chars(Device_Name, WD_1, WD_2, WD_3);
+        end if;
         Loggers.Debug_Print (Sc_Log, "----- Word 1: " & Word_To_String (WD_1, Binary, 16, True));
         Loggers.Debug_Print (Sc_Log, "----- Word 2: " & Word_To_String (WD_2, Binary, 16, True));
         Loggers.Debug_Print (Sc_Log, "----- Word 3: " & Word_To_String (WD_3, Binary, 16, True));
