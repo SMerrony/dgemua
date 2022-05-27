@@ -101,6 +101,14 @@ package body Processor.Eagle_Mem_Ref_P is
             end if;
             CPU.AC(I.Ac) := Lower_Dword(Qword_T(Integer_64_To_Unsigned_64(S64)));
 
+         when I_LWADI =>
+            Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
+            S64 := Integer_64(Dword_To_Integer_32 (RAM.Read_Dword(Addr))) + Integer_64(I.Imm_U16);
+            if S64 < Min_Neg_S32 or S64 > Max_Pos_S32 then
+               Set_OVR (true);
+            end if;
+            RAM.Write_Dword (Addr, Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#));
+
          when I_LWLDA =>
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             CPU.AC(I.Ac) := RAM.Read_Dword (Addr);
