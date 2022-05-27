@@ -1,24 +1,18 @@
--- MIT License
-
 -- Copyright ©2021,2022 Stephen Merrony
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
 
 with Ada.Text_IO; use Ada.Text_IO;
 
@@ -58,6 +52,31 @@ package body Processor.Eclipse_Op_P is
                Dword := Shift_Left (Dword, Natural(I.Imm_U16) * 4);
                CPU.AC(I.Ac) := Dword_T(DG_Types.Upper_Word (Dword));
                CPU.AC(D_Plus_1) := Dword_T(DG_Types.Lower_Word (Dword));
+            end;
+
+         when I_DIVX =>
+            declare
+               Dividend_32 : constant Integer_32 := Integer_32(Word_To_Integer_16 (CPU.AC_Wd(1)));
+               Divisor_32  : constant Integer_32 := Integer_32(Word_To_Integer_16 (CPU.AC_Wd(2)));
+               Quotient_32 : Integer_32;
+            begin
+               CPU.Carry := false;
+               if CPU.AC(2) = 0 then
+                  CPU.Carry := true;
+               else
+                  if Test_DW_Bit (CPU.AC(1), 16) then
+                     CPU.AC(0) := 16#0000_ffff#;
+                  else
+                     CPU.AC(0) := 0;
+                  end if;
+                  Quotient_32 := Dividend_32 / Divisor_32;
+                  if (Quotient_32 < Min_Neg_S16) or (Quotient_32 > Max_Pos_S16) then
+                     CPU.Carry := true;
+                  else
+                     CPU.AC_I32(0) := Dividend_32 mod Divisor_32;
+                     CPU.AC_I32(1) := Quotient_32;
+                  end if;
+               end if;
             end;
 
          when I_DLSH =>
