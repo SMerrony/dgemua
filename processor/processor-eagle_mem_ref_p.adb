@@ -1,24 +1,17 @@
--- MIT License
-
 -- Copyright ©2021,2022 Stephen Merrony
-
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 with Ada.Text_IO; use Ada.Text_IO;
 
@@ -497,8 +490,10 @@ package body Processor.Eagle_Mem_Ref_P is
             if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
                CPU.Carry := true;
                Set_OVR (true);
+            else
+               -- N.B. the masking below is required to prevent possible overflow...
+               CPU.Ac(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
             end if;
-            CPU.Ac(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64));
             
          when I_XWSBI =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
@@ -522,8 +517,9 @@ package body Processor.Eagle_Mem_Ref_P is
             if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
                CPU.Carry := true;
                Set_OVR (true);
+            else
+               CPU.Ac(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
             end if;
-            CPU.Ac(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
 
          when others =>
             Put_Line ("ERROR: EAGLE_MEMREF instruction " & To_String(I.Mnemonic) & 
