@@ -1,30 +1,24 @@
--- MIT License
-
--- Copyright (c) 2021 Stephen Merrony
-
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
+-- Copyright ©2021,2022 Stephen Merrony
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 with Ada.Characters.Handling;   use Ada.Characters.Handling;
 
 with AOSVS.Agent;
 with Debug_Logs;  use Debug_Logs;
 with Memory;      use Memory;
+with PARU_32;
 
 package body AOSVS.IPC is
 
@@ -49,5 +43,20 @@ package body AOSVS.IPC is
         Loggers.Debug_Print (Sc_Log, "------ Global Port No. " & Dword_To_String(G_Port, binary, 32, true));
         return true;
     end Sys_ILKUP;
+
+    function Sys_IREC   (CPU : CPU_T; PID : Word_T) return Boolean is
+        -- TODO ?IREC is just stubbed for the simplest case
+    begin
+        Loggers.Debug_Print (Sc_Log, "?IREC");
+        Loggers.Debug_Print (Debug_Log, "?IREC");
+        Dump_Packet (CPU.AC_PA(2), PARU_32.IPRLTH);
+        if (RAM.Read_Word (CPU.AC_PA(2) + PARU_32.ISFL) and PARU_32.IFNBK) = 0 then
+            raise Not_Yet_Implemented with "wait for IPC";
+        else
+            CPU.AC_Wd(0) := 0; -- PARU_32.ERNOR;
+            return false;
+        end if;
+        -- return true;
+    end Sys_IREC;
 
 end AOSVS.IPC;

@@ -53,6 +53,9 @@ package body AOSVS.Sys_Memory is
       -- Hignest Unshared addr in logical addr space 
       Max_Unsh_Addr := (Phys_Addr_T (Shift_Left (RAM.Get_Last_Unshared_Page + 1, 10)) - 1) or Ring_Mask;
       CPU.AC(2) := Dword_T(Max_Unsh_Addr);
+      Loggers.Debug_Print (Sc_Log, "---- Unshared available:" &  CPU.AC_I32(0)'Image &
+                                   " Unshared in use:" & CPU.AC_I32(1)'Image &
+                                   " Highest unshared address: " & Dword_To_String (CPU.AC(2), Octal, 11, true));
       return true;
    end Sys_MEM;
 

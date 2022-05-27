@@ -5,7 +5,10 @@
 		}
 	],
 	"settings": {
-		"ada.projectFile": "mvemua.gpr",
-		"cSpell.enabled": false
+		"ada.projectFile": "vsemua.gpr",
+		"cSpell.enabled": false,
+		"files.associations": {
+			"EMACS.C": "cpp"
+		}
 	}
 }

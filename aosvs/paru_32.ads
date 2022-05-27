@@ -1,24 +1,17 @@
--- MIT License
-
--- Copyright (c) 2021 Stephen Merrony
-
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and-or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
+-- Copyright ©2021,2022 Stephen Merrony
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 -- Adapted from parts of AOS-VS 7.73 PARU.32.SR definitions file
 
@@ -939,39 +932,6 @@ package PARU_32 is
 	FCWT : constant Word_T := FCWP;     -- CEOwrite WORD PROCESSOR FILE
 	FRPT : constant Word_T := FCWP + 1; -- PHD REPORT FILE
 
-	--  INTERPROCESS COMMUNICATION SYSTEM (IPC) PARAMETERS
-	-- 
-	--  HIGHEST LEGAL LOCAL PORT NUMBER
-	IMPRT : constant Natural := 2047;   -- MAX LEGAL USER LOCAL PORT #
-	MXLPN : constant Natural := 4095;   -- MAX LEGAL LOCAL PORT #
-
-
-	--  IPC MESSAGE HEADER
-	ISFL : constant Phys_Addr_T := 0;       -- SYSTEM FLAGS
-	IUFL : constant Phys_Addr_T := 1;       -- USER FLAGS
-
-	--  PORT NUMBERS FOR ?ISEND
-	IDPH : constant Phys_Addr_T := 2;       -- DESTINATION PORT NUMBER (HIGH)
-	IDPL : constant Phys_Addr_T := 3;       -- DESTINATION PORT NUMBER (LOW)
-	IOPN : constant Phys_Addr_T := 4;       -- ORIGIN PORT NUMBER
-
-	--  PORT NUMBERS FOR ?IREC
-	IOPH : constant Phys_Addr_T := 2;       -- ORIGIN PORT NUMBER (HIGH)
-	IOPL : constant Phys_Addr_T := 3;       -- ORIGIN PORT NUMBER (LOW)
-	IDPN : constant Phys_Addr_T := 4;       -- DESTINATION PORT NUMBER
-
-	ILTH : constant Phys_Addr_T := 5;       -- LENGTH OF MESSAGE OR BUFFER (IN WORDS)
-	IPTR : constant Phys_Addr_T := 6;       -- POINTER TO MESSAGE/BUFFER
-	IPTL : constant Phys_Addr_T := IPTR+1;  -- LOWER PORTION OF IPTR
-
-	IPLTH : constant Phys_Addr_T := IPTL+1; -- LENGTH OF HEADER
-
-	IRSV : constant Phys_Addr_T := IPTL+1; -- RESERVED
-	IRLT : constant Phys_Addr_T := IRSV+1; -- IS.R RECEIVE BUFFER LENGTH
-	IRPT : constant Phys_Addr_T := IRLT+1; -- IS.R RECEIVE BUFFER POINTER
-	IRPL : constant Phys_Addr_T := IRPT+1; -- LOWER PORTION OF IRPT
-	IPRLTH : constant Phys_Addr_T := IRPL+1; --  LENGTH OF ?IS.R HEADER
-
 	-- PACKET FOR TASK DEFINITION (?TASK)
 	DLNK 	: constant Phys_Addr_T :=  0;        -- NON-ZERO = SHORT PACKET, ZERO = EXTENDED
 	DLNL	: constant Phys_Addr_T := DLNK + 1;  -- 1 LOWER PORTION OF ?DLNK
@@ -1013,8 +973,52 @@ package PARU_32 is
 
 	-- ?UIDSTAT
 	UUID   : constant Phys_Addr_T := 0; 	      -- Unique task identifier
-	UTSTAT : constant Phys_Addr_T := UUID + 1; 	-- Task Status Word
+	UTSTAT : constant Phys_Addr_T := UUID + 1; 	 -- Task Status Word
 	UTID   : constant Phys_Addr_T := UTSTAT + 1; -- Standard Task ID
-	UTPRI  : constant Phys_Addr_T := UTID + 1;   -- Task Prioroty
+	UTPRI  : constant Phys_Addr_T := UTID + 1;   -- Task Priority
+
+    --------------------------------------------------------
+	-- INTERPROCESS COMMUNICATION SYSTEM (IPC) PARAMETERS --
+    --------------------------------------------------------
+
+	-- HIGHEST LEGAL LOCAL PORT NUMBER
+	IMPRT : constant Word_T := 2047;   -- MAX LEGAL USER LOCAL PORT # (Decimal)
+	MXLPN : constant Word_T := 4095;   -- MAX LEGAL LOCAL PORT # (Decimal)
+
+	-- IPC MESSAGE HEADER
+	ISFL : constant Phys_Addr_T := 0;       -- SYSTEM FLAGS
+	IUFL : constant Phys_Addr_T := 1;       -- USER FLAGS
+
+	-- PORT NUMBERS FOR ?ISEND
+	IDPH : constant Phys_Addr_T := 2;       -- DESTINATION PORT NUMBER (HIGH)
+	IDPL : constant Phys_Addr_T := 3;       -- DESTINATION PORT NUMBER (LOW)
+	IOPN : constant Phys_Addr_T := 4;       -- ORIGIN PORT NUMBER
+
+	-- PORT NUMBERS FOR ?IREC
+	IOPH : constant Phys_Addr_T := 2;       -- ORIGIN PORT NUMBER (HIGH)
+	IOPL : constant Phys_Addr_T := 3;       -- ORIGIN PORT NUMBER (LOW)
+	IDPN : constant Phys_Addr_T := 4;       -- DESTINATION PORT NUMBER
+
+	ILTH : constant Phys_Addr_T := 5;       -- LENGTH OF MESSAGE OR BUFFER (IN WORDS)
+	IPTR : constant Phys_Addr_T := 6;       -- POINTER TO MESSAGE/BUFFER
+	IPTL : constant Phys_Addr_T := IPTR+1;  -- LOWER PORTION OF ?IPTR
+
+	IPLTH : constant Phys_Addr_T := IPTL+1; -- LENGTH OF HEADER
+
+	IRSV : constant Phys_Addr_T := IPTL+1;  -- RESERVED
+	IRLT : constant Phys_Addr_T := IRSV+1;  -- ?IS.R RECEIVE BUFFER LENGTH
+	IRPT : constant Phys_Addr_T := IRLT+1;  -- ?IS.R RECEIVE BUFFER POINTER
+	IRPL : constant Phys_Addr_T := IRPT+1;  -- LOWER PORTION OF ?IRPT
+	IPRLTH : constant Phys_Addr_T := IRPL+1; -- LENGTH OF ?IS.R HEADER
+
+	-- SYSTEM FLAG BIT MASKS
+	IFSTM  : constant Word_T := 2#10000000_00000000#;    -- SEND TO SELF
+	IFRFM  : constant Word_T := 2#10000000_00000000#;    -- RECEIVE FROM SELF
+	IFSOV  : constant Word_T := 2#01000000_00000000#;    -- =1 => SPOOL MESSAGE IF BUFFER TOO SMALL
+	IFNBK  : constant Word_T := 2#00100000_00000000#;    -- =1 => RETURN ERROR IF NO WAITING MESSAGE
+	IFNSP  : constant Word_T := 2#00010000_00000000#;    -- =1 => DO NOT SPOOL MESSAGE
+	IFRING : constant Word_T := 2#00000000_00000111#;    -- IPC SOURCE RING IDENTIFIER
+	IFDTH  : constant Word_T := 2#00000000_00010000#;    -- OBIT FROM ?ASSOC'D PROCESS
+	IFPR   : constant Word_T := 2#10000000_00001000#;    -- 16. BIT CALLER
 
 end PARU_32; 

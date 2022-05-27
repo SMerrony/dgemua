@@ -1,24 +1,17 @@
--- MIT License
-
 -- Copyright ©2021,2022 Stephen Merrony
-
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 with Ada.Containers;
 with Ada.Containers.Ordered_Sets;
@@ -41,6 +34,7 @@ package Processor is
 
 
    type DW_Acc_T  is array (AC_ID) of Dword_T;
+   type PA_Acc_T  is array (AC_ID) of Phys_Addr_T;
    type I32_Acc_T is array (AC_ID) of Integer_32;
    type U32_Acc_T is array (AC_ID) of Unsigned_32;
    type Wd_Acc_T  is array (AC_ID) of Word_T;
@@ -55,7 +49,7 @@ package Processor is
    end record;
    type SBRs is array (0 .. 7) of SBR_T;
 
-   type AC_Types is (DW, I32, U32, WD); 
+   type AC_Types is (DW, PA, I32, U32, WD); 
 
    type CPU_Rec (Option : AC_Types := AC_Types'First) is record
       PC                       : Phys_Addr_T; -- 32-bit PC
@@ -73,9 +67,10 @@ package Processor is
       Instruction_Count : Unsigned_64;
       case Option is
          when DW  => AC        : DW_Acc_T;  -- 4 x 32-bit Accumulators as Double-Words
+         when PA  => AC_PA     : PA_Acc_T;  -- The same as Physical Adddresses
          when I32 => AC_I32    : I32_Acc_T; -- The same as 32-bit (signed) integers
          when U32 => AC_U32    : U32_Acc_T; -- The same as 32-bit unsigned integers
-         when WD  => AC_Wd     : Wd_Acc_T;  -- The same at 16-bit (unsigned) Words
+         when WD  => AC_Wd     : Wd_Acc_T;  -- The same as 16-bit (unsigned) Words natrrow-aligned
       end case;
    end record;
    pragma Unchecked_Union (CPU_Rec);

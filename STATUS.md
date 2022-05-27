@@ -1,5 +1,7 @@
 # DG/Emua Status
 
+As of 25 May 2022 this emulator equals or surpasses the old Go version in all ways.
+
 ## Physical Emulator - mvemua
 
 * Last status update: 16th April 2022
@@ -50,24 +52,24 @@ The NADGUG library provides a good range of freely-available test targets...
   
 * 32-bit NADGUG Games compiled for AOS/VS
 
-  |    Game           |   Problem                                             |   Date      | cf. VS/Emug |
-  |-------------------|-------------------------------------------------------|-------------|-------------|
-  | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | Same   :-/ | 
-  | CHESS             | Prompts for settings but won't accept choice          | 17 Apr 2022 | Better :-) |
-  | DND               | 'Error 71697. on file CONSOLE'                        | 28 Oct 2021 | Same   :-/ |
-  | EMPIRE            | 'Error 71683. on file FILE_IN'                        | 16 Apr 2022 | Same   :-/ |
-  | EMPIRE2T          | 'Error 71683. on file FILE_IN'                        | 22 Jun 2021 | Same   :-/ |
-  | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 | Better :-) |
-  | FISH              | Unimplemented sys call ?GLIST                         | 16 Apr 2022 | Same   :-/ |
-  | FOOBAR            | 'ERROR 11357. from line 205                           | 25 May 2022 | Same   :-/ |
-  | HANGMAN (IMSUTIL) | ERROR: WDCMP not fully implemented                    | 26 May 2022 | Better :-) | 
-  | MMM               | 'Error 11381. from line...'                           | 16 Apr 2022 | Better :-) |
-  | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | Better :-) |
-  | QUEST             | Welcome message, prompt for initials, ?RETURN. (server was not running) | 16 Apr 2022 | Better :-) |
-  | SCRABBLE          | 'Error 71692' after ?OPENing SEED file                | 19 Jun 2021 | Same   :-/ |
-  | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | Same   :-/ | 
-  | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 | Better :-) |
-  | ZORK              | 'Error 71683. on file heap_ro'                        | 28 Oct 2021 | Same   :-/ |
+  |    Game           |   Problem                                             |   Date      | 
+  |-------------------|-------------------------------------------------------|-------------|
+  | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | 
+  | CHESS             | Prompts for settings but won't accept choice          | 17 Apr 2022 |
+  | DND               | 'Error 71697. on file CONSOLE'                        | 28 Oct 2021 |
+  | EMPIRE            | 'Error 71683. on file FILE_IN'                        | 16 Apr 2022 |
+  | EMPIRE2T          | 'Error 71683. on file FILE_IN'                        | 22 Jun 2021 |
+  | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 |
+  | FISH              | Unimplemented sys call ?GLIST                         | 16 Apr 2022 |
+  | FOOBAR            | 'ERROR 11357. from line 205                           | 25 May 2022 |
+  | HANGMAN (IMSUTIL) | ERROR: WDCMP not fully implemented                    | 26 May 2022 | 
+  | MMM               | 'Error 11381. from line...'                           | 16 Apr 2022 |
+  | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 |
+  | QUEST             | Welcome message, prompt for initials, ?RETURN. (server was not running) | 16 Apr 2022 |
+  | SCRABBLE          | 'Error 71692' after ?OPENing SEED file                | 19 Jun 2021 |
+  | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | 
+  | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 |
+  | ZORK              | 'Error 71683. on file heap_ro'                        | 28 Oct 2021 |
 
 * Other 32-bit NADGUG Programs
 
