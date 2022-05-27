@@ -486,6 +486,22 @@ package body Processor.Eagle_Mem_Ref_P is
             S64 := Integer_64(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
             RAM.Write_Dword (Addr, Dword_T(Integer_64_To_Unsigned_64(S64)));
 
+         when I_XWDIV =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            S64_Mem := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr)));
+            S64_Ac  := Integer_64(CPU.AC_I32(I.Ac));
+            Set_OVR (false);
+            if S64_Mem = 0 then
+               Set_OVR (true);
+            end if;
+            S64 := S64_Ac / S64_Mem;
+            if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
+               Set_OVR (true);
+            else
+               -- N.B. the masking below is required to prevent possible overflow...
+               CPU.Ac(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+            end if;
+
          when I_XWLDA =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             CPU.AC(I.Ac) := RAM.Read_Dword (Addr);
@@ -493,10 +509,10 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_XWMUL =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             S64_Mem := Integer_64(Dword_To_Integer_32(RAM.Read_Dword(Addr)));
+            Set_OVR (false);
             S64_Ac  := Integer_64(CPU.AC_I32(I.Ac));
             S64 := S64_Ac * S64_Mem;
             if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
-               CPU.Carry := true;
                Set_OVR (true);
             else
                -- N.B. the masking below is required to prevent possible overflow...
