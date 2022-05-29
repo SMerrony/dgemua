@@ -1,29 +1,22 @@
--- MIT License
-
 -- Copyright ©2021,2022 Stephen Merrony
-
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 with Ada.Directories;
 with Ada.Text_IO;
 
-with Interfaces;  use Interfaces;
+-- with Interfaces;  use Interfaces;
 
 with Debug_Logs; use Debug_Logs;
 
@@ -208,12 +201,13 @@ package body AOSVS.Agent is
             end if;
 
             if not Ada.Directories.Exists (Path) then
-               Loggers.Debug_Print (Sc_Log, "------ File did not exist to OPEN");
+               Loggers.Debug_Print (Sc_Log, "------ File did not exist to ?OPEN");
                Err := PARU_32.ERFDE;
                return;
             end if;
 
             Loggers.Debug_Print (Sc_Log, "----- Attempting to open: " & Path);
+            Agent_Chans(Chan_Num).Access_Method := Direct;
             Direct_IO.Open (Agent_Chans(Chan_Num).File_Direct, (if Read_Only then Direct_IO.In_File else Direct_IO.Inout_File), Path);
          end if;
 
@@ -239,7 +233,11 @@ package body AOSVS.Agent is
                if Agent_Chans(Integer(Chan_No)).Is_Console then
                   null; -- ignore ?CLOSE on console device for now
                else
-                  Direct_IO.Close (Agent_Chans(Chan_No).File_Direct);
+                  case Agent_Chans(Integer(Chan_No)).Access_Method is
+                     when Block =>  Block_IO.Close (Agent_Chans(Chan_No).File_Block);
+                     when Shared => null; -- TODO
+                     when Direct => Direct_IO.Close (Agent_Chans(Chan_No).File_Direct);
+                  end case;
                   Agent_Chans(Chan_No).Opener_PID := 0;
                end if;
             end if;
@@ -259,6 +257,38 @@ package body AOSVS.Agent is
          end if;
          return Dev;
       end Get_Device_For_Channel;
+
+      procedure Block_File_Open (PID       : Word_T;
+                                 Filename  : String;
+                                 Exclusive : Boolean;
+                                 Chan_No   : out Word_T;
+                                 File_Type : out Word_T;
+                                 File_Size : out Integer_32;
+                                 Err       : out Word_T) is
+         Path : constant String := (if Filename(Filename'First) = '@' then Filename else To_String(Agent.Actions.Get_Virtual_Root) &
+                                   Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
+                                   ":" & Filename));                         
+         Chan_Num : Natural;
+         File_Length : Ada.Directories.File_Size;
+      begin
+         Err := 0;
+         Chan_Num := Get_Free_Channel;
+         Agent_Chans(Chan_Num).Opener_PID := 0; -- ensure set to zero so can be resused if open fails
+         Agent_Chans(Chan_Num).Path := To_Unbounded_String (Path);
+         Agent_Chans(Chan_Num).Is_Console := false;
+         Agent_Chans(Chan_Num).Access_Method := Block;
+         if not Ada.Directories.Exists (Path) then
+            Loggers.Debug_Print (Sc_Log, "------ File did not exist to ?GOPEN");
+            Err := PARU_32.ERFDE;
+            return;
+         end if;
+         Block_IO.Open (Agent_Chans(Chan_Num).File_Block, Block_IO.Inout_File, Path);
+         File_Type := PARU_32.FUDF; -- FIXME always returns UDF file type atm.
+         File_Length := Ada.Directories.Size (Path);
+         File_Size   := Integer_32(File_Length);
+         Agent_Chans(Chan_Num).Opener_PID := PID_T(PID); 
+         Chan_No := Word_T(Chan_Num);
+      end Block_File_Open;
 
       procedure File_Read (Chan_No : Word_T;
                               Is_Extended,
@@ -320,6 +350,33 @@ package body AOSVS.Agent is
 
 
       end File_Read;
+
+      procedure File_Read_Blocks (Chan_No     : Word_T;
+                                    Num_Blocks  : Unsigned_8;
+                                    Start_Block : Unsigned_32;
+                                    Buffer_Addr : Phys_Addr_T;
+                                    Err         : out Word_T) is
+         Block_Ix  : Block_IO.Count := Block_IO.Count(Start_Block);
+         Mem_Addr  : Phys_Addr_T    := Buffer_Addr;
+         Tmp_Block : Block_T;
+         use Block_IO;
+      begin
+         Err := 0;
+         if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
+            raise Channel_Not_Open with "?RDB";
+         end if;
+         Block_Ix := Block_Ix + 1; -- Ada blocks start at #1, AOS/VS at #0
+         Block_IO.Set_Index (Agent_Chans(Integer(Chan_No)).File_Block, Block_Ix);
+         for Blk in 1.. Num_Blocks loop
+            Block_IO.Read (Agent_Chans(Integer(Chan_No)).File_Block, Tmp_Block);
+            for W in Tmp_Block'Range loop
+               RAM.Write_Word (Mem_Addr, Swap_Bytes (Tmp_Block(W))); -- EEK - had to swap bytes... <=======
+               Mem_Addr := Mem_Addr + 1;
+            end loop;
+            Block_Ix := Block_Ix + 1;
+            Block_IO.Set_Index (Agent_Chans(Integer(Chan_No)).File_Block, Block_Ix);
+         end loop;
+      end File_Read_Blocks;
 
       procedure File_Write (Chan_No : Word_T;
                               Defaults,

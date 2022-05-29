@@ -20,6 +20,8 @@ with Ada.Strings.Hash;
 
 with GNAT.Sockets;
 
+with Interfaces; use Interfaces;
+
 with Memory; use Memory;
 with PARU_32;
 
@@ -67,6 +69,8 @@ package AOSVS.Agent is
 	package Direct_IO is new Ada.Direct_IO (Byte_T);
 	type Block_Arr_T is array (Natural range <>) of Block_T;
 
+	type Access_Method_T is (Direct, Shared, Block);
+
 	-- File channels
 	type Agent_Channel_T is record
 	   Opener_PID  : PID_T;
@@ -74,6 +78,7 @@ package AOSVS.Agent is
 	   Is_Console  : Boolean;
 	   Read, Write,
 	   For_Shared  : Boolean;
+	   Access_Method : Access_Method_T;
 	   Dynamic, Data_Sens, Fixed_Length, Var_Length, Undefined, IBM_VB
 	   			   : Boolean;
 	   Rec_Len     : Natural;
@@ -81,6 +86,7 @@ package AOSVS.Agent is
 	   Echo        : Boolean;
 	   File_Direct : Direct_IO.File_Type;
 	   File_Shared : Block_IO.File_Type;
+	   File_Block  : Block_IO.File_Type;
 	end record;
 	type Agent_Channel_Arr is array (0 .. 122) of Agent_Channel_T;
 
@@ -121,11 +127,19 @@ package AOSVS.Agent is
         -- file I/O...
 		procedure File_Open (PID     : Word_T; 
 							 Path    : String;
-							 Options, File_Type : Word_T;
+							 Options, 
+							 File_Type : Word_T;
 							 Rec_Len : Integer;
 							 Chan_No : out Word_T;
 							 Err     : out Word_T);
 		procedure File_Close (Chan_No : Natural; Err : out Word_T);
+		procedure Block_File_Open (PID       : Word_T;
+								   Filename  : String;
+								   Exclusive : Boolean;
+								   Chan_No   : out Word_T;
+								   File_Type : out Word_T;
+								   File_Size : out Integer_32;
+								   Err       : out Word_T);
 		function  Get_Default_ACL (PID : PID_T) return String;
 	    function  Get_Device_For_Channel(Chan_No : Word_T) return Unbounded_String;
 		procedure File_Read (Chan_No : Word_T;
@@ -137,6 +151,11 @@ package AOSVS.Agent is
                               Bytes       : out Byte_Arr_T;
                               Transferred : out Word_T;
                               Err         : out Word_T); 
+		procedure File_Read_Blocks (Chan_No     : Word_T;
+									Num_Blocks  : Unsigned_8;
+									Start_Block : Unsigned_32;
+									Buffer_Addr : Phys_Addr_T;
+									Err         : out Word_T);
 		procedure File_Write (Chan_No : Word_T;
 							  Defaults,
 							  Is_Extended,

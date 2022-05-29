@@ -238,23 +238,33 @@ package body Processor.Eagle_Mem_Ref_P is
             declare
                Dest_Ascend, Src_Ascend : Boolean;
                Dest_Cnt, Src_Cnt : Integer_32;
+               Blank_Fill        : Boolean := false;
             begin
-               Dest_Cnt := Dword_To_Integer_32(CPU.AC(0));
+               Dest_Cnt := CPU.AC_I32(0);
                if Dest_Cnt = 0 then
                   Loggers.Debug_Print (Debug_Log, "WARNING: WCMV called with AC0 = 0, not moving anything");
                   CPU.Carry := false;
                else
                   Dest_Ascend := Dest_Cnt > 0;
                   Src_Cnt := CPU.AC_I32(1);
+                  if Src_Cnt = 0 then
+                     Blank_Fill := true;
+                     Loggers.Debug_Print (Debug_Log, "... Filling with blanks");
+                  end if;
                   Src_Ascend := Src_Cnt > 0;
                   Loggers.Debug_Print (Debug_Log, "... Source Count:" & Src_Cnt'Image & "., Dest. Count:" & Dest_Cnt'Image);
                   CPU.Carry := (abs Src_Cnt) > (abs Dest_Cnt);
                   -- move Src_Cnt bytes
                   loop
-                     Loggers.Debug_Print (Debug_Log, "... Copy from: " & Dword_To_String (CPU.AC(3),Octal,11,true) & 
-                                                               " to: " & Dword_To_String (CPU.AC(2),Octal,11,true) &
-                                                               " remaining Src:" & Src_Cnt'Image & "., Dest:" & Dest_Cnt'Image);
-                     RAM.Copy_Byte_BA(CPU.AC(3),CPU.AC(2));
+                     if Blank_Fill then
+                        RAM.Write_Byte_BA (CPU.AC(2), 32);
+                     else
+                        Loggers.Debug_Print (Debug_Log, "... Copy from: " & Dword_To_String (CPU.AC(3),Octal,11,true) & 
+                                                         " to: " & Dword_To_String (CPU.AC(2),Octal,11,true) &
+                                                         " remaining Src:" & Src_Cnt'Image & "., Dest:" & Dest_Cnt'Image &
+                                                         " character: " & Character'Val(RAM.Read_Byte_BA (CPU.AC(3))));
+                        RAM.Copy_Byte_BA(CPU.AC(3),CPU.AC(2));
+                     end if;
                      if Src_Ascend then
                         CPU.AC(3) := CPU.AC(3) + 1;
                         Src_Cnt := Src_Cnt - 1;
@@ -283,7 +293,7 @@ package body Processor.Eagle_Mem_Ref_P is
                      end if;
                   end loop;
                   CPU.AC(0) := 0;
-                  CPU.AC(1) := Dword_T(Src_Cnt);
+                  CPU.AC_I32(1) :=Src_Cnt;
                end if;                  
             end;
 

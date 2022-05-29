@@ -1021,4 +1021,30 @@ package PARU_32 is
 	IFDTH  : constant Word_T := 2#00000000_00010000#;    -- OBIT FROM ?ASSOC'D PROCESS
 	IFPR   : constant Word_T := 2#10000000_00001000#;    -- 16. BIT CALLER
 
+	-- ?GOPEN PACKET
+
+	OPFL : constant Phys_Addr_T := 0;       -- FLAGS IN TO ?GOPEN
+	OPCH : constant Phys_Addr_T := OPFL;   -- CHANNEL NUMBER
+	OPTY : constant Phys_Addr_T := 1;       -- FORMAT (LH) AND FILE TYPE (RH)
+	OPFC : constant Phys_Addr_T := 2;       -- FILE CONTROL PARAMETERS
+	OPEW : constant Phys_Addr_T := 3;       -- RESERVED
+	OPEH : constant Phys_Addr_T := 4;       -- FILE EOF (HIGH)
+	OPEL : constant Phys_Addr_T := 5;       -- FILE EOF (LOW)
+	OPPH : constant Phys_Addr_T := 2;       -- PORT NUMBER (HIGH)
+	OPPL : constant Phys_Addr_T := 3;       -- PORT NUMBER (LOW)
+	OPLT : constant Phys_Addr_T := OPEL+1; -- LENGTH OF PACKET
+	-- --  FLAGS IN BIT POINTERS
+	-- OPBE=  0.              -- EXCLUSIVE OPEN
+	-- OPDF=  1.              -- INHIBIT INITIAL FORM FEED
+	-- OPD0=  2.              -- DENSITY BITS.
+	-- OPD1=  3.              -- 
+	-- OPD2=  4.              -- 
+	-- OPBX=  7.              --  EXTENDED PACKET
+	-- OPBF=  8.              --  USE BUFFERED MODE ON TAPE I/O
+	-- OPST=  9.              --  USE STREAMING MODE ON TAPE I/O
+	-- FLAGS IN MASKS
+	OPME :constant Word_T :=  2#10000000_00000000#;   -- EXCLUSIVE OPEN
+	OPMD :constant Word_T :=  2#01000000_00000000#;   -- INHIBIT INITIAL FORM FEED
+	-- TODO many more flags etc. for ?GOPEN
+
 end PARU_32; 

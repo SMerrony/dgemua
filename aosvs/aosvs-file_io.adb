@@ -15,38 +15,14 @@
 
 with Ada.Characters.Handling;
 
+with Interfaces;  use Interfaces;
+
 with AOSVS.Agent;
 with Debug_Logs;  use Debug_Logs;
 with Memory;      use Memory;
 with PARU_32;     use PARU_32;
 
 package body AOSVS.File_IO is
-
-    function Sys_OPEN (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
-        Chan_No, Err : Word_T;
-        Pkt_Addr  : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        File_Opts : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
-        File_Type : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTO);
-        Rec_Len   : constant Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
-        Path_Name : constant Dword_T     := RAM.Read_Dword(Pkt_Addr + IFNP);
-        Name      : constant String      := Ada.Characters.Handling.To_Upper(RAM.Read_String_BA(Path_Name, false));
-        Path      : constant String      := (if Name(Name'First) = '@' then Name else To_String(Agent.Actions.Get_Virtual_Root) &
-                                   Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
-                                   ":" & Name)); 
-    begin
-        Loggers.Debug_Print (Sc_Log, "?OPEN Pathname: " & Name & " for PID:" & PID'Image & " TID:" & TID'Image); 
-        Loggers.Debug_Print (Debug_Log, "?OPEN Pathname: " & Name);
-        Loggers.Debug_Print (Sc_Log, "----- Resolved to local file: " & Path);
-        AOSVS.Agent.Actions.File_Open (PID, Path, File_Opts, File_Type, Rec_Len, Chan_No, Err);
-        if Err /= 0 then
-            CPU.AC(0) := Dword_T(Err);
-            return false;
-        end if;
-        RAM.Write_Word(Pkt_Addr + ICH, Chan_No);
-        Dump_Packet (Pkt_Addr, IOSZ);
-        Loggers.Debug_Print (Sc_Log, "----- Returned channel No. " & Chan_No'Image);
-        return true;
-    end Sys_OPEN;
 
     function Sys_CLOSE (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
         Pkt_Addr    : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
@@ -67,9 +43,82 @@ package body AOSVS.File_IO is
         end if;
         return true;
     end Sys_Close;
+    
+    function Sys_GOPEN (CPU : CPU_T; PID : Word_T) return Boolean is
+        Filename    : constant Unbounded_String := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0), false));
+        Req_Channel : constant Integer := Integer(CPU.AC_I32(1)); -- = -1 for us to assign
+        Pkt_Addr    : constant Phys_Addr_T := CPU.AC_PA(2);
+        Exclusive   : Boolean;
+        File_Type   : Word_T;
+        Assigned_Chan : Word_T;
+        File_Size   : Integer_32;
+        Err         : Word_T;
+    begin
+        Loggers.Debug_Print (Debug_Log, "?GOPEN");
+        Loggers.Debug_Print (Sc_Log, "?GOPEN Filename: " & To_String (Filename) & " for PID:" & PID'Image);
+        File_Type := RAM.Read_Word (Pkt_Addr + PARU_32.OPTY) and 16#0000_ffff#;
+        Loggers.Debug_Print (Sc_Log, "------ Requested channel:" & Req_Channel'Image);
+        Loggers.Debug_Print (Sc_Log, "------ File Type No." & File_Type'Image);
+        if File_Type /= 0 then 
+            raise Not_Yet_Implemented with "?GOPEN specific file type";
+        end if;
+        if Req_Channel /= -1 then 
+            raise Not_Yet_Implemented with "?GOPEN specific channel";
+        end if;
+        Exclusive := (RAM.Read_Word (Pkt_Addr + PARU_32.OPFL) and PARU_32.OPME) = PARU_32.OPME;
+        Agent.Actions.Block_File_Open (PID, To_String(Filename), Exclusive, Assigned_Chan, File_Type, File_Size, Err);
+        if Err /= 0 then
+            CPU.AC(0) := Dword_T(Err);
+            return false;
+        end if;
+        RAM.Write_Word (Pkt_Addr + PARU_32.OPFL, Assigned_Chan); -- TODO shouldn't overwrite Exclusive bit
+        RAM.Write_Dword (Pkt_Addr + PARU_32.OPEH, Integer_32_To_Dword (File_Size));
+        Loggers.Debug_Print (Sc_Log, "----- Returned channel No.:" & Assigned_Chan'Image & " and Size:" & File_Size'Image);
+        return true;
+    end Sys_GOPEN;
+
+    function Sys_GCLOSE(CPU : CPU_T; PID : Word_T) return Boolean is 
+        Chan_No : constant Word_T := CPU.AC_Wd(1);
+        Err     : Word_T;
+    begin
+        Loggers.Debug_Print (Sc_Log, "?GCLOSE - Channel:" & Chan_No'Image);
+        Loggers.Debug_Print (Debug_Log, "?GCLOSE");
+        AOSVS.Agent.Actions.File_Close(Natural(Chan_No), Err);
+        if Err /= 0 then
+            CPU.AC(0) := Dword_T(Err);
+            return false;
+        end if;
+        return true;
+    end Sys_GCLOSE;
+
+    function Sys_OPEN (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
+        Chan_No, Err : Word_T;
+        Pkt_Addr  : constant Phys_Addr_T := CPU.AC_PA(2);
+        File_Opts : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
+        File_Type : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTO);
+        Rec_Len   : constant Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
+        Path_Name : constant Dword_T     := RAM.Read_Dword(Pkt_Addr + IFNP);
+        Name      : constant String      := Ada.Characters.Handling.To_Upper(RAM.Read_String_BA(Path_Name, false));
+        Path      : constant String      := (if Name(Name'First) = '@' then Name else To_String(Agent.Actions.Get_Virtual_Root) &
+                                   Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
+                                   ":" & Name)); 
+    begin
+        Loggers.Debug_Print (Sc_Log, "?OPEN Pathname: " & Name & " for PID:" & PID'Image & " TID:" & TID'Image); 
+        Loggers.Debug_Print (Debug_Log, "?OPEN Pathname: " & Name);
+        Loggers.Debug_Print (Sc_Log, "----- Resolved to local file: " & Path);
+        Agent.Actions.File_Open (PID, Path, File_Opts, File_Type, Rec_Len, Chan_No, Err);
+        if Err /= 0 then
+            CPU.AC(0) := Dword_T(Err);
+            return false;
+        end if;
+        RAM.Write_Word(Pkt_Addr + ICH, Chan_No);
+        Dump_Packet (Pkt_Addr, IOSZ);
+        Loggers.Debug_Print (Sc_Log, "----- Returned channel No. " & Chan_No'Image);
+        return true;
+    end Sys_OPEN;
 
     function Sys_READ (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
-        Pkt_Addr    : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        Pkt_Addr    : constant Phys_Addr_T := CPU.AC_PA(2);
         Chan_No     : constant Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
         File_Spec   : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
         Defaults    : constant Boolean     := (File_Spec = 0);
@@ -118,9 +167,28 @@ package body AOSVS.File_IO is
         Loggers.Debug_Print (Sc_Log, "----- Bytes Read:" & Txfrd'Image);
         return true;
     end Sys_READ;
+    
+    function Sys_RDB   (CPU : CPU_T; PID : Word_T) return Boolean is
+        Pkt_Addr    : constant Phys_Addr_T := CPU.AC_PA(2);
+        Chan_No     : constant Word_T      := CPU.AC_Wd(1);
+        Blocks      : Unsigned_8  := Unsigned_8 (Get_Lower_Byte (RAM.Read_Word (Pkt_Addr + PARU_32.PSTI)));
+        Start_Block : Unsigned_32 := Unsigned_32(RAM.Read_Dword(Pkt_Addr + PARU_32.PRNH));
+        Buff_Addr   : Phys_Addr_T := Phys_Addr_T(RAM.Read_Dword(Pkt_Addr + PARU_32.PCAD));
+        Err         : Word_T;
+    begin
+        Loggers.Debug_Print (Sc_Log, "?RDB - Channel:" & Chan_No'Image & 
+                                     " Start Block: " & Start_Block'Image &
+                                     " Blocks:" & Blocks'Image);
+        Loggers.Debug_Print (Debug_Log, "?RDB");
+        AOSVS.Agent.Actions.File_Read_Blocks (Chan_No, Blocks, Start_Block, Buff_Addr, Err);
+
+        -- if there was no exception then we have read the number of bytes requested
+        CPU.AC_I32(1) := Integer_32(Blocks) * 512;
+        return true;
+    end Sys_RDB;
 
     function Sys_WRITE (CPU : CPU_T; PID : Word_T; TID : Word_T; Logging : Boolean) return Boolean is
-        Pkt_Addr    : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
+        Pkt_Addr    : constant Phys_Addr_T := CPU.AC_PA(2);
         Chan_No     : constant Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
         File_Spec   : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
         Defaults    : constant Boolean     := (File_Spec = 0);
@@ -221,9 +289,9 @@ package body AOSVS.File_IO is
     function Sys_SCHR (CPU : CPU_T; PID : Word_T) return Boolean is
         Device_Name  : Unbounded_String;
         Set_Defaults : Boolean := Test_DW_Bit (CPU.AC(1), 1);
-        WD_1 : constant Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2)));
-        WD_2 : constant Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2))+1);
-        WD_3 : constant Word_T := RAM.Read_Word(Phys_Addr_T(CPU.AC(2))+2);
+        WD_1 : constant Word_T := RAM.Read_Word(CPU.AC_PA(2));
+        WD_2 : constant Word_T := RAM.Read_Word(CPU.AC_PA(2)+1);
+        WD_3 : constant Word_T := RAM.Read_Word(CPU.AC_PA(2)+2);
         Old_WD_1, Old_Wd_2, Old_Wd_3 : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?SCHR");
@@ -239,7 +307,7 @@ package body AOSVS.File_IO is
            Device_Name := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0), false));
         end if;
         Loggers.Debug_Print (Sc_Log, "----- for device: " & To_String(Device_Name));
-        AOSVS.Agent.Actions.Get_Current_Chars(Device_Name, Old_WD_1, Old_WD_2, Old_WD_3);
+        Agent.Actions.Get_Current_Chars(Device_Name, Old_WD_1, Old_WD_2, Old_WD_3);
         Loggers.Debug_Print (Sc_Log, "----- Old Chars: " &
                             Word_To_String(Old_WD_1, Binary, 16, true) & " " &
                             Word_To_String(Old_WD_2, Binary, 16, true) & " " &
