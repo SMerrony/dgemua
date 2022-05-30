@@ -106,7 +106,7 @@ package body AOSVS.System is
             if P_Gres /= 16#ffff_ffff# then
                 RAM.Write_String_BA (P_Gres, To_String(Res_US));
             end if;
-            Loggers.Debug_Print (Sc_Log, "----- Returning: " & To_String(Res_US));
+            Loggers.Debug_Print (Sc_Log, "----- Returning: >>>" & To_String(Res_US) & "<<<");
 
         when GCMD =>
             Loggers.Debug_Print (Sc_Log, "------ Req. Type: ?GCMD");
