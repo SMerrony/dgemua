@@ -1,24 +1,18 @@
--- MIT License
+-- Copyright ©2021,2022 Stephen Merrony
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
--- Copyright (c) 2021,2022 Stephen Merrony
-
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Directories;
@@ -163,12 +157,34 @@ package body AOSVS.File_Management is
         Ada.Text_IO.Create(R_New, Ada.Text_IO.Out_File, R_Path);
         Ada.Text_IO.Close(R_New);
         return true;
-
     exception
         when others =>
             CPU.AC(0) := Dword_T(PARU_32.ERFAD); -- File access denied...
             return false;
-
     end Sys_RECREATE;
+
+    function Sys_RENAME (CPU : CPU_T; PID : Word_T) return Boolean is
+        New_Name : constant String := To_Upper (RAM.Read_String_BA (CPU.AC(1), false));
+        New_Path : constant String := To_String(Agent.Actions.Get_Virtual_Root) &
+                           Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
+                           ":" & New_Name);
+    begin
+        Loggers.Debug_Print (Sc_Log, "?RENAME");
+        Loggers.Debug_Print (Debug_Log, "?RENAME");
+        if CPU.AC(0) = 0 then
+            raise Not_Yet_Implemented with "NYI - ?RENAME packet";
+        end if;
+        declare
+            Old_Name : constant String := To_Upper (RAM.Read_String_BA (CPU.AC(0), false));
+            Old_Path : constant String := To_String(Agent.Actions.Get_Virtual_Root) &
+                           Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
+                           ":" & Old_Name);
+        begin
+            Loggers.Debug_Print (Sc_Log, "------- Old name: " & Old_Name & " to: " & New_Name);
+            Loggers.Debug_Print (Sc_Log, "------- Old path: " & Old_Path & " to: " & New_Path);
+            Ada.Directories.Rename (Old_Path, New_Path);
+        end;
+        return true;
+    end Sys_RENAME;
 
 end AOSVS.File_Management;

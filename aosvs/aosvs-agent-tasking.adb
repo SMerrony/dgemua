@@ -123,7 +123,7 @@ package body AOSVS.Agent.Tasking is
             case Call_ID is
                when 8#000# => Syscall_OK := File_Management.Sys_CREATE (CPU, Task_Data.PID);
                when 8#001# => Syscall_OK := File_Management.Sys_DELETE (CPU, Task_Data.PID);
-               -- 2 RENAME
+               when 8#002# => Syscall_OK := File_Management.Sys_RENAME (CPU, Task_Data.PID);
                when 8#003# => Syscall_OK := Sys_Memory.Sys_MEM  (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
                when 8#007# => Syscall_OK := File_IO.Sys_RDB (CPU, Task_Data.PID);
                when 8#014# => Syscall_OK := Sys_Memory.Sys_MEMI (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Ring_Mask);
