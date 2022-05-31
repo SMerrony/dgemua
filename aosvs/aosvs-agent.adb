@@ -354,7 +354,6 @@ package body AOSVS.Agent is
             end if;
          end if;
 
-
       end File_Read;
 
       procedure File_Read_Blocks (Chan_No     : Word_T;
@@ -440,7 +439,21 @@ package body AOSVS.Agent is
             end if;
             Loggers.Debug_Print (Sc_Log,"----- Wrote: " & RAM.Read_String_BA (Bytes_BA, False));
          else
-            raise Not_Yet_Implemented with "?WRITE to real file";
+            if T_Dyn then
+               declare
+                  Bytes : constant Byte_Arr_T := RAM.Read_Bytes_BA(Bytes_BA, Rec_Len);
+               begin
+                  for B in Bytes'Range loop
+                     Direct_IO.Write (Agent_Chans(Integer(Chan_No)).File_Direct, Bytes(B));
+                  end loop;
+                  Transferred := Word_T(Bytes'Length);
+               end;
+               if Integer (Transferred) /= Rec_Len then
+                  raise IO_Error with "mismatch between requested and actual bytes written";
+               end if;
+            else
+               raise Not_Yet_Implemented with "NYI - Non-dynamic ?WRITE to a real file";
+            end if;
          end if;
       end File_Write;
 
