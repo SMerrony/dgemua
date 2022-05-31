@@ -67,6 +67,7 @@ procedure VSEmua is
 
 begin
    while Arg_Num <= Ada.Command_Line.Argument_Count loop
+      -- Put_Line ("DEBUG: Arg_Num:" & Arg_Num'Image & ", Arg: >>>" & Ada.Command_Line.Argument (Arg_num) & "<<<");
       if Ada.Command_Line.Argument (Arg_num) = "-pr" then
          Arg_Num := Arg_Num + 1;
          PR_Arg_Num := Arg_Num;
@@ -92,7 +93,7 @@ begin
          Put_Line ("      -root       the local location of the virtual AOS/VS filesystem root");
          Put_Line ("      -dir        the AOS/VS working directory");
          Put_Line ("      -fast       deactivates detailled logging");
-         Put_Line ("      -args       any arguments to pass to the program");
+         Put_Line ("      -args       any arguments to pass to the program, surrounded with double-quotes");
          Put_Line ("Eg. ./vsemua -pr SPIGOT.PR -root /home/steve/Ada/dgemua/FILESYSTEM -dir :SAMPLES");
          GNAT.OS_Lib.OS_Exit (0);
       end if;
@@ -100,7 +101,7 @@ begin
    end loop;
 
    if (PR_Arg_Num = 0) or (Root_Arg_Num = 0) or (Dir_Arg_Num = 0) then
-      Put_Line ("ERROR: You must specify -pr, -root, and -dir");
+      Put_Line ("ERROR: You must specify at least -pr, -root, and -dir");
       GNAT.OS_Lib.OS_Exit (0);
    end if;
 
@@ -108,13 +109,22 @@ begin
    VS_Num_Args := 1;
 
    if Args_Arg_Num > 0 then
-      if Ada.Command_Line.Argument (Args_Arg_num)(1) = '"' then
-         raise Not_Yet_Implemented with "Multiple program arguments";
-      end if;
-      -- we have a single argument...
-      VS_Args_Arr(1) := To_Unbounded_String(Ada.Command_Line.Argument (Args_Arg_num));
-      VS_Num_Args := 2;
-      Put_Line ("INFO: Program argument: " & To_String(VS_Args_Arr(1)));
+      -- we should have a double-quote enclosed list of AOS/VS arguments or SWITCHES
+      -- which are separated by spaces.
+      -- N.B. Linux/GNAT/bash removes the double-quotes.
+
+      --VS_Num_Args := 2;
+      for C of Ada.Command_Line.Argument (Args_Arg_num) loop
+         if C /= ' ' then
+            VS_Args_Arr(VS_Num_Args) := VS_Args_Arr(VS_Num_Args) & C;
+         else
+            Put_Line("DEBUG: VS Arg: >>>" & To_String(VS_Args_Arr(VS_Num_Args)) & "<<<");
+            VS_Num_Args := VS_Num_Args + 1;
+         end if;
+      end loop;
+      Put_Line("DEBUG: VS Arg: >>>" & To_String(VS_Args_Arr(VS_Num_Args)) & "<<<");
+      VS_Num_Args := VS_Num_Args + 1;
+
    end if;
 
    GNAT.Ctrl_C.Install_Handler(Clean_Exit'Unrestricted_Access);

@@ -179,7 +179,7 @@ package body AOSVS.Agent is
                Agent_Chans(Chan_Num).Is_Console := true;
                Agent_Chans(Chan_Num).Echo       := true;
             else
-               raise Not_Yet_Implemented with "Cannot handle unknown generic files";
+               raise Not_Yet_Implemented with "Cannot handle unknown generic files: " & Path;
             end if;
          else 
             Agent_Chans(Chan_Num).Is_Console := false;
@@ -309,7 +309,6 @@ package body AOSVS.Agent is
             raise Channel_Not_Open with "?READ";
          end if;
          if Agent_Chans(Integer(Chan_No)).Is_Console then
-
             if Is_Datasens then
                Bytes(Byte_Ix) := 0;
                loop
@@ -329,23 +328,30 @@ package body AOSVS.Agent is
                      exit;
                   end if;
                   -- TODO Handle Delete char
-
                   Transferred := Transferred + 1;
                end loop;
-
             elsif Is_Dynamic then
-                  -- Rec_Len is the fixed # of Bytes to read
-                  for B in 0 .. Rec_Len - 1 loop
-                     Direct_IO.Read(Agent_Chans(Integer(Chan_No)).File_Direct, Bytes(B));
-                     Transferred := Transferred + 1;
-                  end loop;
-
+               -- Rec_Len is the fixed # of Bytes to read
+               for B in 0 .. Rec_Len - 1 loop
+                  Direct_IO.Read(Agent_Chans(Integer(Chan_No)).File_Direct, Bytes(B));
+                  Transferred := Transferred + 1;
+               end loop;
             else
                raise Not_Yet_Implemented with "NYI - fixed or extended READ from CONSOLE";
             end if;
-
-         else
-            raise Not_Yet_Implemented with "real file READs";
+         else -- not a CONSOLE device, a real file...
+            if Is_Datasens then
+               Bytes(Byte_Ix) := 0;
+               loop
+                  Direct_IO.Read (Agent_Chans(Integer(Chan_No)).File_Direct, Byte);
+                  Bytes(Byte_Ix) := Byte;
+                  Bytes(Byte_Ix+1) := 0;
+                  exit when Byte = Character'Pos(Dasher_NL) or Byte = Character'Pos(Dasher_CR) or Byte = Character'Pos(Dasher_FF); 
+                  Transferred := Transferred + 1;
+               end loop;
+            else
+               raise Not_Yet_Implemented with "NYI: non-datasensitive real file READs";
+            end if;
          end if;
 
 

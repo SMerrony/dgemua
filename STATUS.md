@@ -57,7 +57,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | 
   | CHESS             | Prompts for settings but won't accept choice          | 17 Apr 2022 |
   | DND               | 'Error 71697. on file CONSOLE'                        | 28 Oct 2021 |
-  | EMPIRE            | 'Error 71683. on file FILE_IN'                        | 16 Apr 2022 |
+  | EMPIRE1           | Corrupted '@OUTPUT @' filename                        | 30 May 2022 |
   | EMPIRE2T          | 'Error 71683. on file FILE_IN'                        | 22 Jun 2021 |
   | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 |
   | FISH              | Unimplemented sys call ?GLIST                         | 16 Apr 2022 |
@@ -78,7 +78,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | EMACS.PR    | 'ERROR 71187'                                               | 26 May 2022 |
   
 ### Reminders
-* We have the FORTRAN source for FOOBAR and the C code for EMACS
+* We have the FORTRAN source for FOOBAR and WUMPUS, and the C code for EMACS
 * For the moment, the initial searchlist is set to the working directory
 
 Error Codes to Look-Up...
