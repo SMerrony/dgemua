@@ -16,7 +16,7 @@
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Direct_IO;
 with Ada.Strings.Hash;
--- with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+with Ada.Streams.Stream_IO;
 
 with GNAT.Sockets;
 
@@ -69,7 +69,7 @@ package AOSVS.Agent is
 	package Direct_IO is new Ada.Direct_IO (Byte_T);
 	type Block_Arr_T is array (Natural range <>) of Block_T;
 
-	type Access_Method_T is (Direct, Shared, Block);
+	type Access_Method_T is (Direct, Shared, Block, Stream);
 
 	-- File channels
 	type Agent_Channel_T is record
@@ -87,6 +87,8 @@ package AOSVS.Agent is
 	   File_Direct : Direct_IO.File_Type;
 	   File_Shared : Block_IO.File_Type;
 	   File_Block  : Block_IO.File_Type;
+	   File_Stream : Ada.Streams.Stream_IO.File_Type;
+	   Stream_Acc  : Ada.Streams.Stream_IO.Stream_Access;
 	end record;
 	type Agent_Channel_Arr is array (0 .. 122) of Agent_Channel_T;
 

@@ -35,7 +35,7 @@ DIx and DOx instructions to the BMC/DCH controller seem to be undocumented for t
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 25 May 2022
+* Last status update: 1 Jun 2022
   
 All of the following 32-bit sample programs copied from a physical machine are working...
 * HW.PR - Hello, World! (13 May 2021)
@@ -55,13 +55,13 @@ The NADGUG library provides a good range of freely-available test targets...
   |    Game           |   Problem                                             |   Date      | 
   |-------------------|-------------------------------------------------------|-------------|
   | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | 
-  | CHESS             | Prompts for settings but won't accept choice          | 17 Apr 2022 |
+  | CHESS             | Unimplemented syscall 030 ?RUNTM                      |  1 Jun 2022 |
   | DND               | 'Error 71697. on file CONSOLE'                        | 28 Oct 2021 |
   | EMPIRE1           | Corrupted '@OUTPUT @' filename                        | 30 May 2022 |
   | EMPIRE2T          | 'Error 71683. on file FILE_IN'                        | 22 Jun 2021 |
   | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 |
   | FISH              | Unimplemented sys call ?GLIST                         | 16 Apr 2022 |
-  | FOOBAR            | 'ERROR 11357. from line 205                           | 25 May 2022 |
+  | FOOBAR            | Not handling game input from kbd correctly            |  1 Jun 2022 |
   | HANGMAN (IMSUTIL) | ERROR: WDCMP not fully implemented                    | 26 May 2022 | 
   | MMM               | 'Error 11381. from line...'                           | 16 Apr 2022 |
   | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 |

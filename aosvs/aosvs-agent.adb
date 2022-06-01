@@ -207,8 +207,11 @@ package body AOSVS.Agent is
             end if;
 
             Loggers.Debug_Print (Sc_Log, "----- Attempting to open: " & Path);
-            Agent_Chans(Chan_Num).Access_Method := Direct;
-            Direct_IO.Open (Agent_Chans(Chan_Num).File_Direct, (if Read_Only then Direct_IO.In_File else Direct_IO.Inout_File), Path);
+            -- Agent_Chans(Chan_Num).Access_Method := Direct;
+            -- Direct_IO.Open (Agent_Chans(Chan_Num).File_Direct, (if Read_Only then Direct_IO.In_File else Direct_IO.Inout_File), Path);
+            Agent_Chans(Chan_Num).Access_Method := Stream;
+            Ada.Streams.Stream_IO.Open (Agent_Chans(Chan_Num).File_Stream, (if Read_Only then Ada.Streams.Stream_IO.In_File else Ada.Streams.Stream_IO.Append_File), Path);
+            Agent_Chans(Chan_Num).Stream_Acc := Ada.Streams.Stream_IO.Stream ( Agent_Chans(Chan_Num).File_Stream);
          end if;
 
          -- check for errors
@@ -237,6 +240,7 @@ package body AOSVS.Agent is
                      when Block =>  Block_IO.Close (Agent_Chans(Chan_No).File_Block);
                      when Shared => null; -- TODO
                      when Direct => Direct_IO.Close (Agent_Chans(Chan_No).File_Direct);
+                     when Stream => Ada.Streams.Stream_IO.Close (Agent_Chans(Chan_No).File_Stream);
                   end case;
                   Agent_Chans(Chan_No).Opener_PID := 0;
                end if;
@@ -299,7 +303,8 @@ package body AOSVS.Agent is
                               Bytes       : out Byte_Arr_T;
                               Transferred : out Word_T;
                               Err         : out Word_T) is
-         Byte_Ix : constant Integer := Bytes'First;
+         Byte_Ix : Integer := Bytes'First;
+         Char    : Character;
          Byte    : Byte_T;
       begin
          Loggers.Debug_Print (Sc_Log,"----- Record Length:" & Rec_Len'Image);
@@ -312,7 +317,8 @@ package body AOSVS.Agent is
             if Is_Datasens then
                Bytes(Byte_Ix) := 0;
                loop
-                  Byte_T'Read (Agent_Chans(Integer(Chan_No)).Con, Byte);
+                  Character'Read (Agent_Chans(Integer(Chan_No)).Con, Char);
+                  Byte := Char_To_Byte(Char);
                   -- ECHO 
                   if Agent_Chans(Integer(Chan_No)).Echo then
                      Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Byte);
@@ -322,13 +328,11 @@ package body AOSVS.Agent is
                   end if;
                   Bytes(Byte_Ix) := Byte;
                   Bytes(Byte_Ix+1) := 0;
-                  if Byte = Character'Pos(Dasher_NL) or Byte = Character'Pos(Dasher_CR) or Byte = Character'Pos(Dasher_FF) then               
-                     --Bytes(Byte_Ix) := 0;
-                     --Byte_Ix := Byte_Ix + 1;
-                     exit;
-                  end if;
+                  Bytes(Byte_Ix+2) := 0;
                   -- TODO Handle Delete char
+                  Byte_Ix := Byte_Ix + 1;
                   Transferred := Transferred + 1;
+                  exit when Char = Dasher_NL or Char = Dasher_CR or Char = Dasher_FF; 
                end loop;
             elsif Is_Dynamic then
                -- Rec_Len is the fixed # of Bytes to read
@@ -343,12 +347,16 @@ package body AOSVS.Agent is
             if Is_Datasens then
                Bytes(Byte_Ix) := 0;
                loop
-                  Direct_IO.Read (Agent_Chans(Integer(Chan_No)).File_Direct, Byte);
+                  Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, Char);
+                  Byte := Char_To_Byte(Char);
                   Bytes(Byte_Ix) := Byte;
                   Bytes(Byte_Ix+1) := 0;
-                  exit when Byte = Character'Pos(Dasher_NL) or Byte = Character'Pos(Dasher_CR) or Byte = Character'Pos(Dasher_FF); 
+                  Bytes(Byte_Ix+2) := 0;
+                  Byte_Ix := Byte_Ix + 1;
                   Transferred := Transferred + 1;
+                  exit when Char = Dasher_NL or Char = Dasher_CR or Char = Dasher_FF; 
                end loop;
+               Loggers.Debug_Print (Sc_Log, "----- Read: >>>" & To_String(Byte_Arr_To_Unbounded(Bytes(0..Byte_Ix))) & "<<<");
             else
                raise Not_Yet_Implemented with "NYI: non-datasensitive real file READs";
             end if;
