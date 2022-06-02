@@ -349,7 +349,8 @@ package body Processor.Eagle_Mem_Ref_P is
                if CPU.AC(1) = 0 then
                   Loggers.Debug_Print (Debug_Log, "WARNING: WCTR called with AC1 = 0, not translating anything");
                else
-                  Trans_Tab_Addr := Shift_Left(Resolve_32bit_Indirectable_Addr (CPU.ATU, CPU.AC(0)),1);
+                  Trans_Tab_Addr := Resolve_32bit_Indirectable_Addr (CPU.ATU, CPU.AC(0));
+                  Trans_Tab_Addr := Phys_Addr_T(RAM.Read_Dword (Trans_Tab_Addr));
                   for C in 0 .. 255 loop
                      Trans_Tab(C) := RAM.Read_Byte_BA (Dword_T(Trans_Tab_Addr) + Dword_T(C));
                   end loop;
@@ -357,13 +358,15 @@ package body Processor.Eagle_Mem_Ref_P is
                      Src_Byte := RAM.Read_Byte_BA (CPU.AC(3));
                      CPU.AC(3) := CPU.AC(3) + 1;
                      Trans_Byte := Trans_Tab(Integer(Src_Byte));
-                     if Test_DW_Bit (CPU.AC(1), 0) then
-                        -- move mode
+                     if CPU.AC_I32(1) < 0 then
+                        -- translate-and-move mode
+                        -- Loggers.Debug_Print (Debug_Log, "... Translate-and-Move mode");
                         RAM.Write_Byte_BA(CPU.AC(2), Trans_Byte);
                         CPU.AC(2) := CPU.AC(2) + 1;
                         CPU.AC(1) := CPU.AC(1) + 1;
                      else
-                        -- compare mode
+                        -- translate-and-compare mode
+                        -- Loggers.Debug_Print (Debug_Log, "... Translate-and-Compare mode");
                         Str2_Byte := RAM.Read_Byte_BA (CPU.AC(2));
                         CPU.AC(2) := CPU.AC(2) + 1;
                         Trans2_Byte := Trans_Tab(Integer(Str2_Byte));

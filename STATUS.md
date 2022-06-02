@@ -1,6 +1,14 @@
 # DG/Emua Status
 
-As of 25 May 2022 this emulator equals or surpasses the old Go version in all ways.
+As of 25 May 2022 this emulator equals or surpasses my previous Go version in all ways.
+However, it is still a fair way from being generally useful.
+
+There are two emulators: one attempts to emulate physical hardware, the other tries to
+provide a user-level emulation of a virtual AOS/VS environment.  The emulators share
+some core code - notably the CPU (processor) itself.
+
+Due to lack of freely-available software and documentation, the virtual emulation is
+more advanced.
 
 ## Physical Emulator - mvemua
 
@@ -61,8 +69,8 @@ The NADGUG library provides a good range of freely-available test targets...
   | EMPIRE2T          | 'Error 71683. on file FILE_IN'                        | 22 Jun 2021 |
   | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 |
   | FISH              | Unimplemented sys call ?GLIST                         | 16 Apr 2022 |
-  | FOOBAR            | Not handling game input from kbd correctly            |  1 Jun 2022 |
-  | HANGMAN (IMSUTIL) | ERROR: WDCMP not fully implemented                    | 26 May 2022 | 
+  | *FOOBAR*          | Nearly working!  Error summing user input             |  1 Jun 2022 |
+  | HANGMAN (IMSUTIL) | ERROR: WDCMP not fully implemented, but 1 string looks wrong | 26 May 2022 | 
   | MMM               | 'Error 11381. from line...'                           | 16 Apr 2022 |
   | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 |
   | QUEST             | Welcome message, prompt for initials, ?RETURN. (server was not running) | 16 Apr 2022 |
