@@ -43,7 +43,7 @@ DIx and DOx instructions to the BMC/DCH controller seem to be undocumented for t
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 1 Jun 2022
+* Last status update: 2 Jun 2022
   
 All of the following 32-bit sample programs copied from a physical machine are working...
 * HW.PR - Hello, World! (13 May 2021)
@@ -70,7 +70,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 |
   | FISH              | Unimplemented sys call ?GLIST                         | 16 Apr 2022 |
   | *FOOBAR*          | Nearly working!  Error summing user input             |  1 Jun 2022 |
-  | HANGMAN (IMSUTIL) | ERROR: WDCMP not fully implemented, but 1 string looks wrong | 26 May 2022 | 
+  | HANGMAN (IMSUTIL) | Unimplemented syscall 401 ?SDLM                       |  2 Jun 2022 | 
   | MMM               | 'Error 11381. from line...'                           | 16 Apr 2022 |
   | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 |
   | QUEST             | Welcome message, prompt for initials, ?RETURN. (server was not running) | 16 Apr 2022 |

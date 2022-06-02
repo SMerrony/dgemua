@@ -1,24 +1,17 @@
--- MIT License
-
--- Copyright (c) 2021 Stephen Merrony
-
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
+-- Copyright ©2021,2022 Stephen Merrony
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 with Ada.Text_IO; use Ada.Text_IO;
 
@@ -47,7 +40,18 @@ package body Processor.Eagle_Decimal_P is
                   Dec_US_2 := Read_Decimal(CPU.AC(3), Size_2);
                   Loggers.Debug_Print (Debug_Log, "... Arg 1 Type: " & Type_1'Image & " String: " & To_String(Dec_US_1) & " Length:" & Size_1'Image);
                   Loggers.Debug_Print (Debug_Log, "... Arg 2 Type: " & Type_2'Image & " String: " & To_String(Dec_US_2) & " Length:" & Size_2'Image);
-                  raise Execution_Failure with "ERROR: WDCMP not fully implemented";
+                  if Type_1 = 3 and Type_2 = 3 then
+                     if Integer'Value(To_String(Dec_US_1)) = Integer'Value(To_String(Dec_US_2)) then
+                        CPU.AC(1) := 0;
+                     elsif Integer'Value(To_String(Dec_US_1)) > Integer'Value(To_String(Dec_US_2)) then
+                        CPU.AC(1) := 1;
+                     else
+                        CPU.AC_I32(1) := -1;
+                     end if;
+                     CPU.Carry := false;
+                  else
+                     raise Execution_Failure with "ERROR: WDCMP not fully implemented";
+                  end if;
                end;
             end if;
          when 2 => raise Execution_Failure with "ERROR: WDINC Not Yet Implemented";
