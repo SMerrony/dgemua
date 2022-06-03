@@ -1,0 +1,11 @@
+push;prompt pop
+searchlist :UTILITIES:LOOK [!searchlist]
+[!nequal,([!path %1%]),()]
+  xeq LOOK %1%
+[!else]
+  write ERROR: FILE DOES NOT EXIST: %1%
+[!end]
+pop
+[!neq,(%2-%),()]
+  %0% %2-%
+[!end]

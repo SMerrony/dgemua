@@ -174,6 +174,7 @@ package body AOSVS.Agent.Tasking is
                when 8#333# => Syscall_OK := Multitasking.Sys_UIDSTAT (CPU, Task_Data.PID, Task_Data.TID);
                when 8#336# => Syscall_OK := File_Management.Sys_RECREATE (CPU, Task_Data.PID);
                -- when 8#351# => Syscall_OK := ...Sys_GTNAM...
+               when 8#503# => Syscall_OK := Multitasking.Sys_PRI   (CPU, Task_Data.PID, Task_Data.TID);
                when 8#505# => Syscall_OK := Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr);
                when 8#525# => Syscall_OK := Multitasking.Sys_REC   (CPU, Task_Data.PID, Task_Data.TID);
                when 8#542# => Syscall_OK := Multitasking.Sys_IFPU  (CPU); 

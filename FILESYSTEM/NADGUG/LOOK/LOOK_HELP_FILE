@@ -1,0 +1,277 @@
+*COMMAND_LINE
+LOOK{/WINDOW_LIMIT=<integer>}  <file_name>
+
+The LOOK command line is currently simple.  The CLI macro that
+invokes the LOOK program provides for LOOKing at a series of files
+sequentially, and for specifying a file list by template.  The
+LOOK program itself interprets a single argument, and, currently,
+one switch, the WINDOW_LIMIT switch.
+
+The single argument is interpreted as a file to LOOK at.
+
+The WINDOW_LIMIT switch specifies how many lines the CRT display you
+are using has.  The value of the switch is taken to be the number
+of lines LOOK can expect to use for windows after subtracting its
+overhead of three lines.  So, for a "standard" terminal, 21 is a
+good value, and 21 is in fact the default value of this switch.
+*KEYS
+Some of the user function keys are defined for LOOK.
+(f# means the #th key, ~ means shift, and ^ means control)
+
+f1   position upward one screenful. (same as "PREVIOUS")
+f2   position downward one screenful.(same as "NEXT")
+f3   position to marker 1. (same as "FLIP 1")
+f4   position to marker 2  (same as "FLIP 2")
+f5-8 views 1-4
+
+~f1  position upward a half screenful. (same as "UP")
+~f2  position downward a half screenful. (same as "DOWN")
+~f3  set marker 1 to remember current position. (same as "MARK 1")
+~f4  set marker 2 to remember current position. (same as "MARK 2")
+
+^f1  position to first line. (same as "TOP")
+^f2  position to the last line. (same as "BOTTOM")
+^f3  position to the approximate middle of the file. (same as "MIDDLE")
+^f4  redisplay current page. (same as "CURRENT")
+*NEWS
+LOOK <file_list>
+
+LOOK may be used to browse through files.
+
+Features in look 2.03:
+  1 ^C^A interupt handled.
+  2 DEFINE, WINDOW, and VIEW commands, to manipulate multiple files.
+  3 COLUMN command, to display lines longer than 79 characters.
+  4 WINDOW_LIMIT switch on invocation, to describe screen size.
+Features in LOOK 3.00:
+  1 Several bugs fixed.
+  2 WRITE command to output selected lines from the current view.
+  3 Format of beginning of file, end of file, and page break
+    displays changed.
+*SEARCH_STRING
+<SEARCH_STRING>
+
+	The "find" and "backfind" command both accept search strings.
+	A search string may specify an "exact match" or a "template".
+
+	An "exact match" is specified by enclosing the search string
+	in double quotes. For example, "Dod" would not match "dod".
+
+	A template is specified by an argument containing no blanks,
+	or enclosed in single quotes.
+	All template matching is case-insensitive. 
+	A single space in the template string matches one or more
+	spaces and tabs. The template character "+" matches any
+	sequence of characters (up to end-of-line).
+
+	For example, the template 'ret+to sender' could match:
+	   1)  "return   to   sender"
+	   2)  "RETURN quickly to   sender"
+*SUMMARY
+LOOK<optional_switches>   <file_list>
+
+LOOK may be used to browse through files.
+Type "HELP <topic>" for more information on a specific topic.
+Type "HELP *NEWS" for a description of recent changes.
+
+COMMANDS
+========
+approximate	backfind	bottom		bye 
+cli		column		current		define		
+down		find		flip		help
+mark		middle		next		previous
+top		up		view		window
+write
+
+TOPICS
+======
+*command_line  *keys  *news  *search_string  *summary
+APPROXIMATE
+APPROXIMATE <number>
+	Display a page of the file located at the
+	approximate distance within the file given by the
+	<number> argument. The <number> argument is interpreted
+	as a decimal fraction where the decimal point is immediately
+	to the left of the first digit.
+
+	For example, "APPROXIMATE 33" displays the page in
+	the file which is about one third of the way (0.33)
+	into the file.  "APPROXIMATE 033" on the other hand,
+	displays the line beginning at slightly over 3/100 of the
+        way into the file.
+
+	<number> may be in the range 0001 to 9999. 
+	Leading zeroes are significant.
+
+	You may enter a <number> instead of a command.
+	This is a shorthand for "approximate <number>".    
+BACKFIND
+BACKFIND <search_string> 
+
+	Performs a "backwards" search for <search_string>.
+	The search terminates at the beginning of the file.
+
+	If no <search_string> is given, the <search_string>
+	last specified on either a "find" or "backfind"
+	command will be used.
+
+	Type "HELP *SEARCH_STRING" for details on the syntax
+	and semantics of <search_string>.
+
+	The line which matches the <search_string> will be 
+	displayed at the top of the view window.
+
+BOTTOM
+BOTTOM
+
+	Display the last page of the file.
+BYE
+BYE
+
+	Exits from "LOOK".
+
+CLI
+CLI
+
+	Escape from look into the CLI
+COLUMN
+COLUMN <optional column number>
+
+	This command sets the display column for all windows
+	to its argument if present, and to 1 if not.
+
+	This means that lines will be displayed starting in
+	the column you specify until you re-specify the column.
+CURRENT
+CURRENT
+
+	Re-displays the current "page".
+
+DEFINE
+DEFINE <viewnum> <pathname> <opt_windowstart> <opt_windowend>
+
+    The DEFINE command defines a window for the display of text from
+    a file.  The view number and pathname are required, but the
+    window start and window end will default to 1 and 21, respectively.
+    Lines for windows are numbered 1-21, starting with the line just
+    below the command line.
+
+    See also "VIEW" and "WINDOW".
+DOWN
+DOWN <opt_lines>
+
+	Moves the display towards the end of the file.
+
+	The default if no argument is given is to move
+	1/2 the width of the current view's window.
+
+
+FIND
+FIND <search_string> 
+
+	Performs a "forward" search for <search_string>.
+	The search terminates at the end of the file.
+
+	If no <search_string> is given, the <search_string>
+	last specified on either a "find" or "backfind"
+	command will be used.
+
+	type "HELP *SEARCH_STRING" for details on the syntax
+	and semantics of <search_string>.
+
+	The line which matches the <search_string> will be 
+	displayed at the top of the view window.
+
+FLIP
+FLIP <marker_number>
+
+	Display the page "marked" by <marker_number>.
+
+	There are five markers.
+
+	Markers 1 and 2 may be specified with function keys.
+	Type "HELP *KEYS" for more information.
+HELP
+HELP <help_topic>
+
+	Display information on "look" topics or commands.
+
+	<help_topic> may be either a command name or a topic
+	name. Topiic names begin with "*". The <help_topic>
+	need only be specified to the minimum number of
+	characters to make the name unique. 
+
+	If no arguments are given, then a "help *summary" is
+	performed. This summary gives the list of commands
+	and topics.
+MARK
+MARK <marker_number>
+
+	Leave a book mark specified by <marker_number> at the
+	current page. 
+
+	There are five markers.
+
+	You may use the "flip" command to display a page
+	at a marker.
+
+	You may set markers 1 and 2 with function keys.
+	type "help *keys" for more information.
+MIDDLE
+MIDDLE
+
+	Display the page located approximately midway into the
+	file. 
+NEXT
+NEXT  <number>
+
+	Advance <number> pages and display the page at that location.
+
+	The next page is displayed with an overlap of one line
+	from the previous page.
+PREVIOUS
+PREVIOUS <number>
+
+	Back up <number> pages and display the page at new position.
+
+	The previous page is displayed with an overlap of one line
+	from the current page.
+TOP
+TOP
+
+	Position to the top (first line) of the file.
+
+UP
+UP <opt_lines>
+
+	Moves the display towards the beginning of the file.
+
+	The default if no argument is given is to move
+	1/2 the width of the current view's window.
+VIEW
+VIEW <viewnum>
+
+    The VIEW command is used to switch the LOOK processor's
+    "attention" to a specific file-to-screen-window connection,
+    called a "view".  There are currently 4 views, numbered 1 to 4,
+    and the function keys 5 to 8 are defined to switch views
+    conveniently.
+
+    See also "DEFINE" and "WINDOW".
+WINDOW
+WINDOW <opt_windowstart> <opt_windowend>
+
+    The WINDOW command is used to re-define the bounds of the current
+    view's screen window.  If no arguments are given, the window is
+    set to the enitre screen, as if you had used "WINDOW 1 21".
+
+    See also "DEFINE" and "VIEW"
+WRITE
+WRITE <filename> <opt_number_of_lines>
+
+    Append text to the file <filename> from the current position
+    for <opt_number_of_lines> lines.  The default for number of
+    lines is the current screen length.
+
+    Note that this writes text much as it appears in the screen
+    window, not as it really is in the file.

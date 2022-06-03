@@ -1,0 +1,17 @@
+LOOK <file_list>
+
+LOOK may be used to browse through files.
+
+Features in look 2.03:
+  1 ^C^A interupt handled.
+  2 DEFINE, WINDOW, and VIEW commands, to manipulate multiple files.
+  3 COLUMN command, to display lines longer than 79 characters.
+  4 WINDOW_LIMIT switch on invocation, to describe screen size.
+Features in LOOK 3.00:
+  1 Several bugs fixed.
+  2 WRITE command to output selected lines from the current view.
+  3 Format of beginning of file, end of file, and page break
+    displays changed.
+
+For details of these and other neat features, invoke LOOK,
+and use it's builtin help facility.

@@ -73,7 +73,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | *FOOBAR*          | Nearly working!  Error summing user input             |  1 Jun 2022 |
   | HANGMAN (IMSUTIL) | Unimplemented syscall 401 ?SDLM                       |  2 Jun 2022 | 
   | MMM               | 'Error 11381. from line...'                           | 16 Apr 2022 |
-  | OTHELLO*(IMSUTIL) | *Runs to completion - seems to work perfectly :-)*    |  2 Jun 2022 |
+  | OTHELLO (IMSUTIL) | *Runs to completion - seems to work perfectly :-)*    |  2 Jun 2022 |
   | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 |
   | QUEST             | Welcome message, prompt for initials, ?RETURN. (server was not running) | 16 Apr 2022 |
   | SCRABBLE          | 'Error 71692' after ?OPENing SEED file                | 19 Jun 2021 |
@@ -86,6 +86,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | Program     | Problem                                                     | Date        |
   |-------------|-------------------------------------------------------------|-------------|
   | EMACS.PR    | 'ERROR 71187'                                               | 26 May 2022 |
+  | LOOK.PR (IMSUTIL) | ?GTMES request type 4 not yet handled                 |  2 Jun 2022 |
   
 ### Reminders
 * We have the FORTRAN source for FOOBAR and WUMPUS, and the C code for EMACS
