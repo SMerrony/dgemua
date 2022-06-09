@@ -231,11 +231,11 @@ package body Processor.Eagle_PC_P is
             end if;
             
          when I_WSEQI | I_WSGTI | I_WSLEI | I_WSNEI =>
-            S32_S := Dword_To_Integer_32(Sext_Word_To_Dword (I.Word_2));
+            S32_S := Integer_32(Word_To_Integer_16 (I.Word_2));
             if I.Instruction = I_WSEQI then
                Skip := CPU.AC_I32(I.Ac) = S32_S;
             elsif I.Instruction = I_WSGTI then
-               Skip := CPU.AC_I32(I.Ac) >= S32_S;
+               Skip := CPU.AC_I32(I.Ac) > S32_S;
             elsif I.Instruction = I_WSLEI then
                Skip := CPU.AC_I32(I.Ac) <= S32_S;
             else
@@ -364,18 +364,32 @@ package body Processor.Eagle_PC_P is
             CPU.AC(3) := Dword_T(Addr);
             
          when I_XNDO =>
+            -- declare
+            --    Loop_Var_Addr    : Phys_Addr_T;
+            --    Loop_Var, Ac_Var : Integer_32;
+            -- begin
+            --    Loop_Var_Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            --    Word := RAM.Read_Word (Loop_Var_Addr) + 1 ;
+            --    Loop_Var := Integer_32(Word_To_Integer_16(RAM.Read_Word (Loop_Var_Addr))); 
+            --    RAM.Write_Word(Loop_Var_Addr, Word);
+            --    Ac_Var := CPU.AC_I32(I.Ac);
+            --    CPU.AC(I.Ac) := Integer_32_To_Dword(Loop_Var);
+            --    if Loop_Var > Ac_Var then 
+            --       -- loop ends
+            --       CPU.PC := CPU.PC + 1 + Phys_Addr_T(I.Word_3);
+            --    else
+            --       CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);
+            --    end if;
+            -- end;
             declare
-               Loop_Var_Addr    : Phys_Addr_T;
-               Loop_Var, Ac_Var : Integer_32;
+               Loop_Limit : Integer_32 := CPU.AC_I32(I.Ac);
+               Loop_Var_Addr : Phys_Addr_T := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               Loop_Var : Integer_32 := Integer_32(Word_To_Integer_16(RAM.Read_Word (Loop_Var_Addr))); 
             begin
-               Loop_Var_Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
-               Word := RAM.Read_Word (Loop_Var_Addr) + 1 ;
-               Loop_Var := Integer_32(Word_To_Integer_16(Word)); 
-               RAM.Write_Word(Loop_Var_Addr, Word);
-               Ac_Var := CPU.AC_I32(I.Ac);
-               CPU.AC(I.Ac) := Integer_32_To_Dword(Loop_Var);
-               if Loop_Var > Ac_Var then 
-                  -- loop ends
+               Loop_Var := Loop_Var + 1;
+               RAM.Write_Word(Loop_Var_Addr, Word_T(Integer_32_To_Dword(Loop_Var)));
+               CPU.AC_I32(I.Ac) := Loop_Var;
+               if Loop_Var > Loop_Limit then
                   CPU.PC := CPU.PC + 1 + Phys_Addr_T(I.Word_3);
                else
                   CPU.PC := CPU.PC + Phys_Addr_T(I.Instr_Len);

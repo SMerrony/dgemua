@@ -155,7 +155,9 @@ package body AOSVS.Agent.Tasking is
                when 8#300# => Syscall_OK := File_IO.Sys_OPEN  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#301# => Syscall_OK := File_IO.Sys_CLOSE (CPU, Task_Data.PID, Task_Data.TID);
                when 8#302# => Syscall_OK := File_IO.Sys_READ  (CPU, Task_Data.PID, Task_Data.TID);
+               --when 8#303# => Syscall_OK := raise System_Call_Not_Implemented; 
                when 8#303# => Syscall_OK := File_IO.Sys_WRITE (CPU, Task_Data.PID, Task_Data.TID, Task_Data.Debug_Logging);
+                  --raise System_Call_Not_Implemented;
                when 8#307# => Syscall_OK := System.Sys_GTMES  (CPU, Task_Data.PID, Task_Data.TID);
                when 8#310# => -- ?RETURN - handled differently
                   Loggers.Debug_Print (Sc_Log, "?RETURN");

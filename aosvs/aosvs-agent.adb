@@ -16,8 +16,6 @@
 with Ada.Directories;
 with Ada.Text_IO;
 
--- with Interfaces;  use Interfaces;
-
 with Debug_Logs; use Debug_Logs;
 
 package body AOSVS.Agent is
@@ -173,6 +171,9 @@ package body AOSVS.Agent is
             Loggers.Debug_Print (Sc_Log, "----- Dynamic");
         end if;
 
+        Agent_Chans(Chan_Num).Rec_Len := Rec_Len;
+        Loggers.Debug_Print (Sc_Log, "----- Default Record Length:" & Rec_Len'Image);
+
          if Path(Path'First) = '@' then
             if (Path = "@CONSOLE") or (Path = "@INPUT") or (Path = "@OUTPUT") or (Path = "@OUT") then
                Agent_Chans(Chan_Num).Con        := Console;
@@ -262,6 +263,9 @@ package body AOSVS.Agent is
          return Dev;
       end Get_Device_For_Channel;
 
+      function Get_Default_Len_For_Channel (Chan_No : Word_T) return Integer is
+         (Agent_Chans(Integer(Chan_No)).Rec_Len);
+
       procedure Block_File_Open (PID       : Word_T;
                                  Filename  : String;
                                  Exclusive : Boolean;
@@ -307,7 +311,8 @@ package body AOSVS.Agent is
          Char    : Character;
          Byte    : Byte_T;
       begin
-         Loggers.Debug_Print (Sc_Log,"----- Record Length:" & Rec_Len'Image);
+         Loggers.Debug_Print (Sc_Log, "----- Path: " & To_String (Agent_Chans(Integer(Chan_No)).Path));
+         Loggers.Debug_Print (Sc_Log, "----- Record Length:" & Rec_Len'Image);
          Err := 0;
          Transferred := 0;
          if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
@@ -345,8 +350,12 @@ package body AOSVS.Agent is
             end if;
          else -- not a CONSOLE device, a real file...
             if Is_Datasens then
+               -- DATA-SENSITIVE --
                Bytes(Byte_Ix) := 0;
                loop
+                  if Ada.Streams.Stream_IO.End_Of_File (Agent_Chans(Integer(Chan_No)).File_Stream) then
+                     raise EOF;
+                  end if;
                   Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, Char);
                   Byte := Char_To_Byte(Char);
                   Bytes(Byte_Ix) := Byte;
@@ -357,8 +366,17 @@ package body AOSVS.Agent is
                   exit when Char = Dasher_NL or Char = Dasher_CR or Char = Dasher_FF; 
                end loop;
                Loggers.Debug_Print (Sc_Log, "----- Read: >>>" & To_String(Byte_Arr_To_Unbounded(Bytes(0..Byte_Ix))) & "<<<");
+            elsif Is_Dynamic then
+               -- DYNAMIC --
+               -- Rec_Len is the fixed # of Bytes to read
+               for B in 0 .. Rec_Len - 1 loop
+                  Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, Char);
+                  Byte := Char_To_Byte(Char);
+                  Bytes(Byte_Ix) := Byte;
+                  Transferred := Transferred + 1;
+               end loop;       
             else
-               raise Not_Yet_Implemented with "NYI: non-datasensitive real file READs";
+               raise Not_Yet_Implemented with "NYI: non-datasensitive/dynamic real file READs";
             end if;
          end if;
 
@@ -411,6 +429,7 @@ package body AOSVS.Agent is
          if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
             raise Channel_Not_Open with "?WRITE";
          end if;
+         Loggers.Debug_Print (Sc_Log, "------ Path: " & To_String (Agent_Chans(Integer(Chan_No)).Path));
          if Defaults then
             T_Dyn := Agent_Chans(Integer(Chan_No)).Dynamic;
             T_DS  := Agent_Chans(Integer(Chan_No)).Data_Sens;
@@ -432,6 +451,7 @@ package body AOSVS.Agent is
                end loop;
                Transferred := Integer_16_To_Word(Integer_16(DS_Len));
                -- Loggers.Debug_Print (Sc_Log,"----- No of D/S bytes written:" & Transferred'Image);
+               Loggers.Debug_Print (Sc_Log,"----- Wrote: " & RAM.Read_String_BA (Bytes_BA, False));
             else
                declare
                   Bytes : constant Byte_Arr_T := RAM.Read_Bytes_BA(Bytes_BA, Rec_Len);
@@ -440,13 +460,13 @@ package body AOSVS.Agent is
                      Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Bytes(B));
                   end loop;
                   Transferred := Word_T(Bytes'Length);
+                  Loggers.Debug_Print (Sc_Log,"----- Wrote: " & To_String (Byte_Arr_To_Unbounded(Bytes)));
                end;
                if Integer (Transferred) /= Rec_Len then
                   raise IO_Error with "mismatch between requested and actual bytes written";
                end if;
-            end if;
-            Loggers.Debug_Print (Sc_Log,"----- Wrote: " & RAM.Read_String_BA (Bytes_BA, False));
-         else
+            end if;   
+         else -- not to the console
             if T_Dyn then
                declare
                   Bytes : constant Byte_Arr_T := RAM.Read_Bytes_BA(Bytes_BA, Rec_Len);

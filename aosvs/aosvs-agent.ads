@@ -81,7 +81,7 @@ package AOSVS.Agent is
 	   Access_Method : Access_Method_T;
 	   Dynamic, Data_Sens, Fixed_Length, Var_Length, Undefined, IBM_VB
 	   			   : Boolean;
-	   Rec_Len     : Natural;
+	   Rec_Len     : Integer;
 	   Con         : GNAT.Sockets.Stream_Access;
 	   Echo        : Boolean;
 	   File_Direct : Direct_IO.File_Type;
@@ -144,6 +144,7 @@ package AOSVS.Agent is
 								   Err       : out Word_T);
 		function  Get_Default_ACL (PID : PID_T) return String;
 	    function  Get_Device_For_Channel(Chan_No : Word_T) return Unbounded_String;
+		function  Get_Default_Len_For_Channel (Chan_No : Word_T) return Integer; 
 		procedure File_Read (Chan_No : Word_T;
                               Is_Extended,
                               Is_Absolute,
@@ -217,6 +218,7 @@ package AOSVS.Agent is
 	end Actions;
 
 	Channel_Not_Open,
+	EOF,
 	IO_Error,
 	NO_MORE_CHANNELS,
 	NO_MORE_TIDS,

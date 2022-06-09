@@ -129,23 +129,23 @@ package body AOSVS.File_IO is
         Rec_Len     : constant Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
         Dest        : constant Dword_T     := RAM.Read_Dword(Pkt_Addr + IBAD);
         -- Read_Line   : Boolean     := (RAM.Read_Word(Pkt_Addr + IBIN) = 0);
-        Bytes       : Byte_Arr_T(0 .. Rec_Len-1);
+        Bytes       : Byte_Arr_T(0 .. (if Rec_Len > 0 then Rec_Len-1 else Agent.Actions.Get_Default_Len_For_Channel (Chan_No)));
         Position    : Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
         Txfrd, Err  : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?READ - Channel:" &Chan_No'Image & " for PID:" & PID'Image & " TID:" & TID'Image);
         Loggers.Debug_Print (Debug_Log, "?READ - Channel:" &Chan_No'Image);
         if Defaults then
-            Loggers.Debug_Print (Sc_Log, "------ Default Type from ?Open");
+            Loggers.Debug_Print (Sc_Log, "----- Default Type from ?Open");
         end if;
         if Is_DataSens then
-            Loggers.Debug_Print (Sc_Log, "------ Data Sensitive");
+            Loggers.Debug_Print (Sc_Log, "----- Data Sensitive");
         end if;
         if Is_Dynamic then
-            Loggers.Debug_Print (Sc_Log, "------ Dynamic");
+            Loggers.Debug_Print (Sc_Log, "----- Dynamic");
         end if;
         if Is_Extd then
-            Loggers.Debug_Print (Sc_Log, "------ Extended!");
+            Loggers.Debug_Print (Sc_Log, "----- Extended!");
         end if;
         AOSVS.Agent.Actions.File_Read (Chan_No,
                                         Is_Extd,
@@ -161,11 +161,18 @@ package body AOSVS.File_IO is
             return false;
         end if;
         RAM.Write_Word(Pkt_Addr + IRLR, Txfrd);
-        for B in 0 .. Txfrd loop
-            RAM.Write_Byte_BA(Dest + Dword_T(B), Bytes(Integer(B)));
-        end loop;
+        if Txfrd > 0 then
+            for B in 0 .. Txfrd - 1 loop
+                RAM.Write_Byte_BA(Dest + Dword_T(B), Bytes(Integer(B)));
+            end loop;
+        end if;
         Loggers.Debug_Print (Sc_Log, "----- Bytes Read:" & Txfrd'Image);
         return true;
+    exception
+        when Agent.EOF =>
+            Loggers.Debug_Print (Sc_Log, "----- EOF" );
+            CPU.AC_Wd(0) := PARU_32.EREOF;
+            return false;
     end Sys_READ;
     
     function Sys_RDB   (CPU : CPU_T; PID : Word_T) return Boolean is

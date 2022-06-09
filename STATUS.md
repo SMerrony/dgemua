@@ -30,7 +30,6 @@ Initial milestones are to run from image of AOS/VS 7.73 system tape image...
 * ~~File 3 - INSTL - Runs to completion - 19th April 2021~~
 * File 1 - FIXUP - Produces ERROR ~71231.~ 71199. - that's further than mvemg gets! - 18th March 2022
 * File 1 - PCOPY - Aborts with "Incorrect disk format revision number" - further than mvemg got! - 22nd March 2022
-* ~~Implement PIT~~ - 3rd April 2022
 
 ### Missing Information and Assumptions
 As mentioned elsewhere, I have limited available documentation - some of which is of dubious accuracy.
@@ -65,7 +64,7 @@ The NADGUG library provides a good range of freely-available test targets...
   |-------------------|-------------------------------------------------------|-------------|
   | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | 
   | CHESS             | Unimplemented syscall 030 ?RUNTM                      |  1 Jun 2022 |
-  | DND               | 'Error 71697. on file CONSOLE'                        | 28 Oct 2021 |
+  | DND               | Extended ?READ from CONSOLE NYI                       |  9 Jun 2022 |
   | EMPIRE1           | Corrupted '@OUTPUT @' filename                        | 30 May 2022 |
   | EMPIRE2T          | 'Error 71683. on file FILE_IN'                        | 22 Jun 2021 |
   | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 |

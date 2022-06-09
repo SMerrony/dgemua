@@ -9,6 +9,7 @@
 		"cSpell.enabled": false,
 		"files.associations": {
 			"EMACS.C": "cpp"
-		}
+		},
+		"ada.enableDiagnostics": true,
 	}
 }

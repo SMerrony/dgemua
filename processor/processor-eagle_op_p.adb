@@ -200,7 +200,7 @@ package body Processor.Eagle_Op_P is
                if (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32) then
                   Set_OVR(true);
                else
-                  CPU.AC(I.Acd) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+                  CPU.AC_I32(I.Acd) := Integer_32(S64); -- Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
                   Set_OVR(false);
                end if;
             else
@@ -267,7 +267,7 @@ package body Processor.Eagle_Op_P is
             CPU.AC(I.Acd) := CPU.AC(I.Acs);
 
          when I_WMOVR =>
-            CPU.AC(I.Ac) := Shift_Right(CPU.AC(I.Ac), 1);
+            CPU.AC(I.Ac) := Shift_Right(CPU.AC(I.Ac), 1) and 16#7fff_ffff#;
 
          when I_WMUL =>
             Acd_S32 := CPU.AC_I32(I.Acd);
@@ -275,7 +275,7 @@ package body Processor.Eagle_Op_P is
             S64 := Integer_64(Acd_S32) * Integer_64(Acs_S32);
             CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
             Set_OVR (CPU.Carry);
-            CPU.AC(I.Acd) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+            CPU.AC_I32(I.Acd) := Integer_64_To_Integer_32(S64); -- Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
 
          when I_WMULS =>
             Acd_S32 := CPU.AC_I32(1);
@@ -289,7 +289,7 @@ package body Processor.Eagle_Op_P is
             S64 := Integer_64(Acd_S32) + Integer_64(Word_To_Integer_16(I.Word_2));
             CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
             Set_OVR (CPU.Carry);
-            CPU.AC(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+            CPU.AC_I32(I.Ac) := Integer_32(S64); -- Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
 
          when I_WNEG =>
             CPU.Carry := CPU.AC(I.Acs) = 16#8000_0000#; -- TODO Error in PoP?
@@ -302,7 +302,7 @@ package body Processor.Eagle_Op_P is
             S64 := Integer_64(CPU.AC_I32(I.Ac)) - Integer_64(S32);
             CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
             Set_OVR(CPU.Carry);
-            CPU.AC(I.Ac) := Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+            CPU.AC_I32(I.Ac) := Integer_32(S64); -- Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
 
          when I_WSUB =>
             Acd_S32 := CPU.AC_I32(I.Acd);
