@@ -158,21 +158,21 @@ package body AOSVS.Agent is
 
          -- parse Format Field options which are at end of File_Type
          Loggers.Debug_Print (Sc_Log,"----- Type:" & Format_Bits'Image);
-         Agent_Chans(Chan_Num).Dynamic      := (Format_Bits = PARU_32.RTDY);
-         Agent_Chans(Chan_Num).Data_Sens    := (Format_Bits = PARU_32.RTDS);
-         Agent_Chans(Chan_Num).Fixed_Length := (Format_Bits = PARU_32.RTFX);
-         Agent_Chans(Chan_Num).Var_Length   := (Format_Bits = PARU_32.RTVR);
-         Agent_Chans(Chan_Num).Undefined    := (Format_Bits = PARU_32.RTUN);
-         Agent_Chans(Chan_Num).IBM_VB       := (Format_Bits = PARU_32.RTVB);
-         if Agent_Chans(Chan_Num).Data_Sens then
-            Loggers.Debug_Print (Sc_Log, "----- Data Sensitive");
-        end if;
-        if Agent_Chans(Chan_Num).Dynamic then
-            Loggers.Debug_Print (Sc_Log, "----- Dynamic");
-        end if;
+         case Format_Bits is
+            when PARU_32.RTDY => Agent_Chans(Chan_Num).Rec_Format := Dynamic;
+            when PARU_32.RTDS => Agent_Chans(Chan_Num).Rec_Format := Data_Sensitive;
+            when PARU_32.RTFX => Agent_Chans(Chan_Num).Rec_Format := Fixed_Length;
+            when PARU_32.RTVR => Agent_Chans(Chan_Num).Rec_Format := Variable_Length;
+            when PARU_32.RTUN => Agent_Chans(Chan_Num).Rec_Format := Undefined_Length;
+            when PARU_32.RTVB => Agent_Chans(Chan_Num).Rec_Format := Variable_Block;
+            when others =>
+               raise Unknown_Record_Type;
+         end case;
 
-        Agent_Chans(Chan_Num).Rec_Len := Rec_Len;
-        Loggers.Debug_Print (Sc_Log, "----- Default Record Length:" & Rec_Len'Image);
+         Loggers.Debug_Print (Sc_Log, "----- Default Record Type: " & Agent_Chans(Chan_Num).Rec_Format'Image);
+
+         Agent_Chans(Chan_Num).Rec_Len := Rec_Len;
+         Loggers.Debug_Print (Sc_Log, "----- Default Record Length:" & Rec_Len'Image);
 
          if Path(Path'First) = '@' then
             if (Path = "@CONSOLE") or (Path = "@INPUT") or (Path = "@OUTPUT") or (Path = "@OUT") then
@@ -301,12 +301,13 @@ package body AOSVS.Agent is
       procedure File_Read (Chan_No : Word_T;
                               Is_Extended,
                               Is_Absolute,
-                              Is_Dynamic,
-                              Is_DataSens : Boolean;
+                              Open_Fmt    : Boolean;
+							         Rec_Fmt     : Record_Format_T;
                               Rec_Len     : Integer;
                               Bytes       : out Byte_Arr_T;
                               Transferred : out Word_T;
                               Err         : out Word_T) is
+         Actual_Rec_Fmt : Record_Format_T := Rec_Fmt;
          Byte_Ix : Integer := Bytes'First;
          Char    : Character;
          Byte    : Byte_T;
@@ -318,68 +319,72 @@ package body AOSVS.Agent is
          if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
             raise Channel_Not_Open with "?READ";
          end if;
-         if Agent_Chans(Integer(Chan_No)).Is_Console then
-            if Is_Datasens then
-               Bytes(Byte_Ix) := 0;
-               loop
-                  Character'Read (Agent_Chans(Integer(Chan_No)).Con, Char);
-                  Byte := Char_To_Byte(Char);
-                  -- ECHO 
-                  if Agent_Chans(Integer(Chan_No)).Echo then
-                     Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Byte);
-                     if Character'Val(Byte) = Dasher_CR then 
-                        Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Char_To_Byte(Dasher_NL));
-                     end if;
-                  end if;
-                  Bytes(Byte_Ix) := Byte;
-                  Bytes(Byte_Ix+1) := 0;
-                  Bytes(Byte_Ix+2) := 0;
-                  -- TODO Handle Delete char
-                  Byte_Ix := Byte_Ix + 1;
-                  Transferred := Transferred + 1;
-                  exit when Char = Dasher_NL or Char = Dasher_CR or Char = Dasher_FF; 
-               end loop;
-            elsif Is_Dynamic then
-               -- Rec_Len is the fixed # of Bytes to read
-               for B in 0 .. Rec_Len - 1 loop
-                  Direct_IO.Read(Agent_Chans(Integer(Chan_No)).File_Direct, Bytes(B));
-                  Transferred := Transferred + 1;
-               end loop;
-            else
-               raise Not_Yet_Implemented with "NYI - fixed or extended READ from CONSOLE";
-            end if;
-         else -- not a CONSOLE device, a real file...
-            if Is_Datasens then
-               -- DATA-SENSITIVE --
-               Bytes(Byte_Ix) := 0;
-               loop
-                  if Ada.Streams.Stream_IO.End_Of_File (Agent_Chans(Integer(Chan_No)).File_Stream) then
-                     raise EOF;
-                  end if;
-                  Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, Char);
-                  Byte := Char_To_Byte(Char);
-                  Bytes(Byte_Ix) := Byte;
-                  Bytes(Byte_Ix+1) := 0;
-                  Bytes(Byte_Ix+2) := 0;
-                  Byte_Ix := Byte_Ix + 1;
-                  Transferred := Transferred + 1;
-                  exit when Char = Dasher_NL or Char = Dasher_CR or Char = Dasher_FF; 
-               end loop;
-               Loggers.Debug_Print (Sc_Log, "----- Read: >>>" & To_String(Byte_Arr_To_Unbounded(Bytes(0..Byte_Ix))) & "<<<");
-            elsif Is_Dynamic then
-               -- DYNAMIC --
-               -- Rec_Len is the fixed # of Bytes to read
-               for B in 0 .. Rec_Len - 1 loop
-                  Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, Char);
-                  Byte := Char_To_Byte(Char);
-                  Bytes(Byte_Ix) := Byte;
-                  Transferred := Transferred + 1;
-               end loop;       
-            else
-               raise Not_Yet_Implemented with "NYI: non-datasensitive/dynamic real file READs";
-            end if;
+         if Open_Fmt then
+            Actual_Rec_Fmt := Agent_Chans(Integer(Chan_No)).Rec_Format;
          end if;
-
+         if Agent_Chans(Integer(Chan_No)).Is_Console then
+            case Actual_Rec_Fmt is
+               when Data_Sensitive =>
+                  Bytes(Byte_Ix) := 0;
+                  loop
+                     Character'Read (Agent_Chans(Integer(Chan_No)).Con, Char);
+                     Byte := Char_To_Byte(Char);
+                     -- ECHO 
+                     if Agent_Chans(Integer(Chan_No)).Echo then
+                        Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Byte);
+                        if Character'Val(Byte) = Dasher_CR then 
+                           Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Char_To_Byte(Dasher_NL));
+                        end if;
+                     end if;
+                     Bytes(Byte_Ix) := Byte;
+                     Bytes(Byte_Ix+1) := 0;
+                     Bytes(Byte_Ix+2) := 0;
+                     -- TODO Handle Delete char
+                     Byte_Ix := Byte_Ix + 1;
+                     Transferred := Transferred + 1;
+                     exit when Char = Dasher_NL or Char = Dasher_CR or Char = Dasher_FF; 
+                  end loop;
+               when Dynamic =>
+                  -- Rec_Len is the fixed # of Bytes to read
+                  for B in 0 .. Rec_Len - 1 loop
+                     Direct_IO.Read(Agent_Chans(Integer(Chan_No)).File_Direct, Bytes(B));
+                     Transferred := Transferred + 1;
+                  end loop;
+               when others =>
+                  raise Not_Yet_Implemented with "NYI - ?READ this Record Type from CONSOLE";
+            end case;
+         else -- not a CONSOLE device, a real file...
+            case Actual_Rec_Fmt is
+               when Data_Sensitive =>
+                  Bytes(Byte_Ix) := 0;
+                  loop
+                     if Ada.Streams.Stream_IO.End_Of_File (Agent_Chans(Integer(Chan_No)).File_Stream) then
+                        Err := PARU_32.EREOF;
+                        return;
+                     end if;
+                     Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, Char);
+                     Byte := Char_To_Byte(Char);
+                     Bytes(Byte_Ix) := Byte;
+                     Bytes(Byte_Ix+1) := 0;
+                     Bytes(Byte_Ix+2) := 0;
+                     Byte_Ix := Byte_Ix + 1;
+                     Transferred := Transferred + 1;
+                     exit when Char = Dasher_NL or Char = Dasher_CR or Char = Dasher_FF; 
+                  end loop;
+                  Loggers.Debug_Print (Sc_Log, "----- Read: >>>" & To_String(Byte_Arr_To_Unbounded(Bytes(0..Byte_Ix))) & "<<<");
+               when Dynamic =>
+                  -- DYNAMIC --
+                  -- Rec_Len is the fixed # of Bytes to read
+                  for B in 0 .. Rec_Len - 1 loop
+                     Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, Char);
+                     Byte := Char_To_Byte(Char);
+                     Bytes(Byte_Ix) := Byte;
+                     Transferred := Transferred + 1;
+                  end loop;       
+               when others =>
+                  raise Not_Yet_Implemented with "NYI: non-datasensitive/dynamic real file READs";
+            end case;
+         end if;
       end File_Read;
 
       procedure File_Read_Blocks (Chan_No     : Word_T;
@@ -410,81 +415,79 @@ package body AOSVS.Agent is
       end File_Read_Blocks;
 
       procedure File_Write (Chan_No : Word_T;
-                              Defaults,
                               Is_Extended,
                               Is_Absolute,
-                              Is_Dynamic,
-                              Is_DataSens : Boolean;
+                              Open_Fmt    : Boolean;
+                              Rec_Fmt     : Record_Format_T;
                               Rec_Len     : Integer;
                               Bytes_BA    : Dword_T;
                               Position    : Integer;
                               Transferred : out Word_T;
                               Err         : out Word_T) is
+         Actual_Rec_Fmt : Record_Format_T := Rec_Fmt;                     
          DS_Len   : Integer := 0;
          Max_Len  : constant Integer := (if Rec_Len = (-1) then Agent_Chans(Integer(Chan_No)).Rec_Len else Rec_Len);
          Byte     : Byte_T;
-         T_Dyn, T_DS : Boolean;
       begin
          Err := 0;
          if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
             raise Channel_Not_Open with "?WRITE";
          end if;
-         Loggers.Debug_Print (Sc_Log, "------ Path: " & To_String (Agent_Chans(Integer(Chan_No)).Path));
-         if Defaults then
-            T_Dyn := Agent_Chans(Integer(Chan_No)).Dynamic;
-            T_DS  := Agent_Chans(Integer(Chan_No)).Data_Sens;
-            Loggers.Debug_Print (Sc_Log,"------ ... Type: " & (if T_Dyn then "Dynamic" else "Data Sensitive"));
-         else
-            T_Dyn := Is_Dynamic;
-            T_DS  := Is_DataSens;
+         if Open_Fmt then
+            Actual_Rec_Fmt := Agent_Chans(Integer(Chan_No)).Rec_Format;
          end if;
+         Loggers.Debug_Print (Sc_Log, "------ Path: " & To_String (Agent_Chans(Integer(Chan_No)).Path));
+
          if Agent_Chans(Integer(Chan_No)).Is_Console then
-            if T_DS then
-               loop
-                  Byte := RAM.Read_Byte_BA( Bytes_BA + Dword_T(DS_Len));
-                  -- TODO handle custom delimiter tables
-                  -- exit when Byte = 0;
-                  DS_Len := DS_Len + 1;
-                  Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Byte);
-                  exit when Byte = 0 or Byte = 8#12# or Byte = 8#14# or Byte = 8#15#; 
-                  exit when DS_Len = Max_Len;
-               end loop;
-               Transferred := Integer_16_To_Word(Integer_16(DS_Len));
-               -- Loggers.Debug_Print (Sc_Log,"----- No of D/S bytes written:" & Transferred'Image);
-               Loggers.Debug_Print (Sc_Log,"----- Wrote: " & RAM.Read_String_BA (Bytes_BA, False));
-            else
-               declare
-                  Bytes : constant Byte_Arr_T := RAM.Read_Bytes_BA(Bytes_BA, Rec_Len);
-               begin
-                  for B in Bytes'Range loop
-                     Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Bytes(B));
+            case Actual_Rec_Fmt is
+               when Data_Sensitive =>
+                  loop
+                     Byte := RAM.Read_Byte_BA( Bytes_BA + Dword_T(DS_Len));
+                     -- TODO handle custom delimiter tables
+                     -- exit when Byte = 0;
+                     DS_Len := DS_Len + 1;
+                     Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Byte);
+                     exit when Byte = 0 or Byte = 8#12# or Byte = 8#14# or Byte = 8#15#; 
+                     exit when DS_Len = Max_Len;
                   end loop;
-                  Transferred := Word_T(Bytes'Length);
-                  Loggers.Debug_Print (Sc_Log,"----- Wrote: " & To_String (Byte_Arr_To_Unbounded(Bytes)));
-               end;
-               if Integer (Transferred) /= Rec_Len then
-                  raise IO_Error with "mismatch between requested and actual bytes written";
-               end if;
-            end if;   
+                  Transferred := Integer_16_To_Word(Integer_16(DS_Len));
+                  -- Loggers.Debug_Print (Sc_Log,"----- No of D/S bytes written:" & Transferred'Image);
+                  Loggers.Debug_Print (Sc_Log,"----- Wrote: " & RAM.Read_String_BA (Bytes_BA, False));
+               when Dynamic =>
+                  declare
+                     Bytes : constant Byte_Arr_T := RAM.Read_Bytes_BA(Bytes_BA, Rec_Len);
+                  begin
+                     for B in Bytes'Range loop
+                        Byte_T'Write (Agent_Chans(Integer(Chan_No)).Con, Bytes(B));
+                     end loop;
+                     Transferred := Word_T(Bytes'Length);
+                     Loggers.Debug_Print (Sc_Log,"----- Wrote: " & To_String (Byte_Arr_To_Unbounded(Bytes)));
+                  end;
+                  if Integer (Transferred) /= Rec_Len then
+                     raise IO_Error with "mismatch between requested and actual bytes written";
+                  end if;
+               when others =>
+                  raise Not_Yet_Implemented with "NYI - non-DS or Dynamic";
+            end case;  
          else -- not to the console
-            if T_Dyn then
-               declare
-                  Bytes : constant Byte_Arr_T := RAM.Read_Bytes_BA(Bytes_BA, Rec_Len);
-               begin
-                  for B in Bytes'Range loop
-                     Direct_IO.Write (Agent_Chans(Integer(Chan_No)).File_Direct, Bytes(B));
-                  end loop;
-                  Transferred := Word_T(Bytes'Length);
-               end;
-               if Integer (Transferred) /= Rec_Len then
-                  raise IO_Error with "mismatch between requested and actual bytes written";
-               end if;
-            else
-               raise Not_Yet_Implemented with "NYI - Non-dynamic ?WRITE to a real file";
-            end if;
+            case Actual_Rec_Fmt is
+               when Dynamic =>
+                  declare
+                     Bytes : constant Byte_Arr_T := RAM.Read_Bytes_BA(Bytes_BA, Rec_Len);
+                  begin
+                     for B in Bytes'Range loop
+                        Direct_IO.Write (Agent_Chans(Integer(Chan_No)).File_Direct, Bytes(B));
+                     end loop;
+                     Transferred := Word_T(Bytes'Length);
+                  end;
+                  if Integer (Transferred) /= Rec_Len then
+                     raise IO_Error with "mismatch between requested and actual bytes written";
+                  end if;
+               when others =>
+                  raise Not_Yet_Implemented with "NYI - Non-dynamic ?WRITE to a real file";
+            end case;
          end if;
       end File_Write;
-
 
       -- CLI environment...
 

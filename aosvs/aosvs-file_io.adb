@@ -17,7 +17,7 @@ with Ada.Characters.Handling;
 
 with Interfaces;  use Interfaces;
 
-with AOSVS.Agent;
+with AOSVS.Agent; use AOSVS.Agent;
 with Debug_Logs;  use Debug_Logs;
 with Memory;      use Memory;
 with PARU_32;     use PARU_32;
@@ -121,11 +121,11 @@ package body AOSVS.File_IO is
         Pkt_Addr    : constant Phys_Addr_T := CPU.AC_PA(2);
         Chan_No     : constant Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
         File_Spec   : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
-        Defaults    : constant Boolean     := (File_Spec = 0);
+        Format_Bits : constant Word_T      := File_Spec and 7;
+        Open_Fmt    : constant Boolean     := ((File_Spec and ICRF) = 0);
         Is_Extd     : constant Boolean     := ((File_Spec and IPKL) /= 0);
         Is_Abs      : constant Boolean     := ((File_Spec and IPST) /= 0);
-        Is_DataSens : constant Boolean     := ((File_Spec and 7) = RTDS); -- ((File_Spec and Word_T(RTDS)) /= 0);
-        Is_Dynamic  : constant Boolean     := ((File_Spec and 7) = RTDY); -- overrides Data Sens
+        Rec_Format  : Record_Format_T;
         Rec_Len     : constant Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
         Dest        : constant Dword_T     := RAM.Read_Dword(Pkt_Addr + IBAD);
         -- Read_Line   : Boolean     := (RAM.Read_Word(Pkt_Addr + IBIN) = 0);
@@ -135,23 +135,36 @@ package body AOSVS.File_IO is
     begin
         Loggers.Debug_Print (Sc_Log, "?READ - Channel:" &Chan_No'Image & " for PID:" & PID'Image & " TID:" & TID'Image);
         Loggers.Debug_Print (Debug_Log, "?READ - Channel:" &Chan_No'Image);
-        if Defaults then
-            Loggers.Debug_Print (Sc_Log, "----- Default Type from ?Open");
+        if Open_Fmt then
+            Loggers.Debug_Print (Sc_Log, "----- Default Record Type from ?OPEN");
+        else 
+            case Format_Bits is
+                when PARU_32.RTDY => Rec_Format := Dynamic;
+                when PARU_32.RTDS => Rec_Format := Data_Sensitive;
+                when PARU_32.RTFX => Rec_Format := Fixed_Length;
+                when PARU_32.RTVR => Rec_Format := Variable_Length;
+                when PARU_32.RTUN => Rec_Format := Undefined_Length;
+                when PARU_32.RTVB => Rec_Format := Variable_Block;
+                when others =>
+                    raise Unknown_Record_Type;
+            end case;
+            Loggers.Debug_Print (Sc_Log, "----- Default Record Type: " & Rec_Format'Image);
         end if;
-        if Is_DataSens then
-            Loggers.Debug_Print (Sc_Log, "----- Data Sensitive");
-        end if;
-        if Is_Dynamic then
-            Loggers.Debug_Print (Sc_Log, "----- Dynamic");
-        end if;
+
         if Is_Extd then
             Loggers.Debug_Print (Sc_Log, "----- Extended!");
+        end if;
+        if Test_DW_Bit(RAM.Read_Dword(Pkt_Addr + ETSP), 0) then
+            Loggers.Debug_Print (Sc_Log, "----- Contains Screen Management Pkt");
+        end if;
+        if Test_DW_Bit(RAM.Read_Dword(Pkt_Addr + ETFT), 0) then
+            Loggers.Debug_Print (Sc_Log, "----- Contains Field Translation Pkt");
         end if;
         AOSVS.Agent.Actions.File_Read (Chan_No,
                                         Is_Extd,
                                         Is_Abs,
-                                        Is_Dynamic,
-                                        Is_DataSens,
+                                        Open_Fmt,
+                                        Rec_Format,
                                         Rec_Len,
                                         Bytes,
                                         Txfrd,
@@ -168,19 +181,14 @@ package body AOSVS.File_IO is
         end if;
         Loggers.Debug_Print (Sc_Log, "----- Bytes Read:" & Txfrd'Image);
         return true;
-    exception
-        when Agent.EOF =>
-            Loggers.Debug_Print (Sc_Log, "----- EOF" );
-            CPU.AC_Wd(0) := PARU_32.EREOF;
-            return false;
     end Sys_READ;
     
     function Sys_RDB   (CPU : CPU_T; PID : Word_T) return Boolean is
         Pkt_Addr    : constant Phys_Addr_T := CPU.AC_PA(2);
         Chan_No     : constant Word_T      := CPU.AC_Wd(1);
-        Blocks      : Unsigned_8  := Unsigned_8 (Get_Lower_Byte (RAM.Read_Word (Pkt_Addr + PARU_32.PSTI)));
-        Start_Block : Unsigned_32 := Unsigned_32(RAM.Read_Dword(Pkt_Addr + PARU_32.PRNH));
-        Buff_Addr   : Phys_Addr_T := Phys_Addr_T(RAM.Read_Dword(Pkt_Addr + PARU_32.PCAD));
+        Blocks      : constant Unsigned_8  := Unsigned_8 (Get_Lower_Byte (RAM.Read_Word (Pkt_Addr + PARU_32.PSTI)));
+        Start_Block : constant Unsigned_32 := Unsigned_32(RAM.Read_Dword(Pkt_Addr + PARU_32.PRNH));
+        Buff_Addr   : constant Phys_Addr_T := Phys_Addr_T(RAM.Read_Dword(Pkt_Addr + PARU_32.PCAD));
         Err         : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?RDB - Channel:" & Chan_No'Image & 
@@ -198,12 +206,15 @@ package body AOSVS.File_IO is
         Pkt_Addr    : constant Phys_Addr_T := CPU.AC_PA(2);
         Chan_No     : constant Word_T      := RAM.Read_Word(Pkt_Addr + ICH);
         File_Spec   : constant Word_T      := RAM.Read_Word(Pkt_Addr + ISTI);
-        Defaults    : constant Boolean     := (File_Spec = 0);
+        Format_Bits : constant Word_T      := File_Spec and 7;
+        Open_Fmt    : constant Boolean     := ((File_Spec and ICRF) = 0);
         Change_Fmt  : constant Boolean     := ((File_Spec and ICRF) /= 0);
         Is_Extd     : constant Boolean     := ((File_Spec and IPKL) /= 0);
         Is_Abs      : constant Boolean     := ((File_Spec and IPST) /= 0);
+        Is_Fixed    : constant Boolean     := ((File_Spec and 7) = RTFX);
         Is_DataSens : constant Boolean     := ((File_Spec and 7) = RTDS); -- ((File_Spec and Word_T(RTDS)) /= 0);
         Is_Dynamic  : constant Boolean     := ((File_Spec and 7) = RTDY); -- overrides Data Sens
+        Rec_Format  : Record_Format_T;
         Rec_Len     : constant Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
         Bytes_BA    : constant Dword_T     := RAM.Read_Dword(Pkt_Addr + IBAD);
         Position    : constant Integer     := Dword_To_Integer(RAM.Read_Dword(Pkt_Addr + IRNH));
@@ -213,11 +224,14 @@ package body AOSVS.File_IO is
             Loggers.Debug_Print (Sc_Log, "?WRITE - Channel:" & Chan_No'Image & " for PID:" & PID'Image & " TID:" & TID'Image);
             Loggers.Debug_Print (Debug_Log, "?WRITE - Channel:" & Chan_No'Image);
             Loggers.Debug_Print (Sc_Log, "------ ?ISTI: " & Word_To_String (File_Spec, Binary, 16, true) & " " & Word_To_String (File_Spec, Octal, 6, true));
-            if Defaults then
-                Loggers.Debug_Print (Sc_Log, "------ Default Type from ?Open");
+            if Open_Fmt then
+                Loggers.Debug_Print (Sc_Log, "------ Default Type from ?OPEN");
             end if;
             if Change_Fmt then
                 Loggers.Debug_Print (Sc_Log, "------ ?ICRF - Change Format!");
+            end if;
+            if Is_Fixed then
+                Loggers.Debug_Print (Sc_Log, "------ Fixed Len");
             end if;
             if Is_DataSens then
                 Loggers.Debug_Print (Sc_Log, "------ Data Sensitive");
@@ -235,12 +249,26 @@ package body AOSVS.File_IO is
                 Loggers.Debug_Print (Sc_Log, "------ Contains Field Translation Pkt");
             end if;
         end if;
+        if Open_Fmt then
+            Loggers.Debug_Print (Sc_Log, "------ Default Record Type from ?OPEN");
+        else 
+            case Format_Bits is
+                when PARU_32.RTDY => Rec_Format := Dynamic;
+                when PARU_32.RTDS => Rec_Format := Data_Sensitive;
+                when PARU_32.RTFX => Rec_Format := Fixed_Length;
+                when PARU_32.RTVR => Rec_Format := Variable_Length;
+                when PARU_32.RTUN => Rec_Format := Undefined_Length;
+                when PARU_32.RTVB => Rec_Format := Variable_Block;
+                when others =>
+                    raise Unknown_Record_Type;
+            end case;
+            Loggers.Debug_Print (Sc_Log, "----- Default Record Type: " & Rec_Format'Image);
+        end if;
         AOSVS.Agent.Actions.File_Write (Chan_No,
-                                        Defaults,
                                         Is_Extd,
                                         Is_Abs,
-                                        Is_Dynamic,
-                                        Is_DataSens,
+                                        Open_Fmt,
+                                        Rec_Format,
                                         Rec_Len,
                                         Bytes_BA,
                                         Position,

@@ -70,6 +70,8 @@ package AOSVS.Agent is
 	type Block_Arr_T is array (Natural range <>) of Block_T;
 
 	type Access_Method_T is (Direct, Shared, Block, Stream);
+	type Record_Format_T is (Dynamic, Data_Sensitive, Fixed_Length, Variable_Length,
+							 Undefined_Length, Variable_Block);
 
 	-- File channels
 	type Agent_Channel_T is record
@@ -79,8 +81,7 @@ package AOSVS.Agent is
 	   Read, Write,
 	   For_Shared  : Boolean;
 	   Access_Method : Access_Method_T;
-	   Dynamic, Data_Sens, Fixed_Length, Var_Length, Undefined, IBM_VB
-	   			   : Boolean;
+	   Rec_Format  : Record_Format_T;
 	   Rec_Len     : Integer;
 	   Con         : GNAT.Sockets.Stream_Access;
 	   Echo        : Boolean;
@@ -147,9 +148,9 @@ package AOSVS.Agent is
 		function  Get_Default_Len_For_Channel (Chan_No : Word_T) return Integer; 
 		procedure File_Read (Chan_No : Word_T;
                               Is_Extended,
-                              Is_Absolute,
-                              Is_Dynamic,
-                              Is_DataSens : Boolean;
+                              Is_Absolute ,
+							  Open_Fmt    : Boolean;
+							  Rec_Fmt     : Record_Format_T;
                               Rec_Len     : Integer;
                               Bytes       : out Byte_Arr_T;
                               Transferred : out Word_T;
@@ -160,11 +161,10 @@ package AOSVS.Agent is
 									Buffer_Addr : Phys_Addr_T;
 									Err         : out Word_T);
 		procedure File_Write (Chan_No : Word_T;
-							  Defaults,
-							  Is_Extended,
-							  Is_Absolute,
-							  Is_Dynamic,
-							  Is_DataSens : Boolean;
+                              Is_Extended,
+                              Is_Absolute,
+							  Open_Fmt    : Boolean;
+							  Rec_Fmt     : Record_Format_T;
 							  Rec_Len     : Integer;
 							  Bytes_BA    : Dword_T;
 							  Position    : Integer;
@@ -218,12 +218,12 @@ package AOSVS.Agent is
 	end Actions;
 
 	Channel_Not_Open,
-	EOF,
 	IO_Error,
 	NO_MORE_CHANNELS,
 	NO_MORE_TIDS,
 	No_Such_Argument,
-	Not_Yet_Implemented    : exception;
+	Not_Yet_Implemented,
+	Unknown_Record_Type    : exception;
 
 
 end AOSVS.Agent;
