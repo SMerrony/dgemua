@@ -42,7 +42,7 @@ DIx and DOx instructions to the BMC/DCH controller seem to be undocumented for t
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 2 Jun 2022
+* Last status update: 10 Jun 2022
 * Last significant progress: OTHELLO runs okay - 2 Jun 2022
   
 All of the following 32-bit sample programs copied from a physical machine are working...
@@ -66,19 +66,19 @@ The NADGUG library provides a good range of freely-available test targets...
   | CHESS             | Unimplemented syscall 030 ?RUNTM                      |  1 Jun 2022 |
   | DND               | Extended ?READ from CONSOLE NYI                       |  9 Jun 2022 |
   | EMPIRE1           | Corrupted '@OUTPUT @' filename                        | 30 May 2022 |
-  | EMPIRE2T          | 'Error 71683. on file FILE_IN'                        | 22 Jun 2021 |
+  | EMPIRE2T          | ECLIPSE_FPU instruction FSS NYI                       | 10 Jun 2022 |
   | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 |
   | FISH              | Unimplemented sys call ?GLIST                         | 16 Apr 2022 |
   | *FOOBAR*          | Nearly working!  Error summing user input             |  1 Jun 2022 |
   | HANGMAN (IMSUTIL) | Unimplemented syscall 401 ?SDLM                       |  2 Jun 2022 | 
-  | MMM               | 'Error 11381. from line...'                           | 16 Apr 2022 |
+  | MMM               | ECLIPSE_FPU instruction FSS NYI                       | 10 Jun 2022 |
   | OTHELLO (IMSUTIL) | *Runs to completion - seems to work perfectly :-)*    |  2 Jun 2022 |
   | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 |
   | QUEST             | Welcome message, prompt for initials, ?RETURN. (server was not running) | 16 Apr 2022 |
-  | SCRABBLE          | 'Error 71692' after ?OPENing SEED file                | 19 Jun 2021 |
-  | WUMPUS            | Hang/loop after displaying start screen               | 24 May 2021 | 
+  | SCRABBLE          | System.File_IO.Check_Read_Status: file not readable ?READing SEED file  | 10 Jun 2022 |
+  | WUMPUS            | Will not accept input - extended D/S ?READ with scr mgmt packet         | 10 Jun 2022 | 
   | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 |
-  | ZORK              | 'Error 71683. on file heap_ro'                        | 28 Oct 2021 |
+  | ZORK              | 'Heap version not compatible'                         | 10 Jun 2022 |
 
 * Other 32-bit NADGUG Programs
 

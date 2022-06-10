@@ -126,7 +126,7 @@ package body AOSVS.File_IO is
         Is_Extd     : constant Boolean     := ((File_Spec and IPKL) /= 0);
         Is_Abs      : constant Boolean     := ((File_Spec and IPST) /= 0);
         Rec_Format  : Record_Format_T;
-        Rec_Len     : constant Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
+        Rec_Len     : Integer     := Integer(Word_To_Integer_16(RAM.Read_Word(Pkt_Addr + IRCL)));
         Dest        : constant Dword_T     := RAM.Read_Dword(Pkt_Addr + IBAD);
         -- Read_Line   : Boolean     := (RAM.Read_Word(Pkt_Addr + IBIN) = 0);
         Bytes       : Byte_Arr_T(0 .. (if Rec_Len > 0 then Rec_Len-1 else Agent.Actions.Get_Default_Len_For_Channel (Chan_No)));
@@ -149,6 +149,10 @@ package body AOSVS.File_IO is
                     raise Unknown_Record_Type;
             end case;
             Loggers.Debug_Print (Sc_Log, "----- Default Record Type: " & Rec_Format'Image);
+        end if;
+
+        if Rec_Format = Variable_Length then
+            Rec_Len := Rec_Len + 4;
         end if;
 
         if Is_Extd then

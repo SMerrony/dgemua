@@ -166,7 +166,8 @@ package body AOSVS.Agent is
             when PARU_32.RTUN => Agent_Chans(Chan_Num).Rec_Format := Undefined_Length;
             when PARU_32.RTVB => Agent_Chans(Chan_Num).Rec_Format := Variable_Block;
             when others =>
-               raise Unknown_Record_Type;
+               -- raise Unknown_Record_Type with "Unknown format for ?OPEN";
+               Agent_Chans(Chan_Num).Rec_Format := Data_Sensitive; -- TODO check this, is D/S the default?
          end case;
 
          Loggers.Debug_Print (Sc_Log, "----- Default Record Type: " & Agent_Chans(Chan_Num).Rec_Format'Image);
@@ -373,14 +374,40 @@ package body AOSVS.Agent is
                   end loop;
                   Loggers.Debug_Print (Sc_Log, "----- Read: >>>" & To_String(Byte_Arr_To_Unbounded(Bytes(0..Byte_Ix))) & "<<<");
                when Dynamic =>
-                  -- DYNAMIC --
                   -- Rec_Len is the fixed # of Bytes to read
                   for B in 0 .. Rec_Len - 1 loop
                      Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, Char);
                      Byte := Char_To_Byte(Char);
                      Bytes(Byte_Ix) := Byte;
                      Transferred := Transferred + 1;
-                  end loop;       
+                  end loop;     
+               when Variable_Length =>
+                  -- 4-byte ASCII record length + 4, followed by raw data
+                  declare
+                     RL_ASCII : String(1..4);
+                     Rec_Len  : Integer := 0;
+                     Tmp      : Byte_T;
+                  begin
+                     Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, RL_ASCII(1));
+                     Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, RL_ASCII(2));
+                     Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, RL_ASCII(3));
+                     Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, RL_ASCII(4));
+                     Rec_Len := Integer'Value(RL_ASCII) - 4; -- 4 additional bytes included for the length header
+                     Loggers.Debug_Print (Sc_Log, "----- Found record of length:" & Rec_Len'Image);
+                     for B in 0 .. Rec_Len - 1 loop
+                        Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, Char);
+                        Byte := Char_To_Byte(Char);
+                        Bytes(Byte_Ix+4) := Byte;
+                        Transferred := Transferred + 1;
+                     end loop;  
+                     Loggers.Debug_Print (Sc_Log, "----- Transferred count set to:" & Transferred'Image); 
+                     -- for W in 0 .. (Rec_Len - 1) / 2 loop
+                     --    Tmp := Bytes(W*2);
+                     --    Bytes(W*2) := Bytes((W*2)+1);
+                     --    Bytes((W*2)+1) := Tmp;
+                     -- end loop;
+                     -- Transferred := Word_T(Rec_Len)+ 4;
+                  end;
                when others =>
                   raise Not_Yet_Implemented with "NYI: non-datasensitive/dynamic real file READs";
             end case;
@@ -407,6 +434,7 @@ package body AOSVS.Agent is
             Block_IO.Read (Agent_Chans(Integer(Chan_No)).File_Block, Tmp_Block);
             for W in Tmp_Block'Range loop
                RAM.Write_Word (Mem_Addr, Swap_Bytes (Tmp_Block(W))); -- EEK - had to swap bytes... <=======
+               --RAM.Write_Word (Mem_Addr, Tmp_Block(W));
                Mem_Addr := Mem_Addr + 1;
             end loop;
             Block_Ix := Block_Ix + 1;
