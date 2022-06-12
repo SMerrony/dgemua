@@ -1,24 +1,17 @@
--- MIT License
-
 -- Copyright ©2021,2022 Stephen Merrony
-
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 with Ada.Text_IO; use Ada.Text_IO;
 
@@ -46,7 +39,17 @@ package body Processor.Eclipse_FPU_P is
       Debug_FPACs (CPU);
       case I.Instruction is
 
+         when I_FAB =>
+            CPU.FPAC(I.Ac) := abs (CPU.FPAC(I.Ac));
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
+
          when I_FAD =>
+            CPU.FPAC(I.Acd) := CPU.FPAC(I.Acd) + CPU.FPAC(I.Acs);
+            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
+
+         when I_FAS =>
             CPU.FPAC(I.Acd) := CPU.FPAC(I.Acd) + CPU.FPAC(I.Acs);
             Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
             Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
@@ -71,46 +74,35 @@ package body Processor.Eclipse_FPU_P is
             Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
             Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
 
-         when I_FMS =>
-            CPU.FPAC(I.Acd) := CPU.FPAC(I.Acd) * CPU.FPAC(I.Acs);
-            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
-            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
-
-         when I_FSGT =>
-            if (not Get_Z(CPU)) and (not Get_N(CPU)) then
-               CPU.PC := CPU.PC + 1;
-            end if;
-
          when I_FINT =>
             CPU.FPAC(I.Ac) := Long_Float'Truncation(CPU.FPAC(I.Ac));
             Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
             Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
+
+         when I_FLAS =>
+            declare
+               I32 : Integer_32;
+            begin
+               I32 := Integer_32 (Word_To_Integer_16 (CPU.AC_Wd(I.Acs)));
+               CPU.FPAC(I.Acd) := Long_Float(I32);
+               Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
+               Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
+            end;
 
          when I_FMD =>
             CPU.FPAC(I.Acd) := CPU.FPAC(I.Acd) * CPU.FPAC(I.Acs);
             Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
             Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));   
 
-         when I_FSEQ =>
-            if Get_Z(CPU) then
-               CPU.PC := CPU.PC + 1;
-            end if;
+         when I_FMOV =>
+            CPU.FPAC(I.Acd) := CPU.FPAC(I.Acs);
+            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));      
 
-         when I_FSGE =>
-            if not Get_N(CPU) then
-               CPU.PC := CPU.PC + 1;
-            end if;
-
-         when I_FSLT =>
-            if Get_N(CPU) then
-               CPU.PC := CPU.PC + 1;
-            end if;
-
-         when I_FTD =>
-            Clear_QW_Bit (CPU.FPSR, FPSR_Te);
-
-         when I_FTE =>
-            Set_QW_Bit (CPU.FPSR, FPSR_Te);
+         when I_FMS =>
+            CPU.FPAC(I.Acd) := CPU.FPAC(I.Acd) * CPU.FPAC(I.Acs);
+            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
 
          when I_FRDS =>
             QW := Long_Float_To_DG_Double(CPU.FPAC(I.Acs));
@@ -129,12 +121,42 @@ package body Processor.Eclipse_FPU_P is
             CPU.FPAC(I.Acd) := CPU.FPAC(I.Acd) - CPU.FPAC(I.Acs);
             Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
             Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));
+         
+         when I_FSGT =>
+            if (not Get_Z(CPU)) and (not Get_N(CPU)) then
+               CPU.PC := CPU.PC + 1;
+            end if;
 
          when I_FSNE =>
             if Get_Z(CPU) then   
                CPU.PC := CPU.PC + 1;
             end if;
 
+         when I_FSEQ =>
+            if Get_Z(CPU) then
+               CPU.PC := CPU.PC + 1;
+            end if;
+
+         when I_FSGE =>
+            if not Get_N(CPU) then
+               CPU.PC := CPU.PC + 1;
+            end if;
+
+         when I_FSLT =>
+            if Get_N(CPU) then
+               CPU.PC := CPU.PC + 1;
+            end if;
+
+         when I_FSS =>
+            CPU.FPAC(I.Acd) := CPU.FPAC(I.Acd) - CPU.FPAC(I.Acs);
+            Set_N (CPU, (CPU.FPAC(I.Acd) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Acd) = 0.0));   
+
+         when I_FTD =>
+            Clear_QW_Bit (CPU.FPSR, FPSR_Te);
+
+         when I_FTE =>
+            Set_QW_Bit (CPU.FPSR, FPSR_Te);
 
          when others =>
             Put_Line ("ERROR: ECLIPSE_FPU instruction " & To_String(I.Mnemonic) & 
