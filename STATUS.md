@@ -74,9 +74,9 @@ The NADGUG library provides a good range of freely-available test targets...
   | MMM               | EAGLE_FPU instruction XFAMS NYI                       | 12 Jun 2022 | XFAMS            |
   | OTHELLO (IMSUTIL) | *Runs to completion - seems to work perfectly :-)*    |  2 Jun 2022 |                  |
   | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | ???              |
-  | QUEST             | Welcome message, prompt for initials, ?RETURN. (server was not running) | 16 Apr 2022 |   |
-  | SCRABBLE          | System.File_IO.Check_Read_Status: file not readable ?READing SEED file  | 10 Jun 2022 | ?READ issue |
-  | WUMPUS            | Will not accept input - extended D/S ?READ with scr mgmt packet         | 10 Jun 2022 | ?READ (extended) |
+  | QUEST             | Welcome, prompt for initials, ?RETURN. (server was not running)   | 16 Apr 2022 |      |
+  | SCRABBLE          | System.File_IO.Check_Read_Status: file not readable ?READing SEED | 10 Jun 2022 | ?READ issue |
+  | WUMPUS            | Will not accept input - extended D/S ?READ with scr mgmt packet   | 10 Jun 2022 | ?READ (extended) |
   | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 | ??? |
   | ZORK              | 'Heap version not compatible'                         | 10 Jun 2022 | ??? |
 
@@ -92,10 +92,10 @@ The NADGUG library provides a good range of freely-available test targets...
 * For the moment, the initial searchlist is set to the working directory
 
 Error Codes to Look-Up...
-* 11381 - 0165?
-* 71199 - 037?
-* 71231 - 077?
-* 71683 - 3?
-* 71692 - 014?
-* 71697 - 021?
+* 11381 - F77ERMES...
+* 71199 - LANG_RT...
+* 71231 
+* 71683 
+* 71692 
+* 71697 
 

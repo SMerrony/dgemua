@@ -268,15 +268,12 @@ package body AOSVS.Agent is
          (Agent_Chans(Integer(Chan_No)).Rec_Len);
 
       procedure Block_File_Open (PID       : Word_T;
-                                 Filename  : String;
+                                 Path      : String;
                                  Exclusive : Boolean;
                                  Chan_No   : out Word_T;
                                  File_Type : out Word_T;
                                  File_Size : out Integer_32;
-                                 Err       : out Word_T) is
-         Path : constant String := (if Filename(Filename'First) = '@' then Filename else To_String(Agent.Actions.Get_Virtual_Root) &
-                                   Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
-                                   ":" & Filename));                         
+                                 Err       : out Word_T) is                        
          Chan_Num : Natural;
          File_Length : Ada.Directories.File_Size;
       begin
@@ -287,7 +284,7 @@ package body AOSVS.Agent is
          Agent_Chans(Chan_Num).Is_Console := false;
          Agent_Chans(Chan_Num).Access_Method := Block;
          if not Ada.Directories.Exists (Path) then
-            Loggers.Debug_Print (Sc_Log, "------ File did not exist to ?GOPEN");
+            Loggers.Debug_Print (Sc_Log, "------ File did not exist to ?GOPEN: >>>" & Path & "<<<");
             Err := PARU_32.ERFDE;
             return;
          end if;
@@ -418,6 +415,7 @@ package body AOSVS.Agent is
                                     Num_Blocks  : Unsigned_8;
                                     Start_Block : Unsigned_32;
                                     Buffer_Addr : Phys_Addr_T;
+                                    Transferred : out Word_T;
                                     Err         : out Word_T) is
          Block_Ix  : Block_IO.Count := Block_IO.Count(Start_Block);
          Mem_Addr  : Phys_Addr_T    := Buffer_Addr;
@@ -430,16 +428,22 @@ package body AOSVS.Agent is
          end if;
          Block_Ix := Block_Ix + 1; -- Ada blocks start at #1, AOS/VS at #0
          Block_IO.Set_Index (Agent_Chans(Integer(Chan_No)).File_Block, Block_Ix);
+         Transferred := 0;
          for Blk in 1.. Num_Blocks loop
             Block_IO.Read (Agent_Chans(Integer(Chan_No)).File_Block, Tmp_Block);
             for W in Tmp_Block'Range loop
                RAM.Write_Word (Mem_Addr, Swap_Bytes (Tmp_Block(W))); -- EEK - had to swap bytes... <=======
                --RAM.Write_Word (Mem_Addr, Tmp_Block(W));
                Mem_Addr := Mem_Addr + 1;
+               Transferred := Transferred + 2;
             end loop;
             Block_Ix := Block_Ix + 1;
             Block_IO.Set_Index (Agent_Chans(Integer(Chan_No)).File_Block, Block_Ix);
          end loop;
+      exception
+         when Block_IO.End_Error =>
+            Err := PARU_32.EREOF;
+            
       end File_Read_Blocks;
 
       procedure File_Write (Chan_No : Word_T;

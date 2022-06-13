@@ -137,7 +137,7 @@ package AOSVS.Agent is
 							 Err     : out Word_T);
 		procedure File_Close (Chan_No : Natural; Err : out Word_T);
 		procedure Block_File_Open (PID       : Word_T;
-								   Filename  : String;
+								   Path      : String;
 								   Exclusive : Boolean;
 								   Chan_No   : out Word_T;
 								   File_Type : out Word_T;
@@ -159,6 +159,7 @@ package AOSVS.Agent is
 									Num_Blocks  : Unsigned_8;
 									Start_Block : Unsigned_32;
 									Buffer_Addr : Phys_Addr_T;
+									Transferred : out Word_T;
 									Err         : out Word_T);
 		procedure File_Write (Chan_No : Word_T;
                               Is_Extended,

@@ -45,7 +45,10 @@ package body AOSVS.File_IO is
     end Sys_Close;
     
     function Sys_GOPEN (CPU : CPU_T; PID : Word_T) return Boolean is
-        Filename    : constant Unbounded_String := To_Unbounded_String (RAM.Read_String_BA(CPU.AC(0), false));
+        Filename    : constant String := RAM.Read_String_BA(CPU.AC(0), false);
+        Path        : constant String := (if Filename(Filename'First) = '@' then Filename else To_String(Agent.Actions.Get_Virtual_Root) &
+                                   Slashify_Path(Agent.Actions.Get_Working_Directory(PID) & 
+                                   ":" & Filename));
         Req_Channel : constant Integer := Integer(CPU.AC_I32(1)); -- = -1 for us to assign
         Pkt_Addr    : constant Phys_Addr_T := CPU.AC_PA(2);
         Exclusive   : Boolean;
@@ -55,7 +58,8 @@ package body AOSVS.File_IO is
         Err         : Word_T;
     begin
         Loggers.Debug_Print (Debug_Log, "?GOPEN");
-        Loggers.Debug_Print (Sc_Log, "?GOPEN Filename: " & To_String (Filename) & " for PID:" & PID'Image);
+        Loggers.Debug_Print (Sc_Log, "?GOPEN Filename: " & Filename & " for PID:" & PID'Image);
+        Loggers.Debug_Print (Sc_Log, "------ Resolved to local file: " & Path);
         File_Type := RAM.Read_Word (Pkt_Addr + PARU_32.OPTY) and 16#0000_ffff#;
         Loggers.Debug_Print (Sc_Log, "------ Requested channel:" & Req_Channel'Image);
         Loggers.Debug_Print (Sc_Log, "------ File Type No." & File_Type'Image);
@@ -66,7 +70,7 @@ package body AOSVS.File_IO is
             raise Not_Yet_Implemented with "?GOPEN specific channel";
         end if;
         Exclusive := (RAM.Read_Word (Pkt_Addr + PARU_32.OPFL) and PARU_32.OPME) = PARU_32.OPME;
-        Agent.Actions.Block_File_Open (PID, To_String(Filename), Exclusive, Assigned_Chan, File_Type, File_Size, Err);
+        Agent.Actions.Block_File_Open (PID, Path, Exclusive, Assigned_Chan, File_Type, File_Size, Err);
         if Err /= 0 then
             CPU.AC(0) := Dword_T(Err);
             return false;
@@ -193,16 +197,16 @@ package body AOSVS.File_IO is
         Blocks      : constant Unsigned_8  := Unsigned_8 (Get_Lower_Byte (RAM.Read_Word (Pkt_Addr + PARU_32.PSTI)));
         Start_Block : constant Unsigned_32 := Unsigned_32(RAM.Read_Dword(Pkt_Addr + PARU_32.PRNH));
         Buff_Addr   : constant Phys_Addr_T := Phys_Addr_T(RAM.Read_Dword(Pkt_Addr + PARU_32.PCAD));
-        Err         : Word_T;
+        Txfrd, Err  : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?RDB - Channel:" & Chan_No'Image & 
                                      " Start Block: " & Start_Block'Image &
                                      " Blocks:" & Blocks'Image);
         Loggers.Debug_Print (Debug_Log, "?RDB");
-        AOSVS.Agent.Actions.File_Read_Blocks (Chan_No, Blocks, Start_Block, Buff_Addr, Err);
+        AOSVS.Agent.Actions.File_Read_Blocks (Chan_No, Blocks, Start_Block, Buff_Addr, Txfrd, Err);
 
         -- if there was no exception then we have read the number of bytes requested
-        CPU.AC_I32(1) := Integer_32(Blocks) * 512;
+        CPU.AC_Wd(1) := Txfrd;
         return true;
     end Sys_RDB;
 
