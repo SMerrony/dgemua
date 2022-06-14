@@ -434,12 +434,12 @@ package PARU_32 is
 	GTLN : constant Phys_Addr_T := GREL + 1; -- PACKET LENGTH
 
 	-- REQUEST TYPES (greq)
-	GMES : constant Word_T := 0;        -- GET ENTIRE MESSAGE
-	GCMD : constant Word_T := GMES + 1; -- GET CLI COMMAND
-	GCNT : constant Word_T := GCMD + 1; -- GET ARGUMENT COUNT
-	GARG : constant Word_T := GCNT + 1; -- GET ARGUMENT
-	GTSW : constant Word_T := GARG + 1; -- TEST SWITCH
-	GSWS : constant Word_T := GTSW + 1; -- TEST SWITCHES
+	GMES : constant Word_T := 0;        -- 0 -GET ENTIRE MESSAGE
+	GCMD : constant Word_T := GMES + 1; -- 1 - GET CLI COMMAND
+	GCNT : constant Word_T := GCMD + 1; -- 2 - GET ARGUMENT COUNT
+	GARG : constant Word_T := GCNT + 1; -- 3 - GET ARGUMENT
+	GTSW : constant Word_T := GARG + 1; -- 4 - TEST SWITCH
+	GSWS : constant Word_T := GTSW + 1; -- 5 - TEST SWITCHES
 	GDLC : constant Word_T := 16#8000#;  --1B0 DISABLE LOWER TO UPPERCASE CONVERSION
 
 	-- FLAGS RETURNED ON gflg TYPE CALLS

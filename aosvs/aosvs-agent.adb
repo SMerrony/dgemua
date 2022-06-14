@@ -529,6 +529,7 @@ package body AOSVS.Agent is
          if Nth > Per_Process_Data(PID_T(PID)).Invocation_Args'Last then
             raise No_Such_Argument with Arg_Num'Image;
          end if;
+         Loggers.Debug_Print (Sc_Log,"------ Get_Nth_Arg returning: >>>" & To_String(Per_Process_Data(PID_T(PID)).Invocation_Args(Nth)) & "<<<");
          return Per_Process_Data(PID_T(PID)).Invocation_Args(Nth);
       end Get_Nth_Arg;
 

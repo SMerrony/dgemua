@@ -60,8 +60,8 @@ The NADGUG library provides a good range of freely-available test targets...
   
 * 32-bit NADGUG Games compiled for AOS/VS
 
-  |    Game           |   Status                                              |   Date      |  Issue |
-  |-------------------|-------------------------------------------------------|-------------|--------|
+  |    Game           |   Status                                              |   Date      |  Issue  |
+  |-------------------|-------------------------------------------------------|-------------|---------|
   | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | ???              |
   | CHESS             | Unimplemented syscall 030 ?RUNTM                      |  1 Jun 2022 | ?RUNTM           |
   | DND               | Extended ?READ from CONSOLE NYI                       |  9 Jun 2022 | ?READ (extended) |
@@ -82,10 +82,10 @@ The NADGUG library provides a good range of freely-available test targets...
 
 * Other 32-bit NADGUG Programs
 
-  | Program     | Problem                                                     | Date        |
-  |-------------|-------------------------------------------------------------|-------------|
-  | EMACS.PR    | 'ERROR 71187'                                               | 26 May 2022 |
-  | LOOK.PR (IMSUTIL) | ?GTMES request type 4 not yet handled                 |  2 Jun 2022 |
+  | Program     | Problem                                                     | Date        |  Issue  |
+  |-------------|-------------------------------------------------------------|-------------|---------|
+  | EMACS.PR    | 'ERROR 71187'                                               | 26 May 2022 | ???     |
+  | LOOK.PR (IMSUTIL) | ?GTMES request type 4 not yet handled                 |  2 Jun 2022 | ?GTMES  |
   
 ### Reminders
 * We have the FORTRAN source for FOOBAR and WUMPUS, and the C code for EMACS

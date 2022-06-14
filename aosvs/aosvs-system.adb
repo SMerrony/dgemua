@@ -80,7 +80,7 @@ package body AOSVS.System is
 
     function Sys_GTMES (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
         Pkt_Addr    : constant Phys_Addr_T := Phys_Addr_T(CPU.AC(2));
-        P_Greq      : constant Word_T      := RAM.Read_Word (Pkt_Addr + GREQ);
+        P_Greq      : constant Word_T      := RAM.Read_Word (Pkt_Addr + GREQ) and 16#0007#;
         P_Gnum      : constant Word_T      := RAM.Read_Word (Pkt_Addr + GNUM);
         P_Gres      : Dword_T;
         Err         : Word_T;
@@ -88,6 +88,7 @@ package body AOSVS.System is
         Num_Args    : Word_T;
     begin
         Loggers.Debug_Print (Sc_Log, "?GTMES");
+        Loggers.Debug_Print (Debug_Log, "?GTMES");
         Err := 0;
         case P_Greq is
         when GMES =>
@@ -99,7 +100,7 @@ package body AOSVS.System is
                    Res_US := Res_US & " " &  AOSVS.Agent.Actions.Get_Nth_Arg(PID, A);
                 end loop;
             end if;
-            Res_US := Res_US & ASCII.NUL;
+            Res_US := Trim (Res_US, Ada.Strings.Both) & ASCII.NUL;
             CPU.AC(0) := Dword_T((Length(Res_US)+1)/2); -- word length
             CPU.AC(1) := Dword_T(GFCF);
             P_Gres := RAM.Read_Dword (Pkt_Addr + PARU_32.GRES);
@@ -114,20 +115,20 @@ package body AOSVS.System is
             -- Res_US := AOSVS.Agent.Actions.Get_PR_Name (PID);
             Num_Args := Word_T(AOSVS.Agent.Actions.Get_Num_Args (PID));
             if Num_Args > 0 then
-                for A in 1 .. Num_Args loop
-                   if A > 1 then
+                for A in 1 .. Num_Args -1 loop
+                   if A > 1 and A < Num_Args then
                       Res_US := Res_US & " ";
                    end if;
                    Res_US :=  Res_US & AOSVS.Agent.Actions.Get_Nth_Arg(PID, A);
                 end loop;
             end if;
-            -- Res_US := Res_US & ASCII.NUL;
-            CPU.AC(1) := Dword_T((Length(Res_US))); -- byte length
+            Res_US := Res_US & ASCII.NUL;
+            CPU.AC(1) := Dword_T((Length(Res_US)-1)); -- byte length
             P_Gres := RAM.Read_Dword (Pkt_Addr + PARU_32.GRES);
             if P_Gres /= 16#ffff_ffff# then
                 RAM.Write_String_BA (P_Gres, To_String(Res_US));
             end if;
-            Loggers.Debug_Print (Sc_Log, "----- Returning: " & To_String(Res_US));
+            Loggers.Debug_Print (Sc_Log, "----- Returning: >>>" & To_String(Res_US) & "<<<");
 
         when GCNT =>
             Loggers.Debug_Print (Sc_Log, "------ Req. Type: ?GCNT");
