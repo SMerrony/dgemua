@@ -21,6 +21,7 @@
 -- SOFTWARE.
 
 with Ada.Calendar;
+with Ada.Strings.Fixed;
 
 with GNAT.Calendar;
 
@@ -152,6 +153,28 @@ package body AOSVS.System is
                   CPU.AC(1) := 16#FFFF_FFFF#;
                   CPU.AC(0) := Dword_T(Length (Arg_US));
                   RAM.Write_String_BA (RAM.Read_Dword(Pkt_Addr + GRES), To_String (Arg_US));
+            end;
+
+        when GTSW =>
+            if RAM.Read_Dword (Pkt_Addr + GSW) = 0 then
+                CPU.AC(0) := Dword_T(ERVBP);
+                return false;
+            end if;
+            declare
+                Sw_Str   : constant String := RAM.Read_String_BA (BA => RAM.Read_Dword (Pkt_Addr + GSW), Keep_NUL => false);
+                Arg_Str  : constant String := To_String (AOSVS.Agent.Actions.Get_Nth_Arg(PID, P_Gnum));
+                Sw_Pos  : Integer;
+            begin
+                Loggers.Debug_Print (Sc_Log, "------ Testing for Switch: " & Sw_Str & 
+                                             " on argument no.:" & P_Gnum'Image & " which is: " & Arg_Str);
+                Sw_Pos := Ada.Strings.Fixed.Index (Arg_Str, "/" & Sw_Str);
+                if Sw_Pos = 0 then
+                    CPU.AC_I32(0) := -1; -- switch not found
+                    return true; -- it's not an error
+                end if;
+                -- we found the switch, but is it a keyword switch?
+                -- FIXME - finished GTSW
+
             end;
 
         when others =>

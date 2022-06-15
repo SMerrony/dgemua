@@ -49,7 +49,7 @@ package body AOSVS.Multitasking is
     function Sys_REC (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?REC");
-        raise Not_Yet_Implemented;
+        raise Not_Yet_Implemented with "?REC - NYI";
         return true;
     end Sys_REC;
 

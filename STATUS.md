@@ -85,7 +85,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | Program     | Problem                                                     | Date        |  Issue  |
   |-------------|-------------------------------------------------------------|-------------|---------|
   | EMACS.PR    | 'ERROR 71187'                                               | 26 May 2022 | ???     |
-  | LOOK.PR (IMSUTIL) | ?GTMES request type 4 not yet handled                 |  2 Jun 2022 | ?GTMES  |
+  | LOOK.PR (IMSUTIL) | ?REC NYI                                              | 15 Jun 2022 | ?REC    |
   
 ### Reminders
 * We have the FORTRAN source for FOOBAR and WUMPUS, and the C code for EMACS
