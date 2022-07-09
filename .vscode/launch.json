@@ -51,6 +51,27 @@
             ]
         },
         {
+            "name": "(gdb) VSEMUA SCRABBLE Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/vsemua",
+            "args": ["-pr", "SCR.PR", 
+                     "-root", "/home/steve/Ada/dgemua/FILESYSTEM",
+                     "-dir", ":GAMES:SCRABBLE"],               
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "(gdb) VSEMUA SPIGOT Launch",
             "type": "cppdbg",
             "request": "launch",

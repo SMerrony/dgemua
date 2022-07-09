@@ -1,26 +1,24 @@
-project vsemua is
+project Vsemua is
 
-   type Mode_Type is 
+   type Mode_Type is
       ("debug", "profile", "release"); -- all possible values
    Mode : Mode_Type := external ("mode", "debug"); -- default
-   for Source_Dirs use (".", "./devices", "./processor", "./virtual_memory", "./aosvs");
+   for Source_Dirs use (".", "devices", "processor", "virtual_memory", "aosvs");
    for Ignore_Source_Sub_Dirs use (".git");
    for Object_Dir use "./obj";
    for Exec_Dir use ".";
    for Main use ("vsemua.adb");
 
    package Compiler is
+
       case Mode is
+
          when "debug" =>
-            for Switches ("Ada") use ( "-fstack-check", 
-                                       "-g", 
-                                       "-gnata", 
-                                       "-gnateE", 
-                                       "-gnatwa", 
-                                       "-O0" 
-                                       );
+            for Switches ("Ada") use ("-fstack-check", "-g", "-gnata", "-gnateE", "-gnatwa", "-O0");
+
          when "profile" =>
             for Switches ("Ada") use ("-O2", "-pg");
+
          when "release" =>
             for Switches ("Ada") use ("-O2");
             for Switches ("ada") use ("-O2");
@@ -29,33 +27,51 @@ project vsemua is
 
    package Builder is
       for Global_Configuration_Pragmas use "gnat.adc";
+
       case Mode is
+
          when "debug" =>
             for Switches ("ada") use ("-j4", "-g");
+
+         when "profile" =>
+
          when "release" =>
             for Switches ("ada") use ("-j4");
       end case;
    end Builder;
 
    package Binder is
+
       case Mode is
+
          when "debug" =>
             for Switches ("ada") use ("-E");
+
+         when "profile" =>
+
          when "release" =>
 
       end case;
    end Binder;
 
    package Linker is
+
       case Mode is
+
          when "debug" =>
             for Switches ("ada") use ("-g");
-         when"profile" =>
+
+         when "profile" =>
             for Switches ("Ada") use ("-pg");
+
          when "release" =>
 
       end case;
    end Linker;
 
-end vsemua;
+   package Ide is
+      for Vcs_Kind use "git";
+   end Ide;
+
+end Vsemua;
 

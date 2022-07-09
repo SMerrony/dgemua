@@ -373,6 +373,10 @@ package body AOSVS.Agent is
                when Dynamic =>
                   -- Rec_Len is the fixed # of Bytes to read
                   for B in 0 .. Rec_Len - 1 loop
+                     if Ada.Streams.Stream_IO.End_Of_File (Agent_Chans(Integer(Chan_No)).File_Stream) then
+                        Err := PARU_32.EREOF;
+                        return;
+                     end if;
                      Character'Read (Agent_Chans(Integer(Chan_No)).Stream_Acc, Char);
                      Byte := Char_To_Byte(Char);
                      Bytes(Byte_Ix) := Byte;
