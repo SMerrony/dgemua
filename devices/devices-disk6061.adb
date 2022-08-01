@@ -42,7 +42,7 @@ package body Devices.Disk6061 is
             State.Image_Attached := False;
             State.Map_Enabled    := False;
             Reset;
-            Status_Sender.Start;
+            --  Status_Sender.Start;
         end Init;
 
         procedure Set_Logging (Log : Boolean) is

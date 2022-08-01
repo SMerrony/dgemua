@@ -604,9 +604,11 @@ begin
 
       Devices.Bus.Actions.Connect (Devices.MTB);
       Devices.Magtape6026.Drives.Init;
+      Devices.Magtape6026.Status_Sender.Start;
 
       Devices.Bus.Actions.Connect (Devices.DPF);
       Devices.Disk6061.Drives.Init (Debug_Logging);
+      Devices.Disk6061.Status_Sender.Start;
 
       Devices.Bus.Actions.Connect (Devices.DSKP);
       Devices.Disk6239.Init (Debug_Logging);

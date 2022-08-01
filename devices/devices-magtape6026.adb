@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright (c)2021,2022 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ package body Devices.Magtape6026 is
             Devices.Bus.Actions.Set_Data_Out_Proc (Devices.MTB, Data_Out'Access);
             State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady;
             State.Status_Reg_2 := SR_2_PE_Mode;
-            Status_Sender.Start;
+            --  Status_Sender.Start;
         end Init;
 
         procedure Reset is
@@ -89,7 +89,7 @@ package body Devices.Magtape6026 is
         end Detach;
 
         procedure Do_Command is
-            Hdr, Trailer : Dword_T; 
+            Hdr, Trailer : Unsigned_32; 
             Img_Stream : Stream_Access;  
             RC : Mt_Stat;  
         begin
@@ -118,7 +118,7 @@ package body Devices.Magtape6026 is
                         begin
                            Read_Record_Data (Img_Stream, Natural(Hdr), Tape_Rec);
                            while W < Natural(Hdr) loop
-                              Wd := Word_From_Bytes(Tape_Rec(W), Tape_Rec(W+1));
+                              Wd := Word_From_Bytes(Byte_T(Tape_Rec(W)), Byte_T(Tape_Rec(W+1)));
                               W := W + 2;
                               BMC_DCH.Write_Word_DCH_Chan(State.Mem_Addr_Reg, Wd);
                               State.Neg_Word_Count := State.Neg_Word_Count + 1;
@@ -141,7 +141,7 @@ package body Devices.Magtape6026 is
                     Loggers.Debug_Print (Mt_Log, "DEBUG: *SPACE FORWARD* command - Unit:" & State.Current_Unit'Image);
                     Img_Stream := stream(State.SIMH_File(State.Current_Unit));
                     if State.Neg_Word_Count = 0 then -- one whole file
-                        RC := Space_Forward (Img_Stream, 0);
+                        Space_Forward (Img_Stream, 0, RC);
                         -- according to the simH source, MA should be set to # files/recs skipped
                         -- can't find any reference to this in the Periph Pgmrs Guide but it lets INSTL
                         -- progress further...
@@ -153,7 +153,7 @@ package body Devices.Magtape6026 is
                             State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady or SR_1_EOT or SR_1_StatusChanged;
                         end if;
                     else
-                        RC := Space_Forward (Img_Stream, Integer(State.Neg_Word_Count));
+                        Space_Forward (Img_Stream, Integer(State.Neg_Word_Count), RC);
                         case RC is
                             when OK =>
                                 State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady or SR_1_StatusChanged;
@@ -265,10 +265,10 @@ package body Devices.Magtape6026 is
         procedure Load_TBOOT is
             Unit : constant Integer := 0;
             Img_Stream : Stream_Access;
-            Hdr, Trailer : Dword_T;
+            Hdr, Trailer : Unsigned_32;
             TBOOT_Rec : Mt_Rec(0..2047); -- TBOOT Block is always 2KB
             TBOOT_Size_W : Integer;
-            Byte_0, Byte_1 : Byte_T;
+            Byte_0, Byte_1 : Unsigned_8;
             B_Wd : Word_T;
             Mem_Ix : Integer := 0;
         begin

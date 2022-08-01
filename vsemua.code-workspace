@@ -2,6 +2,10 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"name": "src",
+			"path": "../simh_tapes/src"
 		}
 	],
 	"settings": {
