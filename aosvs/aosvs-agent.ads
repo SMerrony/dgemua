@@ -1,23 +1,21 @@
--- Copyright ©2021,2022 Stephen Merrony
+--  Copyright ©2021,2022 Stephen Merrony
 --
--- This program is free software: you can redistribute it and/or modify
--- it under the terms of the GNU Affero General Public License as published
--- by the Free Software Foundation, either version 3 of the License, or
--- (at your option) any later version.
+--  This program is free software: you can redistribute it and/or modify
+--  it under the terms of the GNU Affero General Public License as published
+--  by the Free Software Foundation, either version 3 of the License, or
+--  (at your option) any later version.
 --
--- This program is distributed in the hope that it will be useful,
--- but WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--- GNU Affero General Public License for more details.
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU Affero General Public License for more details.
 --
--- You should have received a copy of the GNU Affero General Public License
--- along with this program.  If not, see <https://www.gnu.org/licenses/>.
+--  You should have received a copy of the GNU Affero General Public License
+--  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Direct_IO;
 with Ada.Strings.Hash;
-with Ada.Streams.Stream_IO;
-
 with GNAT.Sockets;
 
 with Interfaces; use Interfaces;
@@ -27,12 +25,12 @@ with PARU_32;
 
 package AOSVS.Agent is
 
-	-- type PID_T is new Integer range 0 .. 255;
+	--  type PID_T is new Integer range 0 .. 255;
 	type PIDS_Arr is array (PID_T) of Boolean;
-	type TIDs_Arr is array (1..32) of Boolean;
+	type TIDs_Arr is array (1 .. 32) of Boolean;
 
 	type Per_Process_Data_T is record
-	-- the data Agent holds for each process
+	--  the data Agent holds for each process
         PR_Name             : Unbounded_String;
         Num_Invocation_Args : Natural;
         Invocation_Args     : Args_Arr;
@@ -48,8 +46,8 @@ package AOSVS.Agent is
 	end record;
 	type PPD_Arr is array (PID_T) of Per_Process_Data_T;
 
-	-- Terminal Device characteristics
-	type Chars_Arr is array (1..3) of Word_T;
+	--  Terminal Device characteristics
+	type Chars_Arr is array (1 .. 3) of Word_T;
 	package Characteristics_Maps is new Ada.Containers.Indefinite_Hashed_Maps (
 		Key_Type => String, 
 		Element_Type => Chars_Arr,
@@ -57,14 +55,14 @@ package AOSVS.Agent is
 		Equivalent_Keys => "=");
 
 	Default_Chars : constant Chars_Arr := (
-		PARU_32.CST or PARU_32.CEB0 or PARU_32.COTT, -- 8-col tabs, Form-feeds, default echoing
-		PARU_32.CRT3 or PARU_32.cfkt or PARU_32.CWRP,  -- Upper and lower case, D200 style, wraparound, Fn keys are delimiters
-		16#18_50# 	 -- 24x80 chars
+		PARU_32.CST or PARU_32.CEB0 or PARU_32.COTT, --  8-col tabs, Form-feeds, default echoing
+		PARU_32.CRT3 or PARU_32.cfkt or PARU_32.CWRP,  --  Upper and lower case, D200 style, wraparound, Fn keys are delimiters
+		16#18_50# 	 --  24x80 chars
 	);
 
-	-- Shared Page I/O
-	type Page_T is array  (0 .. 1023) of Word_T; -- 4 disk blocks, 2kB
-	type Block_T is array (0 .. 255) of Word_T;  -- a disk block is 512B or 256W
+	--  Shared Page I/O
+	type Page_T is array  (0 .. 1023) of Word_T; --  4 disk blocks, 2kB
+	type Block_T is array (0 .. 255) of Word_T;  --  a disk block is 512B or 256W
 	package Block_IO is new Ada.Direct_IO (Block_T);
 	package Direct_IO is new Ada.Direct_IO (Byte_T);
 	type Block_Arr_T is array (Natural range <>) of Block_T;
@@ -73,7 +71,7 @@ package AOSVS.Agent is
 	type Record_Format_T is (Dynamic, Data_Sensitive, Fixed_Length, Variable_Length,
 							 Undefined_Length, Variable_Block);
 
-	-- File channels
+	--  File channels
 	type Agent_Channel_T is record
 	   Opener_PID  : PID_T;
 	   Path        : Unbounded_String;
@@ -88,19 +86,17 @@ package AOSVS.Agent is
 	   File_Direct : Direct_IO.File_Type;
 	   File_Shared : Block_IO.File_Type;
 	   File_Block  : Block_IO.File_Type;
-	   File_Stream : Ada.Streams.Stream_IO.File_Type;
-	   Stream_Acc  : Ada.Streams.Stream_IO.Stream_Access;
 	end record;
 	type Agent_Channel_Arr is array (0 .. 122) of Agent_Channel_T;
 
-	-- IPCs
+	--  IPCs
 	type Agent_IPC_T is record
 		Owner_PID   : PID_T;
 		Name        : Unbounded_String;
 		Local_Port  : Word_T;
 		Global_Port : Dword_T;
 		File_Type   : Word_T;
-		-- may need spool here...
+		--  may need spool here...
 	end record;
 	package IPC_Maps is new Ada.Containers.Indefinite_Hashed_Maps (
 		Key_Type => String, 
@@ -112,7 +108,7 @@ package AOSVS.Agent is
 		procedure Init (Cons       : GNAT.Sockets.Stream_Access;
 						Virt_Root  : String);
 
-		-- Process and Task supporting subprograms...
+		--  Process and Task supporting subprograms...
 
 		procedure Allocate_PID (PR_Name         : Unbounded_String;
 								Num_Invocation_Args : Natural;
@@ -126,8 +122,8 @@ package AOSVS.Agent is
 		function Get_Proc_Name (PID : PID_T) return String;
 		function Get_Virtual_Root return Unbounded_String;
 
-		-- System Call supporting subprograms...
-        -- file I/O...
+		--  System Call supporting subprograms...
+        --  file I/O...
 		procedure File_Open (PID     : Word_T; 
 							 Path    : String;
 							 Options, 
@@ -171,7 +167,7 @@ package AOSVS.Agent is
 							  Position    : Integer;
 							  Transferred : out Word_T;
 							  Err         : out Word_T);
-		-- CLI environment...
+		--  CLI environment...
 		function Get_Nth_Arg   (PID : Word_T; Arg_Num : Word_T) return Unbounded_String;
 		function Get_Num_Args  (PID : Word_T) return Natural;
 		function Get_PR_Name   (PID : Word_T) return Unbounded_String;
@@ -181,14 +177,14 @@ package AOSVS.Agent is
 		function Get_Superuser (PID : Word_T) return Boolean;
 		procedure Set_Superuser (PID : Word_T; SU : Boolean);
 
-		-- terminal I/O...
+		--  terminal I/O...
 		procedure Get_Default_Chars (Device : Unbounded_String;
 									 WD_1, WD_2, WD_3 : out Word_T);
 		procedure Get_Current_Chars (Device : Unbounded_String;
 									 WD_1, WD_2, WD_3 : out Word_T);
 		procedure Send_Msg (Dest_PID : Word_T; Msg : String; Send_PID : Word_T);
 
-		-- IPCs...
+		--  IPCs...
 		procedure I_Lookup (PID : Word_T; Filename : String;
 							Glob_Port : out Dword_T; 
 							F_Type : out Word_T;
@@ -196,7 +192,7 @@ package AOSVS.Agent is
 		procedure I_Create (PID : Word_T; Filename : String; Local_Port : Word_T;
 		                    Err : out Word_T);
 							
-		-- Shared Files...
+		--  Shared Files...
 		procedure Shared_Open (PID : PID_T; S_Path : String; Read_Only : Boolean;
 							   Chan_No : out Word_T;
 							   Err     : out Word_T);
@@ -214,7 +210,7 @@ package AOSVS.Agent is
 		Per_Process_Data : PPD_Arr;
 		Console          : GNAT.Sockets.Stream_Access;
 		Agent_Chans      : Agent_Channel_Arr;
-		Device_Chars     : Characteristics_Maps.Map; -- should probably be per-Process
+		Device_Chars     : Characteristics_Maps.Map; --  should probably be per-Process
 		IPCs			 : IPC_Maps.Map;
 	end Actions;
 
@@ -225,6 +221,5 @@ package AOSVS.Agent is
 	No_Such_Argument,
 	Not_Yet_Implemented,
 	Unknown_Record_Type    : exception;
-
 
 end AOSVS.Agent;
