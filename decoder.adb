@@ -432,9 +432,8 @@ package body Decoder is
                   Decoded.Instruction := I_JPFLOAD;
                   Decoded.Mnemonic := To_Unbounded_String("JPFLOAD");
                when others =>
-                  -- raise Decode_Failed with "unknown multiprocessor instruction #" & 
-                  --    Word_To_String (WD => Decoded.Word_2, Base => Hex, Width => 4, Zero_Pad => True);
-                  null;
+                  raise Decode_Failed with "unknown multiprocessor instruction #" & 
+                     Word_To_String (WD => Decoded.Word_2, Base => Hex, Width => 4, Zero_Pad => True);
             end case;
             Decoded.Disassembly := Decoded.Mnemonic;
             if Disassemble then

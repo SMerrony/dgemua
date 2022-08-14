@@ -141,14 +141,13 @@ package body Resolver is
                                         "., Disp Offset:" & Disp_Offset'Image);
         case Mode is
         when Absolute =>
-            -- Just force to current ring
             Eff := (Phys_Addr_T(Disp15) and 16#0000_7fff#) or Ring;
         when PC =>
             Eff := Integer_32_To_Phys(Phys_To_Integer_32(CPU.PC) + Integer_32(Disp15) + Disp_Offset);
         when AC2 =>
-            Eff := Integer_32_To_Phys(CPU.AC_I32(2) + Integer_32(Disp15)) or Ring;
+            Eff := Integer_32_To_Phys(CPU.AC_I32(2) + Integer_32(Disp15)); -- or Ring;
         when AC3 =>
-            Eff := Integer_32_To_Phys(CPU.AC_I32(3) + Integer_32(Disp15)) or Ring;
+            Eff := Integer_32_To_Phys(CPU.AC_I32(3) + Integer_32(Disp15)); -- or Ring;
         end case;
 
         if Indirect then
@@ -163,7 +162,7 @@ package body Resolver is
                 Ind_Addr := RAM.Read_Dword (Phys_Addr_T(Ind_Addr) and 16#7fff_ffff#);
                 Loggers.Debug_Print (Debug_Log, "... Nested Indirect addr resolves to : " & Dword_To_String (Ind_Addr, Octal, 11, true));
             end loop;
-            Eff := Phys_Addr_T(Ind_Addr) or Ring;
+            Eff := Phys_Addr_T(Ind_Addr); --  or Ring;
 
             Loggers.Debug_Print (Debug_Log, "... Indirect addr resolves to    : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
         end if;

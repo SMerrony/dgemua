@@ -322,6 +322,7 @@ package body AOSVS.Agent is
       begin
          Loggers.Debug_Print (Sc_Log, "-----  Path: " & To_String (Agent_Chans(Integer(Chan_No)).Path));
          Loggers.Debug_Print (Sc_Log, "-----  Record Length:" & Rec_Len'Image);
+         Loggers.Debug_Print (Sc_Log, "-----  Index of first byte:" & Bytes'First'Image);
          Err := 0;
          Transferred := 0;
          if Agent_Chans(Integer(Chan_No)).Opener_PID = 0 then
@@ -374,11 +375,18 @@ package body AOSVS.Agent is
                      --  Character'Read (Agent_Chans (Integer (Chan_No)).Stream_In_Acc, Char);
                      --  Byte := Char_To_Byte(Char);
                      --  Bytes (Byte_Ix) := Byte;
-                     Bytes (Byte_Ix + 1) := 0;
-                     Bytes (Byte_Ix + 2) := 0;
+                     -- Bytes (Byte_Ix + 1) := 0;
+                     -- Bytes (Byte_Ix + 2) := 0;
+                     Char := Byte_To_Char (Bytes(Byte_Ix));
+                     
+                     -- TODO - Testing...
+                     exit when Byte_Ix = Bytes'Last;
+
                      Byte_Ix := Byte_Ix + 1;
                      Transferred := Transferred + 1;
+
                      exit when Char = Dasher_NL or Char = Dasher_CR or Char = Dasher_FF;
+
                   end loop;
                   Loggers.Debug_Print (Sc_Log, "-----  Read: >>>" & To_String (Byte_Arr_To_Unbounded (Bytes (0 .. Byte_Ix))) & "<<<");
                when Dynamic =>

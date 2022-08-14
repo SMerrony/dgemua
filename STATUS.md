@@ -7,8 +7,8 @@ There are two emulators: one attempts to emulate physical hardware, the other tr
 provide a user-level emulation of a virtual AOS/VS environment.  The emulators share
 some core code - notably the CPU (processor) itself.
 
-Due to lack of freely-available software and documentation, the virtual emulation is
-more advanced.
+Due to lack of freely-available software and documentation for these historically
+important machines, the virtual emulation is more advanced.
 
 ## Physical Emulator - mvemua
 
@@ -42,8 +42,8 @@ DIx and DOx instructions to the BMC/DCH controller seem to be undocumented for t
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 8 Aug 2022
-* Last significant progress: OTHELLO runs okay - 2 Jun 2022
+* Last status update: 14 Aug 2022
+* Last significant progress: FOOBAR runs okay - 14 Aug 2022
   
 All of the following 32-bit sample programs copied from a physical machine are working...
 * HW.PR - Hello, World! (13 May 2021)
@@ -63,21 +63,22 @@ The NADGUG library provides a good range of freely-available test targets...
   |    Game           |   Status                                              |   Date      |  Issue  |
   |-------------------|-------------------------------------------------------|-------------|---------|
   | 21 (BOOTER.PR)    | Unmapped write in XWSTA                               |  5 Jun 2021 | ???              |
-  | CHESS             | Unimplemented syscall 030 ?RUNTM                      |  1 Jun 2022 | ?RUNTM           |
-  | DND               | Extended ?READ from CONSOLE NYI                       |  9 Jun 2022 | ?READ (extended) |
+  | CHESS             | Prompts for options then unimplemented syscall 030 ?RUNTM |  1 Jun 2022 | ?RUNTM           |
+  | DND               | Prints welcome then extended ?READ from CONSOLE NYI   |  9 Jun 2022 | ?READ (extended) |
+  | EMPIRE            | Prints version then unimplemented syscall 077 ?FSTAT  |  9 Aug 2022 | ?FSTAT           |
   | EMPIRE1           | Corrupted '@OUTPUT @' filename                        | 30 May 2022 | ???              |
-  | EMPIRE2T          | Unimplemented syscall 077 ?FSTAT                      | 12 Jun 2022 | ?FSTAT           |
-  | FERRET            | WEDIT not yet implemented (!)                         | 19 Jun 2021 | WEDIT            |
-  | FISH              | Unimplemented sys call ?GLIST                         | 16 Apr 2022 | ?GLIST           |
-  | *FOOBAR*          | Nearly working!  Error summing user input             |  1 Jun 2022 | ???              |
-  | HANGMAN (IMSUTIL) | Unimplemented syscall 401 ?SDLM                       |  2 Jun 2022 | ?SDLM            |
-  | MMM               | EAGLE_FPU instruction XFAMS NYI                       | 12 Jun 2022 | XFAMS            |
+  | EMPIRE2T          | Prompts for save file name then unimplemented syscall 077 ?FSTAT | 12 Jun 2022 | ?FSTAT           |
+  | FERRET            | unknown multiprocessor instruction #87A9              | 14 Aug 2022 | ???              |
+  | FISH              | Unimplemented sys call 476 ?TLOCK                     | 14 Aug 2022 | ?TLOCK (dummy it?) |
+  | FOOBAR            | *Runs to completion - seems to work perfectly :-)*    | 14 Aug 2022 |                  |
+  | HANGMAN (IMSUTIL) | Prints instructions then unimplemented syscall 401 ?SDLM|  2 Jun 2022 | ?SDLM            |
+  | MMM               | Intro works, then EAGLE_FPU instruction XFAMS NYI     | 12 Jun 2022 | XFAMS            |
   | OTHELLO (IMSUTIL) | *Runs to completion - seems to work perfectly :-)*    |  2 Jun 2022 |                  |
   | QUEST_SERVER      | Loop after ?GTOD                                      |  5 Jun 2021 | ???              |
   | QUEST             | Welcome, prompt for initials, ?RETURN. (server was not running)   | 16 Apr 2022 |      |
   | SCRABBLE          | ?WRITE non-DS NYI                                     |  6 Aug 2022 | ?WRITE issue     |
-  | WUMPUS            | Will not accept input - extended D/S ?READ with scr mgmt packet   | 10 Jun 2022 | ?READ (extended) |
-  | YAHTZEE           | Unmapped read in XNLDA                                | 10 Jun 2021 | ??? |
+  | WUMPUS            | Won't accept input - extended D/S ?READ with scr mgmt packet | 10 Jun 2022 | ?READ (extended) |
+  | YAHTZEE           | Won't accept input - extended D/S ?READ with scr mgmt packet | 14 Aug 2022 | ?READ (extended) |
   | ZORK              | 'Heap version not compatible'                         | 10 Jun 2022 | ??? |
 
 * Other 32-bit NADGUG Programs
@@ -85,7 +86,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | Program     | Problem                                                     | Date        |  Issue  |
   |-------------|-------------------------------------------------------------|-------------|---------|
   | EMACS.PR    | 'ERROR 71187'                                               | 26 May 2022 | ???     |
-  | LOOK.PR (IMSUTIL) | ?REC NYI                                              | 15 Jun 2022 | ?REC    |
+  | LOOK.PR     | ?REC NYI                                                    | 15 Jun 2022 | ?REC    |
   
 ### Reminders
 * We have the FORTRAN source for FOOBAR and WUMPUS, and the C code for EMACS
