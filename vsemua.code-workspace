@@ -2,10 +2,14 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"name": "src",
+			"path": "../simh_tapes/src"
 		}
 	],
 	"settings": {
-		"ada.projectFile": "vsemua.gpr",
-		"ada.enableDiagnostics": false
+		"ada.projectFile": "vsemua.gpr"
+		}
 	}
 }

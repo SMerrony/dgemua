@@ -36,7 +36,7 @@ package body AOSVS.Multitasking is
         return true;
     end Sys_KILAD;
 
-    function Sys_PRI     (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
+    function Sys_PRI (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
     begin
         Loggers.Debug_Print (Sc_Log, "?PRI");
         Loggers.Debug_Print (Debug_Log, "?PRI");
@@ -52,6 +52,15 @@ package body AOSVS.Multitasking is
         raise Not_Yet_Implemented with "?REC - NYI";
         return true;
     end Sys_REC;
+
+    function Sys_TLOCK (CPU : CPU_T; Is_Locked : in out Boolean) return Boolean is
+    begin
+        if Is_Locked then
+            CPU.AC_Wd(0) :=  PARU_32.TALOCK or PARU_32.TMYRING; --  TODO not exactly right...
+        end if;
+        Is_Locked := not Is_Locked;
+        return true;
+    end Sys_TLOCK;
 
     function Sys_UIDSTAT (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean is
         Req_TID  : constant Dword_T     := CPU.AC(1);

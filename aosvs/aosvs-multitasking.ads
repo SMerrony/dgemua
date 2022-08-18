@@ -21,6 +21,7 @@ package AOSVS.Multitasking is
    function Sys_KILAD   (CPU : CPU_T; PID : Word_T; Kill_Addr : out Phys_Addr_T) return Boolean;
    function Sys_PRI     (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean;
    function Sys_REC     (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean;
+   function Sys_TLOCK   (CPU : CPU_T; Is_Locked : in out Boolean) return Boolean;
    function Sys_UIDSTAT (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean;
    function Sys_WDELAY  (CPU : CPU_T; PID : Word_T; TID : Word_T) return Boolean;
 

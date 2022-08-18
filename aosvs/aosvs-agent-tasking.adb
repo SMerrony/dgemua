@@ -60,6 +60,8 @@ package body AOSVS.Agent.Tasking is
 
       Task_Data.Debug_Logging := Logging;
 
+      Task_Data.Is_TLOCKed := false;
+
       AOSVS.Agent.Actions.Allocate_TID (PID, TID);
       Task_Data.TID  := TID;
       Task_Data.UTID := 1; -- FIXME UTID vs. TID
@@ -176,6 +178,7 @@ package body AOSVS.Agent.Tasking is
                when 8#333# => Syscall_OK := Multitasking.Sys_UIDSTAT (CPU, Task_Data.PID, Task_Data.TID);
                when 8#336# => Syscall_OK := File_Management.Sys_RECREATE (CPU, Task_Data.PID);
                -- when 8#351# => Syscall_OK := ...Sys_GTNAM...
+               when 8#476# => Syscall_OK := Multitasking.Sys_TLOCK (CPU, Task_Data.Is_TLOCKed);
                when 8#503# => Syscall_OK := Multitasking.Sys_PRI   (CPU, Task_Data.PID, Task_Data.TID);
                when 8#505# => Syscall_OK := Multitasking.Sys_KILAD (CPU, Task_Data.PID, Task_Data.Kill_Addr);
                when 8#525# => Syscall_OK := Multitasking.Sys_REC   (CPU, Task_Data.PID, Task_Data.TID);

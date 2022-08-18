@@ -1047,4 +1047,8 @@ package PARU_32 is
 	OPMD :constant Word_T :=  2#01000000_00000000#;   -- INHIBIT INITIAL FORM FEED
 	-- TODO many more flags etc. for ?GOPEN
 
+	--  ?TLOCK/?TUNLOCK PARAMETERS
+	TMYRING : constant  Word_T := 2#10000000_00000000#;
+	TALOCK  : constant  Word_T := 2#01000000_00000000#;
+
 end PARU_32; 
