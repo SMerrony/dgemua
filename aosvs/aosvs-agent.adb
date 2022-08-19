@@ -130,14 +130,8 @@ package body AOSVS.Agent is
          Format_Bits : constant Word_T := Options and 7;
          Create, Create_Or_Error, Create_If_Reqd, Recreate, Read_Only : Boolean;
          F_New       : Ada.Text_IO.File_Type;
-         --  Stream_File : Ada.Direct_IO.File_Type;
       begin
          Err := 0;
-         --  if Path = "@CONSOLE" then
-         --     Chan_Num := 0;
-         --  else
-         --     Chan_Num := Get_Free_Channel;
-         --  end if;
          Chan_Num := Get_Free_Channel;
          Agent_Chans(Chan_Num).Opener_PID := 0; --  ensure set to zero so can be resused if open fails
          Agent_Chans(Chan_Num).Path := To_Unbounded_String (Path);
@@ -212,13 +206,7 @@ package body AOSVS.Agent is
              Direct_IO.Open (Agent_Chans(Chan_Num).File_Direct, 
                              (if Read_Only then Direct_IO.In_File else Direct_IO.Inout_File),
                              Path);
-            -- Agent_Chans(Chan_Num).Access_Method := Stream;
-            -- Ada.Direct_IO.Open (Agent_Chans(Chan_Num).File_Direct,Ada.Direct_IO.In_File, Path);
-            -- Agent_Chans(Chan_Num).Stream_In_Acc := Ada.Direct_IO.Stream ( Agent_Chans(Chan_Num).File_Direct);
-            -- Ada.Direct_IO.Open (Agent_Chans(Chan_Num).File_Out_Stream,Ada.Direct_IO.Out_File, Path);
-            -- Agent_Chans(Chan_Num).Stream_Out_Acc := Ada.Direct_IO.Stream ( Agent_Chans(Chan_Num).File_Out_Stream);
-            -- Ada.Direct_IO.Open (Agent_Chans(Chan_Num).File_Append_Stream,Ada.Direct_IO.Append_File, Path);
-            -- Agent_Chans(Chan_Num).Stream_Append_Acc := Ada.Direct_IO.Stream ( Agent_Chans(Chan_Num).File_Append_Stream);
+
             Loggers.Debug_Print (Sc_Log, "-----  Channel number:" & Chan_Num'Image & " opened");
          end if;
 
@@ -356,7 +344,10 @@ package body AOSVS.Agent is
                when Dynamic =>
                   --  Rec_Len is the fixed # of Bytes to read
                   for B in 0 .. Rec_Len - 1 loop
-                     Direct_IO.Read(Agent_Chans(Integer(Chan_No)).File_Direct, Bytes(B));
+                     -- Direct_IO.Read(Agent_Chans(Integer(Chan_No)).Con, Bytes(B));
+                     Character'Read (Agent_Chans(Integer(Chan_No)).Con, Char);
+                     Byte := Char_To_Byte(Char);
+                     Bytes (B) := Byte;
                      Transferred := Transferred + 1;
                   end loop;
                when others =>

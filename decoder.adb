@@ -634,15 +634,6 @@ package body Decoder is
                  Decoded.Ac'Image & " [3-Word Instruction]";
             end if;
 
-         when ONEACC_IMMDWD_3_WORD_FMT => -- eg. WANDI, WIORI, WLDAI
-            Decoded.Ac     := AC_ID(Get_W_Bits (Opcode, 3, 2));
-            Decoded.Imm_DW := Memory.RAM.Read_Dword (PC + 1);
-            if Disassemble then
-               Decoded.Disassembly :=
-                 Decoded.Disassembly & " " & Dword_To_String(Decoded.Imm_DW, Radix, 11, false ) & "," & 
-                 Decoded.Ac'Image & " [3-Word Instruction]";
-            end if;
-
          when ONEACC_IMMWD_2_WORD_FMT => -- eg. ADDI, NADDI, NLDAI, WASHI, WSEQI, WLSHI, WNADI
             Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);

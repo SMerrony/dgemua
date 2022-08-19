@@ -42,7 +42,7 @@ DIx and DOx instructions to the BMC/DCH controller seem to be undocumented for t
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 18 Aug 2022
+* Last status update: 19 Aug 2022
 * Last significant progress: FOOBAR runs okay - 14 Aug 2022
   
 All of the following 32-bit sample programs copied from a physical machine are working...
@@ -64,7 +64,7 @@ The NADGUG library provides a good range of freely-available test targets...
   |-------------------|-------------------------------------------------------|-------------|---------|
   | 21 (BOOTER.PR)    | Unmapped write in XWSTA                                   |  5 Jun 2021 | ???              |
   | CHESS             | Prompts for options then unimplemented syscall 030 ?RUNTM |  1 Jun 2022 | ?RUNTM           |
-  | DND               | Prints welcome then extended ?READ from CONSOLE NYI       |  9 Jun 2022 | ?READ (extended) |
+  | DND               | Run for a while then FP overflow on WFFAD                 | 19 Aug 2022 | ?READ (extended) |
   | EMPIRE            | Prints version then unimplemented syscall 077 ?FSTAT      |  9 Aug 2022 | ?FSTAT           |
   | EMPIRE1           | Corrupted '@OUTPUT @' filename                            | 30 May 2022 | ???              |
   | EMPIRE2T          | Prompts for save file then unimplemented syscall 077 ?FSTAT | 12 Jun 2022 | ?FSTAT           |
