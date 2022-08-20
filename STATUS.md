@@ -42,8 +42,8 @@ DIx and DOx instructions to the BMC/DCH controller seem to be undocumented for t
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 19 Aug 2022
-* Last significant progress: FOOBAR runs okay - 14 Aug 2022
+* Last status update: 20 Aug 2022
+* Last significant progress: MMM runs okay - 20 Aug 2022
   
 All of the following 32-bit sample programs copied from a physical machine are working...
 * HW.PR - Hello, World! (13 May 2021)
@@ -72,7 +72,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | FISH              | EAGLE_Op instruction ENQH not yet implemented             | 18 Aug 2022 | ENQH             |
   | FOOBAR            | *Runs to completion - seems to work perfectly :-)*        | 14 Aug 2022 |                  |
   | HANGMAN (IMSUTIL) | Prints instructions then unimplemented syscall 401 ?SDLM  |  2 Jun 2022 | ?SDLM            |
-  | MMM               | Intro works, then EAGLE_FPU instruction XFAMS NYI         | 12 Jun 2022 | XFAMS            |
+  | MMM               | *Seems to be working :-)*                                 | 20 Aug 2022 |                  |
   | OTHELLO (IMSUTIL) | *Runs to completion - seems to work perfectly :-)*        |  2 Jun 2022 |                  |
   | QUEST_SERVER      | Loop after ?GTOD                                          |  5 Jun 2021 | ???              |
   | QUEST             | Welcome, prompt for initials, ?RETURN. (server was not running) | 16 Apr 2022 |      |

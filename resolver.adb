@@ -173,6 +173,8 @@ package body Resolver is
             Eff := Eff and 16#01ff_ffff#;
         end if;
 
+        Loggers.Debug_Print (Debug_Log, "... Resolved to: " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
+
         return Eff;
     end Resolve_15bit_Disp;
 

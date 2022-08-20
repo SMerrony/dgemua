@@ -230,6 +230,16 @@ package body Processor.Eagle_FPU_P is
             Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
             Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));
 
+         when I_XFAMS =>
+            Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            DW := RAM.Read_Dword(Addr);
+            LF := DG_Single_To_Long_Float(DW);
+            Loggers.Debug_Print (Debug_Log, "... Single float (in memory): " & LF'Image &
+                                            " from hex value: " & Dword_To_String(DW, Hex, 8, true));
+            CPU.FPAC(I.Ac) := CPU.FPAC(I.Ac) + LF;
+            Set_N (CPU, (CPU.FPAC(I.Ac) < 0.0));
+            Set_Z (CPU, (CPU.FPAC(I.Ac) = 0.0));   
+
          when I_XFLDD =>
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
             DG_Dbl.Double_QW := RAM.Read_Qword(Addr);

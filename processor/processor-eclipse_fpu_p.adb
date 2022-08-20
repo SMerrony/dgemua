@@ -126,6 +126,11 @@ package body Processor.Eclipse_FPU_P is
             if (not Get_Z(CPU)) and (not Get_N(CPU)) then
                CPU.PC := CPU.PC + 1;
             end if;
+         
+         when I_FSLE =>
+            if Get_N (CPU) or Get_Z (CPU) then
+               CPU.PC := CPU.PC + 1;
+            end if;
 
          when I_FSNE =>
             if Get_Z(CPU) then   
