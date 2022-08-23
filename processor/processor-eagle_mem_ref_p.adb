@@ -122,6 +122,8 @@ package body Processor.Eagle_Mem_Ref_P is
             CPU.AC(I.Ac) := Lower_Dword(Qword_T(Integer_64_To_Unsigned_64(S64)));
 
          when I_LWSTA =>
+            Loggers.Debug_Print (Debug_Log, "... Word 2: " & Word_To_String (I.Word_2, Hex, 4, true));
+            Loggers.Debug_Print (Debug_Log, "... Word 3: " & Word_To_String (I.Word_3, Hex, 4, true));
             Addr := Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset);
             RAM.Write_Dword (Addr, CPU.AC(I.Ac));
 

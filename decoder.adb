@@ -1,24 +1,18 @@
--- MIT License
-
 -- Copyright ©2021,2022 Stephen Merrony
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
 
 with Debug_Logs;       use Debug_Logs;
 with Devices;
@@ -190,14 +184,14 @@ package body Decoder is
       if Mode = Absolute then
          -- in this case, the displacement is handled as an unsigned 15-bit value
          -- so we can just zero-extend it
-         Disp := Word_To_Integer_16 (D15 and 16#7fff#); -- zero extend
+         Disp := Word_To_Integer_16 (D15); -- zero extend
       else
          -- we are in one of the relative moded, the displacement must be
          -- treated as a 15-bit SIGNED number
          if (D15 and 16#4000#) = 16#4000# then -- check the 2nd bit
             Disp := Word_To_Integer_16 (D15 or 16#8000#); -- sign extend 
          else
-            Disp := Word_To_Integer_16 (D15 and 16#7fff#); -- zero extend
+            Disp := Word_To_Integer_16 (D15); -- zero extended
          end if;
       end if;
       return Disp;
@@ -210,17 +204,16 @@ package body Decoder is
    end Decode_16bit_Byte_Disp;
 
    function Decode_31bit_Disp (W_1, W_2 : Word_T; Mode : Mode_T) return Integer_32 is
-      Dw_1, Dw_2 : Dword_T;
+      DW   : Dword_T;
       Disp : Integer_32;
    begin
-      Dw_1 := Shift_Left(Dword_T(W_1 and 16#7fff#), 16);
-      Dw_2 := Dword_T(W_2);
+      DW := Dword_From_Two_Words (W_1, W_2);
       if Mode /= Absolute then
-         if (W_1 and 16#4000#) /= 0 then
-            Dw_1 := Dw_1 or 16#8000_0000#;
+         if (W_1 and 16#4000#) /= 0 then -- sign extend
+            DW := DW or 16#8000_0000#;
          end if;
       end if;
-      Disp :=  Dword_To_Integer_32(Dw_1 or Dw_2);
+      Disp :=  Dword_To_Integer_32(DW);
       return Disp;
    end Decode_31bit_Disp;
 
@@ -387,7 +380,7 @@ package body Decoder is
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
-            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2, Decoded.Word_3, Decoded.Mode);
+            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2 and 16#7fff#, Decoded.Word_3, Decoded.Mode);
             Decoded.Imm_U16 := Unsigned_16(Memory.RAM.Read_Word (PC + 3));
             if Disassemble then
                Decoded.Disassembly :=
@@ -471,7 +464,7 @@ package body Decoder is
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
             Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
-            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2, Decoded.Word_3, Decoded.Mode);
+            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2 and 16#7fff#, Decoded.Word_3, Decoded.Mode);
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & 
@@ -512,7 +505,7 @@ package body Decoder is
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
             Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
-            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2, Decoded.Word_3, Decoded.Mode);
+            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2 and 16#7fff#, Decoded.Word_3, Decoded.Mode);
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Char_Indirect(Decoded.Ind) &
@@ -523,7 +516,7 @@ package body Decoder is
             Decoded.Mode    := Decode_Mode(Mode_Num_T(Get_W_Bits(Opcode, 3, 2)));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
-            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2, Memory.RAM.Read_Word (PC + 2), Decoded.Mode);
+            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2 and 16#7fff#, Memory.RAM.Read_Word (PC + 2), Decoded.Mode);
             Decoded.Arg_Count := Integer(Word_To_Integer_16(Memory.RAM.Read_Word (PC + 3)));
             if Disassemble then
                Decoded.Disassembly :=
@@ -663,7 +656,7 @@ package body Decoder is
             Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);   
             Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
-            Decoded.Disp_31 := Dword_To_Integer_32 (Dword_From_Two_Words (Decoded.Word_2,Decoded.Word_3));
+            Decoded.Disp_31 := Dword_To_Integer_32 (Dword_From_Two_Words (Decoded.Word_2,Decoded.Word_3)); --  FIXME - 32 not 31 !
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
@@ -707,7 +700,7 @@ package body Decoder is
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
             Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
-            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2, Decoded.Word_3, Decoded.Mode);
+            Decoded.Disp_31 := Decode_31bit_Disp (Decoded.Word_2 and 16#7fff#, Decoded.Word_3, Decoded.Mode);
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " &Decoded.Ac'Image & "," &
@@ -731,7 +724,7 @@ package body Decoder is
             Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 1, 2));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
             Decoded.Ind     := Test_W_Bit(Decoded.Word_2, 0);
-            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2, Decoded.Mode);
+            Decoded.Disp_15 := Decode_15bit_Disp(Decoded.Word_2 and 16#7fff#, Decoded.Mode);
             Decoded.Word_3  := Memory.RAM.Read_Word (PC + 2);
             if Disassemble then
                Decoded.Disassembly :=

@@ -1,24 +1,18 @@
--- MIT License
-
 -- Copyright ©2021,2022 Stephen Merrony
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU Affero General Public License as published
+-- by the Free Software Foundation, either version 3 of the License, or
+-- (at your option) any later version.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU Affero General Public License for more details.
+--
+-- You should have received a copy of the GNU Affero General Public License
+-- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
-
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
-
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
 
 with Debug_Logs;    use Debug_Logs;
 with Memory;        use Memory;
@@ -152,7 +146,7 @@ package body Resolver is
 
         if Indirect then
             Loggers.Debug_Print (Debug_Log, "... Indirect addr resolving from : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
-
+            Eff := Eff and 16#7fff_ffff#;
             Ind_Addr := RAM.Read_Dword (Eff);
             while (Ind_Addr and 16#8000_0000#) = 16#8000_0000# loop
                 Indirection_Level := Indirection_Level + 1;
@@ -187,20 +181,30 @@ package body Resolver is
          Ring   : constant Phys_Addr_T := CPU.PC and 16#7000_0000#;
          Ind_Addr : Dword_T;
          Indirection_Level : Integer := 0;
-      begin
+    begin
+
          case Mode is
             when Absolute =>
                -- Zero-extend to 28 bits
-               Eff := Phys_Addr_T(Integer_32_To_Dword(Disp)); --  or Ring;
+               Eff := Integer_32_To_Phys(Disp); --  or Ring;
             when PC =>
-               Eff := Phys_Addr_T(Integer_32_To_Dword(Dword_To_Integer_32(Dword_T(CPU.PC)) + Disp + Disp_Offset));
+               Eff := Integer_32_To_Phys(Dword_To_Integer_32(Dword_T(CPU.PC)) + Disp + Disp_Offset);
             when AC2 =>
-               Eff := Phys_Addr_T(Integer_32_To_Dword(CPU.AC_I32(2) + Disp));
+               Eff := Integer_32_To_Phys(CPU.AC_I32(2) + Disp);
             when AC3 =>
-               Eff := Phys_Addr_T(Integer_32_To_Dword(CPU.AC_I32(3) + Disp));
+               Eff := Integer_32_To_Phys(CPU.AC_I32(3) + Disp);
          end case;
 
+        --  --  debugging...
+        --  if (Eff and 16#8000_0000#) = 16#8000_0000# then
+        --      Loggers.Debug_Print (Debug_Log, "Mode: "& Mode'Image & " Disp: " & Disp'Image & "(10)");
+        --      Loggers.Debug_Print (Debug_Log, "Mode: "& Mode'Image & " Disp: " & Dword_To_String (Dword_T(Eff), Hex, 8, true) & "(16)");
+        --      raise Illegal_Address with "Illegal address during resolution: " & Dword_To_String (Dword_T(Eff), Hex, 8, true);
+        --  end if;
+
+         -- if Indirect or ((Eff and 16#8000_0000#) = 16#8000_0000#) then
          if Indirect then
+            Eff := Eff and 16#7fff_ffff#;
             Eff := Eff or Ring;
             Ind_Addr := RAM.Read_Dword (Eff);
             while (Ind_Addr and 16#8000_0000#) /= 0 loop
