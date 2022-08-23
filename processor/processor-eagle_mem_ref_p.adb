@@ -39,11 +39,24 @@ package body Processor.Eagle_Mem_Ref_P is
                Clear_W_Bit(CPU.PSR, 1);
          end if;
       end Set_OVR;
+
+      function WA_from_BA (W1, W2 : Word_T) return Integer_32 is
+         Neg : constant Boolean := (W1 and 16#8000#) = 16#8000#;
+         I32 : Integer_32;
+      begin
+         if Neg then
+            I32 := Dword_To_Integer_32 (16#8000_0000# or Shift_Right (Dword_From_Two_Words (W1,W2), 1));
+         else 
+            I32 := Dword_To_Integer_32 (Shift_Right (Dword_From_Two_Words (W1,W2), 1));
+         end if;
+         return I32;
+      end WA_from_BA;
+
    begin
       case I.Instruction is
 
          when I_LLDB =>
-            I32 := I.Disp_31 / 2;
+            I32 := WA_from_BA(I.Word_2,I.Word_3);
             Addr := Resolve_31bit_Disp (CPU, false, I.Mode, I32, I.Disp_Offset);
             Low_Byte := (I.Disp_31 mod 2 = 1);
             CPU.AC(I.Ac) := Dword_T(RAM.Read_Byte(Addr, Low_Byte));
@@ -52,7 +65,7 @@ package body Processor.Eagle_Mem_Ref_P is
             CPU.AC(I.Ac) := Dword_T(Resolve_31bit_Disp (CPU, I.Ind, I.Mode, I.Disp_31, I.Disp_Offset));
 
          when I_LLEFB =>
-            I32 := I.Disp_31 / 2;
+            I32 := WA_from_BA(I.Word_2,I.Word_3);
             Addr := Shift_Left(Resolve_31bit_Disp (CPU, false, I.Mode, I32, I.Disp_Offset), 1);
             if I.Disp_31 mod 2 = 1 then
                Addr := Addr or 1;
@@ -88,7 +101,7 @@ package body Processor.Eagle_Mem_Ref_P is
             RAM.Write_Word (Addr, CPU.AC_Wd(I.Ac));
 
          when I_LSTB =>
-            I32 := I.Disp_31 / 2;
+            I32 := WA_from_BA(I.Word_2,I.Word_3);
             Addr := Resolve_31bit_Disp (CPU, false, I.Mode,I32, I.Disp_Offset);
             Low_Byte :=(I.Disp_31 mod 2 = 1);
             RAM.Write_Byte(Addr, Low_Byte, Byte_T(CPU.AC(I.Ac)));

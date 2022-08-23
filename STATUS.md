@@ -42,7 +42,7 @@ DIx and DOx instructions to the BMC/DCH controller seem to be undocumented for t
 
 ## Virtual (AOS/VS) Emulator - vsemua
 
-* Last status update: 20 Aug 2022
+* Last status update: 23 Aug 2022
 * Last significant progress: MMM runs okay - 20 Aug 2022
   
 All of the following 32-bit sample programs copied from a physical machine are working...
@@ -66,7 +66,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | CHESS             | Prompts for options then unimplemented syscall 030 ?RUNTM |  1 Jun 2022 | ?RUNTM           |
   | DND               | Run for a while then FP overflow on WFFAD                 | 19 Aug 2022 | ?READ (extended) |
   | EMPIRE            | Prints version then unimplemented syscall 077 ?FSTAT      |  9 Aug 2022 | ?FSTAT           |
-  | EMPIRE1           | Corrupted '@OUTPUT @' filename                            | 30 May 2022 | ???              |
+  | EMPIRE1           | Unmapped read for PC?                                     | 23 Aug 2022 | ???              |
   | EMPIRE2T          | Prompts for save file then unimplemented syscall 077 ?FSTAT | 12 Jun 2022 | ?FSTAT           |
   | FERRET            | unknown multiprocessor instruction #87A9                  | 14 Aug 2022 | ???              |
   | FISH              | EAGLE_Op instruction ENQH not yet implemented             | 18 Aug 2022 | ENQH             |
@@ -75,7 +75,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | MMM               | *Seems to be working :-)*                                 | 20 Aug 2022 |                  |
   | OTHELLO (IMSUTIL) | *Runs to completion - seems to work perfectly :-)*        |  2 Jun 2022 |                  |
   | QUEST_SERVER      | Loop after ?GTOD                                          |  5 Jun 2021 | ???              |
-  | QUEST             | Welcome, prompt for initials, ?RETURN. (server was not running) | 16 Apr 2022 |      |
+  | QUEST             | Welcome, prompt for initials, 'Quest server is not up'    | 23 Aug 2022 |      |
   | SCRABBLE          | ?WRITE non-DS NYI                                         |  6 Aug 2022 | ?WRITE issue     |
   | WUMPUS            | Won't accept input - extended D/S ?READ with scr mgmt pkt | 10 Jun 2022 | ?READ (extended) |
   | YAHTZEE           | Won't accept input - extended D/S ?READ with scr mgmt pkt | 14 Aug 2022 | ?READ (extended) |
@@ -85,7 +85,7 @@ The NADGUG library provides a good range of freely-available test targets...
 
   | Program     | Problem                                                     | Date        |  Issue  |
   |-------------|-------------------------------------------------------------|-------------|---------|
-  | EMACS.PR    | 'ERROR 71187'                                               | 26 May 2022 | ???     |
+  | EMACS.PR    | Unmapped read in XNLDA                                      | 23 Aug 2022 | ???     |
   | LOOK.PR     | ?REC NYI                                                    | 15 Jun 2022 | ?REC    |
   
 ### Reminders

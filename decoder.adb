@@ -327,6 +327,8 @@ package body Decoder is
       Decoded.Instr_Len   := Instruction_Set (Instr).Instr_Len;
       Decoded.Disp_Offset := Instruction_Set (Instr).Disp_Offset;
 
+      Decoded.Ind := false;
+
       case Decoded.Format is  
 
          when IMM_MODE_2_WORD_FMT => -- eg. XNADI, XNSBI, XNSUB, XWADI, XWSBI
@@ -644,7 +646,6 @@ package body Decoder is
             if Disassemble then
                Decoded.Disassembly :=
                  Decoded.Disassembly & " " & Decoded.Ac'Image & "," &
-                 Char_Indirect(Decoded.Ind) & 
                  Int_To_String (Integer(Decoded.Disp_15 * 2), Radix, 8, false, true) & "+" &
                  Low_Byte_To_Char (Decoded.Low_Byte) &
                  String_Mode(Decoded.Mode) & " [2-Word Instruction]";
