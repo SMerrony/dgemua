@@ -83,6 +83,7 @@ package AOSVS is
     function Slashify_Path (In_Str : String) return String; 
     procedure Dump_Packet (Addr, Len : Phys_Addr_T);
 
+    Debugging,
     Invalid_PR_File,
     Invalid_Directory,
     Not_Yet_Implemented,

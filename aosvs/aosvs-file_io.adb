@@ -231,6 +231,7 @@ package body AOSVS.File_IO is
         if Logging then
             Loggers.Debug_Print (Sc_Log, "?WRITE - Channel:" & Chan_No'Image & " for PID:" & PID'Image & " TID:" & TID'Image);
             Loggers.Debug_Print (Debug_Log, "?WRITE - Channel:" & Chan_No'Image);
+            -- raise Debugging with "Stopping at ?WRITE";
             Loggers.Debug_Print (Sc_Log, "------ ?ISTI: " & Word_To_String (File_Spec, Binary, 16, true) & " " & Word_To_String (File_Spec, Octal, 6, true));
             if Open_Fmt then
                 Loggers.Debug_Print (Sc_Log, "------ Default Type from ?OPEN");

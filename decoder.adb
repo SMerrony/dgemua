@@ -630,10 +630,9 @@ package body Decoder is
          when ONEACC_IMMWD_2_WORD_FMT => -- eg. ADDI, NADDI, NLDAI, WASHI, WSEQI, WLSHI, WNADI
             Decoded.Ac      := AC_ID(Get_W_Bits (Opcode, 3, 2));
             Decoded.Word_2  := Memory.RAM.Read_Word (PC + 1);
-            Decoded.Imm_S16 := Word_To_Integer_16(Decoded.Word_2);
             if Disassemble then
                Decoded.Disassembly :=
-                 Decoded.Disassembly & " " & Int_To_String (Integer(Decoded.Imm_S16), Radix, 8, false, true) & "," & 
+                 Decoded.Disassembly & " " & Word_To_String (Decoded.Word_2, Radix, 8, false) & "," & 
                  Decoded.Ac'Image & " [2-Word Instruction]";
             end if;
 

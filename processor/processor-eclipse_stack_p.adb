@@ -96,14 +96,14 @@ package body Processor.Eclipse_Stack_P is
                Narrow_Stack.Push(Ring, CPU.AC_Wd(0)); -- 1
                Narrow_Stack.Push(Ring, CPU.AC_Wd(1)); -- 2
                Narrow_Stack.Push(Ring, CPU.AC_Wd(2)); -- 3 
-               Narrow_Stack.Push(Ring, NFP_Sav);               -- 4
+               Narrow_Stack.Push(Ring, NFP_Sav);      -- 4
                Word := CPU.AC_Wd(3);
                if CPU.Carry then
                   Word := Word or 16#8000#;
                else
                   Word := Word and 16#7fff#;
                end if;
-               Narrow_Stack.Push(Ring, Word);                  -- 5
+               Narrow_Stack.Push(Ring, Word);         -- 5
                RAM.Write_Word (NSP_Loc or Ring, NSP_Sav + 5 + Word_T(I.Imm_U16));
                RAM.Write_Word (NFP_Loc or Ring, NSP_Sav + 5);
                CPU.AC(3) := Dword_T(NSP_Sav) + 5;

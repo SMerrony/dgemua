@@ -13,7 +13,6 @@
 -- You should have received a copy of the GNU Affero General Public License
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 with Ada.Text_IO; use Ada.Text_IO;
 
 package body Processor.Eclipse_Op_P is 
@@ -37,7 +36,7 @@ package body Processor.Eclipse_Op_P is
 
          when I_ANDI =>
             Word := CPU.AC_Wd(I.Ac);
-            CPU.AC(I.Ac) := Dword_T(Word and DG_Types.Integer_16_To_Word(I.Imm_S16)) and 16#0000_ffff#;
+            CPU.AC(I.Ac) := Dword_T(Word and I.Word_2) and 16#0000_ffff#;
 
          when I_DHXL =>
             declare
@@ -50,8 +49,8 @@ package body Processor.Eclipse_Op_P is
                end if;
                Dword := Dword_From_Two_Words (CPU.AC_Wd(I.Ac), CPU.AC_Wd(D_Plus_1));
                Dword := Shift_Left (Dword, Natural(I.Imm_U16) * 4);
-               CPU.AC(I.Ac) := Dword_T(DG_Types.Upper_Word (Dword));
-               CPU.AC(D_Plus_1) := Dword_T(DG_Types.Lower_Word (Dword));
+               CPU.AC_Wd(I.Ac) := DG_Types.Upper_Word (Dword);
+               CPU.AC_Wd(D_Plus_1) := DG_Types.Lower_Word (Dword);
             end;
 
          when I_DIVX =>
