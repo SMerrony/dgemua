@@ -198,9 +198,14 @@ package body Decoder is
    end Decode_15bit_Disp; 
 
    procedure Decode_16bit_Byte_Disp (D16 : Word_T; Disp_16 : out Integer_16; Lo_Byte : out Boolean) is
+      Neg : constant Boolean := Test_W_Bit (D16, 0);
    begin
       Lo_Byte := Test_W_Bit (D16, 15);
-      Disp_16 := Word_To_Integer_16(D16) / 2;
+      if Neg then
+         Disp_16 := Word_To_Integer_16(16#8000# or Shift_Right (D16, 1));
+      else 
+         Disp_16 := Word_To_Integer_16(Shift_Right (D16, 1));
+      end if;
    end Decode_16bit_Byte_Disp;
 
    function Decode_31bit_Disp (W_1, W_2 : Word_T; Mode : Mode_T) return Integer_32 is

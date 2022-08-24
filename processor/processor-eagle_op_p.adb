@@ -228,7 +228,7 @@ package body Processor.Eagle_Op_P is
             end;
 
          when I_WHLV =>
-            S32 := CPU.AC_I32(I.Ac) / 2;
+            S32 := CPU.AC_I32(I.Ac) / 2; --  This should be correct, Ada roiunds down
             CPU.AC_I32(I.Ac) := S32;
 
          when I_WINC =>

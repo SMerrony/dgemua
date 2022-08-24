@@ -64,7 +64,7 @@ The NADGUG library provides a good range of freely-available test targets...
   |-------------------|-------------------------------------------------------|-------------|---------|
   | 21 (BOOTER.PR)    | Unmapped write in XWSTA                                   |  5 Jun 2021 | ???              |
   | CHESS             | Prompts for options then unimplemented syscall 030 ?RUNTM |  1 Jun 2022 | ?RUNTM           |
-  | DND               | Run for a while then FP overflow on WFFAD                 | 19 Aug 2022 | ?READ (extended) |
+  | DND               | Run for a while then unhandled FP overflow on WFFAD       | 19 Aug 2022 | WFFAD            |
   | EMPIRE            | Prints version then unimplemented syscall 077 ?FSTAT      |  9 Aug 2022 | ?FSTAT           |
   | EMPIRE1           | Unmapped read for PC?                                     | 23 Aug 2022 | ???              |
   | EMPIRE2T          | Prompts for save file then unimplemented syscall 077 ?FSTAT | 12 Jun 2022 | ?FSTAT           |
