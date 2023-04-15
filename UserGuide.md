@@ -2,9 +2,8 @@
 
 The current version of mvemua emulates a minimally-configured Data General MV/10000 minicomputer from c.1983.
 
-To use the emulator you will need a DASHER compatible terminal emulator with telnet support, [DasherG](https://github.com/SMerrony/DasherG) is known to work well.
-The terminal emulator will operate as the master console of the minicomputer and the emulator will not begin 
-operation until it is connected.
+To use the emulator you will need a DASHER compatible terminal emulator with telnet support, [DasherA](https://github.com/SMerrony/dashera) is known to work well.
+The terminal emulator will operate as the master console of the minicomputer and the emulator will not begin operation until it is connected.
 
 Depending upon the build of mvemua, more or less informational and debugging output will be sent to the invoking terminal.
 
@@ -12,11 +11,9 @@ Depending upon the build of mvemua, more or less informational and debugging out
 
   `./mvemua[-do scriptfile]`
 
-When mvemua is started from a console you may optionally supply a script name which will be executed as an 
-initial DO SCRIPT (see below) once a console is attached.
+When mvemua is started from a console you may optionally supply a script name which will be executed as an initial DO SCRIPT (see below) once a console is attached.
 
-Once you have invoked mvemua you must connect a DASHER terminal emulator to port 10000 on the local machine.
-The emulator will not initialise until there is a connection on that port.
+Once you have invoked mvemua you must connect a DASHER terminal emulator to port 10000 on the local machine.  The emulator will not initialise until there is a connection on that port.
 
 You should immediately be greeted with the welcome message...
 
@@ -34,15 +31,12 @@ For a full list of options type
 You may change the default console and status monitor addresses using the `-consoleaddr` and `-statusaddr` flags respectively.
 
 ## Emulator Commands ##
-mvemua commands are all entered at the console terminal which behaves rather like the SCP on a real MV/10000 but 
-with additional commands to control the emulation; so there are two groups of commands: SCP-CLI commands and Emulator commands.
+mvemua commands are all entered at the console terminal which behaves rather like the SCP on a real MV/10000 but with additional commands to control the emulation; so there are two groups of commands: SCP-CLI commands and Emulator commands.
 
 ### SCP-CLI Commands ###
-These commands are very similar to those provided at a real MV machine (some later additions have been added to 
-the original MV/10000 set).
+These commands are very similar to those provided at a real MV machine (some later additions have been added to the original MV/10000 set).
 
-You can break into the SCP when the machine is running by hitting the ESCape key - the machine will pause once 
-the current instruction has finished executing.
+You can break into the SCP when the machine is running by hitting the ESCape key - the machine will pause once the current instruction has finished executing.
 
 The following commands have been implemented...
 
@@ -77,7 +71,7 @@ The following commands have been implemented...
 > STart processing from the given address, equivalent to setting the PC and typing CO.
 
 ### Emulator Commands ###
-mvemuaulator commands control the emulation environment rather than the virtual machine.  They are loosely based on [[SimH]] commands.
+Emulator commands control the emulation environment rather than the virtual machine.  They are loosely based on [SimH]() commands.
 
 #### ATT `<dev> <file>` ####
 > ATTach an image file to the named device.  Tape file images must be in SimH format.  
@@ -96,15 +90,14 @@ mvemuaulator commands control the emulation environment rather than the virtual 
 
 #### DO `<scriptfile>` ####
 > DO *emulator* commands from the file.  
-> Here is an example scriptfile which attaches a SimH tape image to the MTB device,  attaches a DPF-type disk image, and
-attempts to boot from device 22 (MTB) and finally displays the status of the CPU...
-
-    # Comments begin with a # in the first column
-    ATT MTB TAPE1.9trk
-	ATT DPJ DISK1.DPJ
-    B 22
-    .
-  
+> Here is an example scriptfile which attaches a SimH tape image to the MTB device,  attaches a DPF-type disk image, and attempts to load the bootstrap from device 22 (MTB) and finally displays the status of the CPU...
+```
+   # Comments begin with a # in the first column
+   ATT MTB TAPE1.9trk
+   ATT DPJ DISK1.DPJ
+   B 22
+   .
+```  
 #### EXIT ####
 > EXIT the emulator cleanly.
 
