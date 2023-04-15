@@ -20,6 +20,7 @@ package AOSVS.File_Management is
     function Sys_CREATE   (CPU : CPU_T; PID : Word_T) return Boolean;
     function Sys_DACL     (CPU : CPU_T; PID : Word_T) return Boolean;
     function Sys_DELETE   (CPU : CPU_T; PID : Word_T) return Boolean;
+    function Sys_FSTAT    (CPU : CPU_T; PID : Word_T) return Boolean;
     function Sys_GNAME    (CPU : CPU_T; PID : Word_T) return Boolean;
     function Sys_RECREATE (CPU : CPU_T; PID : Word_T) return Boolean;
     function Sys_RENAME   (CPU : CPU_T; PID : Word_T) return Boolean;

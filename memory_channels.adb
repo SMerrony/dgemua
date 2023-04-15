@@ -143,18 +143,21 @@ package body Memory_Channels is
       begin
          -- the slot is up to 9 bits long
          Slot :=
-           Integer (Shift_Right (M_Addr, 10) and 16#001f#) + First_DCH_Slot;
+           --  Integer (Shift_Right (M_Addr, 10) and 16#001f#) + First_DCH_Slot;
+           Integer (Shift_Right (M_Addr, 10)) + First_DCH_Slot;
          if (Slot < First_DCH_Slot) or
            (Slot > (First_DCH_Slot + Num_DCH_Slots))
          then
             raise Invalid_DCH_Slot;
          end if;
-         Offset := M_Addr and 16#0000_03ff#;
+         --  Offset := M_Addr and 16#0000_03ff#;
+         Offset := M_Addr;
          -- N.B. at some point between 1980 and 1987 the lower 5 bits of the odd word were
          -- prepended to the even word to extend the mappable space
          P_Page :=
            Shift_Left
-             (Phys_Addr_T (Registers (Slot * 2) and 16#0000_001f#), 16) or
+             --  (Phys_Addr_T (Registers (Slot * 2) and 16#0000_001f#), 16) or
+             (Phys_Addr_T (Registers (Slot * 2)), 16) or
            Phys_Addr_T (Registers ((Slot * 2) + 1));
          P_Addr := Shift_Left (P_Page, 10) or Offset;
          if Is_Logging then

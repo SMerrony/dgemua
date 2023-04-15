@@ -112,7 +112,12 @@ package body Processor.Nova_IO_P is
             if Devices.Bus.Actions.Is_Connected (I.IO_Dev) then
                Devices.Bus.Actions.Data_Out(I.IO_Dev, 0, N, I.IO_Flag);
             else
-               Loggers.Debug_Print(Debug_Log, "WARNING: NIO Attempted to unattached or non-I/O capable device");
+               if I.IO_Dev = 1 then
+                  Loggers.Debug_Print(Debug_Log, "WARNING: Ignoring I/O to device " & I.IO_Dev'Image);
+                  Put_Line("WARNING: Ignoring " & I.Instruction'Image & " I/O to device " & I.IO_Dev'Image & ".");
+               else
+                  Loggers.Debug_Print(Debug_Log, "WARNING: NIO Attempted to unattached or non-I/O capable device");
+               end if;
             end if;
 
          when I_SKP =>

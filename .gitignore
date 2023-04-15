@@ -22,6 +22,9 @@ vsemua
 /FILESYSTEM/PER
 /FILESYSTEM/UTIL
 
+# Misc private notes
+/notes
+
 # Memory dump for debugging
 mvemua.dmp
 gmon.out

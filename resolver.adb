@@ -139,9 +139,9 @@ package body Resolver is
         when PC =>
             Eff := Integer_32_To_Phys(Phys_To_Integer_32(CPU.PC) + Integer_32(Disp15) + Disp_Offset);
         when AC2 =>
-            Eff := Integer_32_To_Phys(CPU.AC_I32(2) + Integer_32(Disp15)); -- or Ring;
+            Eff := Integer_32_To_Phys(CPU.AC_I32(2) + Integer_32(Disp15)) or Ring;
         when AC3 =>
-            Eff := Integer_32_To_Phys(CPU.AC_I32(3) + Integer_32(Disp15)); -- or Ring;
+            Eff := Integer_32_To_Phys(CPU.AC_I32(3) + Integer_32(Disp15)) or Ring;
         end case;
 
         if Indirect then
@@ -161,7 +161,9 @@ package body Resolver is
             Loggers.Debug_Print (Debug_Log, "... Indirect addr resolves to    : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
         end if;
 
-        if not CPU.ATU then
+        if CPU.ATU then
+            Eff := Eff or Ring;
+        else
             -- constrain to 1st 32MB
             Loggers.Debug_Print (Debug_Log, "... ATU is OFF so constrained to to 1st 32MB");
             Eff := Eff and 16#01ff_ffff#;

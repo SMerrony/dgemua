@@ -1,11 +1,11 @@
 ## Build
-* MV/Emua: `gprbuild -Pmvemua.gpr`
-* VS/Emua: `gprbuild -Pvsemua.gpr`
+* MV/Emua: `gprbuild -Pmvemua`
+* VS/Emua: `gprbuild -Pvsemua`
 
 Default build is with debugging and without optimisation.  Append `-Xmode=release` for optimised build.
 
 ## Clean
-`gprclean -Pmvemua.gpr`
+`gprclean -Pmvemua`
 
 You *MUST* do a `gprclean` when switching between the mv- and vs- builds.
 

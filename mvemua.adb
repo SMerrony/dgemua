@@ -74,7 +74,7 @@ procedure MVEmuA is
 
    Console_Radix  : Number_Base_T := Octal; -- default console I/O number base
 
-   procedure Do_Command (Cmd : in Unbounded_String);
+   procedure Do_Command (Cmd : Unbounded_String);
 
    procedure Show_Help is
    begin
@@ -98,13 +98,13 @@ procedure MVEmuA is
          " DET <dev>              - DETach any image file from the device" & Dasher_NL &
          " DIS <from> <to>|+<#>   - DISassemble physical memory range or # from PC" & Dasher_NL &
          " DO <file>              - DO (i.e. run) emulator commands from script <file>" & Dasher_NL &
-         " EXIT                   - EXIT the emulator" & Dasher_NL &
+         " EXIT | BYE             - EXIT the emulator" & Dasher_NL &
          " LOAD <file>            - Load ASCII octal file directly into memory" & Dasher_NL &
          " SET LOGGING ON|OFF     - Turn on or off debug logging (logs dumped end of run)" & Dasher_NL &
          " SHOW BREAK/DEV/LOGGING - SHOW list of BREAKpoints/DEVices configured" & Dasher_NL);
    end Show_Help;
 
-   procedure Attach (Command : in Slice_Set) is
+   procedure Attach (Command : Slice_Set) is
    begin
       if Slice_Count (Command) < 3 then
          TTOut.Put_String (Dasher_NL & " *** ATT command requires arguments: <dev> and <image> ***");
@@ -143,10 +143,45 @@ procedure MVEmuA is
                TTOut.Put_String (Dasher_NL & " *** Unknown or unimplemented Device for ATT command ***");
          end if;
       end;
-
    end Attach;
 
-   procedure Boot (Command : in Slice_Set) is
+   procedure Detach (Command : Slice_Set) is
+   begin
+      if Slice_Count (Command) < 2 then
+         TTOut.Put_String (Dasher_NL & " *** DET command requires argument: <dev> ***");
+         return;
+      end if;
+      declare
+         Dev : String := Slice (Command, 2);
+         --  OK : Boolean;
+      begin
+         if Debug_Logging then
+            Loggers.Debug_Print (Debug_Log, "INFO: Detach called with parms " & Dev);
+         end if;  
+         if Dev = "MTB" then
+            Devices.Magtape6026.Drives.Detach (0);
+            TTOut.Put_String (Dasher_NL & " *** Tape Image Detached ***");
+         --  elsif Dev = "DPF" then
+         --     Devices.Disk6061.Drives.Attach (0, Image_Name, OK);
+         --     if OK then
+         --        TTOut.Put_String (Dasher_NL & " *** DPF Disk Image Attached ***");
+         --     else
+         --        TTOut.Put_String (Dasher_NL & " *** Could not attach DPF Disk Image ***");
+         --     end if;
+         --  elsif Dev = "DSKP" then
+         --     Devices.Disk6239.CB_Processor.Attach (0, Image_Name, OK);
+         --     if OK then
+         --        TTOut.Put_String (Dasher_NL & " *** DSKP Disk Image Attached ***");
+         --     else
+         --        TTOut.Put_String (Dasher_NL & " *** Could not attach DSKP Disk Image ***");
+         --     end if;   
+         else
+               TTOut.Put_String (Dasher_NL & " *** Unknown or unimplemented Device for ATT command ***");
+         end if;
+      end;
+   end Detach;
+
+   procedure Boot (Command : Slice_Set) is
       Dev : Dev_Num_T;
    begin
      if Slice_Count (Command) < 2 then
@@ -166,7 +201,7 @@ procedure MVEmuA is
       case Dev is
          when Devices.MTB =>
             Devices.Magtape6026.Drives.Load_TBOOT;
-            Processor.Boot (CPU, Devices.MTB, 10);
+            Processor.Boot (CPU, Devices.MTB, 8#10#);
          when Devices.DPF =>
             Devices.Disk6061.Drives.Load_DKBT;
             Processor.Boot (CPU, Devices.DPF, 8#10#);
@@ -181,7 +216,7 @@ procedure MVEmuA is
             TTOut.Put_String (Dasher_NL & " *** Invalid Device Number ***");
    end Boot;
 
-   procedure Break_Clear (Command : in Slice_Set) is
+   procedure Break_Clear (Command : Slice_Set) is
       BP_Addr : Phys_Addr_T;
    begin
       if Slice_Count (Command) < 2 then
@@ -193,7 +228,7 @@ procedure MVEmuA is
       TTOut.Put_String (Dasher_NL & " *** BREAKpoint cleared ***");
    end Break_Clear;
 
-   procedure Break_Set (Command : in Slice_Set) is
+   procedure Break_Set (Command : Slice_Set) is
       BP_Addr : Phys_Addr_T;
    begin
       if Slice_Count (Command) < 2 then
@@ -205,7 +240,7 @@ procedure MVEmuA is
       TTOut.Put_String (Dasher_NL & " *** BREAKpoint set ***");
    end Break_Set;
 
-   procedure Check (Command : in Slice_Set) is
+   procedure Check (Command : Slice_Set) is
    begin
       if Slice_Count (Command) < 2 then
          TTOut.Put_String (Dasher_NL & " *** CHECK command requires argument: <tape_image> ***");
@@ -214,7 +249,7 @@ procedure MVEmuA is
       TTOut.Put_String (Simh_Tapes.Scan_Image (Slice (Command, 2)));
    end Check;
 
-   procedure Dump_Memory_Readable ( Filename : in String) is
+   procedure Dump_Memory_Readable ( Filename : String) is
       use Ada.Streams.Stream_IO;
       Write_File : File_Type;
       Writer : Stream_Access;
@@ -227,7 +262,7 @@ procedure MVEmuA is
             Dword_To_String(Dword_T(RAM.Read_Word(Addr)), Hex, 4, true) & Dasher_NL);
          Addr := Addr + 1;
       end loop;
-   end;
+   end Dump_Memory_Readable;
 
    procedure Clean_Exit is
    begin
@@ -237,7 +272,7 @@ procedure MVEmuA is
       GNAT.OS_Lib.OS_Exit (0);
    end Clean_Exit;
 
-   procedure Create_Blank (Command : in Slice_Set) is
+   procedure Create_Blank (Command : Slice_Set) is
       OK : Boolean;
    begin
       if Slice_Count (Command) < 3 then
@@ -264,7 +299,7 @@ procedure MVEmuA is
       end if;
    end Create_Blank;
 
-   procedure Disassemble (Command : in Slice_Set) is
+   procedure Disassemble (Command : Slice_Set) is
       Low_Addr, High_Addr : Phys_Addr_T;
    begin
       if Slice_Count (Command) < 3 then
@@ -276,7 +311,7 @@ procedure MVEmuA is
       TTOut.Put_String (Processor.Disassemble_Range(Low_Addr, High_Addr, Console_Radix));
    end Disassemble;
 
-   procedure Do_Script (Command : in Slice_Set) is
+   procedure Do_Script (Command : Slice_Set) is
       use Ada.Text_IO;
       Do_File : File_Type;
       Script_Line : Unbounded_String;
@@ -299,7 +334,7 @@ procedure MVEmuA is
          TTOut.Put_String (Dasher_NL & " *** DO command script cannot be opened ***");
    end Do_Script;
 
-   procedure Examine (Command : in Slice_Set) is
+   procedure Examine (Command : Slice_Set) is
       Addr : Phys_Addr_T;
       New_Val_US : Unbounded_String;
    begin
@@ -391,7 +426,7 @@ procedure MVEmuA is
          raise;
    end run;
 
-   procedure Set (Command : in Slice_Set) is
+   procedure Set (Command : Slice_Set) is
    begin
       if Slice_Count (Command) < 2 then
          TTOut.Put_String (Dasher_NL & " *** SET command requires 2 arguments ***");
@@ -422,7 +457,7 @@ procedure MVEmuA is
       end; 
    end Set;
 
-   procedure Show (Command : in Slice_Set) is
+   procedure Show (Command : Slice_Set) is
    begin
       if Slice_Count (Command) < 2 then
          TTOut.Put_String (Dasher_NL & " *** SHOW command requires argument: BREAK|DEV|LOGGING ***");
@@ -468,7 +503,7 @@ procedure MVEmuA is
          TTOut.Put_String (Dasher_NL & Ada.Exceptions.Exception_Message(Error));
    end Single_Step;
 
-   procedure Start (Command : in Slice_Set) is
+   procedure Start (Command : Slice_Set) is
       Addr : Phys_Addr_T;
    begin
       if Slice_Count (Command) < 2 then
@@ -480,7 +515,7 @@ procedure MVEmuA is
       Run;
    end Start;
 
-   procedure Do_Command (Cmd : in Unbounded_String) is
+   procedure Do_Command (Cmd : Unbounded_String) is
       Words : Slice_Set;
    begin
       Create (Words, To_String(Cmd), " ", Multiple);
@@ -494,7 +529,7 @@ procedure MVEmuA is
          Run;
       elsif Command = "E" then
          Examine (Words);
-      elsif Command = "HE" then
+      elsif Command = "HE"  or Command = "HELP" then
          Show_Help;
       elsif Command = "SS" then
          Single_Step;
@@ -510,11 +545,15 @@ procedure MVEmuA is
          Check (Words);
       elsif Command = "CREATE" then
          Create_Blank (Words);  
+      elsif Command = "DET" then
+         Detach (Words);
       elsif Command = "DIS" then
          Disassemble (Words);
       elsif Command = "DO" then
          Do_Script (Words);        
-      elsif Command = "exit" or Command = "EXIT" or command = "quit" or command = "QUIT" then
+      elsif Command = "exit" or Command = "EXIT" 
+         or Command = "quit" or Command = "QUIT" 
+         or Command = "bye"  or Command = "BYE" then
          Clean_Exit;
       elsif Command = "NOBREAK" then
          Break_Clear (Words);   

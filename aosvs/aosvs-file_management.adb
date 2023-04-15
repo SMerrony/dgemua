@@ -93,6 +93,15 @@ package body AOSVS.File_Management is
         return true;
     end Sys_DELETE;
 
+    function Sys_FSTAT    (CPU : CPU_T; PID : Word_T) return Boolean is
+    begin
+        Loggers.Debug_Print (Sc_Log, "?FSTAT");
+        Loggers.Debug_Print (Debug_Log, "?FSTAT");
+        return true;
+    end Sys_FSTAT;
+
+
+
     function Sys_GNAME (CPU : CPU_T; PID : Word_T) return Boolean is
         In_Name_BA  : constant Dword_T := CPU.AC(0);
         Out_Name_BA : constant Dword_T := CPU.AC(1);

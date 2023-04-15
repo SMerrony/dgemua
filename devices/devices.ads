@@ -56,9 +56,9 @@ package Devices is
 
     type Reset_Proc_T is access protected procedure;
     type Data_Out_Proc_T is access protected procedure
-       (Datum : in Word_T; ABC : in IO_Reg_T; Flag : in IO_Flag_T);
+       (Datum : Word_T; ABC : IO_Reg_T; Flag : IO_Flag_T);
     type Data_In_Proc_T is access protected procedure
-       (ABC : in IO_Reg_T; Flag : in IO_Flag_T; Datum : out Word_T);
+       (ABC : IO_Reg_T; Flag : IO_Flag_T; Datum : out Word_T);
 
     type Device_Rec is record
         Mnemonic           : Unbounded_String;

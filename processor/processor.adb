@@ -267,6 +267,14 @@ package body Processor is
          loop
             PC := Get_PC (CPU);
 
+            -- BREAKPOINT?
+            if Any_Breakpoints then
+               if Breakpoints.Contains (PC) then
+                  Devices.Console.SCP_Handler.Set_SCP_IO (true);
+                  Devices.Console.TTOut.Put_String (" *** BREAKpoint hit ***");
+               end if;
+            end if;
+
             -- FETCH
             XCT := Get_XCT_Mode (CPU);
             if XCT then
@@ -303,14 +311,6 @@ package body Processor is
             -- XCT
             if XCT then
                Set_XCT_Mode(CPU, false);
-            end if;
-
-            -- BREAKPOINT?
-            if Any_Breakpoints then
-               if Breakpoints.Contains (PC) then
-                  Devices.Console.SCP_Handler.Set_SCP_IO (true);
-                  Devices.Console.TTOut.Put_String (" *** BREAKpoint hit ***");
-               end if;
             end if;
 
             -- Console Interrupt?

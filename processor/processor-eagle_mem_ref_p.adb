@@ -447,6 +447,9 @@ package body Processor.Eagle_Mem_Ref_P is
          when I_XNLDA =>
             Loggers.Debug_Print (Debug_Log, "... Opcode 2: " & Word_To_String (WD => I.Word_2, Base => Binary, Width => 16, Zero_Pad => True));
             Addr := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+            -- TESTING...
+            Addr := Addr or (CPU.PC and 16#7000_0000#);
+            -- END TESTING
             I16_Mem := Word_To_Integer_16 (RAM.Read_Word (Addr));
             CPU.AC_I32(I.Ac) := Integer_32(I16_Mem);
 

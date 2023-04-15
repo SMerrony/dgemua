@@ -139,6 +139,7 @@ package body AOSVS.Agent.Tasking is
                when 8#060# => Syscall_OK := Sys_Memory.Sys_SPAGE (CPU, Task_Data.PID,Task_Data.TID);
                when 8#063# => Syscall_OK := Sys_Memory.Sys_SOPEN (CPU, Task_Data.PID,Task_Data.TID);
                when 8#072# => Syscall_OK := Process.Sys_GUNM     (CPU, Task_Data.PID);
+               when 8#077# => Syscall_OK := File_Management.Sys_FSTAT (CPU, Task_Data.PID);
                when 8#073# => Syscall_OK := Sys_Memory.Sys_GSHPT(CPU, Task_Data.PID, Task_Data.Ring_Mask);
                when 8#102# => Syscall_OK := Process.Sys_GLIST (CPU, Task_Data.PID);
                when 8#111# => Syscall_OK := File_Management.Sys_GNAME (CPU, Task_Data.PID);
