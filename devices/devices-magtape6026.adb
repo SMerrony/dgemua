@@ -108,9 +108,10 @@ package body Devices.Magtape6026 is
                     Img_Stream := stream(State.SIMH_File(State.Current_Unit));
                     Read_Meta_Data (Img_Stream, Hdr);
                     if Hdr = Mtr_Tmk then
-                        Loggers.Debug_Print (Mt_Log, "WARNING: Header is EOF (Tape Mark) Indicator");
+                        Loggers.Debug_Print (Mt_Log, "WARNING: *READ* - Header is EOF (Tape Mark) Indicator");
                         State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_UnitReady or SR_1_EOF or SR_1_Error;
                     else
+                        Loggers.Debug_Print (Mt_Log, "DEBUG: *READ* - Expecting to read blocksize:" & Hdr'Image);
                         declare
                            Tape_Rec : Mt_Rec(0..Integer(Hdr));
                            W : Natural := 0;
@@ -125,8 +126,8 @@ package body Devices.Magtape6026 is
                               exit when State.Neg_Word_Count = 0;
                            end loop;
                            Read_Meta_Data (Img_Stream, Trailer);
-                           Loggers.Debug_Print (Mt_Log, "DEBUG: " & W'Image & " bytes loaded");
-                           Loggers.Debug_Print (Mt_Log, "DEBUG: Read SimH Trailer: " & Trailer'Image);
+                           Loggers.Debug_Print (Mt_Log, "DEBUG:  *READ* -" & W'Image & " bytes read");
+                           Loggers.Debug_Print (Mt_Log, "DEBUG:  *READ* - Read SimH Trailer: " & Trailer'Image);
                            -- TODO Need to verify how status should be set here...
                            State.Status_Reg_1 := SR_1_HiDensity or SR_1_9Track or SR_1_StatusChanged or SR_1_UnitReady;
                         end;

@@ -93,7 +93,7 @@ procedure MVEmuA is
          "Emulator Commands" &Dasher_Normal & Dasher_NL &
          " ATT <dev> <file> [RW]  - ATTach the image file to named device (RO)" & Dasher_NL &
          " BREAK/NOBREAK <addr>   - Set or clear a BREAKpoint" & Dasher_NL &
-         " CHECK <file>           - CHECK validity of unattached TAPE image" & Dasher_NL &
+         " CHECK <unit>|<file>    - CHECK validity of TAPE image" & Dasher_NL &
          " CREATE DPF|DSKP <file> - CREATE an empty/unformatted disk image" & Dasher_NL &
          " DET <dev>              - DETach any image file from the device" & Dasher_NL &
          " DIS <from> <to>|+<#>   - DISassemble physical memory range or # from PC" & Dasher_NL &
@@ -243,10 +243,25 @@ procedure MVEmuA is
    procedure Check (Command : Slice_Set) is
    begin
       if Slice_Count (Command) < 2 then
-         TTOut.Put_String (Dasher_NL & " *** CHECK command requires argument: <tape_image> ***");
+         TTOut.Put_String (Dasher_NL & " *** CHECK command requires argument: <tape_image> or <unit> ***");
          return;
       end if;
-      TTOut.Put_String (Simh_Tapes.Scan_Image (Slice (Command, 2)));
+      declare
+         Arg : String := Slice (Command, 2);
+      begin
+         if Arg'Length > 2 then
+            TTOut.Put_String (Simh_Tapes.Scan_Image (Slice (Command, 2)));
+         else
+            declare
+               Tape_Image : String := Devices.Magtape6026.Drives.Get_Image_Name(Integer'Value (Arg));
+               OK : boolean;
+            begin
+               Devices.Magtape6026.Drives.Detach (Integer'Value (Arg));
+               TTOut.Put_String (Simh_Tapes.Scan_Image (Tape_Image));
+               Devices.Magtape6026.Drives.Attach (Integer'Value (Arg), Tape_Image, OK);
+            end;
+         end if;
+      end;
    end Check;
 
    procedure Dump_Memory_Readable ( Filename : String) is
