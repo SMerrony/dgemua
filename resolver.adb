@@ -144,6 +144,11 @@ package body Resolver is
             Eff := Integer_32_To_Phys(CPU.AC_I32(3) + Integer_32(Disp15)) or Ring;
         end case;
 
+        -- TESTING
+        if Eff < 0 then
+            Eff := 37268 - Eff;
+        end if;
+
         if Indirect then
             Loggers.Debug_Print (Debug_Log, "... Indirect addr resolving from : " & Dword_To_String (Dword_T(Eff), Octal, 11, true));
             Eff := Eff and 16#7fff_ffff#;

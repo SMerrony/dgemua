@@ -62,7 +62,7 @@ The NADGUG library provides a good range of freely-available test targets...
   | CHESS             | Prompts for options then unimplemented syscall 030 ?RUNTM |  1 Jun 2022 | ?RUNTM           |
   | DND               | Run for a while then unhandled FP overflow on WFFAD       | 19 Aug 2022 | WFFAD            |
   | EMPIRE            | Prints version then unimplemented syscall 077 ?FSTAT      |  9 Aug 2022 | ?FSTAT           |
-  | EMPIRE1           | Unmapped read for PC?                                     | 23 Aug 2022 | ???              |
+  | EMPIRE1           | Unmapped read for PC?                                     | 23 Aug 2022 | WRTN             |
   | EMPIRE2T          | Prompts for save file then unimplemented syscall 077 ?FSTAT | 12 Jun 2022 | ?FSTAT           |
   | FERRET            | unknown multiprocessor instruction #87A9                  | 14 Aug 2022 | ???              |
   | FISH              | EAGLE_Op instruction ENQH not yet implemented             | 18 Aug 2022 | ENQH             |

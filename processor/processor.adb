@@ -372,7 +372,7 @@ package body Processor is
          -- System Call?
          PC := Get_PC (CPU);
 
-         if PC = 16#3000_0000# then
+         if PC = 16#3000_0000# then -- 06000000000
             Syscall_Trap := true;
             exit;
          else

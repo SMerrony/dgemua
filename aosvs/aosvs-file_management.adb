@@ -97,6 +97,11 @@ package body AOSVS.File_Management is
     begin
         Loggers.Debug_Print (Sc_Log, "?FSTAT");
         Loggers.Debug_Print (Debug_Log, "?FSTAT");
+        if Test_DW_Bit (CPU.AC(1), 0) then
+            --  AC0 should contain a channel number
+        else
+            --  AC0 should contain a b.p. to a Pathname
+        end if;
         return true;
     end Sys_FSTAT;
 
