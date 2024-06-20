@@ -275,7 +275,8 @@ package body Processor.Eagle_Op_P is
             S64 := Integer_64(Acd_S32) * Integer_64(Acs_S32);
             CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
             Set_OVR (CPU.Carry);
-            CPU.AC_I32(I.Acd) := Integer_64_To_Integer_32(S64); -- Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+            --  CPU.AC_I32(I.Acd) := Integer_64_To_Integer_32(S64); -- Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+            CPU.AC (I.Ac) := Lower_Dword (Integer_64_To_Qword (S64));
 
          when I_WMULS =>
             Acd_S32 := CPU.AC_I32(1);
@@ -290,6 +291,7 @@ package body Processor.Eagle_Op_P is
             CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
             Set_OVR (CPU.Carry);
             CPU.AC_I32(I.Ac) := Integer_32(S64); -- Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
+            
 
          when I_WNEG =>
             CPU.Carry := CPU.AC(I.Acs) = 16#8000_0000#; -- TODO Error in PoP?

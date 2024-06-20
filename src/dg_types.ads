@@ -247,7 +247,8 @@ package DG_Types is
     function Integer_16_To_Word  is new Ada.Unchecked_Conversion(Integer_16, Word_T);
     function Word_To_Unsigned_16 is new Ada.Unchecked_Conversion(Word_T, Unsigned_16);
     function Integer_64_To_Unsigned_64 is new Ada.Unchecked_Conversion(Integer_64, Unsigned_64);
-    function Integer_64_To_Integer_32  is new Ada.Unchecked_Conversion(Integer_64, Integer_32); 
+    --  function Integer_64_To_Integer_32  is new Ada.Unchecked_Conversion(Integer_64, Integer_32); 
     function Unsigned_32_To_Integer is new Ada.Unchecked_Conversion(Unsigned_32, Integer);
     function Integer_To_Unsigned_64 is new Ada.Unchecked_Conversion(Integer, Unsigned_64);
+    function Integer_64_To_Qword is new Ada.Unchecked_Conversion(Integer_64, Qword_T);
 end DG_Types;
