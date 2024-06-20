@@ -1,0 +1,10 @@
+name = "virtual_memory"
+description = "Memory for the AOS/VS emulator"
+version = "0.1.0-dev"
+
+authors = ["Stephen Merrony"]
+maintainers = ["Stephen Merrony <merrony@gmail.com>"]
+maintainers-logins = ["SMerrony"]
+licenses = "MIT"
+website = ""
+tags = []
