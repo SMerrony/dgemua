@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright (c) 2021 Stephen Merrony
+-- Copyright (c) 2021,2024 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ package body Memory is
 
    protected body RAM is
 
-      procedure Init (Debug_Logging : in Boolean) is
+      procedure Init (Debug_Logging : Boolean) is
       begin
          Is_Logging  := Debug_Logging;
          ATU_Enabled := False;
@@ -46,7 +46,7 @@ package body Memory is
       end Init;
 
       function Read_Byte
-        (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T
+        (Word_Addr : Phys_Addr_T; Low_Byte : Boolean) return Byte_T
       is
          W : Word_T;
       begin
@@ -57,13 +57,13 @@ package body Memory is
          return Byte_T (W and 16#00ff#);
       end Read_Byte;
 
-      function Read_Byte_BA (BA : in Dword_T) return Byte_T is
+      function Read_Byte_BA (BA : Dword_T) return Byte_T is
          LB : Boolean := Test_DW_Bit (BA, 31);
       begin
          return Read_Byte (Phys_Addr_T(Shift_Right(BA, 1)), LB);
       end Read_Byte_BA;
 
-      function  Read_Bytes_BA (BA : in Dword_T; Num : in Natural) return Byte_Arr_T is
+      function  Read_Bytes_BA (BA : Dword_T; Num : Natural) return Byte_Arr_T is
          Bytes : Byte_Arr_T (0 .. Num);
       begin
          for B in 0 .. Num - 1 loop
@@ -72,7 +72,7 @@ package body Memory is
          return Bytes;
       end Read_Bytes_BA;
 
-      procedure Write_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean; Byt : in Byte_T) is
+      procedure Write_Byte (Word_Addr : Phys_Addr_T; Low_Byte : Boolean; Byt : Byte_T) is
          Wd : Word_T := Read_Word(Word_Addr);
       begin
          if Low_Byte then
@@ -83,13 +83,13 @@ package body Memory is
          Write_Word(Word_Addr, Wd);
       end Write_Byte;
 
-      procedure Write_Byte_BA (BA : in Dword_T; Datum : in Byte_T) is
+      procedure Write_Byte_BA (BA : Dword_T; Datum : Byte_T) is
          LB : Boolean := Test_DW_Bit (BA, 31);
       begin
          Write_Byte (Phys_Addr_T(Shift_Right(BA, 1)), LB, Datum);
       end Write_Byte_BA;
 
-      procedure Copy_Byte_BA (Src, Dest : in Dword_T) is
+      procedure Copy_Byte_BA (Src, Dest : Dword_T) is
          Src_LB  : Boolean := Test_DW_Bit (Src, 31);
          Dest_LB : Boolean := Test_DW_Bit (Dest, 31);
          Byt     : Byte_T;
@@ -98,7 +98,7 @@ package body Memory is
          Write_Byte (Phys_Addr_T(Shift_Right(Dest, 1)), Dest_LB, Byt);
       end Copy_Byte_BA;
 
-      function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T is
+      function  Read_Byte_Eclipse_BA (Segment : Phys_Addr_T; BA_16 : Word_T) return Byte_T is
          Low_Byte : Boolean := Test_W_Bit(BA_16, 15);
          Addr : Phys_Addr_T;
       begin
@@ -106,7 +106,7 @@ package body Memory is
          return Read_Byte(Addr, Low_Byte);
       end Read_Byte_Eclipse_BA;
 
-      procedure Write_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T; Datum : in Byte_T) is
+      procedure Write_Byte_Eclipse_BA (Segment : Phys_Addr_T; BA_16 : Word_T; Datum : Byte_T) is
          Low_Byte : Boolean := Test_W_Bit(BA_16, 15);
          Addr : Phys_Addr_T;
       begin
@@ -114,19 +114,19 @@ package body Memory is
          Write_Byte (Addr, Low_Byte, Datum);
       end Write_Byte_Eclipse_BA;
 
-      function Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T is
+      function Read_Dword (Word_Addr : Phys_Addr_T) return Dword_T is
          (Dword_From_Two_Words(RAM (Word_Addr), RAM (Word_Addr + 1))); -- *** Direct RAM Access ***
 
-      procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T) is
+      procedure Write_Dword (Word_Addr : Phys_Addr_T; Datum : Dword_T) is
       begin
          Write_Word (Word_Addr, Upper_Word (Datum));
          Write_Word (Word_Addr + 1, DG_Types.Lower_Word (Datum));
       end Write_Dword;
 
-      function Read_Word (Word_Addr : in Phys_Addr_T) return Word_T is
+      function Read_Word (Word_Addr : Phys_Addr_T) return Word_T is
          (RAM (Word_Addr));
 
-      function Read_Qword  (Word_Addr : in Phys_Addr_T) return Qword_T is
+      function Read_Qword  (Word_Addr : Phys_Addr_T) return Qword_T is
             DW_L, DW_R : Dword_T;
         begin
             DW_L := Read_Dword (Word_Addr);
@@ -134,7 +134,7 @@ package body Memory is
             return Shift_Left(Qword_T(DW_L), 32) or Qword_T(DW_R);
         end Read_Qword;   
 
-      procedure Write_Word (Word_Addr : in Phys_Addr_T; Datum : Word_T) is
+      procedure Write_Word (Word_Addr : Phys_Addr_T; Datum : Word_T) is
       -- FOR THE MOMENT _ALL_ MEMORY WRITES ARE VIA THIS PROC
       begin
          -- -- DEBUGGING
@@ -147,7 +147,7 @@ package body Memory is
          RAM (Word_Addr) := Datum;
       end Write_Word;
 
-      procedure Write_Qword (Word_Addr : in Phys_Addr_T; Datum : Qword_T) is
+      procedure Write_Qword (Word_Addr : Phys_Addr_T; Datum : Qword_T) is
         begin
             Write_Dword(Word_Addr, Dword_T(Shift_Right(Datum, 32)));
             Write_Dword(Word_Addr + 2, Dword_T(Datum and 16#0000_ffff#));
@@ -155,7 +155,7 @@ package body Memory is
    end RAM;
 
    protected body Narrow_Stack is
-      procedure Push (Segment : in Phys_Addr_T; Datum : in Word_T) is
+      procedure Push (Segment : Phys_Addr_T; Datum : Word_T) is
          New_NSP : Word_T := RAM.Read_Word (NSP_Loc or Segment) + 1;
       begin
          RAM.Write_Word (NSP_Loc or Segment, New_NSP);
@@ -166,7 +166,7 @@ package body Memory is
          -- end if;
       end Push;
 
-      function Pop (Segment : in Phys_Addr_T) return Word_T is
+      function Pop (Segment : Phys_Addr_T) return Word_T is
          Old_NSP : Word_T := RAM.Read_Word (NSP_Loc or Segment);
          Datum   : Word_T := RAM.Read_Word (Phys_Addr_T (Old_NSP) or Segment);
       begin

@@ -1,4 +1,4 @@
--- Copyright ©2021,2022 Stephen Merrony
+-- Copyright ©2021,2022,2024 Stephen Merrony
 --
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU Affero General Public License as published
@@ -20,7 +20,7 @@ with Debug_Logs;  use Debug_Logs;
 package body Processor.Eagle_Op_P is 
 
    procedure Do_Eagle_Op (I : Decoded_Instr_T; CPU : CPU_T) is
- 
+
       Acd_S16, S16          : Integer_16;
       Acd_S32, Acs_S32, S32 : Integer_32;
       S64                   : Integer_64;
@@ -29,9 +29,9 @@ package body Processor.Eagle_Op_P is
       procedure Set_OVR (New_OVR : Boolean) is
       begin
         if New_OVR then
-            Set_W_Bit(CPU.PSR, 1);
+            Set_W_Bit(CPU.PSR, PSR_OVR);
         else
-            Clear_W_Bit(CPU.PSR, 1);
+            Clear_W_Bit(CPU.PSR, PSR_OVR);
         end if;
       end Set_OVR;
    begin
@@ -220,15 +220,15 @@ package body Processor.Eagle_Op_P is
                   if (Divd < -2147483648) or (Divd > 2147483647) then
                         Set_OVR (true);
                   else
-                     CPU.AC(0) := Dword_T(S64 mod Integer_64(S32));
-                     CPU.AC(1) := Dword_T(Divd);
+                     CPU.AC(0) := Dword_T (S64 mod Integer_64 (S32));
+                     CPU.AC(1) := Lower_Dword (Integer_64_To_Qword (Divd));
                      Set_OVR(false);
                   end if;
                end if;
             end;
 
          when I_WHLV =>
-            S32 := CPU.AC_I32(I.Ac) / 2; --  This should be correct, Ada roiunds down
+            S32 := CPU.AC_I32(I.Ac) / 2; --  This should be correct, Ada rounds down
             CPU.AC_I32(I.Ac) := S32;
 
          when I_WINC =>
@@ -276,7 +276,7 @@ package body Processor.Eagle_Op_P is
             CPU.Carry := (S64 > Max_Pos_S32) or (S64 < Min_Neg_S32);
             Set_OVR (CPU.Carry);
             --  CPU.AC_I32(I.Acd) := Integer_64_To_Integer_32(S64); -- Dword_T(Integer_64_To_Unsigned_64(S64) and 16#0000_0000_ffff_ffff#);
-            CPU.AC (I.Ac) := Lower_Dword (Integer_64_To_Qword (S64));
+            CPU.AC (I.Acd) := Lower_Dword (Integer_64_To_Qword (S64));
 
          when I_WMULS =>
             Acd_S32 := CPU.AC_I32(1);

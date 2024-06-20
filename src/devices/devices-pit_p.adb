@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright ©2022 Stephen Merrony
+-- Copyright ©2022,2024 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ package body Devices.PIT_P is
             Counter := 0;    
         end Reset;
 
-        procedure Handle_Flag (IO_Flag : in IO_Flag_T) is
+        procedure Handle_Flag (IO_Flag : IO_Flag_T) is
         begin
             case IO_Flag is
                 when C =>
@@ -66,7 +66,7 @@ package body Devices.PIT_P is
             end case;
         end Handle_Flag;        
 
-        procedure Data_In  (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
+        procedure Data_In  (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T) is
         begin
             if ABC /= A then
                 raise Unknown_IO_Command with "PIT command not supported";
@@ -75,7 +75,7 @@ package body Devices.PIT_P is
             Handle_Flag (IO_Flag);
         end Data_In;
 
-        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T) is
+        procedure Data_Out (Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T) is
         begin
             if ABC = A then
                 Initial_Count_Register := Datum;
@@ -89,7 +89,7 @@ package body Devices.PIT_P is
         function Get_Initial_Count return Word_T is (Initial_Count_Register);
         function Get_Running return Boolean is (Running);
 
-        procedure Set_Counter (C : in Word_T) is
+        procedure Set_Counter (C : Word_T) is
         begin
             Counter := C;
         end Set_Counter;

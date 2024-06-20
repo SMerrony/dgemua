@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright ©2022 Stephen Merrony
+-- Copyright ©2022,2024 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ with Devices.Bus;
 
 package body Devices.DRP_SCP is
 
-    procedure Init (Debug_Logging : in Boolean) is
+    procedure Init (Debug_Logging : Boolean) is
     begin
         Logging := Debug_Logging;
         Devices.Bus.Actions.Set_Reset_Proc    (Devices.SCP, SCP.Reset'Access);
@@ -44,7 +44,7 @@ package body Devices.DRP_SCP is
                 Devices.Bus.States.Set_Done (Devices.SCP, false); 
             end Reset;
                     
-        procedure Data_In  (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
+        procedure Data_In  (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T) is
             begin
                 if ABC /= B then
                     raise Unknown_IO_Command with "SCP DIA/DIC command not supported";
@@ -53,7 +53,7 @@ package body Devices.DRP_SCP is
                 -- Handle_Flag (IO_Flag);
             end Data_In;
 
-        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T) is
+        procedure Data_Out (Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T) is
             Cmd : Word_T;
         begin
             if ABC = B then

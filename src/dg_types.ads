@@ -1,4 +1,4 @@
--- Copyright ©2021,2022 Stephen Merrony
+-- Copyright ©2021,2022,2024 Stephen Merrony
 --
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU Affero General Public License as published
@@ -209,7 +209,6 @@ package DG_Types is
     function Upper_Dword ( QW : Qword_T) return Dword_T;
     function Qword_From_Two_Dwords (Dword_1, Dword_2 : Dword_T) return Qword_T;
     -- Dword_1 is the most-significant (left-most) DW
-
 
     -- string/integer routines
     function Int_To_String

@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright ©2021,2022 Stephen Merrony
+-- Copyright ©2021,2022,2024 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -382,8 +382,8 @@ package body Processor.Eagle_PC_P is
             --    end if;
             -- end;
             declare
-               Loop_Limit : Integer_32 := CPU.AC_I32(I.Ac);
-               Loop_Var_Addr : Phys_Addr_T := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
+               Loop_Limit : constant Integer_32 := CPU.AC_I32(I.Ac);
+               Loop_Var_Addr : constant Phys_Addr_T := Resolve_15bit_Disp (CPU, I.Ind, I.Mode, I.Disp_15, I.Disp_Offset);
                Loop_Var : Integer_32 := Integer_32(Word_To_Integer_16(RAM.Read_Word (Loop_Var_Addr))); 
             begin
                Loop_Var := Loop_Var + 1;

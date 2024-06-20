@@ -84,7 +84,7 @@ package body AOSVS.Multitasking is
         Int_Delay : constant Integer := Integer(Dword_To_Integer_32(CPU.AC(0)));
         Secs      : constant Duration   := Duration(0.001) * Int_Delay;
     begin
-        Loggers.Debug_Print (Sc_Log, "?WDELAY");
+        Loggers.Debug_Print (Sc_Log, "?WDELAY - Secs:" & Secs'Image);
         Loggers.Debug_Print (Debug_Log, "?WDELAY");
         delay Secs;
         return true;

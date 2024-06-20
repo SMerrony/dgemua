@@ -12,7 +12,7 @@ project Vsemua is
    package Compiler is
       case Mode is
          when "debug" =>
-            for Switches ("Ada") use ("-fstack-check", "-g", "-gnata", "-gnateE", "-gnatwa", "-Og");
+            for Switches ("Ada") use ("-fstack-check", "-g", "-gnata", "-gnateE", "-gnatwa");
          when "profile" =>
             for Switches ("Ada") use ("-O2", "-pg");
          when "release" =>

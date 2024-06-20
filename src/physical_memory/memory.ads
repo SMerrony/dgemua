@@ -55,21 +55,21 @@ package Memory is
     type RAM_Array is array (Legal_Addrs) of Word_T;
 
     protected RAM is
-        procedure Init (Debug_Logging : in Boolean);
-        function  Read_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean) return Byte_T;
-        function  Read_Byte_BA (BA : in Dword_T) return Byte_T;
-        procedure Write_Byte (Word_Addr : in Phys_Addr_T; Low_Byte : in Boolean; Byt : in Byte_T);
-        procedure Write_Byte_BA (BA : in Dword_T; Datum : in Byte_T);
-        procedure Copy_Byte_BA (Src, Dest : in Dword_T);
-        function  Read_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T) return Byte_T;
-        procedure Write_Byte_Eclipse_BA (Segment : in Phys_Addr_T; BA_16 : in Word_T; Datum : in Byte_T);
-        function  Read_Bytes_BA (BA : in Dword_T; Num : in Natural) return Byte_Arr_T;
-        function  Read_Dword (Word_Addr : in Phys_Addr_T) return Dword_T;
-        function  Read_Qword  (Word_Addr : in Phys_Addr_T) return Qword_T;
-        procedure Write_Dword (Word_Addr : in Phys_Addr_T; Datum : Dword_T);
-        procedure Write_Qword (Word_Addr : in Phys_Addr_T; Datum : Qword_T);
-        function  Read_Word (Word_Addr : in Phys_Addr_T) return Word_T with Inline;
-        procedure Write_Word (Word_Addr : in Phys_Addr_T; Datum : Word_T);
+        procedure Init (Debug_Logging : Boolean);
+        function  Read_Byte (Word_Addr : Phys_Addr_T; Low_Byte : Boolean) return Byte_T;
+        function  Read_Byte_BA (BA : Dword_T) return Byte_T;
+        procedure Write_Byte (Word_Addr : Phys_Addr_T; Low_Byte : Boolean; Byt : Byte_T);
+        procedure Write_Byte_BA (BA : Dword_T; Datum : Byte_T);
+        procedure Copy_Byte_BA (Src, Dest : Dword_T);
+        function  Read_Byte_Eclipse_BA (Segment : Phys_Addr_T; BA_16 : Word_T) return Byte_T;
+        procedure Write_Byte_Eclipse_BA (Segment : Phys_Addr_T; BA_16 : Word_T; Datum : Byte_T);
+        function  Read_Bytes_BA (BA : Dword_T; Num : Natural) return Byte_Arr_T;
+        function  Read_Dword (Word_Addr : Phys_Addr_T) return Dword_T;
+        function  Read_Qword  (Word_Addr : Phys_Addr_T) return Qword_T;
+        procedure Write_Dword (Word_Addr : Phys_Addr_T; Datum : Dword_T);
+        procedure Write_Qword (Word_Addr : Phys_Addr_T; Datum : Qword_T);
+        function  Read_Word (Word_Addr : Phys_Addr_T) return Word_T with Inline;
+        procedure Write_Word (Word_Addr : Phys_Addr_T; Datum : Word_T);
     private
         RAM         : RAM_Array;
         ATU_Enabled : Boolean;
@@ -77,8 +77,8 @@ package Memory is
     end RAM;
 
     protected Narrow_Stack is
-        procedure Push (Segment : in Phys_Addr_T; Datum : in Word_T);
-        function  Pop  (Segment : in Phys_Addr_T) return Word_T;
+        procedure Push (Segment : Phys_Addr_T; Datum : Word_T);
+        function  Pop  (Segment : Phys_Addr_T) return Word_T;
     end Narrow_Stack;
 
 end Memory;

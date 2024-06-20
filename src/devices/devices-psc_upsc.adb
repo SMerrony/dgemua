@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright ©2022 Stephen Merrony
+-- Copyright ©2022,2024 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ with Devices.Bus;
 
 package body Devices.PSC_UPSC is
 
-    procedure Init (Debug_Logging : in Boolean) is
+    procedure Init (Debug_Logging : Boolean) is
     begin
         Logging := Debug_Logging;
         Devices.Bus.Actions.Set_Reset_Proc    (Devices.PSC, PSC.Reset'Access);
@@ -44,7 +44,7 @@ package body Devices.PSC_UPSC is
             Devices.Bus.States.Set_Done (Devices.PSC, false); 
         end Reset;
 
-        procedure Handle_Flag (IO_Flag : in IO_Flag_T) is
+        procedure Handle_Flag (IO_Flag : IO_Flag_T) is
         begin
             case IO_Flag is
                 when S | P =>
@@ -58,7 +58,7 @@ package body Devices.PSC_UPSC is
             end case;
         end Handle_Flag;
 
-        procedure Data_In  (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T) is
+        procedure Data_In  (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T) is
         begin
             if ABC /= A then
                 -- raise Unknown_IO_Command with "PSC DIB/DIC command not supported";
@@ -79,7 +79,7 @@ package body Devices.PSC_UPSC is
             end if;
         end Data_In;
 
-        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T) is
+        procedure Data_Out (Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T) is
             Reg : Word_T;
         begin
             if ABC = A then

@@ -1,6 +1,6 @@
 -- MIT License
 
--- Copyright ©2022 Stephen Merrony
+-- Copyright ©2022,2024 Stephen Merrony
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +27,13 @@
 package Devices.DRP_SCP is
 
 
-    procedure Init (Debug_Logging : in Boolean);
+    procedure Init (Debug_Logging : Boolean);
 
     protected SCP is
         procedure Reset;
-        procedure Data_In  (ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T; Datum : out Word_T);
+        procedure Data_In  (ABC : IO_Reg_T; IO_Flag : IO_Flag_T; Datum : out Word_T);
         -- Handle DIA instruction
-        procedure Data_Out (Datum : in Word_T; ABC : in IO_Reg_T; IO_Flag : in IO_Flag_T);
+        procedure Data_Out (Datum : Word_T; ABC : IO_Reg_T; IO_Flag : IO_Flag_T);
         -- Handle DOA and NIOC instructions
     end SCP;
 
