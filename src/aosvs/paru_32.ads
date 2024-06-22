@@ -1,4 +1,4 @@
--- Copyright ©2021,2022 Stephen Merrony
+-- Copyright ©2021,2022,2024 Stephen Merrony
 --
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU Affero General Public License as published
@@ -14,8 +14,6 @@
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 -- Adapted from parts of AOS-VS 7.73 PARU.32.SR definitions file
-
-with Interfaces; use Interfaces;
 
 with DG_Types;   use DG_Types;
 

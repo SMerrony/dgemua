@@ -1,10 +1,16 @@
 ## Build
+
+`alr build` now builds both executables, or...
+
 * MV/Emua: `gprbuild -Pmvemua`
 * VS/Emua: `gprbuild -Pvsemua`
 
 Default build is with debugging and without optimisation.  Append `-Xmode=release` for optimised build.
 
 ## Clean
+
+`alr clean` or...
+
 `gprclean -Pmvemua`
 
 You *MUST* do a `gprclean` when switching between the mv- and vs- builds.
